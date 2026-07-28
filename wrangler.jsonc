@@ -12,9 +12,7 @@
     {
       "binding": "DB",
       "database_name": "attention_feed",
-      // placeholder id — replaced by `wrangler d1 create attention_feed` output before remote deploy;
-      // local dev uses miniflare's local sqlite regardless of this value
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "98fba2de-b2d5-40bc-9e1d-16c8c95e9be3"
     }
   ]
   // Secrets (set via `wrangler secret put`, or .dev.vars locally — never here):
