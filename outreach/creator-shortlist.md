@@ -12,9 +12,10 @@ answer their own DMs and already share links with their audience.
    a math video is charming; an image-managed celeb sharing anything is a PR meeting).
 4. **Reachable** — answers DMs / has a public email / shares a community with Ava.
 
-**Order of attack: Ava's own network first.** A warm yes from a 5K-follower friend beats three
-weeks of cold-DMing 100K strangers — pilot #1 is for learning, not reach. Korean dev/tech
-community and sports-science circles (SSMT adjacency) are the two warmest ponds.
+**Order of attack (owner 2026-07-28: personal network is off the table — cold/public only).**
+Niches, in owner's words: *tech solopreneurs; health-conscious people; science lovers; sports
+athletes and practitioners.* Cold outreach ranking below reflects fit + reachability, and
+@avakim build-in-public posts double as inbound for the solopreneur niche (they ARE that audience).
 
 ## Archetypes (in rough order of fit)
 
@@ -27,9 +28,43 @@ community and sports-science circles (SSMT adjacency) are the two warmest ponds.
 | Sports-science practitioner | Ava's SSMT world; evidence-sharing is the culture | Newsletter link sections |
 | Korean tech YouTuber / dev blogger | Ava's bilingual edge; less competition for the pitch | 카페/오픈카톡 link culture |
 
-Concrete names: pick together with Ava per archetype and **verify current follower counts and
-DM-openness before contact** — do not trust remembered numbers. (Deliberately not pre-filling
-names from model memory; stale facts here are worse than blanks.)
+## Candidates by niche (researched 2026-07-28 — **verify size + DM-openness before contact**)
+
+### 1. Tech solopreneurs — best fit, attack first
+The build-in-public crowd shares links/tools daily, answers DMs from strangers as a norm, and
+**using Tuned is itself build-in-public content for them** — they amplify what they adopt.
+| Candidate | Why | Caveat |
+|---|---|---|
+| Arvid Kahl (The Bootstrapped Founder) | Weekly essays on audience-building; famously approachable | Sizeable — may delegate DMs |
+| Tony Dinh | Ships tools publicly, shares finds constantly | — |
+| Jon Yongfook (Bannerbear) | Ships-in-public culture veteran | — |
+| Marc Lou / Danny Postma | Archetype-perfect | Possibly too big/busy now — check |
+| Smaller IH newsletter writers (e.g. the 3.7K-sub Beehiiv tier from Listen Up IH's list) | Mid-tier, hungry, reply fast | Fan-demand smaller |
+
+### 2. Science lovers
+| Candidate | Why | Caveat |
+|---|---|---|
+| Marianna Limas (Science Writing News Roundup, Substack) | **Already hand-builds a weekly link roundup — the exact habit, productized** | Audience = scicomm pros, niche |
+| Mid-tier scicomm Substackers/YouTubers (sweep Substack science leaderboard) | Curation culture strong | Avoid mega names (Quanta, New Scientist = orgs, not creators) |
+
+### 3. Sports practitioners (SSMT adjacency)
+Practitioners before athletes: athletes are image-managed (caught-liking risk), practitioners
+share research as their culture.
+| Candidate | Why | Caveat |
+|---|---|---|
+| Absolute Sport Science (Substack) | Monthly in-review + weekly evidence posts = link-dump habit | — |
+| Lenny Macrina (physio, Champion PT) | Evidence-backed sharer, publishes + posts | US-centric audience |
+| Sourcing hack: the *Journal of Sports Sciences* paper "Top sports medicine influencers on X" | A literal ranked list of research-sharing practitioners | Filter to mid-tier |
+
+### 4. Health-conscious — attack last
+Highest credibility risk: the niche is full of hype accounts, and Tuned's pitch ("follow my
+attention") is only as good as the attention. Stick to evidence-based, skeptic-flavored curators.
+| Candidate | Why | Caveat |
+|---|---|---|
+| The Longevity Digest (Dr Onyx MD PhD) | Runs dated weekly digests already | — |
+| Longevity Today (Ryan Frankel) | Weekly single-topic evidence breakdowns | — |
+| Longevity Code | Bioscientist, evidence-first | — |
+| **Avoid:** hype/polarizing mega-figures | Brand risk both directions | — |
 
 ## What would kill the pilot (watch for these)
 
