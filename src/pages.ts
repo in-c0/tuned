@@ -203,6 +203,21 @@ select:focus, input:focus { border-color: var(--accent); }
 .intro-card .dismiss { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--faint); cursor: pointer; font-size: 14px; }
 .intro-card ul { margin: 8px 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
 
+/* ---------- share result / setup ---------- */
+.share-result { padding: 40px 0; text-align: left; }
+.share-result h1 { font-size: 24px; letter-spacing: -0.02em; margin: 10px 0 18px; }
+.share-badge {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: #fff; font-size: 20px; font-weight: 700;
+}
+.share-badge.err { background: #ff5d73; }
+.share-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.endpoint {
+  display: flex; gap: 10px; align-items: center; margin-top: 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+}
+.endpoint code { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; flex: 1; }
+
 /* ---------- dialog ---------- */
 dialog {
   background: var(--panel2); color: var(--text); border: 1px solid var(--line);
@@ -344,15 +359,18 @@ $("copy-public")?.addEventListener("click", async (e) => {
 });
 `;
 
-function layout(title: string, accent: string, body: string, js = ""): string {
+function layout(title: string, accent: string, body: string, js = "", head = ""): string {
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0b10">
+<link rel="icon" href="/icon-192.png">
 <title>${esc(title)}</title>
 <style>${CSS}</style>
 <style>:root { --accent: ${esc(accent)}; }</style>
+${head}
 </head>
 <body>
 <div class="wrap">${body}</div>
@@ -496,6 +514,7 @@ export function studioPage(creator: Creator, items: Item[]): string {
     </div>
     <div class="head-actions">
       <button class="btn" id="copy-public" data-url="/${esc(creator.handle)}">Copy fan link</button>
+      <a class="btn" href="/studio/${esc(creator.token ?? "")}/setup">📲 One-tap sharing</a>
     </div>
   </div>
   <div class="intro-card" id="intro" hidden>
@@ -505,6 +524,7 @@ export function studioPage(creator: Creator, items: Item[]): string {
       <li><b>When?</b> Whenever something's worth your attention — the morning skim, the 2am rabbit hole. Little and often beats big and rare.</li>
       <li><b>What do fans see?</b> Everything you publish, newest first, plus a weekly breakdown of where your attention went. Tap "view public page" to see exactly what they see.</li>
       <li><b>What's required of you?</b> Only the link. Notes are optional. Hide anything, any time — hidden items vanish from your public page instantly.</li>
+      <li><b>Faster than paste:</b> <a href="/studio/${esc(creator.token ?? "")}/setup" style="text-decoration:underline">set up one-tap sharing</a> — ${esc(BRAND)} in your phone's share menu.</li>
       <li><b>Who can post here?</b> Anyone with this studio link — so don't share it. Share the fan link instead.</li>
     </ul>
   </div>
@@ -531,7 +551,13 @@ export function studioPage(creator: Creator, items: Item[]): string {
   <div class="section-h"><h2>Published — ${items.filter((i) => i.visibility === "public").length} public, ${items.filter((i) => i.visibility === "hidden").length} hidden</h2><div class="rule"></div></div>
   ${items.map((i) => card(i, { studio: true })).join("") || `<div class="empty">Your feed is empty. Paste your first link above.</div>`}
   <footer>this studio link is secret — anyone with it can post as you. <b>Don't share it.</b></footer>`;
-  return layout(`Studio — ${creator.name}`, creator.accent, body, CLIENT_JS + STUDIO_JS);
+  const head = `<link rel="manifest" href="/studio/${esc(creator.token ?? "")}/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-192.png">`;
+  const swJs = /* js */ `
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/studio/${creator.token ?? ""}/sw.js", { scope: "/studio/" }).catch(() => {});
+  }`;
+  return layout(`Studio — ${creator.name}`, creator.accent, body, CLIENT_JS + STUDIO_JS + swJs, head);
 }
 
 export function landingPage(creators: Creator[]): string {
@@ -556,7 +582,7 @@ export function landingPage(creators: Creator[]): string {
   <div class="section-h"><h2>If you're the one being followed</h2><div class="rule"></div></div>
   <div class="explain">
     <div class="step"><span class="n">1</span><div><b>Something catches your attention.</b> A video, a paper, a song, a thread — anywhere, any time of day.</div></div>
-    <div class="step"><span class="n">2</span><div><b>Flick it to your feed.</b> Paste the link in your studio. Title, image and category are fetched for you.</div></div>
+    <div class="step"><span class="n">2</span><div><b>Flick it to your feed.</b> Share → ${esc(BRAND)} from any app (or paste the link in your studio). Title, image and category are fetched for you.</div></div>
     <div class="step"><span class="n">3</span><div><b>That's the whole job.</b> No caption, no take, no content treadmill. A note is allowed, never expected.</div></div>
     <p class="fine">You keep total control: hide any item, any time, and it's gone from your public page. Share only the slice of your attention you want followed.</p>
   </div>
@@ -580,6 +606,94 @@ export function landingPage(creators: Creator[]): string {
   ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
   <footer>${esc(TAGLINE)} · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
   return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body);
+}
+
+export type ShareState =
+  | { status: "published"; item: Item }
+  | { status: "duplicate"; item: Item }
+  | { status: "nourl"; raw: string };
+
+export function sharePage(creator: Creator, token: string, state: ShareState): string {
+  const studio = `/studio/${esc(token)}`;
+  let main: string;
+  if (state.status === "nourl") {
+    main = `
+    <div class="share-result">
+      <div class="share-badge err">✕</div>
+      <h1>No link in that share</h1>
+      <p class="prose">We couldn't find a URL in what was shared${state.raw ? ` (<i>${esc(state.raw.slice(0, 80))}</i>)` : ""}.
+      Try sharing from the app's own share button, or paste the link in your studio.</p>
+      <div class="share-actions"><a class="btn primary" href="${studio}">Open studio</a></div>
+    </div>`;
+  } else {
+    const dup = state.status === "duplicate";
+    main = `
+    <div class="share-result">
+      <div class="share-badge">${dup ? "=" : "✓"}</div>
+      <h1>${dup ? "Already in your feed" : "Published"}</h1>
+      ${card(state.item)}
+      <div class="share-actions">
+        <button class="btn" id="hide-btn" data-id="${state.item.id}">${state.item.visibility === "public" ? "Hide it" : "Hidden ✓"}</button>
+        <a class="btn" href="${studio}">Studio</a>
+        <a class="btn" href="/${esc(creator.handle)}" target="_blank">Public page</a>
+      </div>
+      <p class="fine">${dup ? "Shared in the last 24h — not added twice." : "Live on your public page now. Hide it any time."}</p>
+    </div>`;
+  }
+  const js = /* js */ `
+  document.querySelectorAll(".time[data-t]").forEach(el => {
+    el.textContent = "just now";
+  });
+  const hb = document.getElementById("hide-btn");
+  if (hb) hb.addEventListener("click", async () => {
+    await fetch("${studio}/items/" + hb.dataset.id + "/toggle", { method: "POST" });
+    hb.textContent = hb.textContent.includes("Hide") ? "Hidden ✓" : "Hide it";
+  });`;
+  return layout(`Shared — ${BRAND}`, creator.accent, `
+  <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span></div>
+  ${main}`, js);
+}
+
+export function setupPage(creator: Creator, token: string, origin: string): string {
+  const studio = `${origin}/studio/${esc(token)}`;
+  const endpoint = `${studio}/share-api`;
+  const bookmarklet = `javascript:void(window.open('${studio}/share?url='+encodeURIComponent(location.href),'_blank','noopener'))`;
+  const body = `
+  <div class="site-top">
+    <span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())} studio</span>
+    <a class="rss" href="/studio/${esc(token)}">back to studio</a>
+  </div>
+  <div style="padding:30px 0 6px"><h1 style="font-size:26px;letter-spacing:-0.02em">One-tap sharing</h1>
+  <p class="prose" style="margin-top:8px">Get ${esc(BRAND)} into the share menu of the apps where your attention already lives. Set up once, then publishing is: tap Share → ${esc(BRAND)}. Done.</p></div>
+
+  <div class="section-h"><h2>Android · Chrome</h2><div class="rule"></div></div>
+  <div class="explain">
+    <div class="step"><span class="n">1</span><div>Open <a href="/studio/${esc(token)}" style="text-decoration:underline">your studio</a> in Chrome on your phone.</div></div>
+    <div class="step"><span class="n">2</span><div>Menu (⋮) → <b>Add to Home screen</b> → <b>Install</b>.</div></div>
+    <div class="step"><span class="n">3</span><div>That's it. In YouTube, X, anywhere: <b>Share → ${esc(BRAND)}</b>. It publishes instantly and shows an Undo.</div></div>
+  </div>
+
+  <div class="section-h"><h2>iPhone · Shortcuts</h2><div class="rule"></div></div>
+  <div class="explain">
+    <div class="step"><span class="n">1</span><div>Open the <b>Shortcuts</b> app → <b>+</b> to create a new shortcut. Name it <b>${esc(BRAND)}</b>.</div></div>
+    <div class="step"><span class="n">2</span><div>Tap the <b>ⓘ</b> info panel → turn on <b>Show in Share Sheet</b>.</div></div>
+    <div class="step"><span class="n">3</span><div>Add the action <b>Get Contents of URL</b>. Set URL to the endpoint below, Method to <b>POST</b>, Request Body <b>JSON</b>, with one field: <b>url</b> = <i>Shortcut Input</i>.</div></div>
+    <div class="step"><span class="n">4</span><div>From any app: <b>Share → ${esc(BRAND)}</b>.</div></div>
+  </div>
+  <div class="endpoint"><code id="ep">${esc(endpoint)}</code><button class="btn small" id="copy-ep">Copy</button></div>
+
+  <div class="section-h"><h2>Desktop · bookmarklet</h2><div class="rule"></div></div>
+  <p class="prose">Drag this to your bookmarks bar. On any page worth your attention, click it — the page is published and a confirmation opens.</p>
+  <p style="margin-top:10px"><a class="btn primary" href="${bookmarklet.replace(/"/g, "&quot;")}" onclick="return false" title="drag me to the bookmarks bar">＋ ${esc(BRAND)} this page</a></p>
+  <p class="fine">Desktop Chrome/Edge can also install the studio as an app (icon in the address bar) and use the OS share menu.</p>
+
+  <footer>this page contains your secret studio link — <b>don't share screenshots of it</b>.</footer>`;
+  const js = /* js */ `
+  document.getElementById("copy-ep").addEventListener("click", async () => {
+    await navigator.clipboard.writeText(document.getElementById("ep").textContent);
+    document.getElementById("copy-ep").textContent = "Copied ✓";
+  });`;
+  return layout(`Sharing setup — ${BRAND}`, creator.accent, body, js);
 }
 
 export function rssFeed(creator: Creator, items: Item[], origin: string): string {

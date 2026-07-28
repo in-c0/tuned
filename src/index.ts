@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { resolveLink } from "./meta";
-import { publicPage, studioPage, landingPage, rssFeed, CATEGORIES, type Creator, type Item } from "./pages";
+import { publicPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
 
 type Bindings = { DB: D1Database; ADMIN_KEY: string };
 const app = new Hono<{ Bindings: Bindings }>();
@@ -126,6 +126,123 @@ app.post("/studio/:token/items/:id/delete", async (c) => {
   if (!creator) return c.json({ error: "unauthorized" }, 401);
   await c.env.DB.prepare("DELETE FROM items WHERE id = ? AND creator_id = ?").bind(Number(c.req.param("id")), creator.id).run();
   return c.json({ ok: true });
+});
+
+// ---------- share-sheet capture ----------
+
+/** Pull the first http(s) URL out of whatever an app put in the share intent. */
+function extractUrl(...fields: Array<string | undefined>): string | null {
+  for (const f of fields) {
+    const m = f?.match(/https?:\/\/[^\s"'<>]+/);
+    if (m) return m[0];
+  }
+  return null;
+}
+
+/** Publish a shared URL for a creator: dedup within 24h, resolve metadata, insert. */
+async function captureUrl(db: D1Database, creator: Creator, url: string, note = ""): Promise<ShareState> {
+  const dayAgo = new Date(Date.now() - 24 * 3600_000).toISOString();
+  const existing = await db
+    .prepare("SELECT * FROM items WHERE creator_id = ? AND url = ? AND created_at > ? ORDER BY created_at DESC")
+    .bind(creator.id, url, dayAgo)
+    .first<Item>();
+  if (existing) return { status: "duplicate", item: existing };
+
+  let meta;
+  try {
+    meta = await resolveLink(url);
+  } catch {
+    return { status: "nourl", raw: url };
+  }
+  const result = await db
+    .prepare(
+      "INSERT INTO items (creator_id, url, title, description, image_url, site_name, domain, kind, category, note, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'public') RETURNING *"
+    )
+    .bind(
+      creator.id,
+      meta.url.slice(0, 2000),
+      meta.title.slice(0, 300),
+      meta.description.slice(0, 500),
+      meta.image_url.slice(0, 2000),
+      meta.site_name.slice(0, 100),
+      meta.domain.slice(0, 200),
+      meta.kind,
+      CATEGORIES.includes(meta.category) ? meta.category : "Misc",
+      note.slice(0, 280)
+    )
+    .first<Item>();
+  return { status: "published", item: result! };
+}
+
+app.get("/studio/:token/manifest.webmanifest", async (c) => {
+  const creator = await creatorByToken(c.env.DB, c.req.param("token"));
+  if (!creator) return c.text("Not found", 404);
+  const base = `/studio/${creator.token}`;
+  return c.json(
+    {
+      name: `${BRAND} Studio`,
+      short_name: BRAND,
+      description: "Share what has your attention.",
+      start_url: base,
+      scope: "/studio/",
+      display: "standalone",
+      background_color: "#0b0b10",
+      theme_color: "#0b0b10",
+      icons: [
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      ],
+      share_target: {
+        action: `${base}/share`,
+        method: "GET",
+        params: { title: "title", text: "text", url: "url" },
+      },
+    },
+    200,
+    { "content-type": "application/manifest+json" }
+  );
+});
+
+app.get("/studio/:token/sw.js", (c) => {
+  // minimal pass-through service worker: exists only to make the studio installable everywhere
+  const sw = `self.addEventListener("install",()=>self.skipWaiting());self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));self.addEventListener("fetch",()=>{});`;
+  return c.body(sw, 200, { "content-type": "application/javascript", "Service-Worker-Allowed": "/studio/" });
+});
+
+app.get("/studio/:token/share", async (c) => {
+  const creator = await creatorByToken(c.env.DB, c.req.param("token"));
+  if (!creator) return c.text("Not found", 404);
+  const q = c.req.query();
+  const url = extractUrl(q.url, q.text, q.title);
+  if (!url) return c.html(sharePage(creator, creator.token!, { status: "nourl", raw: [q.url, q.text, q.title].filter(Boolean).join(" ") }));
+  const state = await captureUrl(c.env.DB, creator, url);
+  return c.html(sharePage(creator, creator.token!, state));
+});
+
+app.post("/studio/:token/share-api", async (c) => {
+  const creator = await creatorByToken(c.env.DB, c.req.param("token"));
+  if (!creator) return c.json({ error: "unauthorized" }, 401);
+  let url: string | null = null;
+  let note = "";
+  try {
+    const b = await c.req.json<{ url?: string; text?: string; note?: string }>();
+    url = extractUrl(b.url, b.text);
+    note = b.note ?? "";
+  } catch {
+    // iOS Shortcuts sometimes sends plain text bodies
+    url = extractUrl(await c.req.text());
+  }
+  if (!url) return c.json({ error: "no url found in request" }, 400);
+  const state = await captureUrl(c.env.DB, creator, url, note);
+  if (state.status === "nourl") return c.json({ error: "could not fetch that link" }, 400);
+  return c.json({ ok: true, status: state.status, id: state.item.id, title: state.item.title }, state.status === "published" ? 201 : 200);
+});
+
+app.get("/studio/:token/setup", async (c) => {
+  const creator = await creatorByToken(c.env.DB, c.req.param("token"));
+  if (!creator) return c.text("Not found", 404);
+  return c.html(setupPage(creator, creator.token!, new URL(c.req.url).origin));
 });
 
 // ---------- public feed ----------
