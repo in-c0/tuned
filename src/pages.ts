@@ -182,6 +182,27 @@ select:focus, input:focus { border-color: var(--accent); }
 .status { font-size: 13px; color: var(--muted); min-height: 20px; margin-top: 8px; }
 .status.err { color: #ff5d73; }
 
+/* ---------- explainers ---------- */
+.explain { display: flex; flex-direction: column; gap: 12px; }
+.step { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--muted); }
+.step b { color: var(--text); }
+.step .n {
+  flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--panel); border: 1px solid var(--line); color: var(--accent);
+  font-size: 12px; font-weight: 700; margin-top: 1px;
+}
+.fine { font-size: 12.5px; color: var(--faint); margin-top: 4px; }
+.prose { font-size: 14px; color: var(--muted); max-width: 56ch; }
+.prose i { color: var(--text); font-style: italic; }
+
+.intro-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; margin: 18px 0 4px; font-size: 13.5px; color: var(--muted); position: relative;
+}
+.intro-card b { color: var(--text); }
+.intro-card .dismiss { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--faint); cursor: pointer; font-size: 14px; }
+.intro-card ul { margin: 8px 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
+
 /* ---------- dialog ---------- */
 dialog {
   background: var(--panel2); color: var(--text); border: 1px solid var(--line);
@@ -308,6 +329,19 @@ document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click",
   await fetch(base + "/items/" + b.dataset.del + "/delete", { method: "POST" });
   location.reload();
 }));
+
+// first-visit intro (per-browser)
+const intro = $("intro");
+if (intro && !localStorage.getItem("introDismissed")) intro.hidden = false;
+$("intro-x")?.addEventListener("click", () => { intro.hidden = true; localStorage.setItem("introDismissed", "1"); });
+
+// copy public link
+$("copy-public")?.addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  await navigator.clipboard.writeText(location.origin + btn.dataset.url);
+  btn.textContent = "Copied ✓";
+  setTimeout(() => { btn.textContent = "Copy fan link"; }, 1500);
+});
 `;
 
 function layout(title: string, accent: string, body: string, js = ""): string {
@@ -435,7 +469,7 @@ export function publicPage(creator: Creator, items: Item[]): string {
       : ""
   }
   ${items.length === 0 ? `<div class="empty">Nothing here yet — ${esc(creator.name)} hasn't shared any attention.</div>` : ""}
-  <footer>a live feed of attention, not posts · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
+  <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
     <h3>Follow ${esc(creator.name)}</h3>
     <p>Leave an email to follow this feed. No spam, no account.</p>
@@ -460,6 +494,19 @@ export function studioPage(creator: Creator, items: Item[]): string {
       <h1>${esc(creator.name)}</h1>
       <div class="handle">your feed — paste a link, tap publish. That's the whole job.</div>
     </div>
+    <div class="head-actions">
+      <button class="btn" id="copy-public" data-url="/${esc(creator.handle)}">Copy fan link</button>
+    </div>
+  </div>
+  <div class="intro-card" id="intro" hidden>
+    <button class="dismiss" id="intro-x" title="dismiss">✕</button>
+    <b>How this works</b> — your fans get a live page of what you're paying attention to. Not posts: attention.
+    <ul>
+      <li><b>When?</b> Whenever something's worth your attention — the morning skim, the 2am rabbit hole. Little and often beats big and rare.</li>
+      <li><b>What do fans see?</b> Everything you publish, newest first, plus a weekly breakdown of where your attention went. Tap "view public page" to see exactly what they see.</li>
+      <li><b>What's required of you?</b> Only the link. Notes are optional. Hide anything, any time — hidden items vanish from your public page instantly.</li>
+      <li><b>Who can post here?</b> Anyone with this studio link — so don't share it. Share the fan link instead.</li>
+    </ul>
   </div>
   <div class="paste-zone">
     <input type="url" id="url-in" placeholder="paste a link — YouTube, X, an article, anything" autofocus>
@@ -498,15 +545,40 @@ export function landingPage(creators: Creator[]): string {
     .join("");
   const body = `
   <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span></div>
-  <div style="padding:60px 0 30px">
+  <div style="padding:56px 0 26px">
     <h1 style="font-size:34px;letter-spacing:-0.02em;max-width:16ch">Follow what people <span style="color:var(--accent)">pay attention to</span>.</h1>
-    <p style="color:var(--muted);margin-top:14px;max-width:44ch;font-size:15px">
-      Not their posts — their attention. What they watch, read, and listen to, as it happens.
-      Creators share it with one tap. No captions, no content treadmill.
+    <p style="color:var(--muted);margin-top:14px;max-width:46ch;font-size:15px">
+      Posts are performances — written for you. Attention is the real thing: what someone
+      actually watches, reads, and listens to. ${esc(BRAND)} makes that followable.
     </p>
   </div>
+
+  <div class="section-h"><h2>If you're the one being followed</h2><div class="rule"></div></div>
+  <div class="explain">
+    <div class="step"><span class="n">1</span><div><b>Something catches your attention.</b> A video, a paper, a song, a thread — anywhere, any time of day.</div></div>
+    <div class="step"><span class="n">2</span><div><b>Flick it to your feed.</b> Paste the link in your studio. Title, image and category are fetched for you.</div></div>
+    <div class="step"><span class="n">3</span><div><b>That's the whole job.</b> No caption, no take, no content treadmill. A note is allowed, never expected.</div></div>
+    <p class="fine">You keep total control: hide any item, any time, and it's gone from your public page. Share only the slice of your attention you want followed.</p>
+  </div>
+
+  <div class="section-h"><h2>If you're following</h2><div class="rule"></div></div>
+  <div class="explain">
+    <div class="step"><span class="n">·</span><div><b>Right now</b> — what they're into today, live, with a pulse: "active 2h ago".</div></div>
+    <div class="step"><span class="n">·</span><div><b>This week</b> — where their attention actually went, broken down by kind.</div></div>
+    <div class="step"><span class="n">·</span><div><b>Over time</b> — the archive: watch their interests shift, week by week.</div></div>
+    <p class="fine">No account. Open the page, follow by email or RSS, tap through to the things themselves.</p>
+  </div>
+
+  <div class="section-h"><h2>Why this exists</h2><div class="rule"></div></div>
+  <p class="prose">
+    Every platform asks people to <i>make</i> something before anyone can follow them. So the people
+    you're most curious about mostly go quiet — creating is work. But their attention never stops.
+    ${esc(BRAND)} is the channel for that: closer than a post, cheaper than a story,
+    honest because it's what they were doing anyway.
+  </p>
+
   ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
-  <footer>${esc(TAGLINE)} · working title <b>${esc(BRAND.toLowerCase())}</b></footer>`;
+  <footer>${esc(TAGLINE)} · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
   return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body);
 }
 
