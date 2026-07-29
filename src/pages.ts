@@ -161,6 +161,26 @@ a.card-link:hover .card { transform: translateY(-1px); border-color: #34344a; }
 .card.hidden-item { opacity: 0.45; }
 .time { white-space: nowrap; }
 
+/* ambient rollup (music etc.) */
+.card.rollup { display: block; padding: 0; overflow: hidden; }
+.card.rollup summary {
+  display: flex; gap: 14px; align-items: center; padding: 14px; cursor: pointer; list-style: none;
+}
+.card.rollup summary::-webkit-details-marker { display: none; }
+.card.rollup summary:hover { background: #16161f; }
+.card.rollup .chev { color: var(--faint); font-size: 12px; transition: transform .15s; flex: none; }
+.card.rollup[open] .chev { transform: rotate(180deg); }
+.mosaic { width: 120px; height: 76px; flex: none; border-radius: 8px; overflow: hidden; background: var(--panel2); }
+.mosaic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mosaic.grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.rollup-list { border-top: 1px solid var(--line); padding: 4px 0; }
+.rollup-list a {
+  display: flex; gap: 10px; align-items: baseline; padding: 7px 16px; font-size: 13px;
+}
+.rollup-list a:hover { background: #16161f; }
+.rollup-list .t { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rollup-list .a { color: var(--faint); font-size: 12px; margin-left: auto; white-space: nowrap; }
+
 .day-h { font-size: 12px; color: var(--faint); margin: 22px 0 10px; letter-spacing: 0.04em; }
 .empty { color: var(--faint); font-size: 14px; padding: 30px 0; text-align: center; }
 
@@ -456,6 +476,80 @@ function breakdown(items: Item[]): string {
   </div>`;
 }
 
+// ---------- ambient-attention rollup ----------
+// Some attention is deliberate (a paper, a video you chose) and some is ambient (music while
+// you work). Ambient sources emit 10-50x the events, so rendering them one-per-card drowns the
+// feed. Ambient categories collapse into a single per-day card that expands on click.
+const ROLLUP_CATEGORIES = new Set(["Music"]);
+const ROLLUP_MIN = 3;
+
+type Entry = { rollup: false; item: Item } | { rollup: true; category: string; items: Item[] };
+
+function collapseAmbient(items: Item[]): Entry[] {
+  const groups = new Map<string, Item[]>();
+  for (const it of items) {
+    if (!ROLLUP_CATEGORIES.has(it.category)) continue;
+    const key = `${it.category}|${it.created_at.slice(0, 10)}`;
+    const arr = groups.get(key);
+    if (arr) arr.push(it);
+    else groups.set(key, [it]);
+  }
+  const collapsed = new Set([...groups].filter(([, v]) => v.length >= ROLLUP_MIN).map(([k]) => k));
+  const emitted = new Set<string>();
+  const out: Entry[] = [];
+  for (const it of items) {
+    const key = `${it.category}|${it.created_at.slice(0, 10)}`;
+    if (collapsed.has(key)) {
+      if (!emitted.has(key)) {
+        emitted.add(key);
+        out.push({ rollup: true, category: it.category, items: groups.get(key)! });
+      }
+      continue;
+    }
+    out.push({ rollup: false, item: it });
+  }
+  return out;
+}
+
+/** Leading artist/author from a "Artist · Album" description. */
+function leadName(item: Item): string {
+  return (item.description || "").split(" · ")[0].trim();
+}
+
+function rollupCard(category: string, items: Item[]): string {
+  const names = [...new Set(items.map(leadName).filter(Boolean))];
+  const shown = names.slice(0, 3).join(" · ");
+  const more = names.length > 3 ? ` +${names.length - 3} more` : "";
+  const covers = items.filter((i) => i.image_url).slice(0, 4);
+  const mosaic = covers.length
+    ? `<div class="mosaic${covers.length > 1 ? " grid" : ""}">${covers.map((c) => `<img src="${esc(c.image_url)}" alt="" loading="lazy" onerror="this.remove()">`).join("")}</div>`
+    : `<div class="thumb">♫</div>`;
+  const verb = category === "Music" ? "Listening" : category;
+  return `<details class="card rollup" data-item-cat="${esc(category)}">
+    <summary>
+      ${mosaic}
+      <div class="body">
+        <div class="meta">
+          <span class="cat"><i style="background:${catColor(category)}"></i>${esc(category)}</span>
+          <span>·</span><span class="time" data-t="${esc(items[0].created_at)}"></span>
+        </div>
+        <h3>${esc(verb)} — ${items.length} track${items.length === 1 ? "" : "s"}</h3>
+        ${shown ? `<div class="desc">${esc(shown)}${esc(more)}</div>` : ""}
+      </div>
+      <span class="chev">▾</span>
+    </summary>
+    <div class="rollup-list">
+      ${items.map((i) => `<a href="${esc(i.url)}" target="_blank" rel="noopener"><span class="t">${esc(i.title)}</span><span class="a">${esc(leadName(i))}</span></a>`).join("")}
+    </div>
+  </details>`;
+}
+
+function renderEntries(items: Item[]): string {
+  return collapseAmbient(items)
+    .map((e) => (e.rollup ? rollupCard(e.category, e.items) : card(e.item)))
+    .join("");
+}
+
 function groupByDay(items: Item[]): Array<{ day: string; items: Item[] }> {
   const groups: Array<{ day: string; items: Item[] }> = [];
   for (const item of items) {
@@ -493,14 +587,14 @@ export function publicPage(creator: Creator, items: Item[]): string {
   ${breakdown(items)}
   ${
     today.length
-      ? `<div class="section-h now"><h2>Right now</h2><div class="rule"></div></div>` + today.map((i) => card(i)).join("")
+      ? `<div class="section-h now"><h2>Right now</h2><div class="rule"></div></div>` + renderEntries(today)
       : ""
   }
   ${
     earlier.length
       ? `<div class="section-h"><h2>Earlier</h2><div class="rule"></div></div>` +
         groupByDay(earlier)
-          .map((g) => `<div class="day-h">${esc(g.day)}</div>` + g.items.map((i) => card(i)).join(""))
+          .map((g) => `<div class="day-h">${esc(g.day)}</div>` + renderEntries(g.items))
           .join("")
       : ""
   }
