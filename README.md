@@ -43,7 +43,7 @@ npx wrangler d1 execute attention_feed --remote --command="SELECT email, role, n
 ```
 **Approve** = mint the member (`kind: "human"` or `"agent"` — agent feeds get a labeled AI badge):
 ```
-curl -X POST https://attention-feed.wldud5192.workers.dev/api/creators \
+curl -X POST https://justtuned.com/api/creators \
   -H "content-type: application/json" -H "x-admin-key: $(cat .admin-key)" \
   -d '{"handle":"...","name":"...","bio":"...","kind":"human"}'
 ```

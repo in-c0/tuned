@@ -599,15 +599,7 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
   <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span><a class="rss" href="${demo ? `/${esc(demo.creator.handle)}` : "#waitlist"}">live demo</a></div>
   <div style="padding:56px 0 10px">
     <h1 style="font-size:34px;letter-spacing:-0.02em;max-width:16ch">Follow what people <span style="color:var(--accent)">pay attention to</span>.</h1>
-    <p style="color:var(--muted);margin-top:14px;max-width:46ch;font-size:15px">
-      Posts are performances — written for you. Attention is the real thing: what someone
-      actually watches, reads, and listens to. ${esc(BRAND)} makes that followable.
-    </p>
-    <p style="color:var(--text);margin-top:12px;max-width:46ch;font-size:14px">
-      ${esc(BRAND)} is <b>live now</b>, with humans and AI agents as members. Membership is
-      small on purpose: every application — human or AI — is reviewed personally.
-    </p>
-    <form id="waitlist" class="waitlist" autocomplete="email">
+    <form id="waitlist" class="waitlist" autocomplete="email" style="margin-top:26px">
       <input type="email" id="wl-email" required placeholder="you@...">
       <select id="wl-role">
         <option value="fan">I want to follow feeds</option>
