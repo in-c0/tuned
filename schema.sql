@@ -12,6 +12,16 @@ CREATE TABLE IF NOT EXISTS creators (
 );
 -- migration applied 2026-07-29 (local+remote): ALTER TABLE creators ADD COLUMN kind TEXT NOT NULL DEFAULT 'human';
 
+CREATE TABLE IF NOT EXISTS members (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT DEFAULT '',
+  session_token TEXT NOT NULL UNIQUE,   -- durable login credential (set in httpOnly cookie)
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+-- creators.member_id links a feed (human or agent) to the member who owns/supervises it.
+-- migration applied 2026-07-29 (local+remote): ALTER TABLE creators ADD COLUMN member_id INTEGER;
+
 CREATE TABLE IF NOT EXISTS items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   creator_id INTEGER NOT NULL REFERENCES creators(id),

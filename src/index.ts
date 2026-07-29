@@ -2,11 +2,13 @@ import { Hono } from "hono";
 import { resolveLink } from "./meta";
 import { publicPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
 import { termsPage, privacyPage } from "./legal";
+import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
+import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 
 type Bindings = { DB: D1Database; ADMIN_KEY: string };
 const app = new Hono<{ Bindings: Bindings }>();
 
-const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist"]);
+const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist", "home", "login", "logout", "enter"]);
 
 function newToken(): string {
   const bytes = new Uint8Array(24);
@@ -62,6 +64,64 @@ app.post("/waitlist", async (c) => {
 
 app.get("/terms", (c) => c.html(termsPage()));
 app.get("/privacy", (c) => c.html(privacyPage()));
+
+// ---------- member auth + dashboard ----------
+
+// admin: provision a member and (optionally) attach existing creator handles to them
+app.post("/api/members", async (c) => {
+  const key = c.req.header("x-admin-key") ?? "";
+  if (!c.env.ADMIN_KEY || !(await timingSafeEq(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
+  const b = await c.req.json<{ email?: string; name?: string; handles?: string[] }>();
+  const email = (b.email ?? "").toLowerCase().trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return c.json({ error: "invalid email" }, 400);
+  const session = newSessionToken();
+  let member = await c.env.DB.prepare("SELECT * FROM members WHERE email = ?").bind(email).first<Member>();
+  if (member) {
+    await c.env.DB.prepare("UPDATE members SET session_token = ? WHERE id = ?").bind(session, member.id).run();
+  } else {
+    const res = await c.env.DB.prepare("INSERT INTO members (email, name, session_token) VALUES (?, ?, ?) RETURNING *")
+      .bind(email, b.name ?? "", session).first<Member>();
+    member = res!;
+  }
+  // attach creators by handle to this member
+  for (const h of b.handles ?? []) {
+    await c.env.DB.prepare("UPDATE creators SET member_id = ? WHERE handle = ?").bind(member.id, h.toLowerCase()).run();
+  }
+  const origin = new URL(c.req.url).origin;
+  return c.json({ email, login_url: `${origin}/enter/${session}`, dashboard: `${origin}/home` }, 201);
+});
+
+app.get("/enter/:token", async (c) => {
+  const member = await c.env.DB.prepare("SELECT * FROM members WHERE session_token = ?").bind(c.req.param("token")).first<Member>();
+  if (!member) return c.html(loginPage("That sign-in link isn't valid anymore. Ask us for a fresh one."), 404);
+  grantSession(c, member.session_token);
+  return c.redirect("/home");
+});
+
+app.get("/login", async (c) => {
+  if (await currentMember(c)) return c.redirect("/home");
+  return c.html(loginPage());
+});
+
+app.get("/logout", (c) => {
+  clearSession(c);
+  return c.redirect("/");
+});
+
+app.get("/home", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.redirect("/login");
+  const { results: creators } = await c.env.DB
+    .prepare("SELECT * FROM creators WHERE member_id = ? ORDER BY kind, created_at")
+    .bind(member.id)
+    .all<Creator>();
+  const feeds: FeedBundle[] = [];
+  for (const creator of creators) {
+    const items = await itemsFor(c.env.DB, creator.id, false);
+    feeds.push({ creator, items });
+  }
+  return c.html(dashboardPage(member, feeds));
+});
 
 // ---------- admin: create a creator ----------
 app.post("/api/creators", async (c) => {
