@@ -37,7 +37,24 @@ async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean):
 // ---------- landing ----------
 app.get("/", async (c) => {
   const { results } = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, created_at FROM creators ORDER BY created_at").all<Creator>();
-  return c.html(landingPage(results));
+  const demoCreator = results[0];
+  let demo: { creator: Creator; items: Item[] } | undefined;
+  if (demoCreator) {
+    const { results: items } = await c.env.DB
+      .prepare("SELECT * FROM items WHERE creator_id = ? AND visibility = 'public' ORDER BY created_at DESC LIMIT 3")
+      .bind(demoCreator.id)
+      .all<Item>();
+    demo = { creator: demoCreator, items };
+  }
+  return c.html(landingPage(results, demo));
+});
+
+app.post("/waitlist", async (c) => {
+  const { email, role } = await c.req.json<{ email?: string; role?: string }>();
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) return c.json({ error: "invalid email" }, 400);
+  const safeRole = ["fan", "creator", "both"].includes(role ?? "") ? role : "fan";
+  await c.env.DB.prepare("INSERT OR IGNORE INTO waitlist (email, role) VALUES (?, ?)").bind(email.toLowerCase(), safeRole).run();
+  return c.json({ ok: true });
 });
 
 // ---------- admin: create a creator ----------

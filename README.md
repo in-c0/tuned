@@ -35,6 +35,12 @@ npx wrangler secret put ADMIN_KEY
 npx wrangler deploy
 ```
 
+## Waitlist
+Landing (`/`) has an in-app waitlist (email + fan/creator role) stored in D1. View signups:
+```
+npx wrangler d1 execute attention_feed --remote --command="SELECT email, role, created_at FROM waitlist ORDER BY created_at DESC" -y
+```
+
 ## Onboard a creator
 ```
 curl -X POST https://<worker-url>/api/creators \

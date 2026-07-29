@@ -27,6 +27,14 @@ CREATE TABLE IF NOT EXISTS items (
 );
 CREATE INDEX IF NOT EXISTS idx_items_creator_time ON items(creator_id, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS waitlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL DEFAULT 'fan',     -- fan | creator | both
+  note TEXT DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
 CREATE TABLE IF NOT EXISTS followers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   creator_id INTEGER NOT NULL REFERENCES creators(id),

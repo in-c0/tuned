@@ -4,3 +4,6 @@ node_modules/
 worker-configuration.d.ts
 .admin-key
 .demo-studio-url
+
+# Marketing Manager instance — strategy/tracker/cold-reach lists (never commit)
+marketing/

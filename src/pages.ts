@@ -203,6 +203,17 @@ select:focus, input:focus { border-color: var(--accent); }
 .intro-card .dismiss { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--faint); cursor: pointer; font-size: 14px; }
 .intro-card ul { margin: 8px 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
 
+/* ---------- landing waitlist + demo ---------- */
+.waitlist { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+.waitlist input[type=email] { flex: 1; min-width: 180px; padding: 10px 14px; }
+.waitlist select { min-width: 170px; }
+.demo-window {
+  border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 10px;
+  background: linear-gradient(180deg, #12121a, transparent);
+}
+.demo-window .card { margin-bottom: 8px; }
+.demo-more { display: block; text-align: center; margin: 8px 0 4px; }
+
 /* ---------- share result / setup ---------- */
 .share-result { padding: 40px 0; text-align: left; }
 .share-result h1 { font-size: 24px; letter-spacing: -0.02em; margin: 10px 0 18px; }
@@ -560,7 +571,7 @@ export function studioPage(creator: Creator, items: Item[]): string {
   return layout(`Studio — ${creator.name}`, creator.accent, body, CLIENT_JS + STUDIO_JS + swJs, head);
 }
 
-export function landingPage(creators: Creator[]): string {
+export function landingPage(creators: Creator[], demo?: { creator: Creator; items: Item[] }): string {
   const list = creators
     .map(
       (c) => `<a class="card-link" href="/${esc(c.handle)}"><div class="card">
@@ -569,15 +580,34 @@ export function landingPage(creators: Creator[]): string {
       </div></a>`
     )
     .join("");
+  const demoBlock = demo && demo.items.length
+    ? `
+  <div class="section-h"><h2>Live demo — a real feed, right now</h2><div class="rule"></div></div>
+  <div class="demo-window">
+    ${demo.items.map((i) => card(i)).join("")}
+    <a class="btn demo-more" href="/${esc(demo.creator.handle)}">Open the full feed — what @${esc(demo.creator.handle)} is paying attention to →</a>
+  </div>`
+    : "";
   const body = `
-  <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span></div>
-  <div style="padding:56px 0 26px">
+  <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span><a class="rss" href="${demo ? `/${esc(demo.creator.handle)}` : "#waitlist"}">live demo</a></div>
+  <div style="padding:56px 0 10px">
     <h1 style="font-size:34px;letter-spacing:-0.02em;max-width:16ch">Follow what people <span style="color:var(--accent)">pay attention to</span>.</h1>
     <p style="color:var(--muted);margin-top:14px;max-width:46ch;font-size:15px">
       Posts are performances — written for you. Attention is the real thing: what someone
       actually watches, reads, and listens to. ${esc(BRAND)} makes that followable.
     </p>
+    <form id="waitlist" class="waitlist" autocomplete="email">
+      <input type="email" id="wl-email" required placeholder="you@...">
+      <select id="wl-role">
+        <option value="fan">I want to follow people</option>
+        <option value="creator">I want a feed of my own</option>
+        <option value="both">Both</option>
+      </select>
+      <button class="btn primary" id="wl-btn">Join the waitlist</button>
+    </form>
+    <div class="status" id="wl-out"></div>
   </div>
+  ${demoBlock}
 
   <div class="section-h"><h2>If you're the one being followed</h2><div class="rule"></div></div>
   <div class="explain">
@@ -605,7 +635,25 @@ export function landingPage(creators: Creator[]): string {
 
   ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
   <footer>${esc(TAGLINE)} · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
-  return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body);
+  const js = /* js */ `
+  document.querySelectorAll(".time[data-t]").forEach(el => {
+    const s = (Date.now() - new Date(el.dataset.t).getTime()) / 1000;
+    el.textContent = s < 3600 ? Math.max(1, Math.floor(s / 60)) + "m ago" : s < 86400 ? Math.floor(s / 3600) + "h ago" : Math.floor(s / 86400) + "d ago";
+  });
+  document.getElementById("waitlist").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const out = document.getElementById("wl-out");
+    const btn = document.getElementById("wl-btn");
+    btn.disabled = true;
+    const res = await fetch("/waitlist", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: document.getElementById("wl-email").value, role: document.getElementById("wl-role").value }) });
+    if (res.ok) { out.textContent = "You're on the list. We'll email you when it opens up — meanwhile, the demo below is live."; e.target.style.display = "none"; }
+    else { out.textContent = "That didn't work — check the email?"; out.classList.add("err"); btn.disabled = false; }
+  });`;
+  const head = `<meta name="description" content="${esc(BRAND)} — ${esc(TAGLINE)}. A live page of what someone is actually watching, reading and listening to.">
+<meta property="og:title" content="${esc(BRAND)} — ${esc(TAGLINE)}">
+<meta property="og:description" content="Follow what people pay attention to — not what they post.">`;
+  return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body, js, head);
 }
 
 export type ShareState =
