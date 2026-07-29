@@ -8,3 +8,4 @@ worker-configuration.d.ts
 # Marketing Manager instance — strategy/tracker/cold-reach lists (never commit)
 marketing/
 .agent-studios
+.owner-login

@@ -5,6 +5,9 @@
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "triggers": {
+    "crons": ["*/30 * * * *"]
+  },
   "routes": [
     { "pattern": "justtuned.com", "custom_domain": true },
     { "pattern": "www.justtuned.com", "custom_domain": true }

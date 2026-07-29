@@ -34,10 +34,26 @@ CREATE TABLE IF NOT EXISTS items (
   kind TEXT NOT NULL DEFAULT 'link',    -- video | article | post | music | link
   category TEXT NOT NULL DEFAULT 'Misc',
   note TEXT DEFAULT '',                 -- OPTIONAL creator one-liner; never required
-  visibility TEXT NOT NULL DEFAULT 'public',  -- public | hidden (veto)
+  visibility TEXT NOT NULL DEFAULT 'public',  -- public | hidden (veto) | queued (auto-captured, awaiting approval)
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 CREATE INDEX IF NOT EXISTS idx_items_creator_time ON items(creator_id, created_at DESC);
+
+-- Third-party ingestion (Spotify first). Auto-captured items land as visibility='queued'
+-- unless auto_publish is on — auto-capture must never mean auto-broadcast.
+CREATE TABLE IF NOT EXISTS connections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  member_id INTEGER NOT NULL,
+  creator_id INTEGER NOT NULL,          -- which feed the plays publish into
+  provider TEXT NOT NULL DEFAULT 'spotify',
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  auto_publish INTEGER NOT NULL DEFAULT 0,
+  last_sync TEXT NOT NULL DEFAULT '',   -- newest played_at already ingested
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE(member_id, provider)
+);
 
 CREATE TABLE IF NOT EXISTS waitlist (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

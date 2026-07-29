@@ -4,8 +4,10 @@ import { publicPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRA
 import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
+import { authorizeUrl, exchangeCode, syncConnection, type Connection } from "./spotify";
+import { getCookie, setCookie } from "hono/cookie";
 
-type Bindings = { DB: D1Database; ADMIN_KEY: string };
+type Bindings = { DB: D1Database; ADMIN_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
 const app = new Hono<{ Bindings: Bindings }>();
 
 const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist", "home", "login", "logout", "enter"]);
@@ -108,6 +110,103 @@ app.get("/logout", (c) => {
   return c.redirect("/");
 });
 
+// ---------- Spotify ingestion ----------
+
+app.get("/connect/spotify", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.redirect("/login");
+  if (!c.env.SPOTIFY_CLIENT_ID) return c.text("Spotify isn't configured yet.", 503);
+  const state = newSessionToken(12);
+  setCookie(c, "sp_state", state, { httpOnly: true, secure: true, sameSite: "Lax", path: "/", maxAge: 600 });
+  const redirectUri = `${new URL(c.req.url).origin}/connect/spotify/callback`;
+  return c.redirect(authorizeUrl(c.env.SPOTIFY_CLIENT_ID, redirectUri, state));
+});
+
+app.get("/connect/spotify/callback", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.redirect("/login");
+  const { code, state, error } = c.req.query();
+  if (error) return c.redirect("/home?spotify=denied");
+  if (!code || !state || state !== getCookie(c, "sp_state")) return c.redirect("/home?spotify=badstate");
+
+  // the connection publishes into this member's own human feed
+  const feed = await c.env.DB
+    .prepare("SELECT id FROM creators WHERE member_id = ? AND kind = 'human' ORDER BY created_at LIMIT 1")
+    .bind(member.id)
+    .first<{ id: number }>();
+  if (!feed) return c.redirect("/home?spotify=nofeed");
+
+  try {
+    const redirectUri = `${new URL(c.req.url).origin}/connect/spotify/callback`;
+    const t = await exchangeCode(c.env.SPOTIFY_CLIENT_ID, c.env.SPOTIFY_CLIENT_SECRET, code, redirectUri);
+    const expires = new Date(Date.now() + t.expires_in * 1000).toISOString();
+    await c.env.DB.prepare(
+      `INSERT INTO connections (member_id, creator_id, provider, access_token, refresh_token, expires_at)
+       VALUES (?, ?, 'spotify', ?, ?, ?)
+       ON CONFLICT(member_id, provider) DO UPDATE SET
+         access_token = excluded.access_token, refresh_token = excluded.refresh_token,
+         expires_at = excluded.expires_at, creator_id = excluded.creator_id`
+    )
+      .bind(member.id, feed.id, t.access_token, t.refresh_token ?? "", expires)
+      .run();
+    return c.redirect("/home?spotify=connected");
+  } catch (err) {
+    console.log(JSON.stringify({ level: "error", message: "spotify connect failed", detail: String(err) }));
+    return c.redirect("/home?spotify=failed");
+  }
+});
+
+app.post("/connect/spotify/sync", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  const conn = await c.env.DB.prepare("SELECT * FROM connections WHERE member_id = ? AND provider = 'spotify'").bind(member.id).first<Connection>();
+  if (!conn) return c.json({ error: "not connected" }, 404);
+  try {
+    const r = await syncConnection(c.env.DB, c.env.SPOTIFY_CLIENT_ID, c.env.SPOTIFY_CLIENT_SECRET, conn);
+    return c.json({ ok: true, ...r });
+  } catch (err) {
+    return c.json({ error: String(err) }, 502);
+  }
+});
+
+app.post("/connect/spotify/auto", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  const { on } = await c.req.json<{ on?: boolean }>();
+  await c.env.DB.prepare("UPDATE connections SET auto_publish = ? WHERE member_id = ? AND provider = 'spotify'")
+    .bind(on ? 1 : 0, member.id)
+    .run();
+  return c.json({ ok: true });
+});
+
+app.post("/connect/spotify/disconnect", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  await c.env.DB.prepare("DELETE FROM connections WHERE member_id = ? AND provider = 'spotify'").bind(member.id).run();
+  return c.json({ ok: true });
+});
+
+// approve a queued item into the public feed (session-authed, member must own the feed)
+app.post("/queue/:id/:action", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  const id = Number(c.req.param("id"));
+  const action = c.req.param("action");
+  const owns = await c.env.DB
+    .prepare("SELECT i.id FROM items i JOIN creators cr ON cr.id = i.creator_id WHERE i.id = ? AND cr.member_id = ?")
+    .bind(id, member.id)
+    .first();
+  if (!owns) return c.json({ error: "not found" }, 404);
+  if (action === "approve") {
+    await c.env.DB.prepare("UPDATE items SET visibility = 'public', created_at = created_at WHERE id = ?").bind(id).run();
+  } else if (action === "dismiss") {
+    await c.env.DB.prepare("DELETE FROM items WHERE id = ?").bind(id).run();
+  } else {
+    return c.json({ error: "bad action" }, 400);
+  }
+  return c.json({ ok: true });
+});
+
 app.get("/home", async (c) => {
   const member = await currentMember(c);
   if (!member) return c.redirect("/login");
@@ -120,7 +219,17 @@ app.get("/home", async (c) => {
     const items = await itemsFor(c.env.DB, creator.id, false);
     feeds.push({ creator, items });
   }
-  return c.html(dashboardPage(member, feeds));
+  const conn = await c.env.DB
+    .prepare("SELECT auto_publish FROM connections WHERE member_id = ? AND provider = 'spotify'")
+    .bind(member.id)
+    .first<{ auto_publish: number }>();
+  const spotify = {
+    configured: Boolean(c.env.SPOTIFY_CLIENT_ID),
+    connected: Boolean(conn),
+    autoPublish: Boolean(conn?.auto_publish),
+    flash: c.req.query("spotify") ?? "",
+  };
+  return c.html(dashboardPage(member, feeds, spotify));
 });
 
 // ---------- admin: create a creator ----------
@@ -364,4 +473,23 @@ app.onError((err, c) => {
   return c.text("Something broke on our side.", 500);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  // every 30 min: pull new plays for every connection into each member's queue
+  async scheduled(_event: ScheduledController, env: Bindings, ctx: ExecutionContext) {
+    ctx.waitUntil(
+      (async () => {
+        if (!env.SPOTIFY_CLIENT_ID) return;
+        const { results } = await env.DB.prepare("SELECT * FROM connections WHERE provider = 'spotify'").all<Connection>();
+        for (const conn of results) {
+          try {
+            const r = await syncConnection(env.DB, env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET, conn);
+            console.log(JSON.stringify({ level: "info", message: "spotify sync", member: conn.member_id, added: r.added }));
+          } catch (err) {
+            console.log(JSON.stringify({ level: "error", message: "spotify sync failed", member: conn.member_id, detail: String(err) }));
+          }
+        }
+      })()
+    );
+  },
+};

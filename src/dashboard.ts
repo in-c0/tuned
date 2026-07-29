@@ -41,6 +41,18 @@ const DASH_CSS = `
 .pub-controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
 .pub-status { font-size: 13px; color: var(--muted); min-height: 18px; }
 .pub-status.err { color: #ff5d73; }
+.conn-card {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; margin: 16px 0 4px; font-size: 13.5px; color: var(--muted);
+}
+.conn-card b { color: var(--text); }
+.conn-card code { font-size: 12px; color: var(--faint); }
+.conn-card .btn { margin-left: auto; }
+.conn-card .btn + .btn, .conn-card .auto-toggle + .btn { margin-left: 0; }
+.auto-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.card.queued { border-color: #2c2c46; background: linear-gradient(180deg, #15151f, var(--panel)); }
+.flash { font-size: 13px; color: var(--accent); margin: 10px 0 0; }
 </style>`;
 
 function catColor(cat: string): string { return CAT_COLORS[cat] ?? CAT_COLORS.Misc; }
@@ -61,7 +73,56 @@ function dashCard(item: Item): string {
   </div></div>`;
 }
 
-export function dashboardPage(member: Member, feeds: FeedBundle[]): string {
+export interface SpotifyState {
+  configured: boolean;
+  connected: boolean;
+  autoPublish: boolean;
+  flash: string;
+}
+
+const SPOTIFY_FLASH: Record<string, string> = {
+  connected: "Spotify connected — your recent listening will start arriving below for approval.",
+  denied: "Spotify connection cancelled.",
+  badstate: "That connection attempt expired — try again.",
+  failed: "Spotify wouldn't complete the connection. Try again, or check the app credentials.",
+  nofeed: "You need a feed of your own before connecting Spotify.",
+};
+
+function queueCard(item: Item): string {
+  return `<div class="card queued" data-queued="${item.id}">
+    <div class="thumb">${item.image_url ? `<img src="${esc(item.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : "♫"}</div>
+    <div class="body">
+      <div class="meta"><span class="cat"><i style="background:${catColor(item.category)}"></i>${esc(item.category)}</span>
+        <span>${esc(item.site_name || item.domain)}</span> · <span class="time" data-t="${esc(item.created_at)}"></span></div>
+      <h3>${esc(item.title)}</h3>
+      ${item.description ? `<div class="desc">${esc(item.description)}</div>` : ""}
+    </div>
+    <div class="item-actions">
+      <button class="btn small primary" data-approve="${item.id}">Publish</button>
+      <button class="btn small danger" data-dismiss="${item.id}">✕</button>
+    </div>
+  </div>`;
+}
+
+function spotifyCard(sp: SpotifyState, queuedCount: number): string {
+  if (!sp.configured) {
+    return `<div class="conn-card"><b>Spotify</b> — not configured yet. Add <code>SPOTIFY_CLIENT_ID</code> and <code>SPOTIFY_CLIENT_SECRET</code> as Worker secrets to enable automatic listening capture.</div>`;
+  }
+  if (!sp.connected) {
+    return `<div class="conn-card">
+      <div><b>Spotify</b> — connect once and what you listen to arrives here automatically. Nothing goes public until you approve it.</div>
+      <a class="btn primary" href="/connect/spotify">Connect Spotify</a>
+    </div>`;
+  }
+  return `<div class="conn-card">
+    <div><b>Spotify connected.</b> ${queuedCount ? `${queuedCount} waiting below.` : "New listening arrives here every half hour."}</div>
+    <label class="auto-toggle"><input type="checkbox" id="sp-auto"${sp.autoPublish ? " checked" : ""}> publish music automatically</label>
+    <button class="btn small" id="sp-sync">Sync now</button>
+    <button class="btn small danger" id="sp-disconnect">Disconnect</button>
+  </div>`;
+}
+
+export function dashboardPage(member: Member, feeds: FeedBundle[], sp: SpotifyState): string {
   const catOptions = CATEGORIES.map((cat) => `<option value="${esc(cat)}">${esc(cat)}</option>`).join("");
   const tabs = feeds.map((f, i) =>
     `<button class="feed-tab${i === 0 ? " active" : ""}" data-feed="${f.creator.id}">@${esc(f.creator.handle)}${f.creator.kind === "agent" ? ` <span class="ai">AI</span>` : ""}</button>`
@@ -82,10 +143,19 @@ export function dashboardPage(member: Member, feeds: FeedBundle[]): string {
             <button class="btn primary" data-confirm="${f.creator.id}">Add to feed</button></div>
         </div>
         <div class="pub-status" data-status="${f.creator.id}"></div>`;
+    const queued = f.items.filter((x) => x.visibility === "queued");
+    const rest = f.items.filter((x) => x.visibility !== "queued");
+    const queueBlock = queued.length
+      ? `<div class="section-h"><h2 style="color:var(--accent)">Waiting for you — ${queued.length} captured</h2><div class="rule"></div></div>
+         <div class="dash-links" style="margin-bottom:10px">Captured automatically. Nothing here is public until you publish it.</div>
+         ${queued.map(queueCard).join("")}`
+      : "";
     return `<div class="feed-panel${i === 0 ? " active" : ""}" data-panel="${f.creator.id}" data-token="${esc(f.creator.token ?? "")}">
       ${pub}
-      <div class="section-h"><h2>${f.items.filter((x) => x.visibility === "public").length} public · ${f.items.filter((x) => x.visibility === "hidden").length} hidden</h2><div class="rule"></div></div>
-      ${f.items.map(dashCard).join("") || `<div class="empty">Nothing here yet.</div>`}
+      ${f.creator.kind !== "agent" ? spotifyCard(sp, queued.length) : ""}
+      ${queueBlock}
+      <div class="section-h"><h2>${rest.filter((x) => x.visibility === "public").length} public · ${rest.filter((x) => x.visibility === "hidden").length} hidden</h2><div class="rule"></div></div>
+      ${rest.map(dashCard).join("") || `<div class="empty">Nothing here yet.</div>`}
     </div>`;
   }).join("");
 
@@ -95,6 +165,7 @@ export function dashboardPage(member: Member, feeds: FeedBundle[]): string {
     <div><h1>Your feeds</h1><div class="who">${esc(member.name || member.email)}</div></div>
     <a class="btn out" href="/logout">Log out</a>
   </div>
+  ${sp.flash && SPOTIFY_FLASH[sp.flash] ? `<div class="flash">${esc(SPOTIFY_FLASH[sp.flash])}</div>` : ""}
   ${feeds.length > 1 ? `<div class="feed-switch">${tabs}</div>` : ""}
   ${panels || `<div class="empty">You don't have a feed yet — the team will set one up for you.</div>`}`;
 
@@ -142,7 +213,33 @@ export function dashboardPage(member: Member, feeds: FeedBundle[]): string {
   document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
     if(!confirm("Delete permanently?"))return;
     await fetch("/studio/"+token(b.closest(".feed-panel").dataset.panel)+"/items/"+b.dataset.del+"/delete",{method:"POST"}); location.reload();
-  }));`;
+  }));
+  // queue: approve / dismiss captured items
+  document.querySelectorAll("[data-approve]").forEach(b => b.addEventListener("click", async () => {
+    b.disabled = true;
+    const res = await fetch("/queue/"+b.dataset.approve+"/approve",{method:"POST"});
+    if (res.ok) b.closest(".card").remove(); else b.disabled = false;
+  }));
+  document.querySelectorAll("[data-dismiss]").forEach(b => b.addEventListener("click", async () => {
+    b.disabled = true;
+    const res = await fetch("/queue/"+b.dataset.dismiss+"/dismiss",{method:"POST"});
+    if (res.ok) b.closest(".card").remove(); else b.disabled = false;
+  }));
+  // spotify connection controls
+  $("#sp-sync")?.addEventListener("click", async (e) => {
+    e.target.disabled = true; e.target.textContent = "syncing…";
+    const r = await fetch("/connect/spotify/sync",{method:"POST"});
+    const j = await r.json().catch(()=>({}));
+    if (r.ok && j.added) location.reload();
+    else { e.target.textContent = r.ok ? "nothing new" : "sync failed"; setTimeout(()=>{e.target.textContent="Sync now";e.target.disabled=false;},2500); }
+  });
+  $("#sp-auto")?.addEventListener("change", async (e) => {
+    await fetch("/connect/spotify/auto",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({on:e.target.checked})});
+  });
+  $("#sp-disconnect")?.addEventListener("click", async () => {
+    if(!confirm("Disconnect Spotify? Captured items already published stay."))return;
+    await fetch("/connect/spotify/disconnect",{method:"POST"}); location.reload();
+  });`;
   return layout(`Dashboard — ${BRAND}`, member ? "#7c6cff" : "#7c6cff", body, js, DASH_CSS);
 }
 

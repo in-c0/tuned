@@ -53,6 +53,31 @@ same studio or `POST /studio/:token/share-api`.
 
 Legal: `/terms` + `/privacy` (v0.1 drafts, contact alias in `src/legal.ts` LEGAL_CONTACT).
 
+## Member login
+Owner-provisioned sessions — no email sender needed. `POST /api/members` (admin key) with
+`{email, name, handles:[...]}` returns a one-time `login_url` (`/enter/:token`) that sets a
+durable httpOnly session cookie. Members land on `/home`.
+
+## Spotify ingestion (auto-capture → private queue)
+Connected once, recently-played tracks arrive every 30 min (Worker cron) as `visibility='queued'`
+— invisible on the public page until the member taps Publish. `auto_publish` per connection can
+flip that to straight-to-public. **Auto-capture is never auto-broadcast.**
+
+Owner setup (one time, ~5 min):
+1. https://developer.spotify.com/dashboard → Create app (name "Tuned", any description).
+2. Redirect URI (exact): `https://justtuned.com/connect/spotify/callback`
+3. Copy the Client ID and Client Secret, then set them as Worker secrets:
+```bash
+npx wrangler secret put SPOTIFY_CLIENT_ID
+```
+```bash
+npx wrangler secret put SPOTIFY_CLIENT_SECRET
+```
+4. Log in at `/home` → **Connect Spotify**.
+
+Note: a Spotify app in development mode only permits users you add manually (up to 25) — fine for
+a gated membership; request a quota extension before opening it to everyone.
+
 ## Onboard a creator
 ```
 curl -X POST https://<worker-url>/api/creators \
