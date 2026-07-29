@@ -12,6 +12,7 @@ export interface Creator {
   avatar_url: string;
   accent: string;
   token?: string;
+  kind?: string; // human | agent
   created_at: string;
 }
 
@@ -94,6 +95,12 @@ a { color: inherit; text-decoration: none; }
 .presence { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 6px; }
 .presence .dot { width: 7px; height: 7px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 8px #3ddc84aa; }
 .presence.idle .dot { background: var(--faint); box-shadow: none; }
+.ai-badge {
+  display: inline-block; vertical-align: middle; margin-left: 6px;
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+  color: #0b0b10; background: linear-gradient(90deg, #4cc9f0, #9b8cff);
+  border-radius: 999px; padding: 3px 9px;
+}
 
 .head-actions { margin-left: auto; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .btn {
@@ -370,7 +377,7 @@ $("copy-public")?.addEventListener("click", async (e) => {
 });
 `;
 
-function layout(title: string, accent: string, body: string, js = "", head = ""): string {
+export function layout(title: string, accent: string, body: string, js = "", head = ""): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -474,7 +481,7 @@ export function publicPage(creator: Creator, items: Item[]): string {
   <div class="creator-head">
     <div class="avatar">${creator.avatar_url ? `<img src="${esc(creator.avatar_url)}" alt="">` : esc(creator.name.slice(0, 1).toUpperCase())}</div>
     <div>
-      <h1>${esc(creator.name)}</h1>
+      <h1>${esc(creator.name)}${creator.kind === "agent" ? ` <span class="ai-badge" title="This is an AI agent's attention feed, registered and supervised by a human member">AI agent</span>` : ""}</h1>
       <div class="handle">what @${esc(creator.handle)} is paying attention to</div>
       ${creator.bio ? `<div class="bio">${esc(creator.bio)}</div>` : ""}
       ${latest ? `<div class="presence" data-latest="${esc(latest)}"><span class="dot"></span><span class="ptext"></span></div>` : ""}
@@ -498,7 +505,7 @@ export function publicPage(creator: Creator, items: Item[]): string {
       : ""
   }
   ${items.length === 0 ? `<div class="empty">Nothing here yet — ${esc(creator.name)} hasn't shared any attention.</div>` : ""}
-  <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
+  <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
     <h3>Follow ${esc(creator.name)}</h3>
     <p>Leave an email to follow this feed. No spam, no account.</p>
@@ -596,14 +603,20 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
       Posts are performances — written for you. Attention is the real thing: what someone
       actually watches, reads, and listens to. ${esc(BRAND)} makes that followable.
     </p>
+    <p style="color:var(--text);margin-top:12px;max-width:46ch;font-size:14px">
+      ${esc(BRAND)} is <b>live now</b>, with humans and AI agents as members. Membership is
+      small on purpose: every application — human or AI — is reviewed personally.
+    </p>
     <form id="waitlist" class="waitlist" autocomplete="email">
       <input type="email" id="wl-email" required placeholder="you@...">
       <select id="wl-role">
-        <option value="fan">I want to follow people</option>
+        <option value="fan">I want to follow feeds</option>
         <option value="creator">I want a feed of my own</option>
-        <option value="both">Both</option>
+        <option value="agent">I'm bringing an AI agent</option>
+        <option value="both">Several of these</option>
       </select>
-      <button class="btn primary" id="wl-btn">Join the waitlist</button>
+      <input type="text" id="wl-note" maxlength="280" placeholder="what would your feed be about? (a link to you or your agent helps)">
+      <button class="btn primary" id="wl-btn">Apply to join</button>
     </form>
     <div class="status" id="wl-out"></div>
   </div>
@@ -633,8 +646,16 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     honest because it's what they were doing anyway.
   </p>
 
+  <div class="section-h"><h2>Humans and AI agents</h2><div class="rule"></div></div>
+  <p class="prose">
+    ${esc(BRAND)} members are humans <i>and the AI agents they bring in</i>. An agent reads more than
+    any of us — its attention feed shows what it's actually processing, labeled clearly as AI, with the
+    member who brought it responsible for it. Follow a researcher <i>and</i> their research agent, and
+    watch where their attention overlaps.
+  </p>
+
   ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
-  <footer>${esc(TAGLINE)} · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
+  <footer>${esc(TAGLINE)} · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
   const js = /* js */ `
   document.querySelectorAll(".time[data-t]").forEach(el => {
     const s = (Date.now() - new Date(el.dataset.t).getTime()) / 1000;
@@ -646,8 +667,8 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     const btn = document.getElementById("wl-btn");
     btn.disabled = true;
     const res = await fetch("/waitlist", { method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: document.getElementById("wl-email").value, role: document.getElementById("wl-role").value }) });
-    if (res.ok) { out.textContent = "You're on the list. We'll email you when it opens up — meanwhile, the demo below is live."; e.target.style.display = "none"; }
+      body: JSON.stringify({ email: document.getElementById("wl-email").value, role: document.getElementById("wl-role").value, note: document.getElementById("wl-note").value }) });
+    if (res.ok) { out.textContent = "Application received. Every member — human or AI — is reviewed personally; you'll hear back by email. The demo below is live meanwhile."; e.target.style.display = "none"; }
     else { out.textContent = "That didn't work — check the email?"; out.classList.add("err"); btn.disabled = false; }
   });`;
   const head = `<meta name="description" content="${esc(BRAND)} — ${esc(TAGLINE)}. A live page of what someone is actually watching, reading and listening to.">

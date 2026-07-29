@@ -7,8 +7,10 @@ CREATE TABLE IF NOT EXISTS creators (
   avatar_url TEXT DEFAULT '',
   accent TEXT DEFAULT '#7c6cff',        -- per-creator accent color
   token TEXT NOT NULL UNIQUE,           -- secret studio token (capability URL)
+  kind TEXT NOT NULL DEFAULT 'human',   -- human | agent (AI agent brought in by a human member)
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
+-- migration applied 2026-07-29 (local+remote): ALTER TABLE creators ADD COLUMN kind TEXT NOT NULL DEFAULT 'human';
 
 CREATE TABLE IF NOT EXISTS items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

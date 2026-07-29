@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { resolveLink } from "./meta";
 import { publicPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
+import { termsPage, privacyPage } from "./legal";
 
 type Bindings = { DB: D1Database; ADMIN_KEY: string };
 const app = new Hono<{ Bindings: Bindings }>();
 
-const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml"]);
+const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist"]);
 
 function newToken(): string {
   const bytes = new Uint8Array(24);
@@ -36,7 +37,7 @@ async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean):
 
 // ---------- landing ----------
 app.get("/", async (c) => {
-  const { results } = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, created_at FROM creators ORDER BY created_at").all<Creator>();
+  const { results } = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators ORDER BY created_at").all<Creator>();
   const demoCreator = results[0];
   let demo: { creator: Creator; items: Item[] } | undefined;
   if (demoCreator) {
@@ -50,25 +51,31 @@ app.get("/", async (c) => {
 });
 
 app.post("/waitlist", async (c) => {
-  const { email, role } = await c.req.json<{ email?: string; role?: string }>();
+  const { email, role, note } = await c.req.json<{ email?: string; role?: string; note?: string }>();
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) return c.json({ error: "invalid email" }, 400);
-  const safeRole = ["fan", "creator", "both"].includes(role ?? "") ? role : "fan";
-  await c.env.DB.prepare("INSERT OR IGNORE INTO waitlist (email, role) VALUES (?, ?)").bind(email.toLowerCase(), safeRole).run();
+  const safeRole = ["fan", "creator", "agent", "both"].includes(role ?? "") ? role : "fan";
+  await c.env.DB.prepare("INSERT OR IGNORE INTO waitlist (email, role, note) VALUES (?, ?, ?)")
+    .bind(email.toLowerCase(), safeRole, (note ?? "").slice(0, 280))
+    .run();
   return c.json({ ok: true });
 });
+
+app.get("/terms", (c) => c.html(termsPage()));
+app.get("/privacy", (c) => c.html(privacyPage()));
 
 // ---------- admin: create a creator ----------
 app.post("/api/creators", async (c) => {
   const key = c.req.header("x-admin-key") ?? "";
   if (!c.env.ADMIN_KEY || !(await timingSafeEq(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
-  const body = await c.req.json<{ handle?: string; name?: string; bio?: string; avatar_url?: string; accent?: string }>();
+  const body = await c.req.json<{ handle?: string; name?: string; bio?: string; avatar_url?: string; accent?: string; kind?: string }>();
   const handle = (body.handle ?? "").toLowerCase().trim();
   if (!/^[a-z0-9][a-z0-9-]{1,30}$/.test(handle) || RESERVED_HANDLES.has(handle)) return c.json({ error: "invalid handle" }, 400);
   if (!body.name?.trim()) return c.json({ error: "name required" }, 400);
+  const kind = body.kind === "agent" ? "agent" : "human";
   const token = newToken();
   try {
-    await c.env.DB.prepare("INSERT INTO creators (handle, name, bio, avatar_url, accent, token) VALUES (?, ?, ?, ?, ?, ?)")
-      .bind(handle, body.name.trim(), body.bio ?? "", body.avatar_url ?? "", body.accent ?? "#7c6cff", token)
+    await c.env.DB.prepare("INSERT INTO creators (handle, name, bio, avatar_url, accent, token, kind) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(handle, body.name.trim(), body.bio ?? "", body.avatar_url ?? "", body.accent ?? "#7c6cff", token, kind)
       .run();
   } catch {
     return c.json({ error: "handle already taken" }, 409);
@@ -266,7 +273,7 @@ app.get("/studio/:token/setup", async (c) => {
 app.get("/:handle", async (c) => {
   const handle = c.req.param("handle").toLowerCase();
   if (RESERVED_HANDLES.has(handle)) return c.notFound();
-  const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, created_at FROM creators WHERE handle = ?")
+  const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators WHERE handle = ?")
     .bind(handle)
     .first<Creator>();
   if (!creator) return c.text("No such feed", 404);
