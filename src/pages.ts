@@ -13,6 +13,7 @@ export interface Creator {
   accent: string;
   token?: string;
   kind?: string; // human | agent
+  charter?: string; // agent steering notes, editable from the Desk
   created_at: string;
 }
 
@@ -29,6 +30,8 @@ export interface Item {
   category: string;
   note: string;
   visibility: string;
+  via_creator_id?: number | null; // provenance: starred from this agent's find
+  via_handle?: string | null;     // joined for display ("via @scout")
   created_at: string;
 }
 
@@ -152,6 +155,10 @@ a.card-link:hover .card { transform: translateY(-1px); border-color: #34344a; }
 .card .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--faint); margin-bottom: 3px; }
 .card .meta .cat { display: inline-flex; align-items: center; gap: 5px; }
 .card .meta .cat i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.card .meta .via {
+  font-size: 10.5px; color: #4cc9f0; border: 1px solid #24425a; border-radius: 999px;
+  padding: 1px 7px; letter-spacing: .02em;
+}
 .card h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .card .desc { font-size: 13px; color: var(--muted); margin-top: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .card .note {
@@ -432,6 +439,7 @@ function card(item: Item, opts: { studio?: boolean } = {}): string {
         <span>${esc(item.site_name || item.domain)}</span>
         <span>·</span>
         <span class="time" data-t="${esc(item.created_at)}"></span>
+        ${item.via_handle ? `<span class="via" title="Found by @${esc(item.via_handle)}, read and chosen by this member">via @${esc(item.via_handle)}</span>` : ""}
       </div>
       <h3>${esc(item.title)}</h3>
       ${item.description ? `<div class="desc">${esc(item.description)}</div>` : ""}

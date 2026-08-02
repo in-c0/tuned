@@ -3,6 +3,7 @@ import { resolveLink } from "./meta";
 import { publicPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
 import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
+import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, type Connection } from "./spotify";
 import { getCookie, setCookie } from "hono/cookie";
@@ -10,7 +11,7 @@ import { getCookie, setCookie } from "hono/cookie";
 type Bindings = { DB: D1Database; ADMIN_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
 const app = new Hono<{ Bindings: Bindings }>();
 
-const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist", "home", "login", "logout", "enter"]);
+const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist", "home", "login", "logout", "enter", "today", "read", "queue", "connect"]);
 
 function newToken(): string {
   const bytes = new Uint8Array(24);
@@ -33,8 +34,8 @@ async function creatorByToken(db: D1Database, token: string): Promise<Creator | 
 
 async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean): Promise<Item[]> {
   const sql = publicOnly
-    ? "SELECT * FROM items WHERE creator_id = ? AND visibility = 'public' ORDER BY created_at DESC LIMIT 300"
-    : "SELECT * FROM items WHERE creator_id = ? ORDER BY created_at DESC LIMIT 300";
+    ? "SELECT i.*, v.handle AS via_handle FROM items i LEFT JOIN creators v ON v.id = i.via_creator_id WHERE i.creator_id = ? AND i.visibility = 'public' ORDER BY i.created_at DESC LIMIT 300"
+    : "SELECT i.*, v.handle AS via_handle FROM items i LEFT JOIN creators v ON v.id = i.via_creator_id WHERE i.creator_id = ? ORDER BY i.created_at DESC LIMIT 300";
   const { results } = await db.prepare(sql).bind(creatorId).all<Item>();
   return results;
 }
@@ -97,11 +98,11 @@ app.get("/enter/:token", async (c) => {
   const member = await c.env.DB.prepare("SELECT * FROM members WHERE session_token = ?").bind(c.req.param("token")).first<Member>();
   if (!member) return c.html(loginPage("That sign-in link isn't valid anymore. Ask us for a fresh one."), 404);
   grantSession(c, member.session_token);
-  return c.redirect("/home");
+  return c.redirect("/today");
 });
 
 app.get("/login", async (c) => {
-  if (await currentMember(c)) return c.redirect("/home");
+  if (await currentMember(c)) return c.redirect("/today");
   return c.html(loginPage());
 });
 
@@ -205,6 +206,130 @@ app.post("/queue/:id/:action", async (c) => {
     return c.json({ error: "bad action" }, 400);
   }
   return c.json({ ok: true });
+});
+
+// ---------- Morning Desk ----------
+
+app.get("/today", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.redirect("/login");
+  const db = c.env.DB;
+
+  // followed feeds; auto-follow your own agents on first visit so the desk is never empty
+  await db.prepare(
+    "INSERT OR IGNORE INTO follows (member_id, creator_id) SELECT ?, id FROM creators WHERE member_id = ? AND kind = 'agent'"
+  ).bind(member.id, member.id).run();
+
+  const { results: followed } = await db.prepare(
+    "SELECT cr.* FROM creators cr JOIN follows f ON f.creator_id = cr.id WHERE f.member_id = ? ORDER BY cr.created_at"
+  ).bind(member.id).all<Creator>();
+
+  const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+  const groups: Array<{ stats: AgentStats; items: DeskItem[] }> = [];
+  const seenUrls = new Map<string, DeskItem>();
+  let newCount = 0;
+
+  for (const cr of followed) {
+    const { results: items } = await db.prepare(
+      `SELECT i.*, cr.handle, cr.name AS agent_name, cr.kind AS agent_kind, r.action AS read_action
+       FROM items i JOIN creators cr ON cr.id = i.creator_id
+       LEFT JOIN reads r ON r.item_id = i.id AND r.member_id = ?
+       WHERE i.creator_id = ? AND i.visibility = 'public' AND i.created_at > ?
+       ORDER BY i.created_at DESC LIMIT 40`
+    ).bind(member.id, cr.id, weekAgo).all<DeskItem>();
+
+    const kept: DeskItem[] = [];
+    for (const it of items) {
+      it.also = [];
+      const dup = seenUrls.get(it.url);
+      if (dup) { dup.also.push(cr.handle); continue; } // cross-agent dedup
+      seenUrls.set(it.url, it);
+      if (!it.read_action) newCount++;
+      kept.push(it);
+    }
+    const st = await db.prepare(
+      `SELECT
+        (SELECT COUNT(*) FROM items WHERE creator_id = ?1 AND created_at > ?2 AND visibility='public') AS found7d,
+        (SELECT COUNT(*) FROM reads r JOIN items i ON i.id = r.item_id WHERE i.creator_id = ?1 AND r.member_id = ?3 AND r.action='star' AND r.created_at > ?2) AS starred7d,
+        (SELECT COUNT(*) FROM reads r JOIN items i ON i.id = r.item_id WHERE i.creator_id = ?1 AND r.member_id = ?3 AND r.action='skip' AND r.created_at > ?2) AS skipped7d`
+    ).bind(cr.id, weekAgo, member.id).first<{ found7d: number; starred7d: number; skipped7d: number }>();
+    groups.push({ stats: { creator: cr, found7d: st?.found7d ?? 0, starred7d: st?.starred7d ?? 0, skipped7d: st?.skipped7d ?? 0 }, items: kept });
+  }
+
+  // 7-day triage streak (any read action that day, member-local ≈ UTC for now)
+  const { results: days } = await db.prepare(
+    "SELECT DISTINCT substr(created_at, 1, 10) AS d FROM reads WHERE member_id = ? AND created_at > ?"
+  ).bind(member.id, weekAgo).all<{ d: string }>();
+  const daySet = new Set(days.map((x) => x.d));
+  const streak: boolean[] = [];
+  for (let i = 6; i >= 0; i--) streak.push(daySet.has(new Date(Date.now() - i * 86400_000).toISOString().slice(0, 10)));
+
+  await db.prepare("UPDATE members SET last_desk_at = ? WHERE id = ?").bind(new Date().toISOString(), member.id).run();
+  const own = await db.prepare("SELECT handle FROM creators WHERE member_id = ? AND kind = 'human' ORDER BY created_at LIMIT 1")
+    .bind(member.id).first<{ handle: string }>();
+  return c.html(deskPage(member, groups, streak, newCount, own?.handle ?? null));
+});
+
+// triage: star (republish to own feed with provenance) or skip
+app.post("/read/:id", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  const itemId = Number(c.req.param("id"));
+  const { action } = await c.req.json<{ action?: string }>();
+  if (action !== "star" && action !== "skip") return c.json({ error: "bad action" }, 400);
+
+  const item = await c.env.DB.prepare("SELECT * FROM items WHERE id = ?").bind(itemId).first<Item>();
+  if (!item) return c.json({ error: "not found" }, 404);
+
+  await c.env.DB.prepare(
+    "INSERT INTO reads (member_id, item_id, action) VALUES (?, ?, ?) ON CONFLICT(member_id, item_id) DO UPDATE SET action = excluded.action, created_at = excluded.created_at"
+  ).bind(member.id, itemId, action).run();
+
+  if (action === "star") {
+    const myFeed = await c.env.DB.prepare(
+      "SELECT id FROM creators WHERE member_id = ? AND kind = 'human' ORDER BY created_at LIMIT 1"
+    ).bind(member.id).first<{ id: number }>();
+    if (myFeed && myFeed.id !== item.creator_id) {
+      const dup = await c.env.DB.prepare("SELECT id FROM items WHERE creator_id = ? AND url = ?").bind(myFeed.id, item.url).first();
+      if (!dup) {
+        await c.env.DB.prepare(
+          `INSERT INTO items (creator_id, url, title, description, image_url, site_name, domain, kind, category, note, visibility, via_creator_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '', 'public', ?)`
+        ).bind(myFeed.id, item.url, item.title, item.description, item.image_url, item.site_name, item.domain, item.kind, item.category, item.creator_id).run();
+      }
+    }
+  }
+  return c.json({ ok: true });
+});
+
+app.post("/api/agents/:id/charter", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  const { charter } = await c.req.json<{ charter?: string }>();
+  const res = await c.env.DB.prepare("UPDATE creators SET charter = ? WHERE id = ? AND member_id = ?")
+    .bind((charter ?? "").slice(0, 2000), Number(c.req.param("id")), member.id).run();
+  if (!res.meta.changes) return c.json({ error: "not yours" }, 404);
+  return c.json({ ok: true });
+});
+
+// agent-facing: charter + recent feedback, fetched by the daily run before searching
+app.get("/studio/:token/brief", async (c) => {
+  const creator = await creatorByToken(c.env.DB, c.req.param("token"));
+  if (!creator) return c.json({ error: "unauthorized" }, 401);
+  const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+  const { results: feedback } = await c.env.DB.prepare(
+    `SELECT r.action, i.title FROM reads r JOIN items i ON i.id = r.item_id
+     WHERE i.creator_id = ? AND r.created_at > ? ORDER BY r.created_at DESC LIMIT 20`
+  ).bind(creator.id, weekAgo).all<{ action: string; title: string }>();
+  return c.json({
+    handle: creator.handle,
+    charter: creator.charter ?? "",
+    recent_feedback: {
+      starred: feedback.filter((f) => f.action === "star").map((f) => f.title),
+      skipped: feedback.filter((f) => f.action === "skip").map((f) => f.title),
+    },
+    guidance: "Honor the charter. Starred titles show what the supervisor found valuable — find more in that direction. Skipped titles were noise to them — avoid similar. Selectivity over volume.",
+  });
 });
 
 app.get("/home", async (c) => {

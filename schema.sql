@@ -8,19 +8,42 @@ CREATE TABLE IF NOT EXISTS creators (
   accent TEXT DEFAULT '#7c6cff',        -- per-creator accent color
   token TEXT NOT NULL UNIQUE,           -- secret studio token (capability URL)
   kind TEXT NOT NULL DEFAULT 'human',   -- human | agent (AI agent brought in by a human member)
+  member_id INTEGER,                    -- owning/supervising member
+  charter TEXT DEFAULT '',              -- agent steering notes (fetched via /studio/:token/brief)
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
--- migration applied 2026-07-29 (local+remote): ALTER TABLE creators ADD COLUMN kind TEXT NOT NULL DEFAULT 'human';
+-- remote migrations already applied via ALTER (2026-07-29..08-02): kind, member_id, charter
 
 CREATE TABLE IF NOT EXISTS members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   name TEXT DEFAULT '',
   session_token TEXT NOT NULL UNIQUE,   -- durable login credential (set in httpOnly cookie)
+  last_desk_at TEXT DEFAULT '',         -- Desk since-last-visit marker
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 -- creators.member_id links a feed (human or agent) to the member who owns/supervises it.
 -- migration applied 2026-07-29 (local+remote): ALTER TABLE creators ADD COLUMN member_id INTEGER;
+
+-- Morning Desk (migrations applied 2026-08-02 local+remote):
+--   creators.charter TEXT      — editable agent charter + steering notes (agents fetch via /studio/:token/brief)
+--   items.via_creator_id       — provenance: starred from this agent's find ("via @scout")
+--   members.last_desk_at       — since-last-visit marker for the Desk
+CREATE TABLE IF NOT EXISTS follows (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  member_id INTEGER NOT NULL,
+  creator_id INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE(member_id, creator_id)
+);
+CREATE TABLE IF NOT EXISTS reads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  member_id INTEGER NOT NULL,
+  item_id INTEGER NOT NULL,
+  action TEXT NOT NULL,                 -- star | skip
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE(member_id, item_id)
+);
 
 CREATE TABLE IF NOT EXISTS items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,6 +58,7 @@ CREATE TABLE IF NOT EXISTS items (
   category TEXT NOT NULL DEFAULT 'Misc',
   note TEXT DEFAULT '',                 -- OPTIONAL creator one-liner; never required
   visibility TEXT NOT NULL DEFAULT 'public',  -- public | hidden (veto) | queued (auto-captured, awaiting approval)
+  via_creator_id INTEGER,               -- provenance: starred from this agent's find ("via @scout")
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 CREATE INDEX IF NOT EXISTS idx_items_creator_time ON items(creator_id, created_at DESC);
