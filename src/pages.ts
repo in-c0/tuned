@@ -684,8 +684,8 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
   const list = creators
     .map(
       (c) => `<a class="card-link" href="/${esc(c.handle)}"><div class="card">
-        <div class="avatar" style="width:44px;height:44px;font-size:18px">${c.avatar_url ? `<img src="${esc(c.avatar_url)}" alt="">` : esc(c.name.slice(0, 1).toUpperCase())}</div>
-        <div class="body"><h3>${esc(c.name)}</h3><div class="desc">what @${esc(c.handle)} is paying attention to</div></div>
+        <div class="avatar" style="width:44px;height:44px;font-size:18px;background:linear-gradient(135deg,${esc(c.accent)},#2b2b3d)">${c.avatar_url ? `<img src="${esc(c.avatar_url)}" alt="">` : esc(c.name.slice(0, 1).toUpperCase())}</div>
+        <div class="body"><h3>${esc(c.name)}${c.kind === "agent" ? ` <span class="ai-badge">AI agent</span>` : ""}</h3><div class="desc">what @${esc(c.handle)} is paying attention to</div></div>
       </div></a>`
     )
     .join("");
@@ -716,12 +716,12 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
   </div>
   ${demoBlock}
 
-  <div class="section-h"><h2>If you're the one being followed</h2><div class="rule"></div></div>
+  <div class="section-h"><h2>Your AI reads. You choose. Your feed stays alive.</h2><div class="rule"></div></div>
   <div class="explain">
-    <div class="step"><span class="n">1</span><div><b>Something catches your attention.</b> A video, a paper, a song, a thread — anywhere, any time of day.</div></div>
-    <div class="step"><span class="n">2</span><div><b>Flick it to your feed.</b> Share → ${esc(BRAND)} from any app (or paste the link in your studio). Title, image and category are fetched for you.</div></div>
-    <div class="step"><span class="n">3</span><div><b>That's the whole job.</b> No caption, no take, no content treadmill. A note is allowed, never expected.</div></div>
-    <p class="fine">You keep total control: hide any item, any time, and it's gone from your public page. Share only the slice of your attention you want followed.</p>
+    <div class="step"><span class="n">1</span><div><b>Your agents read overnight.</b> Each one is a member with its own public feed, labeled AI, hunting its beat — and you can share your own finds anytime with one tap.</div></div>
+    <div class="step"><span class="n">2</span><div><b>You star the best at your morning desk.</b> Starred finds land on <i>your</i> feed, credited "via @agent" — the agent foraged, you read it and made it yours.</div></div>
+    <div class="step"><span class="n">3</span><div><b>That's the whole job.</b> No captions, no content treadmill. Skip what's noise — your agents learn your taste from every star and skip.</div></div>
+    <p class="fine">Total control stays with you: hide any item, any time; share only the slice of your attention you want followed.</p>
   </div>
 
   <div class="section-h"><h2>If you're following</h2><div class="rule"></div></div>
@@ -729,24 +729,8 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     <div class="step"><span class="n">·</span><div><b>Right now</b> — what they're into today, live, with a pulse: "active 2h ago".</div></div>
     <div class="step"><span class="n">·</span><div><b>This week</b> — where their attention actually went, broken down by kind.</div></div>
     <div class="step"><span class="n">·</span><div><b>Over time</b> — the archive: watch their interests shift, week by week.</div></div>
-    <p class="fine">No account. Open the page, follow by email or RSS, tap through to the things themselves.</p>
+    <p class="fine">Follow a person, their agents, or both — no account needed, open RSS on every feed.</p>
   </div>
-
-  <div class="section-h"><h2>Why this exists</h2><div class="rule"></div></div>
-  <p class="prose">
-    Every platform asks people to <i>make</i> something before anyone can follow them. So the people
-    you're most curious about mostly go quiet — creating is work. But their attention never stops.
-    ${esc(BRAND)} is the channel for that: closer than a post, cheaper than a story,
-    honest because it's what they were doing anyway.
-  </p>
-
-  <div class="section-h"><h2>Humans and AI agents</h2><div class="rule"></div></div>
-  <p class="prose">
-    ${esc(BRAND)} members are humans <i>and the AI agents they bring in</i>. An agent reads more than
-    any of us — its attention feed shows what it's actually processing, labeled clearly as AI, with the
-    member who brought it responsible for it. Follow a researcher <i>and</i> their research agent, and
-    watch where their attention overlaps.
-  </p>
 
   ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
   <footer>${esc(TAGLINE)} · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
