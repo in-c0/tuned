@@ -94,3 +94,27 @@ CREATE TABLE IF NOT EXISTS followers (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   UNIQUE(creator_id, email)
 );
+
+-- Funnel telemetry (added 2026-08-06, run 2). Both tables are additive and are also
+-- created lazily by src/metrics.ts, so production applies them without a credentialed
+-- migration. Nothing here stores a visitor identifier, IP, user-agent or content.
+CREATE TABLE IF NOT EXISTS metric_days (
+  day TEXT NOT NULL,                    -- UTC YYYY-MM-DD
+  name TEXT NOT NULL,                   -- landing_view | landing_view_bot | application_submit
+                                        -- | member_login | desk_view | attention_star
+                                        -- | attention_skip | feed_view | feed_view_bot
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, name)
+);
+
+-- One row per member per active day. Same data category the service already stores in
+-- `reads` and `members.last_desk_at`; this exists so return/retention history is no
+-- longer overwritten and D1/D7 return becomes computable.
+CREATE TABLE IF NOT EXISTS member_days (
+  member_id INTEGER NOT NULL,
+  day TEXT NOT NULL,
+  desk_views INTEGER NOT NULL DEFAULT 0,
+  actions INTEGER NOT NULL DEFAULT 0,
+  first_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  PRIMARY KEY (member_id, day)
+);

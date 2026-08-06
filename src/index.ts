@@ -6,10 +6,22 @@ import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, type Connection } from "./spotify";
+import { count, memberActive, isBot, snapshot } from "./metrics";
 import { getCookie, setCookie } from "hono/cookie";
+import type { Context } from "hono";
 
-type Bindings = { DB: D1Database; ADMIN_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
+type Bindings = { DB: D1Database; ADMIN_KEY: string; METRICS_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
 const app = new Hono<{ Bindings: Bindings }>();
+
+/** Fire-and-forget telemetry: never blocks the response, never fails a request. */
+function track(c: Context, work: Promise<unknown>): void {
+  const swallowed = work.catch(() => {});
+  try {
+    c.executionCtx.waitUntil(swallowed);
+  } catch {
+    // no execution context (e.g. tests) — the promise still runs
+  }
+}
 
 const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist", "home", "login", "logout", "enter", "today", "read", "queue", "connect"]);
 
@@ -42,6 +54,7 @@ async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean):
 
 // ---------- landing ----------
 app.get("/", async (c) => {
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "landing_view_bot" : "landing_view"));
   const { results } = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators ORDER BY created_at").all<Creator>();
   const demoCreator = results[0];
   let demo: { creator: Creator; items: Item[] } | undefined;
@@ -62,11 +75,21 @@ app.post("/waitlist", async (c) => {
   await c.env.DB.prepare("INSERT OR IGNORE INTO waitlist (email, role, note) VALUES (?, ?, ?)")
     .bind(email.toLowerCase(), safeRole, (note ?? "").slice(0, 280))
     .run();
+  track(c, count(c.env.DB, "application_submit"));
   return c.json({ ok: true });
 });
 
 app.get("/terms", (c) => c.html(termsPage()));
 app.get("/privacy", (c) => c.html(privacyPage()));
+
+// Aggregate funnel counts for the operating loop. Key-gated and fails closed, so it is
+// not a public surface; returns counts only — no emails, ids, handles or item content.
+app.get("/api/metrics", async (c) => {
+  const key = c.req.header("x-metrics-key") ?? "";
+  if (!c.env.METRICS_KEY) return c.json({ error: "metrics key not configured" }, 503);
+  if (!(await timingSafeEq(key, c.env.METRICS_KEY))) return c.json({ error: "unauthorized" }, 401);
+  return c.json(await snapshot(c.env.DB), 200, { "cache-control": "no-store" });
+});
 
 // ---------- member auth + dashboard ----------
 
@@ -98,6 +121,7 @@ app.get("/enter/:token", async (c) => {
   const member = await c.env.DB.prepare("SELECT * FROM members WHERE session_token = ?").bind(c.req.param("token")).first<Member>();
   if (!member) return c.html(loginPage("That sign-in link isn't valid anymore. Ask us for a fresh one."), 404);
   grantSession(c, member.session_token);
+  track(c, count(c.env.DB, "member_login"));
   return c.redirect("/today");
 });
 
@@ -214,6 +238,7 @@ app.get("/today", async (c) => {
   const member = await currentMember(c);
   if (!member) return c.redirect("/login");
   const db = c.env.DB;
+  track(c, Promise.all([count(db, "desk_view"), memberActive(db, member.id, "desk")]));
 
   // followed feeds; auto-follow your own agents on first visit so the desk is never empty
   await db.prepare(
@@ -284,6 +309,10 @@ app.post("/read/:id", async (c) => {
   await c.env.DB.prepare(
     "INSERT INTO reads (member_id, item_id, action) VALUES (?, ?, ?) ON CONFLICT(member_id, item_id) DO UPDATE SET action = excluded.action, created_at = excluded.created_at"
   ).bind(member.id, itemId, action).run();
+  track(c, Promise.all([
+    count(c.env.DB, action === "star" ? "attention_star" : "attention_skip"),
+    memberActive(c.env.DB, member.id, "action"),
+  ]));
 
   if (action === "star") {
     const myFeed = await c.env.DB.prepare(
@@ -571,6 +600,7 @@ app.get("/:handle", async (c) => {
     .bind(handle)
     .first<Creator>();
   if (!creator) return c.text("No such feed", 404);
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "feed_view_bot" : "feed_view"));
   const items = await itemsFor(c.env.DB, creator.id, true);
   return c.html(publicPage(creator, items));
 });

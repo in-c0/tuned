@@ -4,11 +4,28 @@ Every metric here must name its source. Never invent, extrapolate, or manually i
 
 ## Definitions
 
-- **Applications submitted** — rows in the D1 applications table (source: `wrangler d1 execute attention_feed --remote`). UNMEASURED as of 2026-08-06.
-- **Members activated** — members with ≥1 session after approval (source: D1 sessions). UNMEASURED.
-- **Attention events** — stars/skips/opens recorded (source: D1). UNMEASURED.
+- **Applications submitted** — `totals.applications` (rows in `waitlist`) and the `application_submit` daily counter. Source: `GET /api/metrics`, snapshotted to `ops/metrics/latest.json`.
+- **Members activated** — `retention.members_ever_active`: members with ≥1 row in `member_days`. Source: `/api/metrics`.
+- **Attention events** — `attention_star` / `attention_skip` daily counters, and `totals.stars` / `totals.skips`. Source: `/api/metrics`.
+- **Return use** — `retention.members_returned_after_first_day` and `members_active_2plus_days`, computed from distinct `member_days.day` per member. Source: `/api/metrics`.
+- **Landing views** — `landing_view` (non-bot by user-agent heuristic) vs `landing_view_bot`. A UA heuristic is not proof of a human; report both, never merge them, and never call `landing_view` "verified human traffic".
 - **Human traffic** — Cloudflare `/cdn-cgi/rum` or Worker-side instrumentation only. Raw CF request counts are scanner-dominated and must never be cited as human traffic.
 - **Gross cash collected** — payment provider records only. Currently **$0 and unmeasurable: no billing exists**. No other source may ever back this number.
+
+## Read path (added 2026-08-06, run 2)
+
+`GET /api/metrics` returns aggregate counts only — no emails, member ids, handles, URLs or item
+content — gated by the `METRICS_KEY` Worker secret and failing closed (503) when it is unset.
+
+The executor has **no egress to justtuned.com** (re-confirmed run 2: 403 CONNECT at the proxy) and
+no Cloudflare credentials, so it cannot call that endpoint itself. `.github/workflows/metrics-snapshot.yml`
+is the bridge: daily at 06:40 Sydney it fetches the endpoint and commits the JSON to `ops/metrics/`,
+where the executor reads it as a file. **This requires the owner to set `METRICS_KEY` in two places
+(Worker secret + GitHub Actions repository secret); until then the workflow skips and every metric
+below stays UNMEASURED.**
+
+Counters start at zero on the deploy that introduced them. There is no backfill and none will be
+invented: history before that deploy does not exist.
 
 ## Measurement audit — 2026-08-06 (run 1)
 
@@ -45,3 +62,32 @@ _Append dated snapshots below; each line cites its source query._
 - Human traffic — UNMEASURED (no instrumentation exists).
 - Gross cash collected — **$0**, source: no billing exists. Not an estimate.
 - Production reachability from the routine session — **blocked**: `justtuned.com:443` returns 403 at the egress proxy (CONNECT policy denial), so post-deploy verification cannot be performed from here. Recorded, not worked around.
+
+### 2026-08-06 (run 2)
+
+Instrumentation shipped; no production numbers yet. Every metric remains **UNMEASURED** — the
+`METRICS_KEY` secret does not exist, so the snapshot workflow has never produced a file, and no
+elapsed time has passed since deploy in any case.
+
+- Applications submitted — UNMEASURED (awaiting first snapshot).
+- Members activated / return use — UNMEASURED (awaiting first snapshot).
+- Attention events — UNMEASURED (awaiting first snapshot).
+- Landing views — UNMEASURED (counter live from this deploy forward; no snapshot yet).
+- Gross cash collected — **$0**, source: no billing exists. Not an estimate.
+- Production reachability from the routine session — still **blocked**: `justtuned.com:443` returns
+  403 CONNECT at the egress proxy. The allowlist widening reported on 2026-08-06 evening is not in
+  effect for this environment. Re-tested, not assumed.
+
+Post-deploy funnel table, updated:
+
+| Stage | Recorded in | Executor can read? |
+| --- | --- | --- |
+| Landing view | `metric_days.landing_view` / `landing_view_bot` | via snapshot, once `METRICS_KEY` is set |
+| Application / waitlist | `waitlist` + `metric_days.application_submit` | same |
+| Approval → member | `members` | same |
+| Member login | `metric_days.member_login` | same |
+| Feed creation | `creators` | same |
+| First find | `items` | same |
+| Star / skip | `reads` + `metric_days.attention_star` / `attention_skip` | same |
+| Return visit | `member_days` — **one row per member per active day, no longer overwritten** | same |
+| Payment | **does not exist** | n/a |

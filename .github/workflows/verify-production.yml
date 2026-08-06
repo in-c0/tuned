@@ -1,0 +1,65 @@
+name: verify production
+
+# The executor routine cannot reach justtuned.com (its egress proxy returns 403 CONNECT),
+# so "verify production after deploying, roll back on regression" was not something it
+# could actually do. This runs from GitHub's network after every push to master and
+# publishes a result the executor can read through the Actions API.
+#
+# No secrets are used, so it cannot check authenticated behaviour — only that the site is
+# up and that the metrics endpoint refuses unauthenticated callers.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "20 20 * * *" # 06:20 Sydney, before the metrics snapshot
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Site is up
+        run: |
+          set -euo pipefail
+          # Cloudflare Workers Builds deploys asynchronously after the push, so allow the
+          # new version a moment to roll out before judging it.
+          for attempt in 1 2 3 4 5 6; do
+            code=$(curl -sS --max-time 20 -o /tmp/home.html -w '%{http_code}' https://justtuned.com/ || echo 000)
+            [ "$code" = "200" ] && break
+            echo "attempt $attempt: HTTP $code — retrying in 30s"
+            sleep 30
+          done
+          if [ "$code" != "200" ]; then
+            echo "::error::justtuned.com returned HTTP $code"
+            exit 1
+          fi
+          grep -qi 'tuned' /tmp/home.html || { echo "::error::landing page body does not look like Tuned"; exit 1; }
+          echo "justtuned.com: HTTP 200, landing page rendered ($(wc -c < /tmp/home.html) bytes)"
+
+      - name: Metrics endpoint refuses unauthenticated callers
+        run: |
+          set -euo pipefail
+          code=$(curl -sS --max-time 20 -o /tmp/m.json -w '%{http_code}' https://justtuned.com/api/metrics || echo 000)
+          case "$code" in
+            401|503)
+              echo "/api/metrics without a key: HTTP $code — closed, as intended." ;;
+            200)
+              echo "::error::/api/metrics returned 200 with NO key — aggregate data is public. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::/api/metrics returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+
+      - name: Public pages still render
+        run: |
+          set -euo pipefail
+          for path in /terms /privacy; do
+            code=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "https://justtuned.com${path}" || echo 000)
+            [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code"; exit 1; }
+            echo "${path}: HTTP 200"
+          done
