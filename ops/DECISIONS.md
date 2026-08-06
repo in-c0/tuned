@@ -230,3 +230,35 @@ wrong-SHA, `unknown` stamp, empty body, HTML error page and total curl failure a
 surface, no authenticated surface.
 
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+### Same run, 22:15–22:22 UTC — I broke the verifier while shipping it, and what that cost
+
+`b8a1277` shipped a `verify-production.yml` that **did not parse**. The commit-extraction step
+embedded a multi-line python script inside a `run: |` block with its continuation lines at column 0,
+which ends the YAML block scalar.
+
+GitHub's response to an unparseable workflow is **silence**, and that is the part worth remembering:
+
+- the merge push produced no run — no failure, no annotation, nothing;
+- `workflow_dispatch` returned `422 Workflow does not have 'workflow_dispatch' trigger` while the
+  trigger sat plainly in the file;
+- production ran for ~7 minutes with **no post-deploy verification at all**.
+
+**I first diagnosed this as GitHub failing to ingest events**, and spent two dispatch retries on that
+theory. It was my bug. The misreading is the more instructive half: from the outside, an invalid
+workflow and a platform outage look identical, and the wrong one is far more comfortable to believe.
+
+Fixed in `8fc52ce` (PR #9): extraction is a single-line `grep -oE` for the fixed shape of a commit
+stamp — a SHA does not need a JSON parser, and anything that is not that shape yields `""` and keeps
+the loop waiting, so fail-closed is preserved.
+
+**The gate could not have caught it.** `tsc` and `vitest` never open a workflow file, so a syntax
+error in the file that verifies production shipped green. `scripts/validate-workflows.py` now parses
+all four workflows and asserts each still declares the triggers this loop depends on; `check.yml`
+runs it. Verified against the exact broken file (unparseable → exit 1) **and** against a workflow
+that still parses but has quietly lost `workflow_dispatch` (→ exit 1) — the second case matters as
+much as the first, because a trigger can vanish while the YAML stays valid.
+
+`check.yml` also gained `workflow_dispatch`. A gate that governs production must be runnable when its
+own trigger misfires; without it the only options were to leave the change unmerged or to merge on
+local evidence alone.

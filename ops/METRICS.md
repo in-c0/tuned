@@ -171,3 +171,31 @@ What this does and does not change:
 
 Recorded here rather than quietly fixed because this file's rule is that a metric names its source:
 the source of "production verified" was weaker than the claim, and the correction belongs in the log.
+
+## First verification that proves version identity — 2026-08-07 08:22 Sydney (22:22 UTC)
+
+[verify-production run 31128940649](https://github.com/in-c0/tuned/actions/runs/31128940649),
+expecting `8fc52ce`:
+
+```
+attempt 1: serving 'b8a1277...', expecting '8fc52ce...' — waiting 20s
+attempt 2: serving 'b8a1277...', expecting '8fc52ce...' — waiting 20s
+Expected commit 8fc52ce3a57606f0dc3ddd4dae216d1d9d2c7d10 is live (attempt 3).
+justtuned.com: HTTP 200, landing page rendered (22075 bytes)
+/api/metrics without a key: HTTP 503 — METRICS_KEY is not configured yet; endpoint fails closed.
+/terms: HTTP 200
+/privacy: HTTP 200
+```
+
+The two waiting lines are the whole point: for 40 seconds the **previous** version was serving, and
+the verifier refused to evaluate health against it. The old gate would have returned on its first
+attempt and recorded that as "production verified green" for `8fc52ce`. This is now the first entry
+in this file where "verified" names a specific build and can be checked.
+
+It also confirms the stamp chain end-to-end in Cloudflare's real build container: `b8a1277` and
+`8fc52ce` were each reported correctly by the Worker built from them.
+
+**`METRICS_KEY` remains absent from the live Worker** — 503 `metrics key not configured` at 22:09,
+22:17 and 22:22 UTC, roughly ten hours after the owner reported setting it. Every funnel metric is
+still **UNMEASURED**; `ops/metrics/` still does not exist. Gross cash: **$0**, source "no billing
+exists", not an estimate. EXP-001's 48-hour window still has not started.
