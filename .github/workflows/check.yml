@@ -35,3 +35,10 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm test
+
+      # A workflow GitHub cannot parse produces no runs at all and 422s on dispatch,
+      # so a broken one is invisible until something that should have run silently
+      # did not. That happened to verify-production.yml on master; this is the step
+      # that would have caught it.
+      - name: Workflow files are valid YAML
+        run: python3 scripts/check-workflows.py

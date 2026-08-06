@@ -44,12 +44,10 @@ jobs:
           serving=""
           for attempt in $(seq 1 24); do
             body=$(curl -sS --max-time 20 -H 'cache-control: no-cache' https://justtuned.com/api/version || echo '')
-            serving=$(printf '%s' "$body" | python3 -c 'import json,sys
-try:
-    v = json.load(sys.stdin).get("commit", "")
-    print(v if isinstance(v, str) else "")
-except Exception:
-    print("")' 2>/dev/null || echo '')
+            # One line on purpose. A multi-line `python3 -c` script inside a `run: |`
+            # block must stay indented past the block scalar, or YAML ends the block at
+            # the first flush-left line and the whole workflow stops parsing.
+            serving=$(printf '%s' "$body" | python3 -c 'import json,sys; v=json.load(sys.stdin).get("commit",""); print(v if isinstance(v,str) else "")' 2>/dev/null || echo '')
 
             if [ "$serving" = "$EXPECTED" ]; then
               echo "serving=$serving" >> "$GITHUB_OUTPUT"
