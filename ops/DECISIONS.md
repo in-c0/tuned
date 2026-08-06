@@ -262,3 +262,53 @@ much as the first, because a trigger can vanish while the YAML stays valid.
 `check.yml` also gained `workflow_dispatch`. A gate that governs production must be runnable when its
 own trigger misfires; without it the only options were to leave the change unmerged or to merge on
 local evidence alone.
+
+## 2026-08-07 — run 6 (concurrent session B): the duplication is now the binding constraint
+
+> This session produced **no shipped code**. Everything it built, another session had already built.
+> That is the finding, and it is worth more than the code would have been.
+
+- **What happened, with times (UTC).** Two executor sessions ran the 2026-08-06 21:28 directive
+  simultaneously and neither knew of the other until GitHub told them:
+  - 21:59 — `claude-continuation.yml` fired a session from the reviewer's directive comment on #1.
+  - ~22:08 — the scheduled routine fired this session. It read #1, saw the directive and no execution
+    report after it, and correctly concluded the directive was unclaimed. **It was not unclaimed — it
+    was already being worked, and there was no way to see that.**
+  - 22:10 / 22:14 — PR #7 and PR #8: the same design, reached independently (build-time commit stamp →
+    `GET /api/version` → verifier polls for `github.sha` → fails closed).
+  - 22:20 / 22:22 — PR #9 and PR #10: the same YAML fix for the same break, again independently.
+- **Both duplicates were resolved by an earliest-first rule, and both times this session yielded.** #8
+  closed for #7, #10 closed for #9. The rule matters more than which way it points: a *symmetric* rule
+  converges when both sessions apply it, whereas "defer to the other" would have shipped nothing at all.
+- **Why this outranks the directive work itself.** Run 3 established that a control defect governing
+  every future action ranks above any single action it governs. This is that, one level up: run 3
+  bounded a session from *firing* another, which it did. It never bounded two externally-fired sessions
+  from doing *the same job*, and that has now happened on three consecutive cycles (run 3, run 5, run 6)
+  — the third at a 100% duplication rate. The loop has ~59 days left and is currently spending roughly
+  half its executor capacity producing work that is thrown away.
+- **Protocol adopted (executor-side, costs nothing, needs no owner action): claim before acting.**
+  Recorded in NORTH_STAR.md so every session reads it at start.
+  1. After reading #1 and before selecting an action, post a one-line claim comment containing the
+     marker `<!-- tuned-run-claim -->`, the UTC time, and the directive being claimed.
+  2. Before posting it, re-read the last few comments. If a claim already exists that is **newer than
+     the latest reviewer directive**, do not duplicate the work: pick the next-highest-value bounded
+     action that is disjoint from the claim, or stop and say so.
+  3. The claim is advisory and cheap. It does not prevent a race inside its own posting window; it
+     closes the much larger window — minutes to tens of minutes — in which one session is already
+     implementing while another is still reading.
+- **What it would have caught today:** the 21:59 session would have claimed at ~22:00; this session,
+  reading #1 at ~22:08, would have seen it and either stopped or picked something disjoint. Both
+  duplicate PR pairs disappear. It does not fix a genuine simultaneous start, and that limit is stated
+  rather than papered over.
+- **Owner alternative, if the duplication continues:** the `issue_comment` continuation path and the
+  3×/day schedule are two independent triggers on the same work. Turning off the `issue_comment` path
+  removes the collision at its source, at the cost of directives waiting for the next scheduled run
+  (≤6h). That is an owner call, not an executor one, and no change was made to it.
+- **`METRICS_KEY` is still absent from the live Worker — fifth independent observation.** Snapshots
+  dispatched at 22:09 ([31128798514](https://github.com/in-c0/tuned/actions/runs/31128798514)) and
+  22:16 ([31128889032](https://github.com/in-c0/tuned/actions/runs/31128889032)) both returned HTTP 503
+  `metrics key not configured`, and `verify-production` on `8fc52ce` at 22:22 read the same 503
+  unauthenticated. The runner env shows `METRICS_KEY: ***`, so the GitHub half remains correct. No
+  Cloudflare secret was inspected; this stays an owner auth-boundary step.
+- Egress re-tested, **sixth consecutive run**: `justtuned.com` still 403 CONNECT at the proxy.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
