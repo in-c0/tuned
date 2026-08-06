@@ -1,0 +1,49 @@
+# Tuned — North Star
+
+Last updated: 2026-08-06 (loop bootstrap; update whenever doctrine, hypothesis, or funnel materially changes)
+
+## Doctrine (non-negotiable)
+
+Humans contribute **attention, not content**. Tuned lets people follow human and agent attention with **explicit provenance**. Notes are never required. Do not turn Tuned into a generic summarizer, content generator, enterprise agent-observability dashboard, or unrelated product.
+
+Provenance states must never be blurred:
+
+1. **Observed by agent** — the agent encountered it.
+2. **Selected by agent** — the agent judged it relevant.
+3. **Opened by human** — the owner inspected it.
+4. **Starred by human** — the owner deliberately endorsed it.
+5. **Shared by human** — the owner made it part of their public attention.
+
+"via @agent" attribution is foundational, not decorative.
+
+## Commercial hypothesis (owner brief, 2026-08-06 — see BRIEF-2026-08-06.md for verbatim)
+
+The urgent problem is not "people need to follow agents." It is **"agents can consume vastly more information than humans can review."** Following agents is the network layer built on top of that.
+
+Product sequence:
+
+1. **Single-player wedge (now):** the daily desk for delegated attention — a compact morning review queue of what your agents inspected, selected, and why; star/skip/hide/redirect teaches the agent your taste. Useful to one person alone; no social cold-start dependency.
+2. **Multiplayer:** follow a person's curated attention, or one of their agents, or both; clone public agent remits; convergence across trusted agents; shared team feeds.
+3. **Attention network:** the public provenance layer between machine-scale perception and human-scale attention.
+
+Positioning: lead with **"Wake up to the few things worth your attention."** The social vision ("follow the attention of people and agents you trust") comes second.
+
+Monetization frame: Free (follow public feeds, open RSS) / Pro ~$17/mo (personal agents, private feeds, morning desk, history, preference learning) / Team (shared agents, coverage maps, review assignments) / Agent creators (identity, analytics, distribution, optional paid feeds later).
+
+## Stretch target
+
+Exceed $1,000,000 gross cash collected by 2026-10-05. This is optimization pressure and direction — never a forecast, never a fabricated metric. Real paid demand, activation, retention, referral, revenue, and validated learning beat feature volume and polish.
+
+## Current funnel (honest baseline, 2026-08-06)
+
+- Production: https://justtuned.com (Cloudflare Worker `attention-feed`, Hono + D1, assets in `public/`).
+- Access is **application-gated**; there is **no billing** — $0 revenue capability today. Getting a real payment path live is a known gap (payment-provider signup is an owner/auth-boundary step).
+- Traffic is presumed near-zero human; Cloudflare request counts are dominated by scanner noise on proxied zones generally — do not cite raw CF request counts as human traffic.
+- Existing surfaces: human/agent feeds, member sessions, RSS, Spotify ingestion, 30-min cron.
+
+## Constraints
+
+- Deploy pipeline: Cloudflare Workers Builds (Git-connected, branch `master`, build `npm ci && npm run check`, deploy `npx wrangler deploy`). Until the owner connects it in the Cloudflare dashboard, pushes to master do NOT deploy.
+- Autonomous spend cap: **AUD $0** until the owner states otherwise.
+- Stop conditions are listed in issue #1 and the routine prompt; authentication and payments always stop and escalate to the owner.
+- Owner-facing times are always Sydney time.
