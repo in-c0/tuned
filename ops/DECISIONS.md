@@ -21,3 +21,9 @@ Append-only record of consequential decisions and reversals.
 
 - Owner connected Cloudflare Workers Builds (`in-c0/tuned` → Worker `attention-feed`, branch `master`). Pushes to master now build (`npm ci && npm run check`) and deploy (`npx wrangler deploy`); run 1's gate fix means the build is green.
 - Spend cap remains AUD $0; owner is deciding the cap.
+
+## 2026-08-06 (late evening) — Spend cap set; executor egress fixed
+
+- **Owner set the autonomous spend cap: AUD $500 total for the 60-day window.** Rationale: ~AUD $16 infra headroom (Workers Paid if free tier is outgrown) + ~AUD $150–300 inference for the agent-scan core's first cohort + remainder for small evidence-gated distribution tests. Spend is not the binding constraint on the goal; the cap exists so sub-$500 purchases never stall a cycle. Running total: **AUD $0.00 of $500** — every purchase must append a line here.
+- **Owner widened the routine environment's network allowlist to include justtuned.com.** Executor to confirm direct production egress on next run. D1/wrangler access remains withheld by design.
+- Deploy pipeline verified end-to-end earlier this evening: push `46098b2` (10:38 UTC) → deployment `898548a4` live 10:40:04 UTC, site 200.
