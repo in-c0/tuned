@@ -5,6 +5,10 @@ name: verify production
 # could actually do. This runs from GitHub's network after every push to master and
 # publishes a result the executor can read through the Actions API.
 #
+# Cloudflare Workers Builds deploys asynchronously — a push-triggered run starts seconds
+# after the merge, minutes before the new version is live. So the first step waits for the
+# deploy to land rather than judging whatever is still serving.
+#
 # No secrets are used, so it cannot check authenticated behaviour — only that the site is
 # up and that the metrics endpoint refuses unauthenticated callers.
 
@@ -22,17 +26,34 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      - name: Give Cloudflare time to build (push only)
+        if: github.event_name == 'push'
+        # Workers Builds takes ~2 min from push to live. Without this the job would check
+        # the *previous* version and call it verified. This is a grace period, not proof —
+        # the step below is what actually establishes the new code is serving.
+        run: sleep 120
+
+      - name: Wait for the deploy to land
+        run: |
+          set -euo pipefail
+          # /api/metrics exists only in the deployed telemetry build. While Cloudflare is
+          # still building, the old Worker answers 404 — that means "not yet", not "broken".
+          for attempt in $(seq 1 12); do
+            code=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' https://justtuned.com/api/metrics || echo 000)
+            if [ "$code" != "404" ] && [ "$code" != "000" ]; then
+              echo "deploy is live after ${attempt} attempt(s) (/api/metrics -> HTTP $code)"
+              exit 0
+            fi
+            echo "attempt $attempt: /api/metrics -> HTTP $code, waiting 30s"
+            sleep 30
+          done
+          echo "::error::/api/metrics still HTTP $code after 6 minutes — the telemetry build never went live."
+          exit 1
+
       - name: Site is up
         run: |
           set -euo pipefail
-          # Cloudflare Workers Builds deploys asynchronously after the push, so allow the
-          # new version a moment to roll out before judging it.
-          for attempt in 1 2 3 4 5 6; do
-            code=$(curl -sS --max-time 20 -o /tmp/home.html -w '%{http_code}' https://justtuned.com/ || echo 000)
-            [ "$code" = "200" ] && break
-            echo "attempt $attempt: HTTP $code — retrying in 30s"
-            sleep 30
-          done
+          code=$(curl -sS --max-time 20 -o /tmp/home.html -w '%{http_code}' https://justtuned.com/ || echo 000)
           if [ "$code" != "200" ]; then
             echo "::error::justtuned.com returned HTTP $code"
             exit 1
@@ -45,8 +66,8 @@ jobs:
           set -euo pipefail
           code=$(curl -sS --max-time 20 -o /tmp/m.json -w '%{http_code}' https://justtuned.com/api/metrics || echo 000)
           case "$code" in
-            401|503)
-              echo "/api/metrics without a key: HTTP $code — closed, as intended." ;;
+            401) echo "/api/metrics without a key: HTTP 401 — key is set and the endpoint is closed." ;;
+            503) echo "/api/metrics without a key: HTTP 503 — METRICS_KEY is not configured yet; endpoint fails closed." ;;
             200)
               echo "::error::/api/metrics returned 200 with NO key — aggregate data is public. Roll back."
               exit 1 ;;
