@@ -99,3 +99,22 @@ Post-deploy funnel table, updated:
 | Star / skip | `reads` + `metric_days.attention_star` / `attention_skip` | same |
 | Return visit | `member_days` — **one row per member per active day, no longer overwritten** | same |
 | Payment | **does not exist** | n/a |
+
+## Run 3 addendum (2026-08-06 ~21:40 Sydney) — telemetry is now verified, not merely deployed
+
+No new metric is claimed this run. What changed is the **trustworthiness** of the metrics that are
+about to arrive.
+
+- **17 tests** (`test/metrics.test.ts`, PR #4 → `f49c4dc`) run the telemetry path in **workerd against
+  a real local D1** — the same runtime and SQL engine production uses, no credentials, no network.
+  They pin the `ON CONFLICT` accumulation, per-name/per-day keying, `member_days` retention
+  arithmetic, bot classification, the aggregate payload containing no identifier, `/api/metrics`
+  auth in all three states, and that live requests to `/` and `POST /waitlist` actually increment.
+- **Mutation-checked:** breaking the upsert to `DO UPDATE SET count = 1` was confirmed to fail the
+  accumulation test. The suite catches the failure it exists for.
+- **Consequence for reading the first snapshot:** a zero is now interpretable. Because
+  `src/metrics.ts` swallows every error by design, a zero previously could have meant either "no
+  traffic" or "the counters never worked", with no way to tell from the outside. It now means
+  **no traffic** — a distribution finding, not an instrumentation failure.
+- Everything above still reads **UNMEASURED**: `METRICS_KEY` is unset, so no snapshot exists yet.
+  That is an owner auth step, not an executor blocker to work around.
