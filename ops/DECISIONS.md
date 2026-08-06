@@ -74,11 +74,45 @@ Append-only record of consequential decisions and reversals.
 - Deliberately **not** bundled: the daily metrics-snapshot no-op deploy noted in run 2. Still latent (it needs `METRICS_KEY` first) and lower value; a Workers Builds path filter is an owner dashboard action. Carried as next candidate.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
 
-## 2026-08-06 — run 4: patched the one production-runtime advisory
+## 2026-08-06 — run 5: first snapshot attempt failed at the Worker, not the workflow
+
+- **Directive:** the owner confirmed `METRICS_KEY` is set as both a Worker secret and a GitHub Actions
+  repository secret; dispatch the snapshot and read the first real numbers.
+- **What happened:** dispatched `metrics-snapshot.yml` manually
+  ([run 31098737983](https://github.com/in-c0/tuned/actions/runs/31098737983), 11:48 UTC). It failed —
+  but the failure is precisely located, and the location matters:
+  - The **GitHub side is correct.** The job log shows `METRICS_KEY: ***` in the step env, so the
+    repository secret exists and was passed. The workflow did not take its skip path.
+  - The **Worker side is not.** `https://justtuned.com/api/metrics` returned **HTTP 503
+    `{"error":"metrics key not configured"}`**. That branch (`src/index.ts:89`) fires only when
+    `c.env.METRICS_KEY` is **absent** in the running Worker. A key that were merely *wrong* would
+    return 401, not 503. So this is not a mismatched value — the binding does not exist on the live
+    version at all.
+- **Diagnostic taken, rather than escalating on a guess:** the live version at the time of the failure
+  was built from `8f91091`, deployed ~11:41 UTC — **before** the owner's 11:46 UTC confirmation that
+  the secret was set. So one ordinary explanation is that the secret is saved on the Worker but was
+  never rolled into a deployed version. Pushing any commit to `master` forces Workers Builds to deploy
+  a fresh version, which picks up whatever secrets the Worker holds. This ops commit is that push, and
+  re-running the snapshot after it discriminates cleanly:
+  - snapshot returns **200** → the secret was saved but not live; the redeploy fixed it, no owner action needed;
+  - snapshot returns **503** again → the secret is not on this Worker (wrong Worker, wrong account, or a
+    name typo), and that *is* an owner auth-boundary step.
+- No `src/` file is touched, so the redeploy ships byte-identical application code. Rollback is not
+  applicable — there is no behaviour change to revert.
+## 2026-08-06 — run 5 (concurrent session B): patched the one production-runtime advisory
+
+> **Run-number collision, recorded rather than tidied away.** The entry immediately above is a
+> *different, concurrently-running session* that also called itself run 5. This session was fired by
+> the routine API at 11:44 UTC and selected dependency security; the other was fired by the reviewer
+> directive at 11:46 UTC and took the telemetry snapshot. Neither knew of the other until this file
+> conflicted on push — the same coordination gap run 3 documented, now on its second occurrence.
+> **This session deliberately did not touch the telemetry directive**, to avoid two sessions doing
+> one job. The two changes are disjoint: dependency manifest here, ops narration there.
 
 - **Context:** the standing directive (privacy-safe funnel telemetry) is satisfied in code and blocked
-  solely on the owner setting `METRICS_KEY`. Verified this run at 11:42 UTC: `/api/metrics` still
-  returns **503**, so the key is unset and every funnel metric remains UNMEASURED. The reviewer's hold
+  solely on `METRICS_KEY`. Verified at 11:42 UTC: `/api/metrics` returned **503**. *Superseded within
+  the run* — the owner set the key at 11:46 UTC; the concurrent session above is diagnosing why the
+  live Worker still answered 503 afterwards. Funnel metrics remain UNMEASURED as of this commit. The reviewer's hold
   forbids pricing, positioning and broad feature work until a baseline exists. That leaves dependency
   security as the highest-value action genuinely inside the envelope — it was candidate #1 in both
   run-3 reports.
