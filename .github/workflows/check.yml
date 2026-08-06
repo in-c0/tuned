@@ -1,0 +1,23 @@
+name: check
+
+# Mirrors the Cloudflare Workers Builds build command (`npm ci && npm run check`)
+# so a broken build gate is caught on the PR instead of silently blocking deploys.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
