@@ -76,7 +76,15 @@ elapsed time has passed since deploy in any case.
 - Gross cash collected — **$0**, source: no billing exists. Not an estimate.
 - Production reachability from the routine session — still **blocked**: `justtuned.com:443` returns
   403 CONNECT at the egress proxy. The allowlist widening reported on 2026-08-06 evening is not in
-  effect for this environment. Re-tested, not assumed.
+  effect for this environment. Re-tested, not assumed. `*.workers.dev` is blocked too, so
+  Cloudflare preview URLs are not a way around it.
+- Post-deploy production verification — **PASS**, via `.github/workflows/verify-production.yml`
+  run [31097100466](https://github.com/in-c0/tuned/actions/runs/31097100466) (2026-08-06 11:26 UTC):
+  justtuned.com HTTP 200 and rendering, `/api/metrics` HTTP 503 without a key (fails closed,
+  `METRICS_KEY` not yet set), /terms and /privacy HTTP 200. The 404 → 503 transition on
+  `/api/metrics` is the evidence the telemetry build is actually live — that route did not exist
+  before this deploy. The executor cannot reach production directly, so this workflow is now how
+  the loop verifies deployments at all.
 
 Post-deploy funnel table, updated:
 
