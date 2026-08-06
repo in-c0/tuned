@@ -7,6 +7,7 @@ import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, type Connection } from "./spotify";
 import { count, memberActive, isBot, snapshot } from "./metrics";
+import { BUILD_COMMIT } from "./build-info";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 
@@ -81,6 +82,14 @@ app.post("/waitlist", async (c) => {
 
 app.get("/terms", (c) => c.html(termsPage()));
 app.get("/privacy", (c) => c.html(privacyPage()));
+
+// Which commit this Worker was built from. Stamped at build time by
+// scripts/build-info.mjs; "dev" in any build that did not run through CI.
+// Deliberately unauthenticated and content-free: it is how post-deploy verification
+// proves the expected version is serving rather than assuming it after a sleep, and
+// the repository's commit hashes are not a secret. Returns no environment, no
+// binding, no data.
+app.get("/api/version", (c) => c.json({ commit: BUILD_COMMIT }, 200, { "cache-control": "no-store" }));
 
 // Aggregate funnel counts for the operating loop. Key-gated and fails closed, so it is
 // not a public surface; returns counts only — no emails, ids, handles or item content.

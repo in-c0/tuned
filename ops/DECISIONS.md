@@ -181,3 +181,49 @@ re-dispatch.
   run was in flight. The `[continue]` guard bounds *push-driven* self-invocation; it does not bound
   two externally-fired sessions overlapping, which is what happened here. Not a defect in the guard —
   recorded so the pattern stays visible.
+
+## 2026-08-07 — run 6: made post-deploy verification prove *which* version it is judging
+
+- **Directive (ChatGPT, 2026-08-06 21:28 UTC / 07:28 Sydney):** make production verification prove the
+  exact expected commit is serving before it evaluates health or metrics auth, using non-secret,
+  immutable build evidence — not a fixed sleep, route existence, or a timing assumption. Fail closed on
+  timeout. Dispatch the snapshot if `METRICS_KEY` went live; otherwise stop after the verifier fix and
+  retain the owner blocker.
+- **The defect being fixed, stated exactly.** `verify-production.yml`'s freshness gate treated any
+  non-404 from `/api/metrics` as proof the new build was live. That was true only while the route was
+  new. Now every version has it, so the gate passed on the first attempt against *whatever was already
+  serving* — the guarantee had silently decayed into the `sleep 120` before it. Every "production
+  verified" line in runs 2–5 therefore rested on a timing assumption, not on evidence. That is worth
+  correcting on its own, and it is what made run 5's `METRICS_KEY` diagnosis merely strong (two deploys
+  agreeing) instead of conclusive.
+- **Decision: stamp the built commit into the bundle and have production report it.**
+  `scripts/build-info.mjs` writes `src/build-info.ts` from `WORKERS_CI_COMMIT_SHA` (Workers Builds) /
+  `GITHUB_SHA`, with `git rev-parse HEAD` as a CI-only last resort; wrangler runs it as the
+  `build.command` hook, so it fires inside Cloudflare's builder immediately before bundling.
+  `GET /api/version` returns `{"commit": …}` and nothing else. The verifier polls it for up to 10
+  minutes against `github.sha`.
+  - **Why this and not the alternatives.** A Cloudflare version-metadata binding gives a version UUID
+    that GitHub cannot predict, so it cannot be compared to the commit under test. `wrangler deploy
+    --var` would require editing the deploy command in the Cloudflare dashboard — an owner step. A
+    build-time stamp needs neither credentials nor dashboard access and is immutable per deploy.
+  - **Cost, stated plainly:** the commit SHA of a private repository becomes publicly readable, and with
+    it the timing of deploys. A 40-hex SHA is not a credential and grants no access; the deploy cadence
+    is already visible in response changes. Judged a fair price for a verification step that is actually
+    a verification step. The endpoint is asserted — in tests *and* against production — to carry exactly
+    one field, so it cannot quietly grow into a leak.
+  - **The hook no-ops without a CI commit signal**, so a local `wrangler dev` never dirties the tree; the
+    committed placeholder is `"dev"`. Verified both ways.
+- **Decision: fail closed, but classify the failure.** On timeout the job asks the GitHub compare API
+  whether the serving commit is *ahead* of the expected one, and says "superseded by a later push" or
+  "the deploy never landed" accordingly. Both still exit 1 — the classification only affects the message.
+  A red verification whose cause has to be guessed is how this defect survived four runs.
+- **Consequence worth naming:** if Workers Builds does not export a commit sha under any of the three
+  names, the deploy ships `"dev"`, the verifier times out and goes red — loudly, on the verifier, never
+  on the site. Failing visibly beats the previous behaviour of passing without evidence.
+- **`METRICS_KEY` re-tested this run and is still absent from the live Worker.** Snapshot dispatched at
+  22:09 UTC ([run 31128798514](https://github.com/in-c0/tuned/actions/runs/31128798514)): HTTP 503
+  `metrics key not configured`, with `METRICS_KEY: ***` present in the runner env. Third dispatch, third
+  503. Unchanged owner auth-boundary step; not routed around, and no Cloudflare secret was inspected.
+- Egress re-tested, **sixth consecutive run**: this session still cannot reach `justtuned.com` (403 on
+  CONNECT at the proxy). Standing limitation, not a stop condition.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

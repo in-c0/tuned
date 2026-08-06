@@ -41,3 +41,6 @@ Template:
   Worker still reports the binding absent (two dispatched snapshots, both HTTP 503; see METRICS.md).
   The experiment is not failing — it has not begun. Recorded so the window is not mistakenly counted
   from the owner's confirmation timestamp.
+- **Clock note (2026-08-07, run 6):** window still not started. Snapshot dispatched a third time at
+  2026-08-06 22:09 UTC and returned HTTP 503 — the `METRICS_KEY` binding remains absent from the live
+  Worker. No result is recorded, because no data exists to record.

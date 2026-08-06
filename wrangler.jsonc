@@ -5,6 +5,11 @@
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  // Stamps the commit being deployed into src/build-info.ts so /api/version can report
+  // it. No-ops outside CI, so it never dirties a local tree.
+  "build": {
+    "command": "node scripts/build-info.mjs"
+  },
   "triggers": {
     "crons": ["*/30 * * * *"]
   },

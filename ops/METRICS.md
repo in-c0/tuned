@@ -148,3 +148,28 @@ none is asserted.**
   [run 31098869474](https://github.com/in-c0/tuned/actions/runs/31098869474) (11:52 UTC): site HTTP 200
   and rendering (22,075 bytes), `/api/metrics` refuses unauthenticated callers, /terms and /privacy
   HTTP 200.
+
+### 2026-08-07 (run 6) — still UNMEASURED; and one previously-reported result weakened
+
+- Applications submitted — **UNMEASURED**.
+- Members activated / return use — **UNMEASURED**.
+- Attention events — **UNMEASURED**.
+- Landing views — **UNMEASURED**.
+- Gross cash collected — **$0**, source: no billing exists. Not an estimate.
+
+`METRICS_KEY` is still not on the live Worker. Third dispatch of `metrics-snapshot.yml`
+([31128798514](https://github.com/in-c0/tuned/actions/runs/31128798514), 2026-08-06 22:09 UTC):
+**HTTP 503 `{"error":"metrics key not configured"}`**, runner env showing `METRICS_KEY: ***`.
+`ops/metrics/` still does not exist. EXP-001's 48h window has still not started.
+
+**Correction to how earlier "production verified" lines should be read.** Runs 2–5 reported
+post-deploy verification as PASS. Those readings were taken after a fixed `sleep 120` plus a
+freshness gate that had stopped discriminating — `/api/metrics` returning non-404 proved the route
+existed, which by then every version satisfied. The site was up in each case; what was *not*
+established is that the version answering was the one just pushed. From run 6's deploy onward,
+`verify-production.yml` polls `/api/version` for the exact `github.sha` and fails closed if it never
+appears, so "verified" means the expected build was measured. Prior PASS lines stand as
+"production was healthy", not as "the new build was healthy".
+
+- Production reachability from the routine session — still **blocked** (sixth consecutive run):
+  403 CONNECT at the egress proxy. Re-tested, not assumed.
