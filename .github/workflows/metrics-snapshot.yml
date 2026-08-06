@@ -1,0 +1,65 @@
+name: metrics snapshot
+
+# The executor routine has no egress to justtuned.com and holds no Cloudflare
+# credentials, so it cannot read production metrics directly. This workflow is the
+# read path: it pulls the key-gated aggregate endpoint and commits the JSON into the
+# repository, where the executor can read it like any other file.
+#
+# Requires repository secret METRICS_KEY, matching the Worker secret of the same name.
+# Without it the job exits cleanly rather than failing, so the workflow can ship before
+# the secret exists.
+
+on:
+  schedule:
+    - cron: "40 20 * * *" # 06:40 Sydney (AEST), before the 08:00 executor run
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: metrics-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch aggregate metrics
+        id: fetch
+        env:
+          METRICS_KEY: ${{ secrets.METRICS_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${METRICS_KEY:-}" ]; then
+            echo "::notice::METRICS_KEY is not set — skipping snapshot."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mkdir -p ops/metrics
+          code=$(curl -sS --max-time 30 -o /tmp/metrics.json -w '%{http_code}' \
+            -H "x-metrics-key: ${METRICS_KEY}" https://justtuned.com/api/metrics)
+          if [ "$code" != "200" ]; then
+            echo "::error::/api/metrics returned HTTP $code"
+            head -c 500 /tmp/metrics.json || true
+            exit 1
+          fi
+          python3 -m json.tool /tmp/metrics.json > ops/metrics/latest.json
+          cp ops/metrics/latest.json "ops/metrics/$(date -u +%Y-%m-%d).json"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Commit snapshot
+        if: steps.fetch.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ops/metrics
+          if git diff --cached --quiet; then
+            echo "No metric change."
+            exit 0
+          fi
+          git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d)"
+          git push

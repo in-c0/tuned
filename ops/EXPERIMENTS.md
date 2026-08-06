@@ -14,4 +14,19 @@ Template:
 - Decision: keep / roll back / iterate / abandon
 ```
 
-_No experiments yet — loop bootstrapped 2026-08-06._
+## EXP-001 — funnel telemetry baseline (2026-08-06, run 2)
+
+- **Hypothesis:** not a product experiment. This is the measurement prerequisite: without it, every
+  later experiment's result is unfalsifiable. Logged here because the reviewer's acceptance criteria
+  require it, and labelled honestly rather than dressed up as a growth test.
+- **Baseline (source-linked):** no landing-view instrumentation, no login event, no durable return
+  history (`members.last_desk_at` overwritten on each visit) — see the run-1 audit in METRICS.md.
+- **Change:** `metric_days` + `member_days` tables, nine counters on real user actions, key-gated
+  `GET /api/metrics`, and a daily GitHub Actions snapshot into `ops/metrics/`.
+- **Success threshold (falsifiable):** within 48h of `METRICS_KEY` being set, `ops/metrics/latest.json`
+  exists and shows a non-zero `landing_view` **or** `landing_view_bot` count for at least one day.
+  If it does not, the instrumentation is broken or the site receives literally no traffic — both are
+  findings, and the second one would redirect the loop from measurement to distribution.
+- **Result:** PENDING — blocked on the owner setting `METRICS_KEY` (see issue #1).
+- **Decision:** pending.
+
