@@ -4,6 +4,21 @@ name: Continue Claude executor
 # This workflow is inert until both repository secrets are configured:
 #   CLAUDE_ROUTINE_FIRE_URL
 #   CLAUDE_ROUTINE_TOKEN
+#
+# RUNAWAY GUARD — read before loosening the `if:` below.
+#
+# The executor ships by pushing to master. Firing on every successful `check` run
+# therefore closes a cycle: push -> check -> fire -> executor -> push -> ...
+# On 2026-08-06 that cycle ran three times in six minutes (feb6c4f, 6b08344,
+# d9697e9) with nothing bounding it but the executor's own judgement about when to
+# stop. That is a soft guard on unbounded Claude spend and unbounded unattended
+# production deploys, and it bypasses the 3x/day cadence the owner configured.
+#
+# So push-driven continuation is now opt-in and defaults closed: the executor adds
+# the [continue] marker to a commit message only when it is deliberately leaving
+# staged multi-step work that should not wait for the next scheduled run. An
+# ordinary commit ends the chain. A reviewer directive on issue #1 still fires
+# immediately — that event is owner/reviewer-initiated and cannot self-sustain.
 on:
   workflow_run:
     workflows: ["check"]
@@ -24,7 +39,8 @@ jobs:
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_branch == 'master' &&
-       github.event.workflow_run.conclusion == 'success') ||
+       github.event.workflow_run.conclusion == 'success' &&
+       contains(github.event.workflow_run.head_commit.message, '[continue]')) ||
       (github.event_name == 'issue_comment' &&
        github.event.issue.number == 1 &&
        contains(github.event.comment.body, '<!-- tuned-review-directive -->'))
