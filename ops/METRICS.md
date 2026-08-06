@@ -199,3 +199,17 @@ It also confirms the stamp chain end-to-end in Cloudflare's real build container
 22:17 and 22:22 UTC, roughly ten hours after the owner reported setting it. Every funnel metric is
 still **UNMEASURED**; `ops/metrics/` still does not exist. Gross cash: **$0**, source "no billing
 exists", not an estimate. EXP-001's 48-hour window still has not started.
+
+### Verified again at the tip — 2026-08-07 08:27 Sydney (22:27 UTC)
+
+[verify-production run 31128995250](https://github.com/in-c0/tuned/actions/runs/31128995250) passed at
+`7a140c6`: site HTTP 200 (22,075 bytes), `/terms` and `/privacy` 200, `/api/metrics` **503** to an
+unauthenticated caller. So every commit shipped in run 6 is verified live by SHA, not by timing.
+
+One correction worth keeping, because a claim was made from it and retracted: the run **completed in
+~90 seconds**, but `get_check_run` and `list_workflow_jobs` reported it `in_progress` for roughly
+fifteen minutes afterwards, and this session posted a hedge to issue #1 on the strength of that stale
+reading. The job-log endpoint 404s until a run has genuinely finished, which makes it the reliable
+source. See the standing note in NORTH_STAR.md.
+
+`METRICS_KEY` state at this reading: still **absent** (503, fourth confirmation tonight).
