@@ -2,6 +2,12 @@ name: check
 
 # Mirrors the Cloudflare Workers Builds build command (`npm ci && npm run check`)
 # so a broken build gate is caught on the PR instead of silently blocking deploys.
+#
+# Tests run here rather than inside `npm run check`. Cloudflare runs `check` as its
+# build command, so anything added to it can wedge deploys — and the test pool spawns
+# a workerd binary, which is exactly the kind of thing that behaves differently in a
+# build sandbox. Since every change reaches master through a PR, gating the merge
+# gates production, without putting the deploy path at risk.
 on:
   push:
     branches: [master]
@@ -21,3 +27,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm test

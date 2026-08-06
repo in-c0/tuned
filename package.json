@@ -8,6 +8,7 @@
     "deploy": "wrangler deploy",
     "types": "wrangler types",
     "check": "wrangler types && tsc --noEmit",
+    "test": "vitest run",
     "db:local": "wrangler d1 execute attention_feed --local --file=./schema.sql",
     "db:remote": "wrangler d1 execute attention_feed --remote --file=./schema.sql"
   },
@@ -15,7 +16,9 @@
     "hono": "^4.6.0"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.71",
     "typescript": "^5.6.0",
+    "vitest": "~3.2",
     "wrangler": "^4.0.0"
   }
 }
