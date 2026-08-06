@@ -4,10 +4,14 @@
   "private": true,
   "description": "Follow what someone is paying attention to right now. Working-title MVP.",
   "scripts": {
+    "build-info": "node scripts/build-info.mjs",
+    "predev": "npm run build-info",
     "dev": "wrangler dev",
+    "predeploy": "npm run build-info",
     "deploy": "wrangler deploy",
     "types": "wrangler types",
-    "check": "wrangler types && tsc --noEmit",
+    "check": "npm run build-info && wrangler types && tsc --noEmit",
+    "pretest": "npm run build-info",
     "test": "vitest run",
     "db:local": "wrangler d1 execute attention_feed --local --file=./schema.sql",
     "db:remote": "wrangler d1 execute attention_feed --remote --file=./schema.sql"

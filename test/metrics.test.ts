@@ -187,6 +187,41 @@ describe("/api/metrics access control", () => {
   });
 });
 
+describe("/api/version build evidence", () => {
+  // This route exists so post-deploy verification can prove which build is serving.
+  // Two things must hold for that to work: it answers without a key (freshness has to
+  // be checkable before secrets exist), and it says nothing else.
+  async function version(): Promise<Response> {
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(
+      new Request("https://justtuned.com/api/version"),
+      { ...env, METRICS_KEY: "test-metrics-key", ADMIN_KEY: "test-admin-key" } as never,
+      ctx
+    );
+    await waitOnExecutionContext(ctx);
+    return res;
+  }
+
+  it("reports a build commit to an unauthenticated caller", async () => {
+    const res = await version();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    const body = await res.json<{ commit: string }>();
+    // A real SHA, or the explicit "unknown" the generator writes when it cannot find
+    // one. Anything else means the build stamp is malformed and the verifier — which
+    // compares this against the pushed SHA — would never match.
+    expect(body.commit).toMatch(/^([0-9a-f]{7,40}|unknown)$/);
+  });
+
+  it("exposes the commit and nothing else", async () => {
+    const body = await (await version()).json<Record<string, unknown>>();
+    expect(Object.keys(body)).toEqual(["commit"]);
+    // Bindings are in scope in this handler; none of them may reach the response.
+    expect(JSON.stringify(body)).not.toContain("test-metrics-key");
+    expect(JSON.stringify(body)).not.toContain("test-admin-key");
+  });
+});
+
 describe("the funnel is actually wired to the routes", () => {
   // Everything above proves the module works. This proves the app calls it — the
   // failure mode where telemetry is perfect and simply never invoked.

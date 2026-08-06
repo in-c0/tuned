@@ -2,6 +2,7 @@ node_modules/
 .wrangler/
 .dev.vars
 worker-configuration.d.ts
+src/build-info.ts
 .admin-key
 .demo-studio-url
 

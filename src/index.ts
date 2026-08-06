@@ -7,6 +7,7 @@ import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, type Connection } from "./spotify";
 import { count, memberActive, isBot, snapshot } from "./metrics";
+import { BUILD_COMMIT } from "./build-info";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 
@@ -81,6 +82,16 @@ app.post("/waitlist", async (c) => {
 
 app.get("/terms", (c) => c.html(termsPage()));
 app.get("/privacy", (c) => c.html(privacyPage()));
+
+// Which commit this Worker was built from. Deployment is asynchronous, so post-deploy
+// verification otherwise has to guess whether it is looking at the new version or the
+// old one; this lets it check. Deliberately the whole payload: the commit SHA of a
+// public repository is not a secret, and nothing else belongs on an unauthenticated
+// route. Never gate this on a key — a verifier that needs a secret to establish
+// freshness cannot run before the secret exists.
+app.get("/api/version", (c) =>
+  c.json({ commit: BUILD_COMMIT }, 200, { "cache-control": "no-store" })
+);
 
 // Aggregate funnel counts for the operating loop. Key-gated and fails closed, so it is
 // not a public surface; returns counts only — no emails, ids, handles or item content.
