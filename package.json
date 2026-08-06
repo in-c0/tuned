@@ -13,7 +13,7 @@
     "db:remote": "wrangler d1 execute attention_feed --remote --file=./schema.sql"
   },
   "dependencies": {
-    "hono": "^4.6.0"
+    "hono": "^4.12.34"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.71",

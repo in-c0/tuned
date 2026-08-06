@@ -73,3 +73,43 @@ Append-only record of consequential decisions and reversals.
 - **Self-terminating by construction:** this fix's own commit message carries no `[continue]` marker, so merging it is the last push-driven fire. That is the verification — if a further session is fired by this push, the guard did not take.
 - Deliberately **not** bundled: the daily metrics-snapshot no-op deploy noted in run 2. Still latent (it needs `METRICS_KEY` first) and lower value; a Workers Builds path filter is an owner dashboard action. Carried as next candidate.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-06 — run 4: patched the one production-runtime advisory
+
+- **Context:** the standing directive (privacy-safe funnel telemetry) is satisfied in code and blocked
+  solely on the owner setting `METRICS_KEY`. Verified this run at 11:42 UTC: `/api/metrics` still
+  returns **503**, so the key is unset and every funnel metric remains UNMEASURED. The reviewer's hold
+  forbids pricing, positioning and broad feature work until a baseline exists. That leaves dependency
+  security as the highest-value action genuinely inside the envelope — it was candidate #1 in both
+  run-3 reports.
+- **Decision: bump `hono` 4.12.32 → 4.12.34** ([GHSA-8j4g-w8fx-2239](https://github.com/advisories/GHSA-8j4g-w8fx-2239),
+  moderate ReDoS in CORS middleware). `hono` is the **only** production dependency in the tree, so this
+  was the only advisory that could ever reach the Worker runtime.
+  - **Honest scope of the fix:** the advisory was *not* exploitable here — the app registers no CORS
+    middleware (`hono/cors` is imported nowhere in `src/`). This closes a latent path, it does not
+    close an active hole. Recorded that way rather than dressed up as an incident.
+- **Decision: take 4.12.34, not the 4.13.0 that `npm install hono@^4.12.34` resolves to.** The caret
+  range pulled a *minor* bump; the advisory is fixed at the patch. On a Worker serving real users the
+  smallest delta from the running version is worth more than being current, and a minor release would
+  have needed a behaviour review this run could not justify. `package.json` floor is now `^4.12.34`, so
+  a fresh resolve can never land on a vulnerable version again.
+- **Correction to a previously recorded fact.** Runs 2–3 recorded the audit as "4 moderate + 1 high,
+  all dev-only". As of this run it reads **1 moderate + 6 high** — the advisory database moved (new
+  `sharp`/libvips, `ws` and `undici` advisories), not the dependency tree. After the bump: **0 moderate
+  + 6 high, and the production dependency tree is advisory-free.** All six remaining are in
+  `devDependencies` (`@cloudflare/vitest-pool-workers`, `wrangler`, and their transitives `miniflare`,
+  `sharp`, `undici`, `ws`) and never reach the Worker runtime.
+- **Deliberately not fixed, with reasons:**
+  - `wrangler` (high, [GHSA-36p8-mvp6-cv38](https://github.com/advisories/GHSA-36p8-mvp6-cv38)) — OS
+    command injection in **`wrangler pages deploy`**. This is a Worker deployed with `wrangler deploy`;
+    the affected subcommand is never invoked. npm's "fix" is a **major downgrade to 3.114.17**, which
+    would break both `wrangler types` in the build gate and the Cloudflare deploy command. Downgrading
+    the deploy toolchain to clear a non-applicable advisory would trade a real deploy path for a
+    cosmetic audit score.
+  - `@cloudflare/vitest-pool-workers` 0.8 → 0.20.2 (semver-major, clears four transitive highs) — run 3
+    pinned the 0.8 pairing deliberately because 0.20.x drops the documented `defineWorkersConfig`
+    entry point. Re-doing the test infrastructure is not a security fix and is not this run's action.
+- **Verification:** clean-clone `npm ci && npm run check` (the exact Cloudflare Workers Builds command)
+  exit 0; `npm test` 17/17 in workerd against a real local D1. The tests exercise live requests through
+  the Hono app itself, so the new version is validated at **runtime**, not merely typechecked.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
