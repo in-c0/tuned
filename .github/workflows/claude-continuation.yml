@@ -1,0 +1,57 @@
+name: Continue Claude executor
+
+# Event-driven handoff for the Tuned 60-day operating loop.
+# This workflow is inert until both repository secrets are configured:
+#   CLAUDE_ROUTINE_FIRE_URL
+#   CLAUDE_ROUTINE_TOKEN
+on:
+  workflow_run:
+    workflows: ["check"]
+    types: [completed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tuned-claude-continuation
+  cancel-in-progress: false
+
+jobs:
+  fire:
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'master' &&
+       github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.number == 1 &&
+       contains(github.event.comment.body, '<!-- tuned-review-directive -->'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      CLAUDE_ROUTINE_FIRE_URL: ${{ secrets.CLAUDE_ROUTINE_FIRE_URL }}
+      CLAUDE_ROUTINE_TOKEN: ${{ secrets.CLAUDE_ROUTINE_TOKEN }}
+    steps:
+      - name: Await routine API configuration
+        if: ${{ env.CLAUDE_ROUTINE_FIRE_URL == '' || env.CLAUDE_ROUTINE_TOKEN == '' }}
+        run: echo "Claude continuation is installed but not armed; configure both repository secrets."
+
+      - name: Fire next Claude executor session
+        if: ${{ env.CLAUDE_ROUTINE_FIRE_URL != '' && env.CLAUDE_ROUTINE_TOKEN != '' }}
+        shell: bash
+        run: |
+          jq -n \
+            --arg text "Resume the Tuned 60-day operating loop from GitHub issue #1 and ops state. Inspect the latest commit, checks, deployment evidence, and reviewer directive. Take the next bounded action, then update shared state. Stop without pushing if no justified action remains or an owner boundary is reached." \
+            '{text: $text}' > "${RUNNER_TEMP}/routine-fire.json"
+
+          curl --fail-with-body --silent --show-error \
+            --retry 2 \
+            --max-time 30 \
+            -X POST "${CLAUDE_ROUTINE_FIRE_URL}" \
+            -H "Authorization: Bearer ${CLAUDE_ROUTINE_TOKEN}" \
+            -H "anthropic-beta: experimental-cc-routine-2026-04-01" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "Content-Type: application/json" \
+            --data-binary @"${RUNNER_TEMP}/routine-fire.json"
