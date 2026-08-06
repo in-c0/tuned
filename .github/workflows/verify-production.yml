@@ -44,12 +44,12 @@ jobs:
           serving=""
           for attempt in $(seq 1 24); do
             body=$(curl -sS --max-time 20 -H 'cache-control: no-cache' https://justtuned.com/api/version || echo '')
-            serving=$(printf '%s' "$body" | python3 -c 'import json,sys
-try:
-    v = json.load(sys.stdin).get("commit", "")
-    print(v if isinstance(v, str) else "")
-except Exception:
-    print("")' 2>/dev/null || echo '')
+            # Extracted by pattern rather than parsed. A commit stamp is a fixed shape, so
+            # this accepts only that shape: an old Worker's 404 text, an HTML error page,
+            # a non-string commit, or an empty body all yield "" and keep the loop waiting.
+            # (Written as one line on purpose — a multi-line interpreter script here ends
+            #  the YAML block scalar and silently unregisters the whole workflow.)
+            serving=$(printf '%s' "$body" | grep -oE '"commit"[[:space:]]*:[[:space:]]*"[0-9a-f]{7,40}"' | grep -oE '[0-9a-f]{7,40}' | head -1 || true)
 
             if [ "$serving" = "$EXPECTED" ]; then
               echo "serving=$serving" >> "$GITHUB_OUTPUT"
