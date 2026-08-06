@@ -147,3 +147,37 @@ Append-only record of consequential decisions and reversals.
   exit 0; `npm test` 17/17 in workerd against a real local D1. The tests exercise live requests through
   the Hono app itself, so the new version is validated at **runtime**, not merely typechecked.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+### Diagnostic result (same run, 12:03 UTC): the secret is not on the live Worker
+
+The redeploy test above returned an unambiguous answer, and it is the second branch.
+
+- Push `82f069d` (11:49 UTC) → Workers Builds deployed a fresh version. `verify-production`
+  [run 31098869474](https://github.com/in-c0/tuned/actions/runs/31098869474) at 11:52 UTC reported
+  `/api/metrics` **HTTP 503** unauthenticated — still "not configured".
+- A second, independent deploy followed from `51a51ad` (the hono patch, PR #6) at ~11:55 UTC.
+- Re-dispatched the snapshot at 12:03 UTC
+  ([run 31099758384](https://github.com/in-c0/tuned/actions/runs/31099758384)): **HTTP 503
+  `{"error":"metrics key not configured"}`** again, with `METRICS_KEY: ***` still present in the
+  runner env.
+
+So: two fresh Worker versions, deployed after the owner reported setting the secret, both start
+without a `METRICS_KEY` binding. A stale version is ruled out. **The value is not attached to the
+`attention-feed` Worker that serves justtuned.com** — the plausible causes are a different Worker or
+Cloudflare account, a name that does not match `METRICS_KEY` exactly (trailing space, different case),
+or a dashboard edit that was saved as a draft and never deployed.
+
+**This is an owner authentication-boundary step and the executor stops here rather than working
+around it.** The executor holds no Cloudflare credentials by deliberate design — that is the whole
+reason the Git-based pipeline exists — so it cannot inspect or set Worker secrets, and will not try.
+
+What is now *positively established*, and was not before this run: the GitHub half of the read path
+works. The repository secret exists, is passed to the job, and the workflow reaches production and
+parses its response. When the Worker half is fixed, the snapshot needs no code change — just a
+re-dispatch.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+- Concurrency note: PR #6 (hono patch) merged from another executor session at 11:53 UTC while this
+  run was in flight. The `[continue]` guard bounds *push-driven* self-invocation; it does not bound
+  two externally-fired sessions overlapping, which is what happened here. Not a defect in the guard —
+  recorded so the pattern stays visible.

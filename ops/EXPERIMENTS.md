@@ -35,3 +35,9 @@ Template:
   confirmed to fail them. So once `METRICS_KEY` is set, **a zero reading means genuinely no traffic** —
   a distribution finding that redirects the loop — not an unexamined instrumentation failure.
 
+
+- **Clock note (2026-08-06, run 5):** the 48-hour window in the success threshold above has **not
+  started**. It is measured from `METRICS_KEY` being live on the Worker, and as of 12:03 UTC the
+  Worker still reports the binding absent (two dispatched snapshots, both HTTP 503; see METRICS.md).
+  The experiment is not failing — it has not begun. Recorded so the window is not mistakenly counted
+  from the owner's confirmation timestamp.

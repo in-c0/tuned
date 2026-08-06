@@ -118,3 +118,33 @@ about to arrive.
   **no traffic** — a distribution finding, not an instrumentation failure.
 - Everything above still reads **UNMEASURED**: `METRICS_KEY` is unset, so no snapshot exists yet.
   That is an owner auth step, not an executor blocker to work around.
+
+### 2026-08-06 (run 5) — first snapshot attempted; every metric still UNMEASURED
+
+The read path was exercised end to end for the first time. It failed on the Worker side, and the
+failure is precisely located, so this is a diagnosis rather than an unknown.
+
+- Applications submitted — **UNMEASURED**.
+- Members activated / return use — **UNMEASURED**.
+- Attention events — **UNMEASURED**.
+- Landing views — **UNMEASURED**.
+- Gross cash collected — **$0**, source: no billing exists. Not an estimate.
+
+**Why, exactly:** `metrics-snapshot.yml` was dispatched twice
+([31098737983](https://github.com/in-c0/tuned/actions/runs/31098737983) 11:48 UTC,
+[31099758384](https://github.com/in-c0/tuned/actions/runs/31099758384) 12:03 UTC). Both reached
+production and both got **HTTP 503 `{"error":"metrics key not configured"}`**. That branch
+(`src/index.ts:89`) fires only when `c.env.METRICS_KEY` is *absent* — a wrong value returns 401 — so
+the binding does not exist on the running Worker. The runner env shows `METRICS_KEY: ***`, so the
+**GitHub repository secret is correctly set and passed**; only the Cloudflare Worker secret is
+missing. Two fresh deploys (`82f069d`, `51a51ad`) in between rule out a stale version.
+
+`ops/metrics/` therefore still does not exist. **No number in this file has been observed yet, and
+none is asserted.**
+
+- Production reachability from the routine session — still **blocked** (fifth consecutive run):
+  `justtuned.com:443` returns 403 CONNECT at the egress proxy. Re-tested, not assumed.
+- Post-deploy production verification — **PASS** at `82f069d`, via
+  [run 31098869474](https://github.com/in-c0/tuned/actions/runs/31098869474) (11:52 UTC): site HTTP 200
+  and rendering (22,075 bytes), `/api/metrics` refuses unauthenticated callers, /terms and /privacy
+  HTTP 200.
