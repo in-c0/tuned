@@ -29,4 +29,9 @@ Template:
   findings, and the second one would redirect the loop from measurement to distribution.
 - **Result:** PENDING — blocked on the owner setting `METRICS_KEY` (see issue #1).
 - **Decision:** pending.
+- **Threshold disambiguated (2026-08-06, run 3):** the "either broken or no traffic" fork above is no
+  longer a fork. 17 tests now exercise the counter path in workerd against a real D1, including that
+  live requests to `/` and `POST /waitlist` increment their counters, and a mutation of the upsert was
+  confirmed to fail them. So once `METRICS_KEY` is set, **a zero reading means genuinely no traffic** —
+  a distribution finding that redirects the loop — not an unexamined instrumentation failure.
 
