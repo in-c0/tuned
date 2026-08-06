@@ -16,3 +16,8 @@ Append-only record of consequential decisions and reversals.
 - **Decision:** add `.github/workflows/check.yml` mirroring the Cloudflare build command. Without it there is no CI in the repo at all, and the deploy gate required by issue #1 ("type check and automated tests pass") had no enforcement point the executor could observe.
 - **Recorded blocker, not worked around:** the routine session cannot reach `justtuned.com` (egress proxy 403) and holds no Cloudflare credentials. Production verification and D1 metrics are therefore owner-dependent for now. Noted rather than routed around; no security boundary was touched.
 - **Retention measurement is a schema problem, not a query problem.** `members.last_desk_at` is a single overwritten timestamp, so return-visit and D1/D7 retention cannot be derived from existing data at all. An additive visit-event table is the next candidate.
+
+## 2026-08-06 (evening) — Owner connected the deploy pipeline
+
+- Owner connected Cloudflare Workers Builds (`in-c0/tuned` → Worker `attention-feed`, branch `master`). Pushes to master now build (`npm ci && npm run check`) and deploy (`npx wrangler deploy`); run 1's gate fix means the build is green.
+- Spend cap remains AUD $0; owner is deciding the cap.
