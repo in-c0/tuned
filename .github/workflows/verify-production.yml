@@ -5,9 +5,15 @@ name: verify production
 # could actually do. This runs from GitHub's network after every push to master and
 # publishes a result the executor can read through the Actions API.
 #
-# Cloudflare Workers Builds deploys asynchronously — a push-triggered run starts seconds
-# after the merge, minutes before the new version is live. So the first step waits for the
-# deploy to land rather than judging whatever is still serving.
+# Cloudflare Workers Builds deploys asynchronously, so the job starts minutes before the
+# new version is live. The first step therefore waits for the *expected commit* to be the
+# one serving, by reading /api/version — a build stamp baked in by scripts/build-info.mjs.
+#
+# It used to wait for "/api/metrics stops returning 404" instead. That worked exactly
+# until the telemetry build shipped: once every version had the route, the check passed
+# on the first attempt against whatever was already serving and proved nothing but the
+# sleep before it. Health steps then reported on the *old* Worker while reading as
+# confirmation of the new one. Identity is checked here, not inferred from timing.
 #
 # No secrets are used, so it cannot check authenticated behaviour — only that the site is
 # up and that the metrics endpoint refuses unauthenticated callers.
@@ -26,28 +32,40 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Give Cloudflare time to build (push only)
-        if: github.event_name == 'push'
-        # Workers Builds takes ~2 min from push to live. Without this the job would check
-        # the *previous* version and call it verified. This is a grace period, not proof —
-        # the step below is what actually establishes the new code is serving.
-        run: sleep 120
-
-      - name: Wait for the deploy to land
+      - name: Wait for the expected commit to be serving
+        id: live
+        env:
+          EXPECTED: ${{ github.sha }}
         run: |
-          set -euo pipefail
-          # /api/metrics exists only in the deployed telemetry build. While Cloudflare is
-          # still building, the old Worker answers 404 — that means "not yet", not "broken".
-          for attempt in $(seq 1 12); do
-            code=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' https://justtuned.com/api/metrics || echo 000)
-            if [ "$code" != "404" ] && [ "$code" != "000" ]; then
-              echo "deploy is live after ${attempt} attempt(s) (/api/metrics -> HTTP $code)"
+          set -uo pipefail
+          # 24 x 20s = 8 minutes. Workers Builds normally lands in ~2; the margin is for
+          # a queued build. Every exit path is explicit — a bare failure of curl must not
+          # look like a match.
+          serving=""
+          for attempt in $(seq 1 24); do
+            body=$(curl -sS --max-time 20 -H 'cache-control: no-cache' https://justtuned.com/api/version || echo '')
+            serving=$(printf '%s' "$body" | python3 -c 'import json,sys
+try:
+    v = json.load(sys.stdin).get("commit", "")
+    print(v if isinstance(v, str) else "")
+except Exception:
+    print("")' 2>/dev/null || echo '')
+
+            if [ "$serving" = "$EXPECTED" ]; then
+              echo "serving=$serving" >> "$GITHUB_OUTPUT"
+              echo "Expected commit $EXPECTED is live (attempt $attempt)."
+              echo "Verified build: \`$EXPECTED\`" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
-            echo "attempt $attempt: /api/metrics -> HTTP $code, waiting 30s"
-            sleep 30
+
+            echo "attempt $attempt: serving '${serving:-<no build stamp>}', expecting '$EXPECTED' — waiting 20s"
+            sleep 20
           done
-          echo "::error::/api/metrics still HTTP $code after 6 minutes — the telemetry build never went live."
+
+          # Fail closed. An unverifiable deploy is treated as a failed deploy: the health
+          # steps below are skipped rather than run against an unknown version, because a
+          # green result on the wrong Worker is worse than no result.
+          echo "::error::Expected commit $EXPECTED never became live (last seen: '${serving:-<no build stamp>}'). The Cloudflare build may have failed, or the deploy is stuck."
           exit 1
 
       - name: Site is up
@@ -75,6 +93,9 @@ jobs:
               echo "::error::/api/metrics returned unexpected HTTP $code"
               exit 1 ;;
           esac
+          # Recorded so the executor can read the METRICS_KEY state off the run summary
+          # without a second request it has no egress for.
+          echo "Unauthenticated \`/api/metrics\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Public pages still render
         run: |

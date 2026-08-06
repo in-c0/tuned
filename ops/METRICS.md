@@ -148,3 +148,26 @@ none is asserted.**
   [run 31098869474](https://github.com/in-c0/tuned/actions/runs/31098869474) (11:52 UTC): site HTTP 200
   and rendering (22,075 bytes), `/api/metrics` refuses unauthenticated callers, /terms and /privacy
   HTTP 200.
+
+## Verification evidence quality — corrected 2026-08-07 (run 6)
+
+Every "post-deploy production verification PASS" recorded in this file from `feb6c4f` onward was
+**weaker than it read**. `verify-production.yml` established freshness by waiting for `/api/metrics`
+to stop returning 404 — valid only for the single deploy that introduced that route. Once every
+version carried it, the wait returned on its first attempt against whatever was already serving, so
+the health results that followed described *a* live Worker, not provably *the expected* one. The old
+gate was reconstructed and run against a stale-but-healthy version: it reports `deploy is live` and
+exits 0.
+
+What this does and does not change:
+
+- **Does not change any metric.** Every funnel metric below remains **UNMEASURED**, and the site was
+  in fact healthy at each check — the readings were true, just not proof of *which build* was true.
+- **Does not weaken the `METRICS_KEY` diagnosis.** That conclusion rested on two independent deploys
+  agreeing plus the 503-vs-401 distinction in the endpoint, not on any single reading's freshness.
+- **Does change what "verified" means from run 6 forward.** `/api/version` now reports the commit the
+  Worker was built from, and the verifier requires it to equal the pushed SHA before evaluating
+  health. If it never matches within 8 minutes the job fails and the health steps do not run.
+
+Recorded here rather than quietly fixed because this file's rule is that a metric names its source:
+the source of "production verified" was weaker than the claim, and the correction belongs in the log.

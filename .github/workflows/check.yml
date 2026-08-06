@@ -12,6 +12,13 @@ on:
   push:
     branches: [master]
   pull_request:
+  # Manually runnable against any ref. On 2026-08-07 a PR's `pull_request` event did not
+  # produce a run at all — Actions was demonstrably alive (a dispatch queued and executed
+  # in the same minute), the event simply never created one. Without a dispatch trigger
+  # there was no way to obtain the gate result for that branch, which leaves a change
+  # either unmerged or merged on local evidence alone. Neither is acceptable for a gate
+  # that governs production.
+  workflow_dispatch:
 
 permissions:
   contents: read

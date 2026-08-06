@@ -181,3 +181,52 @@ re-dispatch.
   run was in flight. The `[continue]` guard bounds *push-driven* self-invocation; it does not bound
   two externally-fired sessions overlapping, which is what happened here. Not a defect in the guard —
   recorded so the pattern stays visible.
+
+## 2026-08-07 (run 6, 08:10 Sydney) — post-deploy verification proves version identity, not elapsed time
+
+**Decision:** replace the freshness check in `verify-production.yml` with a comparison against a build
+stamp baked into the Worker, and treat an unprovable deploy as a failed one.
+
+**Why this and not something else.** The reviewer's directive named it, and inspection confirmed the
+defect was real and silent. The old gate waited for `/api/metrics` to stop returning 404. That was a
+correct freshness proof for exactly one deploy — the one that introduced the route. From `feb6c4f`
+onward every version carried it, so the gate passed on its first attempt against whatever was already
+serving. The health steps beneath it then reported on the **old** Worker while reading, in the run log
+and in three execution reports, as confirmation of the new one.
+
+This was demonstrated, not reasoned about: the old gate was reconstructed from `origin/master` and run
+against a stale-but-healthy version. It prints `deploy is live after 1 attempt(s)` and exits 0. Every
+"production verified green" claim since `feb6c4f` rested on the fixed `sleep 120` above it rather than
+on evidence — including the two readings that diagnosed the missing `METRICS_KEY`. Those readings were
+strong because two independent deploys agreed, not because either was provably post-deploy.
+
+**Design choices worth recording, because each had a plausible alternative:**
+
+- **Generated, not committed.** `src/build-info.ts` is written by `scripts/build-info.mjs` during
+  `npm run check` — the same command Workers Builds runs before `wrangler deploy` — and is gitignored,
+  following the `worker-configuration.d.ts` convention already in this build gate. Committing a
+  placeholder would have kept the tree buildable without the generator, at the cost of a file that is
+  perpetually dirty and can drift.
+- **Two SHA sources.** `WORKERS_CI_COMMIT_SHA`/`GITHUB_SHA` first, then `git rev-parse HEAD`. If
+  Cloudflare's env var names ever change, the git fallback still yields the pushed commit. If neither
+  works the stamp is `"unknown"`, which matches no expected SHA — so a broken stamp surfaces as
+  "expected version never appeared" rather than as a pass.
+- **The SHA is validated before it is written.** It is interpolated into generated TypeScript, so an
+  unvalidated env var would be a code-injection path into the Worker. Tested: a malformed
+  `WORKERS_CI_COMMIT_SHA` is rejected and the generator falls back to git.
+- **`/api/version` is deliberately unauthenticated.** A verifier that needs a secret to establish
+  freshness cannot run before that secret exists — which is precisely the state this repository has
+  been in for four runs. The commit SHA of a public repository is not a secret. The route returns the
+  commit and nothing else, and a test asserts exactly that key set.
+- **Fails closed.** If the expected commit is not serving within 8 minutes the job fails and the
+  health steps do not run. A green health result on an unknown version is worse than no result.
+
+**Verification:** clean-clone `npm ci && npm run check` exit 0; `npm test` **19/19**;
+`npm audit --omit=dev` clean. The gate script was extracted verbatim from the workflow and run against
+8 stubbed production states — expected-commit-live and mid-transition pass; old-version-serving,
+wrong-SHA, `unknown` stamp, empty body, HTML error page and total curl failure all fail closed.
+
+**Reversibility:** `git revert`. One new route returning a constant; no schema, no data, no user
+surface, no authenticated surface.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
