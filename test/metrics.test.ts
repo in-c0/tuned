@@ -185,6 +185,33 @@ describe("/api/metrics access control", () => {
     expect(res.headers.get("cache-control")).toBe("no-store");
     expect(await res.json()).toMatchObject({ note: expect.any(String), totals: expect.any(Object) });
   });
+
+  // The case that cost this loop a cycle. `wrangler secret put` fed from a pipe stores
+  // the trailing newline; HTTP strips surrounding whitespace from a header value in
+  // transit, so the correct key becomes unmatchable by every possible client and the
+  // endpoint answers 401 forever. Indistinguishable from a wrong key from outside.
+  it("authenticates when the stored secret carries a trailing newline", async () => {
+    const res = await call({ "x-metrics-key": "test-metrics-key" }, "test-metrics-key\n");
+    expect(res.status).toBe(200);
+  });
+
+  it("authenticates when the stored secret carries surrounding whitespace", async () => {
+    const res = await call({ "x-metrics-key": "test-metrics-key" }, "  test-metrics-key\r\n");
+    expect(res.status).toBe(200);
+  });
+
+  it("still rejects a wrong key when the stored secret has stray whitespace", async () => {
+    const res = await call({ "x-metrics-key": "not-the-key" }, "test-metrics-key\n");
+    expect(res.status).toBe(401);
+  });
+
+  // A whitespace-only secret is configured in name only. It must read as absent, or the
+  // unauthenticated status stops distinguishing "no key" from "wrong key" — the exact
+  // ambiguity that made this failure invisible for eleven runs.
+  it("treats a whitespace-only secret as unconfigured, not as a key", async () => {
+    const res = await call({ "x-metrics-key": "   " }, "   ");
+    expect(res.status).toBe(503);
+  });
 });
 
 describe("/api/version build evidence", () => {
