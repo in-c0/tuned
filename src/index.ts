@@ -41,6 +41,31 @@ async function timingSafeEq(a: string, b: string): Promise<boolean> {
   return crypto.subtle.timingSafeEqual(ha, hb);
 }
 
+// Compare a key arriving in an HTTP header against one stored in a Worker secret.
+//
+// These two sides are not symmetric, which is the whole reason this helper exists.
+// HTTP strips leading and trailing whitespace from a field value in transit
+// (RFC 9110 §5.5), so `provided` can never carry surrounding whitespace no matter
+// what the client sends. A Worker secret can: `echo v | wrangler secret put` stores
+// a trailing newline, and a dashboard paste can carry either. When that happens the
+// stored value is unmatchable by *any* HTTP client — a permanent 401 that looks
+// exactly like a wrong key from the outside, and that re-pasting only fixes by luck.
+//
+// So trim both sides before comparing. Surrounding whitespace is not entropy anyone
+// provisions on purpose, and refusing to normalise it buys no security — it only
+// converts an invisible typo into an undiagnosable outage.
+async function keyMatches(provided: string, configured: string | undefined): Promise<boolean> {
+  const want = (configured ?? "").trim();
+  if (!want) return false; // unset or whitespace-only: never authenticate
+  return await timingSafeEq(provided.trim(), want);
+}
+
+// A secret that is present but whitespace-only is configured in name only; report it
+// as absent so the unauthenticated status stays honest (503 = no key, 401 = wrong key).
+function keyConfigured(configured: string | undefined): boolean {
+  return (configured ?? "").trim().length > 0;
+}
+
 async function creatorByToken(db: D1Database, token: string): Promise<Creator | null> {
   return await db.prepare("SELECT * FROM creators WHERE token = ?").bind(token).first<Creator>();
 }
@@ -97,8 +122,8 @@ app.get("/api/version", (c) =>
 // not a public surface; returns counts only — no emails, ids, handles or item content.
 app.get("/api/metrics", async (c) => {
   const key = c.req.header("x-metrics-key") ?? "";
-  if (!c.env.METRICS_KEY) return c.json({ error: "metrics key not configured" }, 503);
-  if (!(await timingSafeEq(key, c.env.METRICS_KEY))) return c.json({ error: "unauthorized" }, 401);
+  if (!keyConfigured(c.env.METRICS_KEY)) return c.json({ error: "metrics key not configured" }, 503);
+  if (!(await keyMatches(key, c.env.METRICS_KEY))) return c.json({ error: "unauthorized" }, 401);
   return c.json(await snapshot(c.env.DB), 200, { "cache-control": "no-store" });
 });
 
@@ -107,7 +132,7 @@ app.get("/api/metrics", async (c) => {
 // admin: provision a member and (optionally) attach existing creator handles to them
 app.post("/api/members", async (c) => {
   const key = c.req.header("x-admin-key") ?? "";
-  if (!c.env.ADMIN_KEY || !(await timingSafeEq(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
+  if (!(await keyMatches(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
   const b = await c.req.json<{ email?: string; name?: string; handles?: string[] }>();
   const email = (b.email ?? "").toLowerCase().trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return c.json({ error: "invalid email" }, 400);
@@ -400,7 +425,7 @@ app.get("/home", async (c) => {
 // ---------- admin: create a creator ----------
 app.post("/api/creators", async (c) => {
   const key = c.req.header("x-admin-key") ?? "";
-  if (!c.env.ADMIN_KEY || !(await timingSafeEq(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
+  if (!(await keyMatches(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
   const body = await c.req.json<{ handle?: string; name?: string; bio?: string; avatar_url?: string; accent?: string; kind?: string }>();
   const handle = (body.handle ?? "").toLowerCase().trim();
   if (!/^[a-z0-9][a-z0-9-]{1,30}$/.test(handle) || RESERVED_HANDLES.has(handle)) return c.json({ error: "invalid handle" }, 400);
