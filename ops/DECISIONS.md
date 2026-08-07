@@ -312,3 +312,57 @@ local evidence alone.
   Cloudflare secret was inspected; this stays an owner auth-boundary step.
 - Egress re-tested, **sixth consecutive run**: `justtuned.com` still 403 CONNECT at the proxy.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-07 — run 9 (19:32 Sydney / 09:32 UTC): the loop stops building and asks someone
+
+The reviewer's directive arrived at 09:31:38 UTC. This session claimed it at 09:32:33 — **55 seconds**
+— which is the tightest the claim protocol has ever been tested, and deliberately so: the
+`issue_comment` continuation trigger fires on the same comment, so the race window between two
+sessions reading the same directive is now measured in seconds rather than minutes. The protocol does
+not close that window; it only makes the loser cheap to identify. Recorded because a 55-second claim
+is not evidence the protocol is safe, only that it was fast this once.
+
+**Action taken: a distribution packet, and no code.** Nine runs have produced a verified deploy
+pipeline, tested telemetry, a version-identity gate, a workflow validator and a claim protocol — and
+**zero facts about whether anyone wants Tuned**. Run 8 flagged the intent to shift from measurement to
+distribution; the reviewer made it the directive. The packet is a single Show HN post to people who
+already run research/coding agents daily, published by the owner, graded against thresholds
+pre-registered in `ops/EXPERIMENTS.md` (EXP-002) *before* any result exists.
+
+**The finding that changes the plan, and it came from reading the code rather than assuming:**
+
+> **The campaign tag does not work.** `?src=...` is dropped on the floor.
+
+`app.get("/")` (`src/index.ts:57`) never reads query parameters; `POST /waitlist`
+(`src/index.ts:72-81`) persists exactly `email`, `role`, `note`; the `waitlist` table
+(`schema.sql:82-88`) has no source column. So the "one tagged URL" the directive asks for is real as a
+string and **inert as an instrument**. Two ways this could have gone wrong and did not: shipping a
+one-line `?src` capture would have been product code this directive forbids, and quietly writing
+"tagged URL: `?src=shn-2026-08`" into the packet would have let a later run compute an attribution
+number that the schema cannot support.
+
+What replaces it is honest and weaker, and the weakness is stated in the packet: with a zero baseline
+and exactly one channel ever posted, every application inside the window is attributable **by
+elimination**. That reasoning is sound exactly once. At channel two it collapses, and capturing a
+source on the application becomes the obvious next product change — *if* this experiment earns one.
+
+**Also corrected: a false standing constraint in `NORTH_STAR.md`.** The run-6 bullet instructed every
+future session to dispatch `verify-production` manually because push-triggered runs had stopped
+firing. They fire — `push` runs at 22:40, 22:44, 22:53, 22:54 and 23:00 UTC on 2026-08-06 and a
+`schedule` run at 00:55. Runs 7 and 8 both noticed and neither removed it. Retired with the evidence
+inline, plus the residual pattern behind those failed push runs: rapid successive pushes let an
+intermediate SHA be superseded in Cloudflare's build queue before it ever serves, so the verifier
+fails closed on a commit that never went live. That is the gate working, not production breaking.
+
+**Egress re-tested, ninth consecutive run:** `justtuned.com` still `403` CONNECT at the proxy. One
+consequence lands directly on this packet: the post's "try it without an account" link is the live
+demo feed, whose handle is chosen at request time as the oldest creator
+(`src/index.ts:59-61`) — the executor cannot read it, so it is the single owner-filled token in the
+post, flagged rather than guessed.
+
+**Production not re-checked, on purpose.** The reviewer read `/` = 200, `/api/version` = `bdfa636`,
+`/api/metrics` = 503 at 09:29 UTC, three minutes before this session began, and the directive says not
+to spend a ninth cycle on the same 503. A fresher reading would have cost a dispatch and changed
+nothing.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
