@@ -269,3 +269,51 @@ funnel that has never been read.
 
 Neither secret was rotated, exposed, bypassed or inspected. Production health at 20:59:07 UTC was
 otherwise green at `8396a895`: `/` HTTP 200 (22,075 bytes), `/terms` 200, `/privacy` 200.
+
+## The whitespace hypothesis is eliminated — 2026-08-08 08:12 Sydney (2026-08-07 22:12 UTC), run 12
+
+Run 11 named a "narrower cause worth naming because it is the most common and the cheapest to rule
+out": stray whitespace in one of the two secrets, which `timingSafeEq` would digest as a difference.
+It then handed the whole question to the owner, because telling the two cases apart appeared to need a
+secret value.
+
+It did not. It needed a code change, and the change was worth making on its own merits.
+
+### Why this was a defect and not only a hypothesis
+
+The two sides of the comparison are **not symmetric**. HTTP strips leading and trailing whitespace
+from a field value in transit ([RFC 9110 §5.5](https://www.rfc-editor.org/rfc/rfc9110#section-5.5)),
+so the key arriving in `x-metrics-key` can never carry surrounding whitespace — no client can send it.
+A Worker secret can: `echo v | wrangler secret put` stores the trailing newline, and a dashboard paste
+can carry either. Had that been the state, the stored key would have been unmatchable by **every
+possible HTTP client**, forever, with no way to see it from outside the Worker.
+
+`68cd28d` trims both sides before the timing-safe compare and treats a whitespace-only secret as
+absent rather than as a key (so `503` still means "no key" and `401` still means "wrong key"). Four
+tests cover it and were mutation-checked: the two whitespace cases fail against the previous
+comparison and pass against this one.
+
+### The result, and it is a negative one
+
+| UTC | Run | Serving commit | Authenticated result |
+| --- | --- | --- | --- |
+| 2026-08-07 22:12:11 | [metrics-snapshot 31222947399](https://github.com/in-c0/tuned/actions/runs/31222947399) | `68cd28d` (fix live) | **401** `{"error":"unauthorized"}` |
+| 2026-08-07 22:13:49 | [metrics-snapshot 31223053290](https://github.com/in-c0/tuned/actions/runs/31223053290) | `68cd28d` (confirmation) | **401** `{"error":"unauthorized"}` |
+
+`68cd28d` was confirmed serving at 22:11:46 UTC by
+[verify-production 31222849117](https://github.com/in-c0/tuned/actions/runs/31222849117), which reads
+the build stamp at `/api/version` — so the 401 above was answered by a Worker that trims.
+
+**Therefore the two `METRICS_KEY` values differ by more than surrounding whitespace.** They are
+genuinely different strings. This is worth stating plainly because it changes the owner's fix from
+"re-paste and hope it was a newline" to "these are two different values; set both from one source".
+
+### What is still unmeasured
+
+**Everything.** `ops/metrics/latest.json` still does not exist at master; the job exits before writing
+it. Human and bot landing views, application submits, activation, attention counters and return-day
+aggregates are **all unread, covering no UTC dates**. Gross cash **AUD $0**, source "no billing
+exists" — not an estimate. Zero remains zero, and nothing about conversion, retention or demand is
+inferred from a funnel that has never once been read.
+
+Neither secret was rotated, exposed, bypassed or inspected at any point.

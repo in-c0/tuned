@@ -109,3 +109,38 @@ append-only file *before* any result can be seen, which is the only thing that m
   until one snapshot succeeds.** The proxy is corrected here rather than reinterpreted later, which is
   the whole point of an append-only file.
 - **Decision:** pending.
+
+## EXP-001 update — 2026-08-08 (run 12): still PENDING, cause narrowed to one candidate
+
+**Status: PENDING.** No snapshot has ever succeeded; `ops/metrics/latest.json` does not exist at
+master. Every counter is UNMEASURED over zero UTC dates. Nothing is graded, and no threshold is
+reinterpreted here.
+
+What changed is the *cause*, and it changed by elimination rather than by argument.
+
+Run 11 recorded two candidate explanations for the authenticated `401` and could not separate them:
+(a) stray whitespace in one secret, which the comparison would treat as a difference; (b) two
+genuinely different values. It judged both indistinguishable without reading a secret.
+
+They were separable in code. `68cd28d` makes the comparison trim both sides — justified independently,
+because HTTP strips surrounding whitespace from a header value in transit while a Worker secret can
+retain it, so a whitespace-bearing secret is unmatchable by every possible client rather than merely
+mismatched. With that fix **confirmed live by build stamp** (verify-production 31222849117, 22:11:46
+UTC), the dispatched snapshot still returned `401` (31222947399, 22:12:11 UTC).
+
+**Candidate (a) is eliminated. Candidate (b) stands: the two values are genuinely different strings.**
+
+The success threshold is unchanged and unmet: within 48h of a *readable* key, `ops/metrics/latest.json`
+shows a non-zero `landing_view` **or** `landing_view_bot` for at least one day. The clock has not
+started, because the key is not yet readable.
+
+**Caveat raised and then closed, rather than smoothed over:** the first snapshot ran 25 seconds after
+the build stamp flipped, which is thin margin for global propagation. A second dispatch two minutes
+later returned the same `401`
+([31223053290](https://github.com/in-c0/tuned/actions/runs/31223053290), 22:13:49 UTC). Two dispatches
+against a Worker confirmed to trim, same result — the elimination holds. The daily scheduled run at
+20:40 UTC is a third independent check that needs nobody's attention.
+
+**EXP-002 (Show HN) remains NOT STARTED** and measurement-blocked for exactly the reason recorded in
+run 11: publishing into a funnel nobody can read afterwards spends the single channel that makes
+attribution-by-elimination sound, and the funnel shape is unrecoverable after the fact.

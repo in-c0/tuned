@@ -410,3 +410,53 @@ identical from the outside if you only watch the unauthenticated status the veri
 - Executor egress to `justtuned.com` re-tested, **eleventh** consecutive run — still blocked at the
   proxy. Actions remains the only production read path.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-08 (run 12) — fix the key comparison, then let the result narrow the blocker
+
+**Decision:** ship a code change to `/api/metrics` auth rather than re-report run 11's blocker
+unchanged, then dispatch the snapshot to see which of the two remaining explanations survives.
+
+**Why this outranked standing down.** Run 11 executed the reviewer's directive to its stated stop
+condition and closed it; no review has been posted since. The loop's binding constraint is unchanged
+and now eleven runs old: **it cannot read a single funnel number.** Run 11 attributed the 401 to "the
+two secrets disagree" and routed the whole fix to the owner. That attribution was incomplete in a way
+that mattered — one of its two candidate causes was **a defect in our code that no owner re-paste
+reliably fixes**, and it was cheap to eliminate.
+
+**The asymmetry that made this a bug, not just a hypothesis.** HTTP strips leading and trailing
+whitespace from a field value in transit (RFC 9110 §5.5). The key arriving in the header therefore
+*cannot* carry surrounding whitespace; a Worker secret *can*. Had the stored secret carried a trailing
+newline — the exact thing `echo v | wrangler secret put` produces — it would have been unmatchable by
+every possible HTTP client, permanently, and indistinguishable from a wrong key from outside the
+Worker. That is a failure mode the loop could have chased indefinitely.
+
+**Shipped:** [`68cd28d`](https://github.com/in-c0/tuned/commit/68cd28d3a5ec8629685b465b798c717dd318895a)
+(PR [#11](https://github.com/in-c0/tuned/pull/11)). `keyMatches()` trims both sides before the
+timing-safe compare; `keyConfigured()` treats a whitespace-only secret as absent so `503` (no key) and
+`401` (wrong key) keep meaning different things. Applied to `ADMIN_KEY` on `/api/members` and
+`/api/creators` too — same provisioning path, same defect. `timingSafeEq` left untouched as the
+primitive.
+
+**Security judgement, stated rather than assumed:** trimming costs no meaningful entropy — nobody
+provisions a secret whose security rests on a trailing newline — while refusing to trim converts an
+invisible typo into an undiagnosable outage. The change strictly narrows nothing else: no route, no
+schema, no data handling, no dependency.
+
+**Result — the hypothesis is dead, and that is the finding.** With the fix confirmed live at
+`68cd28d` (verify-production 31222849117, build stamp read at 22:11:46 UTC), the dispatched snapshot
+still returned **401** (31222947399, 22:12:11 UTC). **The two `METRICS_KEY` values are genuinely
+different strings, not one value plus stray whitespace.** The owner's fix is correspondingly sharper:
+set both from a single source rather than re-paste and hope.
+
+**What was not done, deliberately:** no secret read, rotated, exposed or bypassed; no attempt to
+fingerprint either value (a hash of a secret on a public surface is a real risk and buys little); no
+feature, pricing, positioning, billing, distribution, dependency or infrastructure change; nothing
+published externally.
+
+**Gates:** `npm ci && npm run check` exit 0; `npm test` 23 passed (19 before, 4 added), mutation-checked;
+`npm audit --omit=dev` 0 vulnerabilities; CI `check` green on the PR; GitGuardian green;
+verify-production green by SHA post-merge.
+
+- Executor egress to `justtuned.com` — **twelfth** consecutive run blocked at the proxy. Actions
+  remains the only production read path.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
