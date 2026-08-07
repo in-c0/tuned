@@ -366,3 +366,47 @@ to spend a ninth cycle on the same 503. A fresher reading would have cost a disp
 nothing.
 
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-08 — run 11 (07:33 Sydney / 2026-08-07 21:33 UTC): the key is live and the read path is still shut
+
+Claimed the 21:31:05 UTC directive at 21:33 UTC — **~2 minutes**, and this time the claim was the only
+one after the directive. Dispatched `metrics-snapshot` **exactly once** as instructed, hit the
+directive's own stop condition on the first run, and stopped.
+
+**The finding, and it is a different blocker than the one everyone has been waiting on:**
+
+> `METRICS_KEY` is set on the Worker **and** set in GitHub, and the two values **do not match**.
+
+Eleven runs have reported "the owner hasn't set the Worker secret" off a 503. That reading is now
+obsolete: at 20:59:07 UTC the unauthenticated endpoint returned **401**, which is only reachable after
+the binding is read (`src/index.ts:100-101`). The blocker moved rather than cleared, and the two look
+identical from the outside if you only watch the unauthenticated status the verifier prints.
+
+- **Both authenticated snapshots were rejected 401** — the scheduled one at 21:18:54 UTC
+  ([31219528740](https://github.com/in-c0/tuned/actions/runs/31219528740)) and this run's single
+  dispatch at 21:32:34 UTC ([31220433980](https://github.com/in-c0/tuned/actions/runs/31220433980)).
+  Two independent triggers, same result, ~14 minutes apart. The scheduled run's failure is what turned
+  this from a guess into a second data point.
+- **Earliest *observed* key-live time: 2026-08-07 20:59:07 UTC (2026-08-08 06:59 Sydney)**, bracketed
+  below by a 503 at 10:04:38 UTC. Recorded as a ~10h55m window because that is what was observed. The
+  moment the owner actually ran the command is not knowable from here and is not guessed.
+- **Most likely cheap cause, stated as a hypothesis and not as a fact:** `timingSafeEq` digests both
+  strings exactly as given and trims nothing, so a trailing newline pasted into either secret yields a
+  different digest and the same 401. A genuinely different value yields the same 401 too. **These are
+  indistinguishable without reading a secret, which is out of bounds** — so the owner is asked to
+  re-set both to one identical value rather than told which side is wrong.
+- **No baseline exists.** `ops/metrics/latest.json` was never written; the job exits before it. Every
+  funnel counter — human and bot landing views, application submits, activation, attention, return-day
+  aggregates — is **UNMEASURED**, covering **no** UTC dates. EXP-001 stays PENDING. Gross cash AUD $0,
+  source "no billing exists".
+- **EXP-002 is NOT measurement-ready, and its written clock condition would have said otherwise.** The
+  pre-registered condition was "401 rather than 503", which is now literally true. It was a proxy for
+  "the series can be read at window close", which is false. Corrected in EXPERIMENTS.md rather than
+  reinterpreted at grading time. Publishing into an unreadable funnel would burn the single channel
+  that makes attribution-by-elimination valid, and the funnel shape is unrecoverable after the fact.
+- **Scope held.** No application code, no workflow code, no dependency, feature, pricing, attribution
+  or infrastructure change. No secret rotated, exposed, bypassed or inspected. Nothing published
+  externally; Hacker News not accessed. Exactly one snapshot dispatch, per the directive.
+- Executor egress to `justtuned.com` re-tested, **eleventh** consecutive run — still blocked at the
+  proxy. Actions remains the only production read path.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

@@ -27,7 +27,12 @@ Template:
   exists and shows a non-zero `landing_view` **or** `landing_view_bot` count for at least one day.
   If it does not, the instrumentation is broken or the site receives literally no traffic — both are
   findings, and the second one would redirect the loop from measurement to distribution.
-- **Result:** PENDING — blocked on the owner setting `METRICS_KEY` (see issue #1).
+- **Result:** PENDING — **no longer blocked on the Worker key, now blocked on the two keys matching.**
+  As of 2026-08-07 20:59:07 UTC the Worker's `METRICS_KEY` is live (unauthenticated `/api/metrics`
+  returns 401, not 503 — see METRICS.md). The single dispatched snapshot at 21:32:34 UTC, and the
+  scheduled one at 21:18:54 UTC, both authenticated with the GitHub repository secret and were
+  **rejected 401**. `ops/metrics/latest.json` was never written and does not exist. No baseline value
+  of any kind has been observed, so nothing is recorded here as a number.
 - **Decision:** pending.
 - **Threshold disambiguated (2026-08-06, run 3):** the "either broken or no traffic" fork above is no
   longer a fork. 17 tests now exercise the counter path in workerd against a real D1, including that
@@ -91,5 +96,16 @@ append-only file *before* any result can be seen, which is the only thing that m
   against a zero baseline plus a single owner-run D1 read — which is sound only because this is the
   first and only channel ever posted. **It stops being sound at channel two**, and capturing a source
   on the application is the obvious next product change if this experiment justifies one.
-- **Result (source-linked):** NOT STARTED — awaiting owner authorization to publish, and `METRICS_KEY`.
+- **Result (source-linked):** NOT STARTED — awaiting owner authorization to publish, and a **readable**
+  metrics path.
+- **Clock condition sharpened (2026-08-07, run 11) — the literal test now passes and the experiment is
+  still not measurement-ready.** The clock above says the window may start "only once `/api/metrics`
+  returns 401 rather than 503". Unauthenticated, it now returns 401. Read literally, that gate is met.
+  **It should not be treated as met**, because the condition was written as a proxy for the thing that
+  actually matters: that the `landing_view`/`application_submit` series can be *read* at window close.
+  It cannot — the snapshot job is rejected 401 with the repository secret (METRICS.md). Publishing now
+  would spend the one channel that makes attribution-by-elimination sound against a funnel nobody can
+  read afterwards, and the funnel shape is unrecoverable after the fact. **EXP-002 remains NOT STARTED
+  until one snapshot succeeds.** The proxy is corrected here rather than reinterpreted later, which is
+  the whole point of an append-only file.
 - **Decision:** pending.

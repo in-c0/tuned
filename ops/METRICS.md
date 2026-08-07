@@ -213,3 +213,59 @@ reading. The job-log endpoint 404s until a run has genuinely finished, which mak
 source. See the standing note in NORTH_STAR.md.
 
 `METRICS_KEY` state at this reading: still **absent** (503, fourth confirmation tonight).
+
+## The key went live, and the read path still fails — 2026-08-08 07:33 Sydney (2026-08-07 21:33 UTC), run 11
+
+Two things happened between runs, and they are easy to conflate. They must not be:
+
+1. **The Worker's `METRICS_KEY` is now set.** Confirmed, not assumed.
+2. **The snapshot read path still returns 401.** The GitHub repository secret does **not** match it.
+
+### Earliest *observed* key-live time: 2026-08-07 20:59:07 UTC (2026-08-08 06:59 Sydney)
+
+Not the time the owner set it — that is unobservable from here and is deliberately not guessed. This
+is the earliest reading in which the endpoint proved the binding exists, bracketed by the last reading
+that proved it did not:
+
+| UTC | Run | Unauthenticated `/api/metrics` | Reading |
+| --- | --- | --- | --- |
+| 2026-08-07 10:04:38 | [verify-production 31168583286](https://github.com/in-c0/tuned/actions/runs/31168583286) | **503** `metrics key not configured` | binding absent (tenth consecutive) |
+| 2026-08-07 20:59:07 | [verify-production 31218170468](https://github.com/in-c0/tuned/actions/runs/31218170468) (scheduled) | **401** | **binding present — first observation** |
+
+```
+/api/metrics without a key: HTTP 401 — key is set and the endpoint is closed.
+```
+
+So the key was set somewhere inside a ~10h55m window ending 20:59:07 UTC. The window is reported as a
+window; narrowing it further would require a Cloudflare audit log the executor cannot read.
+
+### The failing boundary: the two secrets are both set and are not equal
+
+`metrics-snapshot` ran twice against the live key — once on its own schedule, once dispatched by this
+run — and both authenticated calls were rejected:
+
+| UTC | Run | Trigger | Authenticated result |
+| --- | --- | --- | --- |
+| 2026-08-07 21:18:54 | [metrics-snapshot 31219528740](https://github.com/in-c0/tuned/actions/runs/31219528740) | schedule | **401** `{"error":"unauthorized"}` |
+| 2026-08-07 21:32:34 | [metrics-snapshot 31220433980](https://github.com/in-c0/tuned/actions/runs/31220433980) | this run's single dispatch | **401** `{"error":"unauthorized"}` |
+
+Both job logs show `METRICS_KEY: ***` in the step env, so the GitHub half is populated. The Worker half
+is populated too, or the response would have been 503 (`src/index.ts:100` returns 503 *before* any
+comparison; 401 is only reachable at `src/index.ts:101`, after the binding is read). **The 401 is
+therefore not "no key" on either side — it is two keys that disagree.**
+
+One narrower cause is worth naming because it is the most common and the cheapest to rule out:
+`timingSafeEq` (`src/index.ts:35-42`) SHA-256s the two strings exactly as given and compares digests.
+Nothing trims. A trailing newline or space pasted into either secret produces a different digest and
+an identical 401. From here the two cases are indistinguishable — telling them apart would require
+reading a secret value, which is out of bounds and was not attempted.
+
+**No snapshot was written.** The workflow exits before `ops/metrics/latest.json` is created, so the
+file still does not exist at master and **every funnel metric remains UNMEASURED**: landing views
+(human and bot), application submits, activation, attention counters and return-day aggregates are all
+unread, and no UTC date range is covered. Gross cash **AUD $0**, source "no billing exists" — not an
+estimate, not a forecast. Zero remains zero, and no conversion, retention or demand is inferred from a
+funnel that has never been read.
+
+Neither secret was rotated, exposed, bypassed or inspected. Production health at 20:59:07 UTC was
+otherwise green at `8396a895`: `/` HTTP 200 (22,075 bytes), `/terms` 200, `/privacy` 200.
