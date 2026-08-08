@@ -27,13 +27,25 @@ Template:
   exists and shows a non-zero `landing_view` **or** `landing_view_bot` count for at least one day.
   If it does not, the instrumentation is broken or the site receives literally no traffic — both are
   findings, and the second one would redirect the loop from measurement to distribution.
-- **Result:** PENDING — **no longer blocked on the Worker key, now blocked on the two keys matching.**
-  As of 2026-08-07 20:59:07 UTC the Worker's `METRICS_KEY` is live (unauthenticated `/api/metrics`
-  returns 401, not 503 — see METRICS.md). The single dispatched snapshot at 21:32:34 UTC, and the
-  scheduled one at 21:18:54 UTC, both authenticated with the GitHub repository secret and were
-  **rejected 401**. `ops/metrics/latest.json` was never written and does not exist. No baseline value
-  of any kind has been observed, so nothing is recorded here as a number.
-- **Decision:** pending.
+- **Result (2026-08-08, run 16): PASSED, on the threshold exactly as written.** Snapshot run
+  [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) (job `93075870711`, checkout
+  `3b9dcac`) authenticated **HTTP 200** and committed `ops/metrics/latest.json` +
+  `ops/metrics/2026-08-08.json` at [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9).
+  The threshold asked for a non-zero `landing_view` **or** `landing_view_bot` on ≥1 day; observed
+  non-zero on **all three** covered UTC days — `landing_view` 29 / 69 / 17 and `landing_view_bot`
+  15 / 23 / 4 for 2026-08-06 / 07 / 08. Full reading and its caveats: METRICS.md, run-16 section.
+- **Decision: keep, and close.** The measurement prerequisite is met — the funnel is readable and the
+  instrumentation is confirmed working end to end in production, not just in workerd. Three things
+  this experiment settles, recorded because each one closes off a hypothesis:
+  1. **The "zero means no traffic → pivot to distribution" fork does not fire.** Views are non-zero.
+  2. **The instrumentation is not broken** — the alternative branch of that same fork.
+  3. **The blocking stage is one step later than expected.** `application_submit` has never fired:
+     **0 applications against 115 human-flagged landing views (0.0%, 95% upper bound ~2.6%)**. The
+     constraint is arrival → application, and EXP-001 was never designed to explain it.
+- **What EXP-001 cannot say, stated so no later run borrows its authority:** nothing about demand.
+  115 UA-flagged views on a product never posted to any channel is most likely crawler and self-
+  inflicted traffic. It proves the counters work; it is not a market signal, and the 0% conversion
+  above is measured against a denominator of unknown human content.
 - **Threshold disambiguated (2026-08-06, run 3):** the "either broken or no traffic" fork above is no
   longer a fork. 17 tests now exercise the counter path in workerd against a real D1, including that
   live requests to `/` and `POST /waitlist` increment their counters, and a mutation of the upsert was
@@ -144,3 +156,32 @@ against a Worker confirmed to trim, same result — the elimination holds. The d
 **EXP-002 (Show HN) remains NOT STARTED** and measurement-blocked for exactly the reason recorded in
 run 11: publishing into a funnel nobody can read afterwards spends the single channel that makes
 attribution-by-elimination sound, and the funnel shape is unrecoverable after the fact.
+
+### EXP-002 status revision — 2026-08-08 (run 16)
+
+**Measurement precondition MET; still NOT STARTED, and the reason has changed.**
+
+The clock condition written into EXP-002 — "only once `/api/metrics` returns 401 rather than 503", and
+in practice once a snapshot is actually readable — is now satisfied: run
+[31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) authenticated 200 and
+`ops/metrics/latest.json` exists at `a00a8fe`. A 48-hour window opened today would be gradeable.
+
+It is still held, for two reasons that now outrank the old one:
+
+1. **Owner authorization** for public posting is unchanged and is not the executor's to give.
+2. **The funnel converts arrivals at 0% (0 / 115 human-flagged views, 3 UTC days).** Publishing into
+   that spends the one channel whose attribution-by-elimination is sound — see the known measurement
+   limit above, which stops holding at channel two — and would most likely return a *failure* band
+   that tells us nothing new about the audience, because the loss would be indistinguishable from a
+   landing page that nobody can apply through. The pre-registered bands would grade it honestly and
+   the finding would still be uninterpretable.
+
+**Baseline correction for EXP-002, since it was written against zeros:** its recorded baseline states
+"every funnel metric is UNMEASURED / `/api/metrics` has returned 503 on nine consecutive observations".
+That was true when pre-registered and is now superseded. Its true pre-publication baseline is the
+run-16 reading in METRICS.md — 115 / 42 landing views and **0 applications** over 2026-08-06 → 08-08.
+Grading it against zero applications rather than against "unmeasured" makes its bands *more*
+falsifiable, not less: any application inside the window is now a genuine departure from a measured
+baseline instead of a first observation.
+
+No threshold, band or grading rule of EXP-002 is altered.

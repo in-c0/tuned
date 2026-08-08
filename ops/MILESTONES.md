@@ -20,14 +20,16 @@ written so it can be *failed* on evidence. Status vocabulary:
 - **Outcome:** the funnel is readable. One authenticated metrics snapshot succeeds.
 - **Evidence of completion:** a `metrics-snapshot` run exits green with authenticated HTTP 200 **and**
   `ops/metrics/latest.json` exists at `master` containing aggregate counts.
-- **Status:** **blocked** — owner authentication boundary.
-- **Progress:** telemetry deployed (`feb6c4f`), proven by 23 tests, endpoint live and failing closed;
-  key comparison hardened (`68cd28d`). Everything except the secret values is done.
-- **Blocker:** `METRICS_KEY` differs between the Worker and GitHub secret stores (STATUS.md #1).
-- **Next action:** owner runs the same-source sync command; executor then dispatches exactly once.
+- **Status:** **achieved** 2026-08-08, a day inside the window.
+- **Progress:** complete. Telemetry deployed (`feb6c4f`), proven by 23 tests; key comparison hardened
+  (`68cd28d`); owner synchronized the two secrets; one dispatch from current `master` returned 200.
+- **Blocker:** none — cleared.
+- **Next action:** none for this horizon. The reading itself sets the next one: **0 applications from
+  115 human-flagged landing views**, so the constraint is arrival → application (STATUS.md #1).
 - **Last evidence-linked update:** 2026-08-08 — snapshot run
-  [31223053290](https://github.com/in-c0/tuned/actions/runs/31223053290) failed 401 after the
-  whitespace fix was confirmed live.
+  [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) authenticated **HTTP 200** and
+  committed `ops/metrics/latest.json` at
+  [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9).
 
 ## 1 week — by 2026-08-15
 
@@ -36,13 +38,18 @@ written so it can be *failed* on evidence. Status vocabulary:
 - **Evidence of completion:** ≥3 consecutive daily snapshots in `ops/metrics/`; EXP-001 graded in
   EXPERIMENTS.md against its written threshold (non-zero `landing_view` or `landing_view_bot` on ≥1
   day within 48h of a readable key); if EXP-002 ran, it is graded on its pre-registered bands.
-- **Status:** **blocked** (downstream of the 1-day milestone).
-- **Progress:** EXP-002 packet — audience, exact post, CTA, grading rules — pre-registered before any
-  result can be seen. Zero channels posted to date.
-- **Blocker:** the 1-day milestone, plus owner authorization to publish.
-- **Next action:** grade EXP-001 the day the first snapshot lands; do not publish EXP-002 into an
-  unreadable funnel.
-- **Last evidence-linked update:** 2026-08-07 — EXP-002 pre-registered (run 9).
+- **Status:** **active** — unblocked, and **half the outcome is already answered.**
+- **Progress:** EXP-001 graded **PASSED** and closed (run 16). One snapshot committed, covering 3 UTC
+  days; ≥3 *consecutive daily* snapshots still need the 20:40 UTC schedule to run twice more. The
+  constraint question is answered in a direction neither branch of EXP-001 predicted: **not
+  distribution volume and not broken instrumentation, but conversion** — 0 applications from 115
+  human-flagged views (0.0%, 95% upper bound ~2.6%). EXP-002 packet remains pre-registered, unpublished.
+- **Blocker:** owner authorization to publish EXP-002 — and, deliberately, the 0% conversion itself:
+  posting the one attributable channel into a funnel nobody applies through would spend it for an
+  uninterpretable result (EXPERIMENTS.md, EXP-002 status revision).
+- **Next action:** diagnose why arrival → application is 0% before adding traffic to it.
+- **Last evidence-linked update:** 2026-08-08 — EXP-001 passed and closed on run
+  [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587).
 
 ## 2 weeks — by 2026-08-22
 
