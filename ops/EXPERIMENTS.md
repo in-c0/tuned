@@ -331,3 +331,78 @@ fixed before the answer was known, because the result determines whether the nex
   A CTA-reach counter is **still worth adding, but second**, and only against known-human arrivals;
   added now it would measure crawler behaviour at some cost in noise. Deliberately not shipped this
   run so the reading stays attributable.
+
+## EXP-004 — do the public, no-account surfaces the Show HN post promises actually work? (2026-08-08, run 19)
+
+**Pre-registered before any production reading.** Same discipline the reviewer required of EXP-003,
+for the same reason: the criteria below decide the result, and they are fixed here first so they
+cannot be relaxed once the screenshots are in.
+
+This is not a demand experiment and does not claim to be. It is a **pre-publication check on a
+public claim**, and it exists because of an asymmetry the loop has been carrying without noticing:
+the EXP-002 packet is copy-paste ready except for one hand-filled blank, and the post text makes an
+assertion about Tuned that no run has ever verified.
+
+- **What the post promises, verbatim:** *"What you can look at without an account: `[DEMO_FEED_URL]`
+  is a live feed, and every feed has open RSS."* That sentence is the post's entire answer to Show
+  HN's "let people try it" norm, and run 9 flagged the application gate as the packet's largest
+  risk. If the link behind it is broken, empty, or unreadable on a phone, the owner spends the one
+  channel that makes attribution-by-elimination sound on a post whose central mitigation is false.
+- **Why now and not nine runs ago:** it was not checkable. Executor egress to justtuned.com has been
+  `403 CONNECT` at the proxy for nineteen consecutive runs, which is exactly why run 9 left the token
+  blank rather than guessing a handle into a post about to be published. Run 18 built a browser
+  vantage point on production inside Actions. This is the first cycle in which the claim can be
+  tested by the executor at all.
+- **Hypothesis:** the public surfaces work as the post describes, and the blank is fillable from
+  production rather than by the owner's hand. If they do not, publication is blocked on a defect
+  rather than on authorization, and the packet is wrong rather than merely unfinished.
+- **Baseline:** unverified in both directions. No run has ever loaded a public feed page or an RSS
+  document from production. `feed_view` has fired 7 times human-flagged and 5 bot-flagged across
+  2026-08-06/07 (`ops/metrics/latest.json`), which establishes the route is *reached*, not that it
+  *renders* anything a person could use.
+- **Change:** none to the product. A read-only browser spec (`qa/public-surfaces.spec.mjs`) and a
+  reusable dispatch-only workflow. The one edit to an existing instrument is naming EXP-003's spec
+  file explicitly in its own workflow, so a second spec in `qa/` cannot silently change what EXP-003
+  runs.
+
+**Success criteria — all five, at both 390×844 and 1440×900 unless noted:**
+
+1. `GET /` returns 200 and contains exactly one demo link (`a.demo-more`) whose `href` resolves to a
+   first-party path of the form `/{handle}`. The resolved absolute URL is the value of
+   `[DEMO_FEED_URL]`, read from production rather than guessed.
+2. That URL returns **200** and renders the feed's identity: the creator's name, and the
+   `what @{handle} is paying attention to` line.
+3. The feed shows **at least one item** (`.card`) — the claim is "a live feed", and a page rendering
+   the `Nothing here yet` empty state would falsify it however cleanly it loads.
+4. No uncaught page errors and no **first-party** console errors or request failures, and no
+   horizontal overflow (`documentElement.scrollWidth ≤ innerWidth + 1`). Third-party subresource
+   failures are **reported and not graded** — the favicon host cannot make a feed unusable. This is
+   the criterion EXP-003 sharpened at 09:40 UTC on 2026-08-08, adopted here verbatim rather than
+   re-derived.
+5. `GET /{handle}/rss.xml` returns **200** with `content-type: application/rss+xml` and at least one
+   `<item>`. Run once, from the desktop project only: it is a property of the route, not of a
+   viewport.
+
+**Contamination rules, fixed in advance:**
+
+- **GETs only.** No application, no member, no follow, no write of any kind. Nothing here touches a
+  mutating route — unlike EXP-003, which needed one negative control against `POST /waitlist`.
+- The harness announces a headless user-agent, so `src/metrics.ts` classifies its requests as bots:
+  the views it causes land in `landing_view_bot` and `feed_view_bot` and never enter the
+  human-flagged denominator under study. Expected effect on the *human* series: **zero**.
+- The bot-flagged increments it does cause are real and are declared, not hidden: approximately 2
+  landing views and 2 feed views per run, at 2 viewports.
+
+**Falsification, stated so this cannot be graded generously afterwards:** if criterion 3 fails —
+the demo feed is empty or shows no card — then the packet's "you can try it without an account"
+mitigation is **false**, the Show HN post must not be published as written, and the correct outcome
+of this run is to say so and redesign nothing else. If criteria 1, 2, 4 or 5 fail, that is a
+mechanism defect on a public surface; fix only it, verify production, and re-run.
+
+**What a pass does and does not license.** A pass fills one blank and removes one publication risk.
+It is **not** evidence of demand, not a conversion fact, and does not weaken the standing conclusion
+that the binding constraint is owner authorization of a first channel. It cannot: no human is
+involved in it anywhere.
+
+- **Result (source-linked):** pending — this entry was committed before the workflow was dispatched.
+- **Decision:** pending.

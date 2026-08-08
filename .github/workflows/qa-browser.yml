@@ -1,20 +1,25 @@
-name: exp003-mechanism
+name: qa-browser
 
-# EXP-003 — drives a real browser against live production to answer whether a visitor can actually
-# reach and complete an application. Pre-registered in ops/EXPERIMENTS.md before it was ever run.
+# A reusable browser vantage point on production.
 #
-# It lives in Actions because the executor environment has had no direct egress to justtuned.com for
-# eighteen consecutive runs; this is the only available browser vantage point on production.
+# The executor environment has had no direct egress to justtuned.com for nineteen consecutive runs,
+# so a real browser inside Actions is the only way this loop can look at its own product. EXP-003
+# built the first one; rather than copy that workflow per experiment, this one takes the spec as an
+# input so the next browser question costs a spec file and not another 50 lines of YAML.
 #
-# It does NOT create an application. The form's submit is intercepted inside Chromium and fulfilled
-# there, so it never reaches the Worker; the only request that touches the mutating route is a
-# deliberately invalid one the route rejects with 400 before any write. See the spec's header.
+# `.github/workflows/exp003-mechanism.yml` is deliberately NOT replaced by this. It is the
+# pre-registered instrument of a closed experiment, and a closed experiment's apparatus should stay
+# exactly as it was when it produced its result.
 #
-# Dispatch-only on purpose: this is an experiment, not a gate. Running it on every push would put
+# Dispatch-only on purpose: these are experiments, not gates. Running them on every push would put
 # recurring headless traffic through production's own funnel counters for no additional evidence.
 on:
   workflow_dispatch:
     inputs:
+      spec:
+        description: "Spec file under qa/ to run"
+        required: true
+        default: "public-surfaces.spec.mjs"
       target_url:
         description: "Origin to test (defaults to production)"
         required: false
@@ -24,7 +29,7 @@ permissions:
   contents: read
 
 jobs:
-  mechanism:
+  browser:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,14 +55,13 @@ jobs:
           curl -sS --max-time 20 "${{ inputs.target_url }}/api/version"
           echo
 
-      - name: EXP-003 mechanism test
+      - name: Run browser spec
         working-directory: qa
         env:
           TARGET_URL: ${{ inputs.target_url }}
-        # Named explicitly. `playwright.config.mjs` sets `testDir: "."`, so a bare `playwright test`
-        # would pick up every spec that ever lands in qa/ — quietly changing what this closed
-        # experiment's instrument runs. Pinned so EXP-003 keeps meaning what it meant.
-        run: npx playwright test exp003-mechanism.spec.mjs
+        # The spec is named explicitly rather than left to the config's testDir glob, so adding a
+        # second spec to qa/ can never silently change what a given dispatch runs.
+        run: npx playwright test "${{ inputs.spec }}"
 
       # Screenshots at both widths are the owner-facing evidence, and they matter most when the run
       # is red — so this is `always()`, not `success()`.
@@ -65,7 +69,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exp003-evidence
+          name: qa-browser-evidence
           path: qa/artifacts
           if-no-files-found: error
           retention-days: 30
