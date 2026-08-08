@@ -9,8 +9,9 @@ narratives across them.
 
 | File | Purpose |
 | --- | --- |
+| [DASHBOARD.md](DASHBOARD.md) | **The owner's view.** A mirror of the files below, never a source of truth — summarizes and links, and is stale by definition whenever a canonical file moves first. |
 | [STATUS.md](STATUS.md) | Where we are **right now** — one screen. Phase, single active objective, blockers by leverage, next action, "not doing". |
-| [MILESTONES.md](MILESTONES.md) | Where we are going — ten horizons, 1 day to indefinite, each with falsifiable (near-term) or directional (long-term) completion evidence. |
+| [MILESTONES.md](MILESTONES.md) | Where we are going — sixteen horizons, 15 minutes to indefinite, each with falsifiable (near-term) or directional (long-term) completion evidence. The six sub-day horizons are a rolling ladder, re-anchored each run. |
 | [LESSONS.md](LESSONS.md) | What we got wrong and what replaces it. Append-only. |
 | [DECISIONS.md](DECISIONS.md) · [EXPERIMENTS.md](EXPERIMENTS.md) · [METRICS.md](METRICS.md) | The chronological record, the pre-registered tests, and the sourced numbers. |
 
@@ -28,6 +29,10 @@ narratives across them.
    unchanged blocker is not persistence.
 7. **Prefer the simplest externally falsifiable test, and stop improving the control plane once it is
    adequate for the next demand or revenue experiment.** See LESSONS.md L-08.
+8. **Update `DASHBOARD.md` in the same change as the canonical file it mirrors, and only on material
+   state change.** It must never become a second source of truth: it summarizes and links, and every
+   number in it carries the file, commit or run it came from. If updating it is ever the *only* work in
+   a cycle, that cycle has been spent on the control plane — see rule 7.
 
 ## Doctrine (non-negotiable)
 

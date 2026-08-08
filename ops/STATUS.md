@@ -1,6 +1,10 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-08 17:45 Sydney (07:45 UTC), run 16 · **Head:** [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9)
+**Last updated:** 2026-08-08 17:50 Sydney (07:50 UTC), run 17 · **Head:** [`0e9d9d5`](https://github.com/in-c0/tuned/commit/0e9d9d5ed45c084321f868f0e5e9a24e72d81525)
+
+> **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
+> milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
+> this one is right.
 
 ## OWNER ACTION REQUIRED
 
