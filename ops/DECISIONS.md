@@ -460,3 +460,61 @@ verify-production green by SHA post-merge.
 - Executor egress to `justtuned.com` — **twelfth** consecutive run blocked at the proxy. Actions
   remains the only production read path.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+---
+
+## Run 18 — 2026-08-08 19:30–20:00 Sydney (09:30–10:00 UTC)
+
+**Directive** ([09:28:38 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5225515723)): one
+pre-registered, non-contaminating EXP-003 mechanism test from a real browser in Actions; fix only a
+mechanism defect if one appears; otherwise record the mechanism as provisionally working and name
+controlled known-human traffic as the next evidence gap.
+[Claimed 09:30 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5225520575), ~2 minutes after
+posting, the only claim.
+
+### Decisions taken
+
+1. **Pre-registration merged as its own change before any reading existed**
+   ([`b62bf08`](https://github.com/in-c0/tuned/commit/b62bf083cbdeeb74ab6e81b134a5473d2cd7fc3b), 09:38 UTC;
+   first reading 09:39 UTC). Not ceremony: the six criteria decide whether the next cycle works on the
+   mechanism or the message, and criteria written after seeing the answer decide nothing.
+
+2. **Criterion 1 sharpened at 09:40 UTC, before any reading, and the change recorded in-file rather
+   than applied silently.** As first written it counted *any* console error, which would have graded
+   the apply mechanism defective if a third-party favicon host was slow. It now grades script errors
+   and first-party failures; third-party subresource failures are reported but do not decide. Logged
+   here because sharpening a criterion before the data is legitimate and sharpening it after is not,
+   and the only thing that distinguishes them is the timestamp.
+
+3. **`qa/` carries its own manifest.** The Cloudflare build is `npm ci && npm run check` at the root; a
+   browser toolchain must never enter the Worker's dependency tree. Symmetrically, `vitest` is now
+   scoped to `test/**/*.test.ts` — its default glob had matched the Playwright spec and tried to load it
+   inside workerd, where `node:os` does not exist. The local gate caught that before CI did.
+
+4. **`@playwright/test` pinned past [GHSA-7mvr-c777-76hp](https://github.com/advisories/GHSA-7mvr-c777-76hp).**
+   Dev-only and outside the production tree, so the root `npm audit --omit=dev` never saw it. Shipping a
+   known high advisory into the repository because an audit command happens not to look there is the
+   kind of thing this loop should not do.
+
+5. **Fixed the one defect the test found, as a separate change after the result was recorded.** arXiv's
+   root-relative `og:image` was stored verbatim and rendered against our own origin
+   ([`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba)). Two
+   halves — resolve at extraction, guard at render — because rows already hold the bad value and
+   **rewriting production data to fix a rendering bug was rejected**: the render guard achieves the same
+   result with no D1 write. Both halves mutation-checked. The landing page went 22,075 → 21,974 bytes,
+   which is the `<img>` no longer being emitted.
+
+6. **Did not ship the CTA-reach counter, and did not touch copy.** The directive forbids both this
+   cycle, and independently they are now the *wrong* work: with the mechanism proven, the open question
+   is who is arriving, and neither a counter nor a rewrite can answer that against an unknown
+   denominator. Recorded as [L-09](LESSONS.md).
+
+7. **Did not treat the mechanism pass as evidence about the offer.** The tempting inference — "the form
+   works, so the message must be the problem" — is unsound while 115 UA-flagged views on a never-
+   distributed product are most plausibly crawlers. `STATUS.md` blocker #1 is rewritten accordingly:
+   the denominator, not the message.
+
+### Spend
+
+**AUD $0.00 this run. Running total: AUD $0.00 of $500.** No purchase requested; the executor holds no
+payment credentials.

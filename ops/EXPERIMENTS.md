@@ -264,5 +264,70 @@ fixed before the answer was known, because the result determines whether the nex
     A test that inflated its own human-flagged denominator would corrupt the very ratio under study.
   - **No metric may be claimed from this run.** It measures a mechanism, not demand.
 
-- **Result (source-linked):** *(pending — filled in from the dispatched Actions run below)*
-- **Decision:** *(pending)*
+- **Result (source-linked): the apply mechanism WORKS. One unrelated defect was found and fixed.**
+
+  Two production runs, both driving a real Chromium at `https://justtuned.com` from Actions:
+
+  | | run 1 — [31251017621](https://github.com/in-c0/tuned/actions/runs/31251017621) at `b62bf08` | run 2 — [31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) at `5ef6970` |
+  | --- | --- | --- |
+  | 1 — no script errors, no first-party failures | **FAIL** — one first-party 404 | **PASS** — `pageErrors []`, `firstPartyConsoleErrors []` |
+  | 2 — form visible, enabled, no horizontal overflow | PASS both widths | PASS both widths |
+  | 3 — exactly one `POST https://justtuned.com/waitlist` | PASS | PASS |
+  | 4 — JSON body `{email, role, note}` = what was typed | PASS | PASS |
+  | 5 — success branch renders and hides the form | PASS | PASS |
+  | 6 — live route rejects an invalid email with 400 | PASS — `{"error":"invalid email"}` | PASS |
+
+  Criteria 2–6 — every one that bears on the apply path — passed **on the first run, at both
+  390×844 and 1440×900**. `documentScrollWidth` equals `viewportInnerWidth` at both widths, and the
+  form sat fully above the fold on both. Screenshots at both widths are attached to each run as the
+  `exp003-evidence` artifact (30-day retention).
+
+  The single failure was criterion 1, and it was **not** the apply path:
+
+  ```
+  https://justtuned.com/static/browse/0.3.4/images/arxiv-logo-fb.png  → 404
+  ```
+
+  arXiv's `og:image` is root-relative. `src/meta.ts` stored it verbatim, a card rendered it as an
+  `<img src>`, and the browser resolved it against **our** origin. Fixed in
+  [#16](https://github.com/in-c0/tuned/pull/16) / [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba)
+  — `resolveImageUrl()` at extraction time, plus a render guard for the rows already carrying the bad
+  value, so no production data was rewritten. Corroborated independently of the test: the landing page
+  went from **22,075 to 21,974 bytes** across that deploy, which is the `<img>` no longer being
+  emitted, and `verify-production`
+  [31251251027](https://github.com/in-c0/tuned/actions/runs/31251251027) confirmed `5ef6970` serving.
+
+  One console error remains and is **reported, not graded**, exactly as the sharpened criterion 1
+  says: `https://icons.duckduckgo.com/ip3/medrxiv.org.ico` → 404. Third-party, cosmetic, cannot abort
+  a submit, and `onerror` already removes the element.
+
+- **Contamination: none, and it is checked rather than asserted.** Both runs report
+  `submitReachedServer false`, `rowsInserted 0`, `applicationSubmitIncremented false`. The design was
+  verified against a real D1 before it ever ran against production: after 5 harness page loads and 2
+  form submissions on a local build, `waitlist_rows 0 · application_submit 0 · landing_view 0 ·
+  landing_view_bot 5`. The landing views these runs caused are bot-flagged, so the human-flagged
+  denominator of the 0/115 ratio is untouched.
+
+- **Decision: keep the harness, close the mechanism question, and do NOT reach for the message next.**
+
+  The apply path is mechanically sound. That kills one of the two explanations for 0/115 — but it
+  does **not** promote the other one to a finding, and this is the part worth being careful about.
+  What is now established is narrow and worth stating exactly:
+
+  > A visitor who arrives at justtuned.com **can** apply. Nobody has.
+
+  The tempting next move is a copy or positioning experiment, on the reasoning that the offer must be
+  what is failing. That reasoning is unsound here, because **the denominator is not known to contain
+  humans.** 115 UA-flagged views on a product that has never been posted to any channel is most
+  likely crawler traffic the heuristic did not catch. Rewriting the page to convert an audience that
+  may not exist would produce a number that cannot be read either way.
+
+  **Next evidence gap, and it is the one the reviewer named: controlled, known-human traffic.** Not
+  more instrumentation, and not a message test. Until some quantity of arrivals is known to be human,
+  every conversion figure Tuned computes has an unknown denominator, and no experiment downstream of
+  it is gradeable. That is what makes EXP-002 — or any authorized first channel — the binding next
+  step rather than a nice-to-have, and it is an owner-authorization boundary, not an executor one.
+
+  A CTA-reach counter is **still worth adding, but second**, and only against known-human arrivals;
+  added now it would measure crawler behaviour at some cost in noise. Deliberately not shipped this
+  run so the reading stays attributable.

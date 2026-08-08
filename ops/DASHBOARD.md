@@ -42,39 +42,41 @@ only with explicit owner authorization.
 
 ## 2. Current phase and single objective
 
-**Phase:** first-baseline read. The funnel is instrumented **and readable** — three UTC days of
-aggregate counts exist in the repository.
+**Phase:** the funnel is readable, and as of run 18 the **apply path is proven to work in
+production**. The constraint is no longer inside the product.
 
-**Single active objective: explain the 0-application funnel.** Traffic arrives and nobody applies. The
-next intervention must distinguish *the apply path is broken or unseen* from *the offer does not land
-on whoever is arriving*. No pricing, billing or distribution work precedes that.
+**Single active objective: obtain controlled, known-human traffic.** EXP-003 killed the mechanism
+explanation for 0/115 — a real browser applied successfully at both mobile and desktop widths. What
+remains is that **no arrival is known to be human**, and with an unknown denominator no conversion
+figure is gradeable. The binding step is a first authorized channel, which is an owner decision.
 
-**Explicitly not doing** (full list in [STATUS.md](STATUS.md)): no pricing/positioning/feature work
-while conversion is 0%; no EXP-002 publication before owner authorization **and** a funnel that
-converts; no secret read, hash, rotation or exposure, ever; no spend; no generic summarizer, content
-generator or enterprise observability dashboard; no invented baseline, forecast or traction claim.
+**Explicitly not doing** (full list in [STATUS.md](STATUS.md)): no pricing/positioning/copy work
+while the denominator is unknown; no CTA-reach counter yet — right instrument, wrong traffic; no
+EXP-002 publication before owner authorization; no secret read, hash, rotation or exposure, ever; no
+spend; no generic summarizer, content generator or enterprise observability dashboard; no invented
+baseline, forecast or traction claim.
 
 ## 3. Milestone horizons
 
 All sixteen, from [MILESTONES.md](MILESTONES.md) — that file carries the full evidence conditions; this
 is the index.
 
-**Sub-day ladder anchor:** run 17, **2026-08-08 07:50 UTC / 17:50 Sydney**. It is rolling — re-anchored
-at the start of each run. These six horizons did not exist before the owner requested them at
+**Sub-day ladder anchor:** run 18, **2026-08-08 09:30 UTC / 19:30 Sydney**. It is rolling — re-anchored
+at the start of each run. Run 17's rungs are graded below **by this run**, not by the one that set them. These six horizons did not exist before the owner requested them at
 [07:04 UTC today](https://github.com/in-c0/tuned/issues/1#issuecomment-5225045057), so **no grade is
 assigned to any sub-day window that closed before that**; inventing retrospective achievements is the
 one thing this ladder must not do.
 
 | Horizon | Target | Outcome in one line | Status | Blocker | Next action |
 | --- | --- | --- | --- | --- | --- |
-| 15 min | 08:05 UTC | Run-17 PR open, CI green | active | none | open PR, wait for `check` |
-| 30 min | 08:20 UTC | Merged; production verified unchanged by SHA | active | none | merge on green, read `verify-production` job log |
-| 1 hour | 08:50 UTC | Control-plane work stops; next selected action is the conversion diagnosis | active | none | name it in the run-17 report and in STATUS.md |
-| 3 hours | 10:50 UTC | Known: can a visitor actually reach and complete an application in production today? | not started | executor egress blocked — must run via Actions | scripted production walk of the apply path |
-| 6 hours | 13:50 UTC | CTA reach is instrumented with **one** additive counter, or a recorded reason it is the wrong instrument | not started | depends on the 3h answer | smallest additive counter, no copy change |
-| 12 hours | 19:50 UTC | EXP-003 pre-registered with falsifiable bands before any reading is taken | not started | depends on 3h/6h | write it into EXPERIMENTS.md before data arrives |
+| 15 min | 09:45 UTC | EXP-003 pre-registered **and committed** before any production reading | **achieved** 09:38 UTC | cleared | — ([`b62bf08`](https://github.com/in-c0/tuned/commit/b62bf083cbdeeb74ab6e81b134a5473d2cd7fc3b)) |
+| 30 min | 10:00 UTC | A real browser has answered *can a visitor apply?* against live production, at both widths | **achieved** 09:47 UTC | cleared | — ([run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499)) |
+| 1 hour | 10:30 UTC | Any defect the mechanism test exposes is fixed and verified live, or recorded as deliberately unfixed | **achieved** 09:47 UTC | cleared | — ([`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba)) |
+| 3 hours | 12:30 UTC | The next run does **not** spend its cycle on a copy rewrite or another instrument — falsified if the next claim picks either without a directive requiring it | active | needs a next run to grade | hold the line in the run-19 claim |
+| 6 hours | 15:30 UTC | Owner has an explicit, single decision in front of them: authorize a first channel, or say what to do instead | active | owner is asleep — 19:30 Sydney | surfaced in the run-18 report; do not re-ask |
+| 12 hours | 21:30 UTC | ≥1 arrival is **known** to be human, or a recorded reason none can be | not started | owner authorization for a first channel | nothing executor-side unblocks this |
 | 1 day | 2026-08-09 | The funnel is readable — one authenticated snapshot | **achieved** 2026-08-08 | cleared | — |
-| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution | **active** — half answered | owner authorization for EXP-002; the 0% itself | diagnose 0% before adding traffic |
+| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution | **active** — the constraint is now identified as **distribution**, on run-18 evidence | owner authorization for a first channel | publish one authorized channel and measure it separately |
 | 2 weeks | 2026-08-22 | A real payment path exists; first genuine willingness-to-pay evidence — or the wedge is falsified | not started | payment-provider account is an owner boundary | request the account once demand exists |
 | 1 month | 2026-09-08 | First gross cash; activation measured, not assumed | not started | all of the above, in order | decided by the baseline |
 | 3 months | 2026-11-08 | A small **retained paying cohort** | not started — *past the 2026-10-05 operating date; owner's to carry* | everything above | hand over an honest cohort table at closeout |
@@ -122,10 +124,10 @@ ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 1 | **Zero applications from 115 landing views.** No counter distinguishes "saw the CTA" from "saw the page", so the funnel's own data cannot say whether the apply path is broken/unseen or the offer does not land. | **Executor** | AUD $0 | Open. The active objective. |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so 0/115 is no longer explainable by a broken form — and the denominator becomes the problem. 115 UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is currently ungradeable. | Owner authorizes a channel; executor measures | AUD $0 | **Open — the active objective.** Replaced the run-17 entry, which run 18 answered. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
-| 3 | **EXP-002 (first distribution test) authored but unpublished.** Its measurement precondition is now met. | Owner authorizes; executor prepared | AUD $0 | Ready, **held** — sending traffic into a 0%-conversion funnel would burn the one attributable channel. |
-| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 16 consecutive runs). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
+| 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met, and the "do not publish into a possibly-broken funnel" objection is now **retired** — run 18 proved it is not broken. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. |
+| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 18 consecutive runs). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
 
@@ -133,10 +135,14 @@ ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
   `landing_view` or `landing_view_bot` on ≥1 day; observed non-zero on **all three**. Its pre-registered
   fork (*zero views → distribution problem*) **did not fire** — the constraint sits one stage further
   down than the experiment was built to see.
+- **EXP-003 — application mechanism test: PASSED / CLOSED** (run 18). Pre-registered before any
+  reading; all six criteria hold on live production at 390×844 and 1440×900
+  ([run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499), screenshots attached
+  as artifacts). No application created, no counter incremented. One unrelated first-party 404 found
+  on the first run and fixed in [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba).
+  **Its finding in one line: a visitor who arrives can apply — nobody has.**
 - **EXP-002 — Show HN distribution smoke test: NOT STARTED.** Pre-registered; measurement-unblocked;
-  held on owner authorization *and* on blocker #1.
-- **EXP-003 — conversion diagnosis: not yet written.** Due at the 12-hour horizon, and it must be
-  pre-registered **before** any reading is taken.
+  now held on owner authorization **alone**.
 
 Details and grading rules: [EXPERIMENTS.md](EXPERIMENTS.md).
 
@@ -147,23 +153,24 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-10** | **An experiment that writes into its own measurement is worthless — so make that structural.** EXP-003 had to submit an application to test the application path, against the very counter whose zero is the finding. Interception + an invalid-email negative control + a headless UA kept all three funnel figures untouched. | Give every QA harness a **contamination block** in its output — what it wrote, what it incremented, how its traffic is classified — so the answer is in the log, not in someone's memory of the design. |
+| **L-09** | **Two explanations that produce the same number are one unanswered question.** A broken form and an unpersuasive offer produce byte-identical funnel data. Every instrument proposed against 0/115 measured the *message* while assuming the *mechanism* away — and the mechanism turned out to be fine, at the first attempt, in ~11 seconds of browser time. | Before instrumenting a funnel stage, write the two sentences that would both explain the number. If the proposed instrument cannot separate them, it is the wrong instrument however cheap. |
 | **L-08** | **Control-plane work is the easiest thing to keep choosing.** By day 3: build gate, CI, telemetry, 23 tests, version-stamped deploys, trigger guards, claim protocol — and zero distribution, no payment capability, no funnel ever read. Every step locally justified; the aggregate spent days on the machine that produces evidence rather than on evidence. | When the next-best action is control-plane work, **first name the demand experiment it unblocks** and check whether that experiment could run without it. |
-| **L-07** | **Fourteen reports to an unread channel look exactly like a blocked loop.** The same blocker was re-described to the same private surface fourteen times over three days; from inside, an undelivered message and an ignored one are indistinguishable. | First report → full detail; second → one line; third → escalate on a different authorized channel; thereafter → **silence until state changes**. |
-| **L-06** | **A two-sided secret fails identically for three different reasons.** Absent (503), present-but-undeployed, and present-but-different (401) were collapsed into one narrative for eleven runs, because the loop watched the *unauthenticated* status — which cannot see a mismatch. | Provision both stores from **one** read of one value in a single authenticated shell; design surfaces so distinct failures stay distinguishable. |
 
-This dashboard is itself the kind of work L-08 warns about. It was directed, it is bounded to
-documentation, and the honest test is whether the next run spends its cycle on the conversion diagnosis
-instead of on more of this.
+L-08's test from run 17 — *does the next run spend its cycle on the conversion diagnosis instead of on
+more dashboard?* — **passed.** Run 18 shipped the diagnosis, and the only documentation it touched was
+the record of the result. The same test now points forward: run 19 passes only if it does **not**
+reach for a copy rewrite or another counter.
 
 ## 8. Last materially updated and freshness
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-08 17:50 Sydney (07:50 UTC) |
-| **Run** | 17 — [directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5225190862) · [claim](https://github.com/in-c0/tuned/issues/1#issuecomment-5225194650) |
-| **Repository commit at time of writing** | [`0e9d9d5`](https://github.com/in-c0/tuned/commit/0e9d9d5ed45c084321f868f0e5e9a24e72d81525) (the merge commit for this change is recorded in the run-17 execution report on issue #1) |
-| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z |
-| **Freshness state** | **FRESH.** Written 15 minutes after the snapshot it reports, against the current `master`. |
+| **Last materially updated** | 2026-08-08 19:58 Sydney (09:58 UTC) |
+| **Run** | 18 — [directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5225515723) · [claim](https://github.com/in-c0/tuned/issues/1#issuecomment-5225520575) |
+| **Repository commit at time of writing** | [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba) (the merge commit for this change is recorded in the run-18 execution report on issue #1) |
+| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z. **Unchanged by run 18 on purpose:** the mechanism test was built not to write into the funnel, so no counter it touched belongs in a metrics reading. |
+| **Freshness state** | **FRESH** for state; the funnel numbers are ~2.5h old and next refresh at the 20:40 UTC scheduled snapshot. |
 
 **Freshness rule, so a future reader can grade this without trusting it:** this dashboard is stale
 whenever `ops/metrics/latest.json` has a newer `generated_at` than the data commit above, or `STATUS.md`

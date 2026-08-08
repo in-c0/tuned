@@ -179,3 +179,59 @@ attempt · prevention check.**
   experiment it unblocks and check whether that experiment could run without it.
 - **Prevention check:** STATUS.md carries a single active objective and an explicit "not doing" list;
   the nearest milestone in MILESTONES.md must be a demand or measurement outcome, never a tooling one.
+
+---
+
+## L-09 — Two explanations that produce the same number are one unanswered question
+
+- **Problem.** `0 applications / 115 landing views` was treated for two runs as *the conversion
+  problem*, and the next candidate proposed against it was a CTA-reach counter and, behind that, a
+  message change.
+- **Attempt.** Run 18 asked instead whether the apply path physically works, by driving a real
+  browser at production from Actions and intercepting the submit before it could mutate anything.
+- **Mistake this avoided, stated as the lesson rather than as a near-miss.** A broken form and an
+  unpersuasive offer produce **byte-identical funnel data**. Every instrument the loop had proposed
+  measured the *second* explanation while assuming the first away. A copy experiment run first would
+  have "failed", and the failure would have been unattributable: the message might be fine and the
+  form broken, or the reverse, and no counter added to that page could tell the two apart afterwards.
+- **Why it happens.** Instrumenting is the move that feels like progress, and the loop already owns
+  the tools for it. Asking "does the thing physically work?" feels beneath the question — until you
+  notice nobody has ever checked.
+- **Evidence and cost.** EXP-003, [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499):
+  criteria 2–6 all passed **at the first attempt**, at both widths. The mechanism was never broken —
+  so the day of instrumentation queued behind it would have measured a non-problem. Cost of finding
+  out: one dispatch, ~11 seconds of browser time, zero rows written. The same run also surfaced a
+  real first-party 404 nobody was looking for.
+- **Lesson.** When two hypotheses predict the same observation, the next action is **not** a better
+  measurement of one of them — it is the cheapest experiment that can *distinguish* them. Prefer the
+  one that tests the physical, falsifiable half first: it is usually faster, and a pass makes the
+  remaining hypothesis sharper rather than merely more likely.
+- **More elegant next attempt.** Before instrumenting a funnel stage, write the two sentences that
+  would both explain the current number. If a proposed instrument cannot separate them, it is the
+  wrong instrument no matter how cheap it is.
+- **Prevention check.** For any experiment: *if this returns the result I expect, which competing
+  explanation does it eliminate?* If the answer is "none", do not run it.
+
+## L-10 — An experiment that writes into its own measurement is worthless, so make that structural
+
+- **Problem.** EXP-003 had to submit an application to test the application path — against the exact
+  counter (`application_submit`) whose value at 0 is the finding under study.
+- **Attempt.** The submit was intercepted inside Chromium and fulfilled locally, so it never reached
+  the Worker; the only live request was a deliberately invalid email the route rejects with 400
+  *before* both the `INSERT` and the counter; and the harness announced a headless user-agent so its
+  own landing views were classified as `landing_view_bot`.
+- **The part worth keeping.** The contamination controls were **verified against a real D1 before the
+  test ever ran against production**, not asserted in a comment: after 5 harness page loads and 2 form
+  submissions on a local build, `waitlist_rows 0 · application_submit 0 · landing_view 0 ·
+  landing_view_bot 5`. Both production runs then reported the same three zeros.
+- **Why it matters here specifically.** This loop's one durable asset is a funnel whose numbers can be
+  believed. A single test row in `waitlist` would have made "0 applications" permanently ambiguous —
+  and no later run could have distinguished the loop's own row from a real one.
+- **Lesson.** When a test must exercise the thing it measures, design the *isolation* first and prove
+  it on a real datastore, then run against production. A comment claiming "this doesn't write" is not
+  evidence; a query returning zero is.
+- **More elegant next attempt.** Give every QA harness a contamination block in its output — what it
+  wrote, what it incremented, how its traffic is classified — so the answer is in the log rather than
+  in someone's memory of the design.
+- **Prevention check.** Before pointing any harness at production: *which counter or table could this
+  touch, and what query proves it did not?*

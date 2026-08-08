@@ -28,83 +28,88 @@ freely. What happened before the anchor is in [DECISIONS.md](DECISIONS.md) and i
 
 ---
 
-## 15 minutes — by 2026-08-08 08:05 UTC (18:05 Sydney)
+## 15 minutes — by 2026-08-08 09:45 UTC (19:45 Sydney)
 
-- **Outcome:** the owner-interface change this run was directed to make is open and mechanically sound.
-- **Evidence of completion:** a PR exists containing `ops/DASHBOARD.md` plus the sixteen-horizon
-  correction, and CI `check` on it is green.
+*Run-17 rungs, graded by run 18 rather than by the run that set them: the 15-minute rung (PR open,
+CI green) and the 30-minute rung (merged, production verified unchanged at 22,075 bytes) both
+**achieved** — [PR #14](https://github.com/in-c0/tuned/pull/14), [run 31247233604](https://github.com/in-c0/tuned/actions/runs/31247233604).
+The run-17 1-hour rung — "the next selected action is the conversion diagnosis, not more
+documentation" — is **achieved**: this run shipped the diagnosis and touched documentation only to
+record its result.*
+
+- **Outcome:** EXP-003 is pre-registered **and committed** before any production reading exists.
+- **Evidence of completion:** the pre-registration is in `ops/EXPERIMENTS.md` on `master`, with a
+  commit timestamp earlier than the first EXP-003 workflow run.
+- **Status:** **achieved** at 09:38 UTC, 7 minutes inside the window.
+- **Progress:** merged as [`b62bf08`](https://github.com/in-c0/tuned/commit/b62bf083cbdeeb74ab6e81b134a5473d2cd7fc3b);
+  first reading dispatched afterwards as [run 31251017621](https://github.com/in-c0/tuned/actions/runs/31251017621).
+- **Blocker:** cleared.
+- **Next action:** —
+- **Last evidence-linked update:** 2026-08-08 09:38 UTC.
+
+## 30 minutes — by 2026-08-08 10:00 UTC (20:00 Sydney)
+
+- **Outcome:** a real browser has answered *can a visitor actually apply?* against live production, at
+  both mobile and desktop widths, without creating an application.
+- **Evidence of completion:** an Actions run driving Chromium at `https://justtuned.com` that records
+  the submit's URL and JSON payload, at 390×844 and 1440×900, with screenshots attached and
+  `submitReachedServer false`.
+- **Status:** **achieved** at 09:47 UTC.
+- **Progress:** [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — all six
+  criteria hold. **A visitor who arrives can apply.**
+- **Blocker:** cleared.
+- **Next action:** —
+- **Last evidence-linked update:** 2026-08-08 09:47 UTC.
+
+## 1 hour — by 2026-08-08 10:30 UTC (20:30 Sydney)
+
+- **Outcome:** any defect the mechanism test exposes is either fixed and verified live, or recorded as
+  deliberately unfixed with the reason.
+- **Evidence of completion:** for each defect, a merged commit plus a production verification at that
+  SHA — or a written decision not to fix it.
+- **Status:** **achieved** at 09:47 UTC.
+- **Progress:** one defect found (arXiv's root-relative `og:image` 404ing on our own origin), fixed in
+  [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba), verified
+  live by [run 31251251027](https://github.com/in-c0/tuned/actions/runs/31251251027), and confirmed gone
+  by re-running the test. The remaining console error is a third-party favicon 404 — recorded, not
+  fixed, because it cannot affect the apply path.
+- **Blocker:** cleared.
+- **Next action:** —
+- **Last evidence-linked update:** 2026-08-08 09:47 UTC.
+
+## 3 hours — by 2026-08-08 12:30 UTC (22:30 Sydney)
+
+- **Outcome:** the loop does **not** answer a proven-working mechanism by rewriting the message. This
+  rung exists to bind the next run, and it is the one most likely to be broken in good faith.
+- **Evidence of completion:** the next claim in issue #1 selects neither a copy/positioning change nor
+  another counter. **Falsified** if it selects either without a reviewer directive requiring it.
 - **Status:** **active.**
-- **Progress:** `DASHBOARD.md` written against the committed snapshot; this file corrected.
-- **Blocker:** none.
-- **Next action:** open the PR and read the `check` result from the job log, not the status API
-  ([LESSONS.md L-05](LESSONS.md)).
-- **Last evidence-linked update:** 2026-08-08 07:50 UTC — anchored at run 17's claim,
-  [issue #1](https://github.com/in-c0/tuned/issues/1#issuecomment-5225194650).
+- **Blocker:** needs a subsequent run to grade; run 18 cannot mark its own rung.
+- **Next action:** hold the line in the run-19 claim.
+- **Last evidence-linked update:** 2026-08-08 09:58 UTC — set this run.
 
-## 30 minutes — by 2026-08-08 08:20 UTC (18:20 Sydney)
+## 6 hours — by 2026-08-08 15:30 UTC (2026-08-09 01:30 Sydney)
 
-- **Outcome:** merged, with production proven **unchanged** — a documentation change must move nothing
-  a visitor can see.
-- **Evidence of completion:** merge commit on `master`; `verify-production` confirms that exact SHA is
-  serving; landing page still HTTP 200 at 22,075 bytes; `/terms` and `/privacy` 200.
-- **Status:** **active.**
-- **Blocker:** none.
-- **Next action:** merge on green, then read the `verify-production` job log for the SHA and byte count.
-- **Last evidence-linked update:** 2026-08-08 07:50 UTC — anchored this run.
+- **Outcome:** the owner has one explicit decision in front of them — authorize a first channel, or say
+  what to do instead — stated once, with the evidence that makes it the binding step.
+- **Evidence of completion:** the run-18 execution report states it, and `STATUS.md` carries it as
+  blocker #1. Per contract rule 6, it is **not** restated in later runs until the state changes.
+- **Status:** **active** — stated; awaiting the owner.
+- **Blocker:** it is 19:30 Sydney; the owner is reasonably asleep. Nothing executor-side unblocks this.
+- **Next action:** none. Do not re-ask.
+- **Last evidence-linked update:** 2026-08-08 09:58 UTC.
 
-## 1 hour — by 2026-08-08 08:50 UTC (18:50 Sydney)
+## 12 hours — by 2026-08-08 21:30 UTC (2026-08-09 07:30 Sydney)
 
-- **Outcome:** control-plane work **stops here**, and the next selected action is the conversion
-  diagnosis rather than more documentation. This horizon exists to make [L-08](LESSONS.md) enforceable
-  instead of merely written down.
-- **Evidence of completion:** the run-17 execution report and `STATUS.md` both name the conversion
-  diagnosis as the next action, and no further ops-documentation work is queued behind it. Falsified if
-  the next claim in issue #1 selects another control-plane task without a reviewer directive requiring it.
-- **Status:** **active.**
-- **Blocker:** none. This one is a self-imposed constraint, not an external dependency.
-- **Next action:** state it explicitly in the report, then stop.
-- **Last evidence-linked update:** 2026-08-08 07:50 UTC — anchored this run.
-
-## 3 hours — by 2026-08-08 10:50 UTC (20:50 Sydney)
-
-- **Outcome:** the first half of blocker #1 is answered: **can a visitor actually reach and complete an
-  application in production today?** Mechanism before message.
-- **Evidence of completion:** a recorded production walk of the apply path — landing → application form
-  → submit → the `application_submit` counter incrementing, or the exact step where it fails — with the
-  log linked from `METRICS.md` or `DECISIONS.md`. A submission made by the loop must be labelled as a
-  test in the record and must never be counted as demand.
+- **Outcome:** at least one arrival at justtuned.com is **known** to be human — or there is a recorded
+  reason why none can be, which is itself the finding.
+- **Evidence of completion:** a landing view attributable to a specific authorized channel, separable
+  in the counters from background traffic, in a committed snapshot.
 - **Status:** **not started.**
-- **Progress:** none. Named as the recommended next candidate by run 16.
-- **Blocker:** executor egress to `justtuned.com` is blocked (403 CONNECT, 16 consecutive runs), so the
-  walk must run inside GitHub Actions, which is the working production read path.
-- **Next action:** script the walk against production and run it once; read the job log.
-- **Last evidence-linked update:** 2026-08-08 — run 16 recorded 0 applications from 115 views and
-  identified the ambiguity, [report](https://github.com/in-c0/tuned/issues/1#issuecomment-5225182389).
-
-## 6 hours — by 2026-08-08 13:50 UTC (23:50 Sydney)
-
-- **Outcome:** CTA reach is measurable, so *"saw the page"* and *"saw the call to action"* stop being
-  the same number — **or** it is recorded why one additive counter is the wrong instrument.
-- **Evidence of completion:** one additive counter deployed through the existing gates and verified
-  live by SHA, appearing in the next snapshot; **no landing copy changed in the same step**. Changing
-  the message and the measurement together makes the result unattributable.
-- **Status:** **not started.**
-- **Blocker:** depends on the 3-hour answer — if the apply path is broken, fixing the mechanism
-  outranks measuring reach.
-- **Next action:** decided by the 3-hour result.
-- **Last evidence-linked update:** none yet.
-
-## 12 hours — by 2026-08-08 19:50 UTC (2026-08-09 05:50 Sydney)
-
-- **Outcome:** the conversion diagnosis is a **pre-registered experiment (EXP-003)** rather than an
-  after-the-fact reading, with bands fixed before any data arrives.
-- **Evidence of completion:** EXP-003 exists in `EXPERIMENTS.md` with hypothesis, baseline
-  (0 / 115, 95% upper bound ~2.6%), the change, falsifiable success and failure bands, and the decision
-  each band triggers — written and committed **before** the first reading is taken.
-- **Status:** **not started.**
-- **Blocker:** depends on the 3-hour and 6-hour results.
-- **Next action:** write it before looking, as EXP-001 and EXP-002 were.
-- **Last evidence-linked update:** none yet.
+- **Blocker:** owner authorization for a first channel. This is the real one — no amount of executor
+  work substitutes for it.
+- **Next action:** none available to the executor.
+- **Last evidence-linked update:** 2026-08-08 09:58 UTC.
 
 ## 1 day — by 2026-08-09
 
