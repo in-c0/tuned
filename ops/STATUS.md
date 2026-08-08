@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-08 17:50 Sydney (07:50 UTC), run 17 · **Head:** [`0e9d9d5`](https://github.com/in-c0/tuned/commit/0e9d9d5ed45c084321f868f0e5e9a24e72d81525)
+**Last updated:** 2026-08-08 19:58 Sydney (09:58 UTC), run 18 · **Head:** [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba)
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -26,25 +26,31 @@ One screen of current state. Not a diary — the narrative lives in
 
 ## Phase and single active objective
 
-**Phase:** first-baseline read. The funnel is instrumented **and readable**; three UTC days of
-aggregate counts now exist in the repository.
+**Phase:** the funnel is readable, and as of run 18 the **apply path is proven to work in
+production**. The constraint is no longer inside the product.
 
-**Active objective:** explain the **0-application funnel**. Traffic arrives and nobody applies. The
-next intervention must distinguish *the apply path does not work / is not seen* from *the offer does
-not land on whoever is arriving*. No pricing, billing or distribution work precedes that.
+**Active objective: obtain controlled, known-human traffic.** EXP-003 answered the mechanism
+question — a visitor who arrives *can* apply, at both mobile and desktop widths — so the remaining
+explanations for 0/115 are that the arrivals were never human, or that the offer does not land on
+whoever is arriving. **Neither is decidable from a denominator of UA-classified requests.** Until
+some arrivals are known to be human, every conversion figure Tuned computes has an unknown
+denominator and no downstream experiment is gradeable. That makes a first authorized channel the
+binding step — an owner decision — not more instrumentation and not a copy rewrite.
 
 ## Shipped and verified
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | healthy | `/` 200, `/api/version` = `3b9dcac`, [run 31245509086](https://github.com/in-c0/tuned/actions/runs/31245509086) |
+| Production serving | healthy | `/` 200, `/api/version` = `5ef6970`, [run 31251251027](https://github.com/in-c0/tuned/actions/runs/31251251027) |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | working | `verify-production.yml` polls `/api/version` for the pushed SHA, fails closed |
 | Funnel telemetry (9 counters, 2 additive tables) | deployed and **read** | `feb6c4f`; `src/metrics.ts` |
 | Aggregate read path `GET /api/metrics` | **working, authenticated** | HTTP 200 in [run 31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587); key-gated, fails closed |
 | Metrics snapshot → repository | **working** | `ops/metrics/latest.json`, `ops/metrics/2026-08-08.json` at `a00a8fe` |
-| Automated tests | 23 passing, mutation-checked | `test/metrics.test.ts` |
+| **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
+| Browser QA harness | working, dispatch-only | `qa/`, `.github/workflows/exp003-mechanism.yml`; screenshots uploaded per run |
+| Automated tests | 30 passing, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts` |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
 
 ## Real metrics and revenue
@@ -78,10 +84,10 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 1 | **Zero applications from 115 landing views.** Unknown whether the apply path is broken/unseen or the offer does not land. No counter distinguishes "saw the CTA" from "saw the page", so the funnel's own data cannot yet answer it. | **Executor** | AUD $0 | Open, identified this run. Next candidate. |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0/115 — the apply path works in production at both widths — so the denominator is now the problem. 115 UA-flagged views on a product never posted anywhere is most likely crawler traffic the heuristic missed. **Every conversion figure Tuned computes is currently ungradeable**, and a copy experiment run against it would produce an unreadable number. | Owner authorizes a first channel; executor measures | AUD $0 | **Open, and now the top blocker.** Superseded the run-17 entry, which is answered. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
-| 3 | **EXP-002 (first distribution test) is authored but unpublished** — needs owner authorization. Its measurement precondition (a readable funnel) is now **met**. | Owner authorizes, executor prepared | AUD $0 | Ready, held. Sending traffic into a 0%-conversion funnel would burn the channel. |
-| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 16 consecutive runs). Mitigated, not fixed: GitHub Actions is the production read path — and it now demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 3 | **EXP-002 (first distribution test) is authored but unpublished** — needs owner authorization. Its measurement precondition (a readable funnel) is met, and as of run 18 the *reason to hold it has weakened*: the objection was "do not send traffic into a funnel that may be broken", and the funnel is now proven not broken. | Owner authorizes, executor prepared | AUD $0 | Ready, held **only** on authorization. |
+| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 18 consecutive runs). Mitigated, not fixed: GitHub Actions is the production read path — and it now demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 ## Current experiment
 
@@ -89,18 +95,29 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
   or `landing_view_bot` on ≥1 day; observed non-zero on **all three** days. The instrumentation is
   confirmed working end to end in production, and the pre-registered "zero means no traffic" fork
   does not apply.
-- **EXP-002 — Show HN distribution smoke test:** **NOT STARTED**, pre-registered, now
-  measurement-*unblocked* but held on authorization and on blocker #1.
+- **EXP-003 — application mechanism test: PASSED / CLOSED (run 18).** Pre-registered before any
+  reading. All six criteria hold on live production at both 390×844 and 1440×900
+  ([run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499)). No application was
+  created, no counter incremented — the submit was intercepted in-browser. One unrelated first-party
+  404 was found on the first run and fixed in [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba).
+- **EXP-002 — Show HN distribution smoke test:** **NOT STARTED**, pre-registered, measurement-
+  unblocked, and the "0%-conversion funnel" objection to publishing it no longer applies. Held on
+  owner authorization alone.
 
 ## Next action
 
-Diagnose blocker #1 with the smallest honest instrument, not with a redesign: establish whether a
-visitor can reach and complete the application in production today, and whether the CTA is seen at
-all. Prefer one additive counter over any change to the landing page's content or claims.
+**Get known-human arrivals, from one authorized channel, and measure them separately.** Not another
+instrument, and explicitly **not** a copy or positioning rewrite — the mechanism is proven, so the
+next uncertainty is who is arriving, and that cannot be resolved by editing the page. A CTA-reach
+counter remains worth adding, but *second*, and only against traffic known to contain humans;
+shipped now it would measure crawlers.
 
 ## Not doing (deliberate holds)
 
-- No pricing, positioning or broad feature work while landing → application is 0%.
+- No pricing, positioning or copy work while the denominator is unknown. Run 18 makes this sharper,
+  not weaker: the apply path is proven, so a failed copy test could no longer even be blamed on a
+  broken form — it would simply be ungradeable against crawler traffic.
+- No CTA-reach counter yet. It is the right instrument against the wrong traffic.
 - No publication of EXP-002 before owner authorization — and not into a 0%-conversion funnel.
 - No secret read, hash, rotation, comparison or exposure — ever.
 - No spend; the executor holds no payment credentials.
