@@ -20,18 +20,26 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **NONE.**
+### **Publish the Show HN post — ~3 minutes, nothing to write.**
 
-Nothing is being withheld from you pending a decision. The last owner action — synchronizing
-`METRICS_KEY` across the Worker and GitHub secret stores — **met its success check and is retired**:
+| | |
+| --- | --- |
+| **Severity** | **Highest.** The only step between the loop and its first known-human traffic. |
+| **Blocked outcome** | EXP-002 cannot start; the 0/115 conversion figure stays ungradeable; every demand, pricing and retention question below it stays unreadable. |
+| **Why owner authority** | The executor holds no Hacker News session — no credential, no cookie, no route to the host (`curl` exit 56, CONNECT 403, run 20). Posting in your name would be impersonation. |
+| **Exact minimum action** | <https://news.ycombinator.com/submit> signed in → paste title + URL from [EXP-002-PACKET.md](EXP-002-PACKET.md) → submit → post the body as the first comment → paste the `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). |
+| **Success check** | That canonical item URL exists and is recorded in issue #1. Authorization alone does **not** clear this. |
+| **Blocker age** | Opened 2026-08-08 13:56 UTC, when you authorized it. Packet ready since run 9. |
+| **Last surfaced** | Here, [STATUS.md](STATUS.md), and the run-20 report. **No phone/email/SMS alert was sent** — private channels stay unauthorized. |
+
+The previous owner action — synchronizing `METRICS_KEY` — **met its success check and stays retired**:
 snapshot run [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) authenticated with
 HTTP 200 and committed [`ops/metrics/latest.json`](metrics/latest.json) at
-[`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9). It was open
-2026-08-07 → 2026-08-08 (~1 day) and is removed rather than archived here.
+[`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9).
 
-**Next owner-boundary item, deliberately *not* listed as an action:** payment-provider account
-creation. It becomes the blocking step when there is paid demand to collect. There is none — see
-[§4](#4-funnel-revenue-and-spend). Raising it now would be manufacturing an owner action.
+**Still deliberately *not* listed:** payment-provider account creation. It becomes the blocking step
+when there is paid demand to collect. There is none — see [§4](#4-funnel-revenue-and-spend). One
+action at a time.
 
 **How this section behaves:** either `NONE`, or exactly one canonical action carrying severity, the
 blocked outcome, why owner authority is required, the exact minimum action, an observable success
@@ -48,11 +56,13 @@ production**. The constraint is no longer inside the product.
 **Single active objective: obtain controlled, known-human traffic.** EXP-003 killed the mechanism
 explanation for 0/115 — a real browser applied successfully at both mobile and desktop widths. What
 remains is that **no arrival is known to be human**, and with an unknown denominator no conversion
-figure is gradeable. The binding step is a first authorized channel, which is an owner decision.
+figure is gradeable. **The channel is now authorized** (2026-08-08 13:56 UTC), so the binding step
+moved from *decide* to *publish* — see [§1](#1-owner-action-required).
 
 **Explicitly not doing** (full list in [STATUS.md](STATUS.md)): no pricing/positioning/copy work
 while the denominator is unknown; no CTA-reach counter yet — right instrument, wrong traffic; no
-EXP-002 publication before owner authorization; no secret read, hash, rotation or exposure, ever; no
+EXP-002 publication **by the executor**, which holds no HN session; no second channel and no thread
+seeding; no secret read, hash, rotation or exposure, ever; no
 spend; no generic summarizer, content generator or enterprise observability dashboard; no invented
 baseline, forecast or traction claim.
 
@@ -146,8 +156,11 @@ ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
   ([run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974)): demo link → `/ava`,
   feed 200 with **24 items** and no empty state, `/ava/rss.xml` 200 `application/rss+xml` with **38**,
   no first-party errors, no horizontal overflow. GETs only; nothing written.
-- **EXP-002 — Show HN distribution smoke test: NOT STARTED.** Pre-registered; measurement-unblocked;
-  now held on owner authorization **alone**.
+- **EXP-002 — Show HN distribution smoke test: AUTHORIZED, NOT STARTED.** Pre-registered;
+  measurement-unblocked; packet canonical and checked in [EXP-002-PACKET.md](EXP-002-PACKET.md).
+  Authorized [13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917).
+  **The 48h clock has not started and will not until a `news.ycombinator.com/item?id=…` URL exists** —
+  authorization is not publication.
 
 Details and grading rules: [EXPERIMENTS.md](EXPERIMENTS.md).
 
@@ -171,11 +184,11 @@ reach for a copy rewrite or another counter.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-08 19:58 Sydney (09:58 UTC) |
-| **Run** | 18 — [directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5225515723) · [claim](https://github.com/in-c0/tuned/issues/1#issuecomment-5225520575) |
-| **Repository commit at time of writing** | [`644c23a`](https://github.com/in-c0/tuned/commit/644c23acb741eeafa8b17d8f4b172af47a777efc) (the merge commit for this change is recorded in the run-19 execution report on issue #1) |
-| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z. **Unchanged by runs 18 and 19 on purpose:** both browser experiments were built not to write into the funnel, so no counter they touched belongs in a metrics reading. |
-| **Freshness state** | **FRESH** for state; the funnel numbers are ~2.8h old and next refresh at the 20:40 UTC scheduled snapshot. |
+| **Last materially updated** | 2026-08-09 00:15 Sydney (2026-08-08 14:15 UTC) |
+| **Run** | 20 — [directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917) · [claim](https://github.com/in-c0/tuned/issues/1#issuecomment-5226424026) |
+| **Repository commit at time of writing** | [`c6def8d`](https://github.com/in-c0/tuned/commit/c6def8d7f4575b65b6c3f8f9deb7a72613e27022) (the merge commit for this change is recorded in the run-20 execution report on issue #1) |
+| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z. **Unchanged by runs 18–20 on purpose:** the two browser experiments were built not to write into the funnel, and run 20 dispatched nothing at all. |
+| **Freshness state** | **FRESH** for state; the funnel numbers are ~6.7h old and next refresh at the 20:40 UTC scheduled snapshot. That snapshot is also the **pre-publication baseline** EXP-002 will be graded against, so it is worth more than usual. |
 
 **Freshness rule, so a future reader can grade this without trusting it:** this dashboard is stale
 whenever `ops/metrics/latest.json` has a newer `generated_at` than the data commit above, or `STATUS.md`
