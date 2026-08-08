@@ -1,0 +1,13 @@
+{
+  "name": "tuned-qa",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Browser QA harness. Deliberately a separate manifest from the Worker's: the Cloudflare build runs `npm ci && npm run check` at the repository root, and nothing here may enter that dependency tree or that build.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}

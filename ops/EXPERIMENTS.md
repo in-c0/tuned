@@ -185,3 +185,84 @@ falsifiable, not less: any application inside the window is now a genuine depart
 baseline instead of a first observation.
 
 No threshold, band or grading rule of EXP-002 is altered.
+
+---
+
+## EXP-003 — application mechanism test: can a visitor actually apply? (2026-08-08, run 18)
+
+**Pre-registered at 2026-08-08 ~09:35 UTC (19:35 Sydney), before any production reading was taken.**
+Written and committed first on purpose: the whole value of this test is that its pass/fail rule was
+fixed before the answer was known, because the result determines whether the next cycle works on the
+*mechanism* or on the *message*, and those are expensive to confuse.
+
+- **Hypothesis (the one being tested):** the application path is *mechanically intact* in production
+  today — a visitor arriving at `https://justtuned.com/` can see the form, fill it, and submitting it
+  issues exactly one `POST https://justtuned.com/waitlist` carrying the typed values as JSON, at both
+  mobile and desktop widths, with no page or console error that would abort the submit.
+- **The alternative it is designed to kill:** that `0 applications / 115 landing views` is a *broken
+  or invisible* apply path rather than a message that does not land. Those two produce identical
+  funnel data and cannot be told apart from counts alone. No copy, positioning or pricing hypothesis
+  is worth testing until this one is answered, because every such test would be run through a channel
+  that may not carry the result.
+
+- **Baseline (source-linked):** `ops/metrics/latest.json` at
+  [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) —
+  115 human-flagged landing views over 3 UTC days, **0 applications**, `application_submit` never
+  fired. `test/metrics.test.ts` already proves in workerd, against a real local D1, that a *valid*
+  `POST /waitlist` inserts the row and increments the counter; what has never been verified is the
+  **browser half** in production: that the live page's markup and script actually produce that request.
+
+- **Change (commit/deploy):** none to the product. This experiment adds only a QA harness
+  (`qa/`, Playwright) and a `workflow_dispatch` workflow that drives a real Chromium against live
+  production from GitHub Actions — the executor has had no direct egress to `justtuned.com` for 18
+  consecutive runs, so Actions is the only available browser vantage point. **No `src/` change ships
+  as part of the reading.** If the reading exposes a mechanism defect, the fix is a separate,
+  minimal, verified change made *after* the result is recorded.
+
+- **Success threshold (falsifiable, fixed in advance).** The mechanism is **PROVEN WORKING** only if
+  all six hold on live production, at both 390×844 (mobile) and 1440×900 (desktop):
+  1. `GET /` returns 200 and the document reaches load with **zero** uncaught page errors and zero
+     script-originated console `error` entries.
+     *Sharpened at 09:40 UTC, still before any reading was taken, and recorded rather than silently
+     applied:* the landing page's demo cards embed third-party favicons from `icons.duckduckgo.com`,
+     each with an `onerror` handler that removes it. A failed subresource fetch also emits a console
+     `error`, so the criterion as first written could grade the apply mechanism **defective because a
+     third-party icon host was slow** — a false failure about a surface that cannot abort a form
+     submit. So criterion 1 grades **script** errors (uncaught exceptions and console errors raised by
+     page script) and **first-party** request failures. Third-party subresource failures are recorded
+     in full and reported, but do not decide the mechanism.
+  2. The form `#waitlist` and all four controls (`#wl-email`, `#wl-role`, `#wl-note`, `#wl-btn`) are
+     present, visible, enabled, and inside the viewport without horizontal page overflow.
+  3. Submitting the filled form issues **exactly one** request, and it is
+     `POST https://justtuned.com/waitlist` with `content-type: application/json`.
+  4. That request's body parses as JSON with exactly the keys `email`, `role`, `note`, whose values
+     equal what was typed into the corresponding controls.
+  5. When that request is answered `{"ok":true}`, the page shows its confirmation text and hides the
+     form — i.e. the success branch of the client script is reachable, not just the request.
+  6. The **live** route rejects a syntactically invalid email with HTTP **400** — proving the
+     production endpoint is reachable, is running the validating build, and refuses before writing.
+
+  **Any one of the six failing means MECHANISM DEFECT**, and the next action becomes fixing it. All
+  six holding means **MECHANISM PROVISIONALLY WORKING**, and the next evidence gap is explicitly *not*
+  another mechanism test — it is controlled, known-human traffic, because at that point the only
+  remaining explanations for 0/115 are that the arrivals were never human or the offer does not land,
+  and neither is decidable from a denominator of UA-classified requests.
+
+- **Contamination rules, binding and pre-committed:**
+  - The submit request is **intercepted in the browser and fulfilled locally**. It never leaves
+    Chromium, never reaches the Worker, never inserts a row, never increments `application_submit`.
+    The funnel's own numbers must remain readable as *user* behaviour after this run; an experiment
+    that writes into its own measurement is worthless.
+  - The only request this test makes to a mutating route is criterion 6's **deliberately invalid**
+    one, which the route rejects with 400 *before* any `INSERT` and *before* `track()` — verified by
+    reading `src/index.ts:97-106`, where validation precedes both.
+  - **No fake PII.** The intercepted form is filled with the literal non-address
+    `exp003-intercepted-never-sent@example.invalid` (`.invalid` is reserved by RFC 2606 and can never
+    route), and criterion 6 posts the string `exp003-not-an-email`, which is not an address at all.
+  - Landing views this test causes are **bot traffic and must be counted as such**: the harness sends
+    a UA containing `HeadlessChrome`, which the existing heuristic classifies as `landing_view_bot`.
+    A test that inflated its own human-flagged denominator would corrupt the very ratio under study.
+  - **No metric may be claimed from this run.** It measures a mechanism, not demand.
+
+- **Result (source-linked):** *(pending — filled in from the dispatched Actions run below)*
+- **Decision:** *(pending)*

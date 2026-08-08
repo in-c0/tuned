@@ -1,0 +1,68 @@
+name: exp003-mechanism
+
+# EXP-003 — drives a real browser against live production to answer whether a visitor can actually
+# reach and complete an application. Pre-registered in ops/EXPERIMENTS.md before it was ever run.
+#
+# It lives in Actions because the executor environment has had no direct egress to justtuned.com for
+# eighteen consecutive runs; this is the only available browser vantage point on production.
+#
+# It does NOT create an application. The form's submit is intercepted inside Chromium and fulfilled
+# there, so it never reaches the Worker; the only request that touches the mutating route is a
+# deliberately invalid one the route rejects with 400 before any write. See the spec's header.
+#
+# Dispatch-only on purpose: this is an experiment, not a gate. Running it on every push would put
+# recurring headless traffic through production's own funnel counters for no additional evidence.
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Origin to test (defaults to production)"
+        required: false
+        default: "https://justtuned.com"
+
+permissions:
+  contents: read
+
+jobs:
+  mechanism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # qa/ deliberately carries its own manifest. The Cloudflare build runs `npm ci` at the
+      # repository root, and a browser toolchain must never end up in the Worker's dependency tree.
+      - name: Install QA harness
+        working-directory: qa
+        run: npm install
+
+      - name: Install Chromium
+        working-directory: qa
+        run: npx playwright install --with-deps chromium
+
+      - name: Record which build is serving
+        run: |
+          set -euo pipefail
+          echo "target: ${{ inputs.target_url }}"
+          echo -n "/api/version: "
+          curl -sS --max-time 20 "${{ inputs.target_url }}/api/version"
+          echo
+
+      - name: EXP-003 mechanism test
+        working-directory: qa
+        env:
+          TARGET_URL: ${{ inputs.target_url }}
+        run: npx playwright test
+
+      # Screenshots at both widths are the owner-facing evidence, and they matter most when the run
+      # is red — so this is `always()`, not `success()`.
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exp003-evidence
+          path: qa/artifacts
+          if-no-files-found: error
+          retention-days: 30
