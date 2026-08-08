@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-08 19:58 Sydney (09:58 UTC), run 18 · **Head:** [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba)
+**Last updated:** 2026-08-08 20:20 Sydney (10:20 UTC), run 19 · **Head:** [`644c23a`](https://github.com/in-c0/tuned/commit/644c23acb741eeafa8b17d8f4b172af47a777efc)
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -49,7 +49,8 @@ binding step — an owner decision — not more instrumentation and not a copy r
 | Aggregate read path `GET /api/metrics` | **working, authenticated** | HTTP 200 in [run 31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587); key-gated, fails closed |
 | Metrics snapshot → repository | **working** | `ops/metrics/latest.json`, `ops/metrics/2026-08-08.json` at `a00a8fe` |
 | **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
-| Browser QA harness | working, dispatch-only | `qa/`, `.github/workflows/exp003-mechanism.yml`; screenshots uploaded per run |
+| **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
+| Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
 | Automated tests | 30 passing, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts` |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
 
@@ -86,7 +87,7 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
 | --- | --- | --- | --- | --- |
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0/115 — the apply path works in production at both widths — so the denominator is now the problem. 115 UA-flagged views on a product never posted anywhere is most likely crawler traffic the heuristic missed. **Every conversion figure Tuned computes is currently ungradeable**, and a copy experiment run against it would produce an unreadable number. | Owner authorizes a first channel; executor measures | AUD $0 | **Open, and now the top blocker.** Superseded the run-17 entry, which is answered. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
-| 3 | **EXP-002 (first distribution test) is authored but unpublished** — needs owner authorization. Its measurement precondition (a readable funnel) is met, and as of run 18 the *reason to hold it has weakened*: the objection was "do not send traffic into a funnel that may be broken", and the funnel is now proven not broken. | Owner authorizes, executor prepared | AUD $0 | Ready, held **only** on authorization. |
+| 3 | **EXP-002 (first distribution test) is authored but unpublished** — needs owner authorization. Measurement precondition met; the run-18 objection ("do not send traffic into a funnel that may be broken") is retired; and as of run 19 the packet has **no unfilled token and no unverified claim** — `[DEMO_FEED_URL]` = `https://justtuned.com/ava`, and the "live feed + open RSS" promise is checked. | Owner authorizes, executor prepared | AUD $0 | Ready, held **only** on authorization. Nothing left for the owner to look up. |
 | 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 18 consecutive runs). Mitigated, not fixed: GitHub Actions is the production read path — and it now demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 ## Current experiment
@@ -100,8 +101,15 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
   ([run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499)). No application was
   created, no counter incremented — the submit was intercepted in-browser. One unrelated first-party
   404 was found on the first run and fixed in [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba).
+- **EXP-004 — public no-account surfaces: PASSED / CLOSED (run 19).** Pre-registered before any
+  reading. All five criteria hold on live production at both widths
+  ([run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974)): the demo link
+  resolves to `https://justtuned.com/ava`, that feed serves 200 with **24 items** and no empty
+  state, `/ava/rss.xml` serves 200 `application/rss+xml` with **38 items**, and there are no
+  first-party errors and no horizontal overflow. GETs only — nothing was written.
 - **EXP-002 — Show HN distribution smoke test:** **NOT STARTED**, pre-registered, measurement-
-  unblocked, and the "0%-conversion funnel" objection to publishing it no longer applies. Held on
+  unblocked, the "0%-conversion funnel" objection retired by run 18, and as of run 19 **complete**:
+  no blank to fill, and its "live feed + open RSS" claim verified before the owner makes it. Held on
   owner authorization alone.
 
 ## Next action

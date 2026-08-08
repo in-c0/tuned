@@ -126,7 +126,7 @@ ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
 | --- | --- | --- | --- | --- |
 | 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so 0/115 is no longer explainable by a broken form — and the denominator becomes the problem. 115 UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is currently ungradeable. | Owner authorizes a channel; executor measures | AUD $0 | **Open — the active objective.** Replaced the run-17 entry, which run 18 answered. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
-| 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met, and the "do not publish into a possibly-broken funnel" objection is now **retired** — run 18 proved it is not broken. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. |
+| 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met; the "do not publish into a possibly-broken funnel" objection **retired** by run 18; and as of run 19 the packet is **complete** — `[DEMO_FEED_URL]` = `https://justtuned.com/ava`, verified live, and its "open RSS" claim checked. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. Nothing left to look up. |
 | 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 18 consecutive runs). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
@@ -141,6 +141,11 @@ ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
   as artifacts). No application created, no counter incremented. One unrelated first-party 404 found
   on the first run and fixed in [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba).
   **Its finding in one line: a visitor who arrives can apply — nobody has.**
+- **EXP-004 — public no-account surfaces: PASSED / CLOSED** (run 19). Pre-registered before any
+  reading. All five criteria hold on live production at both widths
+  ([run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974)): demo link → `/ava`,
+  feed 200 with **24 items** and no empty state, `/ava/rss.xml` 200 `application/rss+xml` with **38**,
+  no first-party errors, no horizontal overflow. GETs only; nothing written.
 - **EXP-002 — Show HN distribution smoke test: NOT STARTED.** Pre-registered; measurement-unblocked;
   now held on owner authorization **alone**.
 
@@ -168,9 +173,9 @@ reach for a copy rewrite or another counter.
 | --- | --- |
 | **Last materially updated** | 2026-08-08 19:58 Sydney (09:58 UTC) |
 | **Run** | 18 — [directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5225515723) · [claim](https://github.com/in-c0/tuned/issues/1#issuecomment-5225520575) |
-| **Repository commit at time of writing** | [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba) (the merge commit for this change is recorded in the run-18 execution report on issue #1) |
-| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z. **Unchanged by run 18 on purpose:** the mechanism test was built not to write into the funnel, so no counter it touched belongs in a metrics reading. |
-| **Freshness state** | **FRESH** for state; the funnel numbers are ~2.5h old and next refresh at the 20:40 UTC scheduled snapshot. |
+| **Repository commit at time of writing** | [`644c23a`](https://github.com/in-c0/tuned/commit/644c23acb741eeafa8b17d8f4b172af47a777efc) (the merge commit for this change is recorded in the run-19 execution report on issue #1) |
+| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z. **Unchanged by runs 18 and 19 on purpose:** both browser experiments were built not to write into the funnel, so no counter they touched belongs in a metrics reading. |
+| **Freshness state** | **FRESH** for state; the funnel numbers are ~2.8h old and next refresh at the 20:40 UTC scheduled snapshot. |
 
 **Freshness rule, so a future reader can grade this without trusting it:** this dashboard is stale
 whenever `ops/metrics/latest.json` has a newer `generated_at` than the data commit above, or `STATUS.md`
