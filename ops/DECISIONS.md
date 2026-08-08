@@ -572,3 +572,58 @@ distribution channel**. No metric moved and none should have — EXP-004 wrote n
 **AUD $0**, source: no billing exists.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+---
+
+## 2026-08-08, run 20 — authorization arrived; the honest move was to stop at the boundary and make the paste trivial
+
+**Directive:** publish EXP-002 exactly as pre-registered, through an already-authenticated owner
+Hacker News session; if none is available, stop immediately and surface one exact owner action
+([13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917)). Claimed at 14:00 UTC.
+
+**Decision: execute the fallback branch, and spend the run's one action on removing every remaining
+gram of friction from the owner's paste.**
+
+The precondition was checked *before* claiming, so the claim was not a promise the run could not keep.
+Two independent findings, either sufficient: the environment holds no Hacker News credential or cookie,
+and there is no network route to the host — `curl` exit 56, CONNECT 403, the same proxy denial that has
+blocked `justtuned.com` for twenty consecutive runs. Publishing would additionally have meant posting
+in the owner's name. That is an authentication boundary and an impersonation boundary at once, and the
+loop stops at both by design.
+
+**What "stop immediately" was read to permit, and why.** One ops-only commit. `STATUS.md` opened with
+`OWNER ACTION REQUIRED: NONE`, and as of this directive that sentence was **false** — the owner-interface
+amendment of [07:28 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5225128950) makes that
+section the surfacing mechanism, so leaving it stale would have satisfied the letter of "stop" while
+defeating the directive's actual acceptance criterion ("one concise authentication-boundary action is
+surfaced"). Nothing else was touched: no product code, no workflow, no schema, no dependency, no
+dispatch, no secret, no spend.
+
+**The judgement call worth defending: canonicalizing the packet into the repository.** The approved
+post existed only inside an issue comment. Asking someone to scroll a 40-comment thread to find the
+thing they are meant to paste is how a three-minute action becomes a task that waits for a free
+evening. `ops/EXP-002-PACKET.md` is byte-identical to the approved text — **no rewording, which the
+directive forbids and which would also invalidate thresholds pre-registered against that exact text** —
+plus posting steps and a do-not-change list.
+
+**And the thing that check turned up, which is the run's real content.** HN's submit form accepts
+*either* a url or text, not both; entering a url disables the text box, and HN's own Show HN guidelines
+say the description goes in a comment. The packet supplies a URL **and** a body. An owner following it
+literally would have submitted a bare link with no description — spending the single attributable
+channel on a post stripped of the honest framing that is the whole reason it might land. Eleven runs
+called this packet "ready" without anyone asking how the form receives it. **Labelled in the packet as
+expected form behaviour, not as something re-checked today**, because this run has no egress to HN;
+the fallback instruction covers the other case. That labelling is [L-11](LESSONS.md) applied to itself.
+
+**No private channel was used.** The owner-interface rule is explicit: phone, email and SMS require
+explicit authorization, and it has not been given. Run 14 sent one; the amendment that followed is
+read as a correction, so this run sent none — the surfacing is `STATUS.md`, `DASHBOARD.md` and the
+execution report, and the scheduled reviewer carries new actions to the owner directly.
+
+**Not done, deliberately:** no metrics dispatch (the pre-publication baseline already exists at
+`a00a8fe` and the 20:40 UTC snapshot refreshes it before any plausible publication time); no CTA-reach
+counter; no copy change; no second channel; no member-path QA — real arrivals may be hours away, and a
+run that quietly rewrote the offer while the owner was asleep would have made EXP-002 ungradeable
+against its own pre-registration.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

@@ -463,3 +463,52 @@ Show HN more likely to succeed — no human was involved in it at any point. The
 unchanged and unchallenged by this run: **owner authorization of a first channel**. What changed is
 only that authorizing it no longer requires the owner to fill in a blank or to trust an unchecked
 sentence.
+
+### EXP-002 status revision — 2026-08-08 (run 20): AUTHORIZED, and still NOT STARTED
+
+**The owner authorized publication** at
+[13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917) (23:56 Sydney). The
+authorization blocker, open since the packet was written on run 9, is **resolved**.
+
+**The experiment has not started, and this entry exists so that stays unambiguous.** Authorization is
+not publication. The pre-registered clock reads *"the 48h window starts at the moment the owner
+publishes"* — not the moment the owner permits. There is no
+`https://news.ycombinator.com/item?id=…` URL, so:
+
+- **status: NOT STARTED**, and the executor will not mark it `STARTED` until that URL exists;
+- **no window is open**, no day is in-window, and no arrival may be attributed to it;
+- **no threshold, band or grading rule is altered** by authorization. The bands, the qualified-
+  application definition and the WTP definition all stand exactly as pre-registered above.
+
+**Why the executor did not publish it, recorded as a boundary rather than a deferral.** The directive
+authorizes publication *"only through an already-authenticated owner Hacker News session that requires
+no credential entry, account creation, CAPTCHA bypass, or identity guess."* No such session exists
+here, on two independent grounds checked this run before the directive was claimed: the environment
+holds no Hacker News credential or cookie of any kind, and there is **no network route to the host at
+all** — `curl -I https://news.ycombinator.com/` returns exit 56, CONNECT 403, the same proxy denial
+that has blocked `justtuned.com` for twenty consecutive runs. Publishing would also have meant posting
+in the owner's name, which is impersonation whatever the plumbing allows.
+
+**Packet canonicalized.** The approved text now lives at [EXP-002-PACKET.md](EXP-002-PACKET.md),
+byte-identical to the run-19 report, with posting steps and the do-not-change list. It was previously
+retrievable only by scrolling issue #1 — a deliverable stored in a comment thread, which is exactly
+the handoff debt [L-11](LESSONS.md) warns about. One correction surfaced while checking it: the title
+is **75** characters, not the 74 the run-19 report stated. HN's limit is 80, so nothing depends on it,
+but a recount that disagrees with the record belongs in the record.
+
+**One posting detail the packet did not previously state, and it could have cost the channel.** HN's
+submit form takes *either* a url or text, not both — entering a url disables the text box, and HN's
+own Show HN guidelines say to put the description in a comment. The packet supplies both a URL and a
+body, so the faithful procedure is **submit title + URL, then post the body as the first comment**.
+Stated as expected form behaviour and labelled as such in the packet: this executor has no egress to
+HN and did not re-check the form today. If the form does accept both, the body goes in the text box
+instead. Either placement is faithful; a bare URL with no description is not.
+
+**Pre-publication baseline, per the directive's "establish the pre-publication aggregate baseline".**
+It already exists and needs no dispatch: `ops/metrics/latest.json` at
+[`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9),
+`generated_at` 2026-08-08T07:35:20Z — **115 human-flagged landing views, 42 bot-flagged, 0
+applications, 0 logins, 0 attention actions** across 3 UTC days. The scheduled 20:40 UTC snapshot
+refreshes it before any plausible publication time. Attribution remains by time-window contrast
+against this zero, which is sound **only** because this is the first and only channel ever posted; the
+`?src=shn-2026-08` tag is still inert.

@@ -1,6 +1,6 @@
 # Tuned — MILESTONES
 
-**Last updated:** 2026-08-08 (run 17 — six sub-day horizons added). Update when evidence, status,
+**Last updated:** 2026-08-08 (run 20 — sub-day ladder re-anchored; EXP-002 authorization recorded). Update when evidence, status,
 timing or strategy changes — not every run. Current state lives in [STATUS.md](STATUS.md); the owner's
 one-screen view is [DASHBOARD.md](DASHBOARD.md); reasoning lives in [DECISIONS.md](DECISIONS.md) and
 [EXPERIMENTS.md](EXPERIMENTS.md).
@@ -16,7 +16,7 @@ written so it can be *failed* on evidence. Status vocabulary:
 
 **On the six sub-day horizons.** They are a **rolling execution ladder, re-anchored at the start of
 each run** — a 15-minute milestone fixed to a date three days ago would be noise, not a commitment.
-Current anchor: **run 17, 2026-08-08 07:50 UTC / 17:50 Sydney**. Each window is written so the *next*
+Current anchor: **run 20, 2026-08-08 14:00 UTC / 2026-08-09 00:00 Sydney**. Each window is written so the *next*
 run can grade it `achieved` or `missed` against evidence that already exists by then.
 
 These six horizons did not exist before the owner requested them at
@@ -28,88 +28,85 @@ freely. What happened before the anchor is in [DECISIONS.md](DECISIONS.md) and i
 
 ---
 
-## 15 minutes — by 2026-08-08 09:45 UTC (19:45 Sydney)
+## 15 minutes — by 2026-08-08 14:15 UTC (2026-08-09 00:15 Sydney)
 
-*Run-17 rungs, graded by run 18 rather than by the run that set them: the 15-minute rung (PR open,
-CI green) and the 30-minute rung (merged, production verified unchanged at 22,075 bytes) both
-**achieved** — [PR #14](https://github.com/in-c0/tuned/pull/14), [run 31247233604](https://github.com/in-c0/tuned/actions/runs/31247233604).
-The run-17 1-hour rung — "the next selected action is the conversion diagnosis, not more
-documentation" — is **achieved**: this run shipped the diagnosis and touched documentation only to
-record its result.*
+*Run-17/18 rungs, graded before they are replaced. The 3-hour rung — "the loop does not answer a
+proven-working mechanism by rewriting the message" — is **achieved**: run 19 chose packet verification
+and run 20 chose the authentication boundary; neither touched copy, positioning or a counter. The
+6-hour rung — "the owner has one explicit decision in front of them, stated once" — is **achieved and
+answered**: the decision was stated once and not re-argued, and the owner authorized publication at
+[13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917). The 12-hour rung — "at
+least one arrival is known to be human" — is **missed**, honestly: nothing has been published, so no
+arrival is attributable. It is re-set below rather than quietly extended.*
 
-- **Outcome:** EXP-003 is pre-registered **and committed** before any production reading exists.
-- **Evidence of completion:** the pre-registration is in `ops/EXPERIMENTS.md` on `master`, with a
-  commit timestamp earlier than the first EXP-003 workflow run.
-- **Status:** **achieved** at 09:38 UTC, 7 minutes inside the window.
-- **Progress:** merged as [`b62bf08`](https://github.com/in-c0/tuned/commit/b62bf083cbdeeb74ab6e81b134a5473d2cd7fc3b);
-  first reading dispatched afterwards as [run 31251017621](https://github.com/in-c0/tuned/actions/runs/31251017621).
-- **Blocker:** cleared.
-- **Next action:** —
-- **Last evidence-linked update:** 2026-08-08 09:38 UTC.
+- **Outcome:** the owner action is surfaced where the owner-interface rule says it must be, and the
+  post is a single canonical file rather than a comment to scroll for.
+- **Evidence of completion:** `STATUS.md` and `DASHBOARD.md` open with the publish action carrying all
+  seven required fields, `ops/EXP-002-PACKET.md` exists with the approved text byte-identical, and a PR
+  is open with CI green.
+- **Status:** **active** — set this run.
+- **Blocker:** none.
+- **Next action:** open the PR.
+- **Last evidence-linked update:** 2026-08-08 14:15 UTC.
 
-## 30 minutes — by 2026-08-08 10:00 UTC (20:00 Sydney)
+## 30 minutes — by 2026-08-08 14:30 UTC (2026-08-09 00:30 Sydney)
 
-- **Outcome:** a real browser has answered *can a visitor actually apply?* against live production, at
-  both mobile and desktop widths, without creating an application.
-- **Evidence of completion:** an Actions run driving Chromium at `https://justtuned.com` that records
-  the submit's URL and JSON payload, at 390×844 and 1440×900, with screenshots attached and
-  `submitReachedServer false`.
-- **Status:** **achieved** at 09:47 UTC.
-- **Progress:** [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — all six
-  criteria hold. **A visitor who arrives can apply.**
-- **Blocker:** cleared.
-- **Next action:** —
-- **Last evidence-linked update:** 2026-08-08 09:47 UTC.
-
-## 1 hour — by 2026-08-08 10:30 UTC (20:30 Sydney)
-
-- **Outcome:** any defect the mechanism test exposes is either fixed and verified live, or recorded as
-  deliberately unfixed with the reason.
-- **Evidence of completion:** for each defect, a merged commit plus a production verification at that
-  SHA — or a written decision not to fix it.
-- **Status:** **achieved** at 09:47 UTC.
-- **Progress:** one defect found (arXiv's root-relative `og:image` 404ing on our own origin), fixed in
-  [`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba), verified
-  live by [run 31251251027](https://github.com/in-c0/tuned/actions/runs/31251251027), and confirmed gone
-  by re-running the test. The remaining console error is a third-party favicon 404 — recorded, not
-  fixed, because it cannot affect the apply path.
-- **Blocker:** cleared.
-- **Next action:** —
-- **Last evidence-linked update:** 2026-08-08 09:47 UTC.
-
-## 3 hours — by 2026-08-08 12:30 UTC (22:30 Sydney)
-
-- **Outcome:** the loop does **not** answer a proven-working mechanism by rewriting the message. This
-  rung exists to bind the next run, and it is the one most likely to be broken in good faith.
-- **Evidence of completion:** the next claim in issue #1 selects neither a copy/positioning change nor
-  another counter. **Falsified** if it selects either without a reviewer directive requiring it.
+- **Outcome:** that change is merged and production is verified **unchanged** — an ops-only commit must
+  not move a byte of the site hours before a channel points at it.
+- **Evidence of completion:** `verify-production` passes at the merged SHA with the landing page the
+  same size as at `c6def8d` (21,974 bytes).
 - **Status:** **active.**
-- **Blocker:** needs a subsequent run to grade; run 18 cannot mark its own rung.
-- **Next action:** hold the line in the run-19 claim.
-- **Last evidence-linked update:** 2026-08-08 09:58 UTC — set this run.
+- **Blocker:** none.
+- **Next action:** merge, then read the verification job log rather than the status API ([L-05](LESSONS.md)).
+- **Last evidence-linked update:** 2026-08-08 14:15 UTC.
 
-## 6 hours — by 2026-08-08 15:30 UTC (2026-08-09 01:30 Sydney)
+## 1 hour — by 2026-08-08 15:00 UTC (2026-08-09 01:00 Sydney)
 
-- **Outcome:** the owner has one explicit decision in front of them — authorize a first channel, or say
-  what to do instead — stated once, with the evidence that makes it the binding step.
-- **Evidence of completion:** the run-18 execution report states it, and `STATUS.md` carries it as
-  blocker #1. Per contract rule 6, it is **not** restated in later runs until the state changes.
-- **Status:** **active** — stated; awaiting the owner.
-- **Blocker:** it is 19:30 Sydney; the owner is reasonably asleep. Nothing executor-side unblocks this.
-- **Next action:** none. Do not re-ask.
-- **Last evidence-linked update:** 2026-08-08 09:58 UTC.
+- **Outcome:** the run ends with EXP-002 recorded **NOT STARTED**, no clock running, and no
+  publication claimed — the boundary reported rather than worked around.
+- **Evidence of completion:** the run-20 execution report states the boundary; `EXPERIMENTS.md`,
+  `STATUS.md` and `DASHBOARD.md` all say NOT STARTED. **Falsified** if any file or comment describes
+  EXP-002 as started, or reports a window, without a `news.ycombinator.com/item?id=…` URL.
+- **Status:** **active.**
+- **Blocker:** none.
+- **Next action:** post the report and stop.
+- **Last evidence-linked update:** 2026-08-08 14:15 UTC.
 
-## 12 hours — by 2026-08-08 21:30 UTC (2026-08-09 07:30 Sydney)
+## 3 hours — by 2026-08-08 17:00 UTC (2026-08-09 03:00 Sydney)
 
-- **Outcome:** at least one arrival at justtuned.com is **known** to be human — or there is a recorded
-  reason why none can be, which is itself the finding.
-- **Evidence of completion:** a landing view attributable to a specific authorized channel, separable
-  in the counters from background traffic, in a committed snapshot.
-- **Status:** **not started.**
-- **Blocker:** owner authorization for a first channel. This is the real one — no amount of executor
-  work substitutes for it.
-- **Next action:** none available to the executor.
-- **Last evidence-linked update:** 2026-08-08 09:58 UTC.
+- **Outcome:** the loop waits well. Waiting on an owner paste is the exact condition under which
+  [L-08](LESSONS.md) predicts invented work, and the packet is finished, so there is nothing honest
+  left to polish.
+- **Evidence of completion:** the next claim in issue #1 selects a stand-down or measurement-only work.
+  **Falsified** by a copy/positioning change, a new counter, a second channel, outreach, or any edit to
+  the approved packet text.
+- **Status:** **active** — this rung binds the next run, which cannot grade itself.
+- **Blocker:** none.
+- **Next action:** none.
+- **Last evidence-linked update:** 2026-08-08 14:15 UTC.
+
+## 6 hours — by 2026-08-08 20:00 UTC (2026-08-09 06:00 Sydney)
+
+- **Outcome:** the distinction between *authorized* and *published* survives contact with an impatient
+  loop, through the whole window in which the owner is asleep.
+- **Evidence of completion:** EXP-002 is still `NOT STARTED` everywhere, no 48-hour window is described
+  as open, and no private channel (phone, email, SMS) has been used to chase the paste.
+- **Status:** **active.**
+- **Blocker:** none — this is a discipline rung, not a capability one.
+- **Next action:** none.
+- **Last evidence-linked update:** 2026-08-08 14:15 UTC.
+
+## 12 hours — by 2026-08-09 02:00 UTC (12:00 Sydney)
+
+- **Outcome:** the pre-publication baseline in force at publication time is fresh, so the time-window
+  contrast EXP-002 is graded on has a clean zero immediately behind it.
+- **Evidence of completion:** the scheduled 20:40 UTC `metrics-snapshot` commits a new dated file under
+  `ops/metrics/`, aggregate-only, with `application_submit` still 0.
+- **Status:** **not started** — it runs unattended.
+- **Blocker:** none. No dispatch is needed and none was made.
+- **Next action:** read it next run; if `application_submit` is non-zero **before** any publication,
+  that is a finding about the existing traffic, not about EXP-002.
+- **Last evidence-linked update:** 2026-08-08 14:15 UTC.
 
 ## 1 day — by 2026-08-09
 
@@ -143,10 +140,11 @@ the ladder above feeds the 1-week horizon rather than this one.*
   constraint question is answered in a direction neither branch of EXP-001 predicted: **not
   distribution volume and not broken instrumentation, but conversion** — 0 applications from 115
   human-flagged views (0.0%, 95% upper bound ~2.6%). EXP-002 packet remains pre-registered, unpublished.
-- **Blocker:** owner authorization to publish EXP-002 — and, deliberately, the 0% conversion itself:
-  posting the one attributable channel into a funnel nobody applies through would spend it for an
-  uninterpretable result (EXPERIMENTS.md, EXP-002 status revision).
-- **Next action:** diagnose why arrival → application is 0% before adding traffic to it.
+- **Blocker:** **publication.** Owner authorization arrived 2026-08-08 13:56 UTC, and the run-18
+  objection (do not post into a possibly-broken funnel) was retired by EXP-003 proving the apply path
+  works. What is left is a paste into a Hacker News session the executor does not hold.
+- **Next action:** owner publishes from [EXP-002-PACKET.md](EXP-002-PACKET.md); executor grades EXP-002
+  on its pre-registered bands at window close, against the `a00a8fe` baseline.
 - **Last evidence-linked update:** 2026-08-08 — EXP-001 passed and closed on run
   [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587).
 
