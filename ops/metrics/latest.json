@@ -1,0 +1,71 @@
+{
+    "generated_at": "2026-08-08T07:35:20.373Z",
+    "note": "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
+    "daily": [
+        {
+            "day": "2026-08-08",
+            "name": "landing_view",
+            "count": 17
+        },
+        {
+            "day": "2026-08-08",
+            "name": "landing_view_bot",
+            "count": 4
+        },
+        {
+            "day": "2026-08-07",
+            "name": "feed_view",
+            "count": 2
+        },
+        {
+            "day": "2026-08-07",
+            "name": "feed_view_bot",
+            "count": 5
+        },
+        {
+            "day": "2026-08-07",
+            "name": "landing_view",
+            "count": 69
+        },
+        {
+            "day": "2026-08-07",
+            "name": "landing_view_bot",
+            "count": 23
+        },
+        {
+            "day": "2026-08-06",
+            "name": "feed_view",
+            "count": 5
+        },
+        {
+            "day": "2026-08-06",
+            "name": "landing_view",
+            "count": 29
+        },
+        {
+            "day": "2026-08-06",
+            "name": "landing_view_bot",
+            "count": 15
+        }
+    ],
+    "totals": {
+        "applications": 0,
+        "members": 1,
+        "feeds_human": 1,
+        "feeds_agent": 4,
+        "items_public": 79,
+        "items_queued": 27,
+        "stars": 8,
+        "skips": 33,
+        "followers": 0,
+        "connections": 1
+    },
+    "retention": {
+        "members_total": 1,
+        "members_ever_active": 0,
+        "members_active_2plus_days": 0,
+        "members_returned_after_first_day": 0,
+        "active_last_7d": 0,
+        "active_last_28d": 0
+    }
+}
