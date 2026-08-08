@@ -317,3 +317,68 @@ exists" — not an estimate. Zero remains zero, and nothing about conversion, re
 inferred from a funnel that has never once been read.
 
 Neither secret was rotated, exposed, bypassed or inspected at any point.
+
+## 2026-08-08 (run 16) — **the first baseline. Every number below was observed.**
+
+Source: `ops/metrics/latest.json` at [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9),
+`generated_at` `2026-08-08T07:35:20.373Z`, written by snapshot run
+[31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) (job `93075870711`, checkout
+`3b9dcac`, authenticated **HTTP 200**). The key is synchronized; the read path works end to end.
+
+**Coverage: 3 UTC days**, 2026-08-06 → 2026-08-08. The last day is **partial**, ending 07:35 UTC.
+Counters begin at the `feb6c4f` deploy (2026-08-06); there is no history before it and none is invented.
+
+### Daily counters, exactly as recorded
+
+| UTC day | `landing_view` | `landing_view_bot` | `feed_view` | `feed_view_bot` |
+| --- | --- | --- | --- | --- |
+| 2026-08-06 | 29 | 15 | 5 | — |
+| 2026-08-07 | 69 | 23 | 2 | 5 |
+| 2026-08-08 (to 07:35) | 17 | 4 | — | — |
+| **total** | **115** | **42** | **7** | **5** |
+
+A dash means the counter recorded **no rows for that day**, which is a zero, not a missing reading.
+
+**Five counters have never fired at all**, on any day: `application_submit`, `member_login`,
+`desk_view`, `attention_star`, `attention_skip`. Their absence is the finding of this snapshot.
+
+### Funnel, stage by stage
+
+| Stage | Metric | Observed |
+| --- | --- | --- |
+| Landing view | `landing_view` (UA-heuristic human) | **115** over 3 days |
+| Application submit | `application_submit` / `totals.applications` | **0** — never fired; `waitlist` empty all-time |
+| Member activation | `retention.members_ever_active` | **0** of `members_total` = **1** |
+| Meaningful attention action | `attention_star` / `attention_skip` | **0** since instrumentation |
+| Repeat visit | `members_active_2plus_days`, `members_returned_after_first_day` | **0**, **0** |
+| Active last 7d / 28d | `active_last_7d`, `active_last_28d` | **0**, **0** |
+| Payment | payment-provider records | **AUD $0** — no billing exists |
+
+**Landing → application conversion: 0 / 115 = 0.0%.** Stated with its uncertainty, because "0%" alone
+overclaims: with zero events in 115 trials the one-sided 95% upper bound is **~2.6%**. The honest
+reading is *not measurably above zero, and certainly not high* — not *proven to be exactly zero*.
+
+### Two readings that must not be conflated
+
+1. **`totals.stars` = 8 and `totals.skips` = 33 are all-time `reads` rows** (`src/metrics.ts:143-144`),
+   accumulated **before** instrumentation existed. The `attention_star` / `attention_skip` **daily
+   counters are empty**. So: attention actions have happened in this product's lifetime, and **none
+   has happened since 2026-08-06**. The same applies to 79 public items, 27 queued, 5 feeds and 1
+   member — inventory, not activity.
+2. **115 human-flagged landing views is not 115 humans, and is not demand.** The product has never
+   been posted to any channel (`outreach/creator-shortlist.md`: nobody contacted; EXP-002 unpublished).
+   Traffic with no distribution is most plausibly crawlers the UA heuristic missed, plus the owner and
+   the loop's own verification runs. The correct thing this number proves is **that the counters work**.
+
+### What this changes
+
+The pre-registered fork in EXP-001 — "a zero reading means genuinely no traffic, which would redirect
+the loop from measurement to distribution" — **does not fire**. Views are non-zero. The constraint the
+data actually points at is one stage later: **arrival → application is 0%**, and the funnel cannot yet
+say why, because no counter distinguishes *saw the page* from *saw and understood the call to action*.
+
+Gross cash: **AUD $0**, source "no billing exists" — not an estimate. Autonomous spend: **AUD $0.00 of
+$500**. No conversion, retention, demand or traction claim is made beyond the table above.
+
+Executor egress to `justtuned.com` re-tested this run — still **403 CONNECT** at the proxy, sixteenth
+consecutive run. GitHub Actions remains the production read path, and it has now proven itself.
