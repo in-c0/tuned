@@ -518,3 +518,57 @@ posting, the only claim.
 
 **AUD $0.00 this run. Running total: AUD $0.00 of $500.** No purchase requested; the executor holds no
 payment credentials.
+
+## Run 19 — 2026-08-08 20:08–20:25 Sydney (10:08–10:25 UTC) — verify what the packet promises, and fill its last blank
+
+**No reviewer directive existed for this cycle.** The 09:28 UTC directive was claimed, executed and
+reported by run 18 at 09:54 UTC. Unlike runs 8 and 10, this session did not overlap a directive *in
+flight*; it was the next cycle with none yet posted. Self-selected work, claimed on issue #1 before
+starting so a reviewer could kill it and an event-fired session could stand down.
+
+**Decision: check the Show HN packet's public claims and resolve its one unfilled token, rather than
+stand down or ship instrumentation.**
+
+Rejected alternatives, and why:
+
+- **Stand down** (the runs 8/10 precedent). Rejected: those stand-downs were correct because a
+  directive was mid-flight and explicitly forbade disjoint work. Neither condition holds here, and
+  run 10 had already flagged that a further no-op would be "the loop admiring its own instruments".
+- **CTA-reach counter, or a copy/positioning rewrite.** Rejected, and *pre-committed* against: run 18
+  wrote a falsifiable milestone that is violated if run 19 answers a proven-working mechanism with a
+  counter or a copy change. The denominator is still not known to contain humans; both would measure
+  or persuade crawlers.
+- **Fix the medRxiv thumbnail.** Rejected as scope creep — see below.
+
+**What was shipped:** [#18](https://github.com/in-c0/tuned/pull/18) → `644c23a`. EXP-004
+pre-registered in its own commit *before* the workflow was dispatched; a read-only browser spec
+(`qa/public-surfaces.spec.mjs`); a reusable dispatch-only `qa-browser.yml` taking the spec as an
+input; and `exp003-mechanism.yml` pinned to its own spec file.
+
+**That pin is the non-obvious part and was a real near-miss.** `playwright.config.mjs` sets
+`testDir: "."`, so the bare `npx playwright test` in EXP-003's workflow would have silently begun
+running this new spec too — quietly changing what a *closed* experiment's instrument does, months
+after its result was recorded. Caught before it happened. The general principle: apparatus of a
+closed experiment should be pinned, not left to a glob that later files can join.
+
+**Result: EXP-004 PASSED, all five criteria, both widths, first attempt.** `[DEMO_FEED_URL]` resolves
+to **`https://justtuned.com/ava`** — 200, 24 items, no empty state; `/ava/rss.xml` 200
+`application/rss+xml` with 38 items. The packet's central mitigation is true, and it now contains no
+blank and no unchecked assertion.
+
+**Deliberately not fixed:** `medrxiv.org`'s own og:image returns `net::ERR_BLOCKED_BY_ORB` on the
+feed. Unlike run 18's finding — a borrowed image path 404ing against *our* origin, which was our bug
+— this is a third party declining to serve its image cross-origin, which is their prerogative. The
+`onerror` fallback already removes the element. The only real fix is proxying or caching other
+people's images, which carries bandwidth and copyright consequences a cosmetic thumbnail does not
+justify. Recorded as a product decision, not left as an open defect.
+
+**Honest caveat on the reading:** production was serving `876092c` at 10:12:55 UTC when the browser
+hit it, not the just-merged `644c23a`. `644c23a` changes no `src/`, so the bytes are identical under
+either build — but the earlier commit is what was measured, and the record says so.
+
+**What did not change:** the binding constraint is still **owner authorization of a first
+distribution channel**. No metric moved and none should have — EXP-004 wrote nothing. Gross cash
+**AUD $0**, source: no billing exists.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

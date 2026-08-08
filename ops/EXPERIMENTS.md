@@ -108,8 +108,11 @@ append-only file *before* any result can be seen, which is the only thing that m
   against a zero baseline plus a single owner-run D1 read — which is sound only because this is the
   first and only channel ever posted. **It stops being sound at channel two**, and capturing a source
   on the application is the obvious next product change if this experiment justifies one.
-- **Result (source-linked):** NOT STARTED — awaiting owner authorization to publish, and a **readable**
-  metrics path.
+- **Result (source-linked):** NOT STARTED — awaiting owner authorization to publish. The measurement
+  precondition is met (one snapshot has succeeded; `ops/metrics/latest.json` exists), and as of run 19
+  the packet's last unfilled token is resolved: **`[DEMO_FEED_URL]` = `https://justtuned.com/ava`**,
+  read off the live landing page by EXP-004 rather than guessed. Publication is now a single owner
+  action with nothing left for the owner to look up.
 - **Clock condition sharpened (2026-08-07, run 11) — the literal test now passes and the experiment is
   still not measurement-ready.** The clock above says the window may start "only once `/api/metrics`
   returns 401 rather than 503". Unauthenticated, it now returns 401. Read literally, that gate is met.
@@ -406,3 +409,57 @@ involved in it anywhere.
 
 - **Result (source-linked):** pending — this entry was committed before the workflow was dispatched.
 - **Decision:** pending.
+
+### EXP-004 — RESULT: PASSED (2026-08-08, run 19)
+
+**All five criteria hold on live production, at both widths, at the first attempt.**
+[qa-browser run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974), 10:12–10:13 UTC,
+3 passed / 1 skipped (the skip is criterion 5 deliberately not repeating on mobile).
+
+The build serving during the reading was **`876092c`** — Cloudflare had not yet finished deploying
+`644c23a` when the browser hit the origin. Recorded rather than smoothed over: `644c23a` changes no
+`src/`, so the landing and feed bytes are identical under either build, and the result stands for
+both. It is still the earlier commit that was measured, and saying otherwise would be a small lie
+about a large habit.
+
+| # | Criterion | Desktop 1440×900 | Mobile 390×844 |
+| --- | --- | --- | --- |
+| 1 | one `a.demo-more` → first-party `/{handle}` | `/ava` | `/ava` |
+| 2 | feed 200, names its creator | 200, "Ava Kim" | 200, "Ava Kim" |
+| 3 | ≥1 `.card`, no `.empty` | **24 cards**, empty state absent | **24 cards**, empty state absent |
+| 4 | no page errors / first-party errors / overflow | `[]`, `[]`, 1440 ≤ 1440 | `[]`, `[]`, 443 ≤ 443 |
+| 5 | RSS 200, `application/rss+xml`, ≥1 `<item>` | **38 items**, 18,509 bytes | not repeated (by design) |
+
+```
+demoFeedUrl  https://justtuned.com/ava      demoHandle  ava      creatorName  Ava Kim
+landingStatus 200 · feedStatus 200 · cardsRendered 24 · emptyStateShown false
+pageErrors [] · firstPartyConsoleErrors [] · firstPartyRequestFailures []
+EXP004_RSS {"url":"https://justtuned.com/ava/rss.xml","status":200,
+            "contentType":"application/rss+xml; charset=utf-8","items":38,"bytes":18509}
+contamination  mutatingRequests 0 · rowsInserted 0
+```
+
+**`[DEMO_FEED_URL]` is resolved: `https://justtuned.com/ava`.** Read off the live landing page, not
+guessed. The EXP-002 packet now has no unfilled token, and publication is one owner action.
+
+**Reported and not graded, per criterion 4** — two third-party subresources on the feed:
+
+- `icons.duckduckgo.com/ip3/medrxiv.org.ico` → 404. Already known from run 18; `onerror` removes it.
+- `www.medrxiv.org/.../medrxiv_logo_homepage7-5-small-test-up.png` → `net::ERR_BLOCKED_BY_ORB`.
+  **New, and a different animal from run 18's finding.** That one was a borrowed image path resolving
+  against *our* origin and 404ing there — our bug, and fixed. This one is medRxiv declining to serve
+  its own image cross-origin, which is their prerogative and not a defect in Tuned. `onerror` removes
+  the element, the card keeps its icon fallback, and the correct fix — proxying or caching other
+  people's images — is a real product decision with bandwidth and copyright consequences that a
+  cosmetic thumbnail does not justify. **Deliberately not fixed.**
+
+**Decision: PASSED. The packet's central mitigation is true.** A stranger can reach a live feed with
+24 items and open RSS with 38, on a phone or a desktop, without an account — which is what the post
+about to carry the owner's name asserts, and what Show HN's let-people-try-it norm asks for.
+
+**What this does not license, stated because the temptation is real.** A pass here removes a
+*publication risk*. It is not demand evidence, not a conversion fact, and it does not make the
+Show HN more likely to succeed — no human was involved in it at any point. The binding constraint is
+unchanged and unchallenged by this run: **owner authorization of a first channel**. What changed is
+only that authorizing it no longer requires the owner to fill in a blank or to trust an unchecked
+sentence.

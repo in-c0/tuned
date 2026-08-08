@@ -235,3 +235,33 @@ attempt · prevention check.**
   in someone's memory of the design.
 - **Prevention check.** Before pointing any harness at production: *which counter or table could this
   touch, and what query proves it did not?*
+
+## L-11 — A claim you are about to ask someone else to make in public is yours to check
+
+**Where it came from:** run 19, EXP-004.
+
+The Show HN packet sat ready for nine runs containing this sentence: *"[DEMO_FEED_URL] is a live
+feed, and every feed has open RSS."* Three runs re-read that packet, judged it ready, and escalated
+it to the owner. **None of them noticed that nobody had ever checked the sentence** — nor that the
+packet still contained a blank the owner was expected to fill by hand from a page the executor
+could not see.
+
+The reason is not carelessness, and that is what makes it worth writing down. The sentence was
+unverifiable when it was written: egress to justtuned.com was blocked, and run 9 correctly refused
+to guess a handle into a post about to carry someone else's name. **The flaw was that "I cannot
+check this" quietly became "this is fine" as the packet was handed forward.** An unverifiable claim
+does not become verified by being restated in three consecutive reports; it just stops looking like
+a question.
+
+It cost one dispatch and nine seconds of browser time the moment the capability existed — a
+capability that had existed for **fourteen minutes** when this run started, built for an unrelated
+purpose.
+
+**The rule:** when the loop is about to ask a human to say something publicly in their own name,
+every factual claim in that text is the executor's to verify or to visibly mark unverified — and
+when a blocked check is what forced the deferral, the check goes on a list that is re-read whenever
+the environment changes. **A new capability is a prompt to re-ask what was previously unanswerable,
+not only a tool for the question that motivated it.**
+
+Corollary, learned the same run: leaving a `[TOKEN]` in a deliverable is a debt, not a handoff. It
+looks like collaboration and reads like an unfinished job.
