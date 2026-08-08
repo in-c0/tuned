@@ -1,6 +1,33 @@
 # Tuned — North Star
 
-Last updated: 2026-08-06 (loop bootstrap; update whenever doctrine, hypothesis, or funnel materially changes)
+Last updated: 2026-08-08 (operating-memory contract added, run 15; update whenever doctrine, hypothesis, or funnel materially changes)
+
+## Operating-memory contract (added 2026-08-08, run 15)
+
+Durable memory is split by purpose. Read in this order, and link between files rather than copying
+narratives across them.
+
+| File | Purpose |
+| --- | --- |
+| [STATUS.md](STATUS.md) | Where we are **right now** — one screen. Phase, single active objective, blockers by leverage, next action, "not doing". |
+| [MILESTONES.md](MILESTONES.md) | Where we are going — ten horizons, 1 day to indefinite, each with falsifiable (near-term) or directional (long-term) completion evidence. |
+| [LESSONS.md](LESSONS.md) | What we got wrong and what replaces it. Append-only. |
+| [DECISIONS.md](DECISIONS.md) · [EXPERIMENTS.md](EXPERIMENTS.md) · [METRICS.md](METRICS.md) | The chronological record, the pre-registered tests, and the sourced numbers. |
+
+1. **Read `STATUS.md` and the nearest active milestone before selecting work.** They answer "where are
+   we, what is blocked, what is next" faster than re-reading the issue.
+2. **Update `STATUS.md` only when state materially changes** — not every run. It is a dashboard, not a
+   diary.
+3. **Update `MILESTONES.md` when evidence, status, timing or strategy changes** — not every run.
+4. **Add a lesson only after a real mistake**, failed attempt, invalid assumption, or avoidable cost.
+   Consolidate related incidents into one entry instead of narrating each run.
+5. **Link to `DECISIONS.md`, `EXPERIMENTS.md`, `METRICS.md`, commits, runs or issue comments** rather
+   than reproducing their content.
+6. **After two unchanged blocker cycles, escalate once through an authorized channel, then suppress
+   repeated reports and stand down until state changes.** See LESSONS.md L-07: re-describing an
+   unchanged blocker is not persistence.
+7. **Prefer the simplest externally falsifiable test, and stop improving the control plane once it is
+   adequate for the next demand or revenue experiment.** See LESSONS.md L-08.
 
 ## Doctrine (non-negotiable)
 
