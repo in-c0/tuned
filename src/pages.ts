@@ -428,10 +428,21 @@ function favicon(domain: string): string {
   return `https://icons.duckduckgo.com/ip3/${esc(domain)}.ico`;
 }
 
+/** An item's image, or "" when it isn't safe to render.
+ *
+ * Rows written before `resolveImageUrl` existed can still hold a *relative* og:image — arXiv's
+ * `/static/browse/0.3.4/images/arxiv-logo-fb.png` is one that is live on the landing page right
+ * now. In an `src` on our own origin that path 404s against justtuned.com. The extractor no longer
+ * stores such values; this stops the ones already stored from being rendered, without rewriting
+ * anyone's data. */
+function imageSrc(raw: string): string {
+  return /^https?:\/\//i.test(raw) ? raw : "";
+}
+
 function card(item: Item, opts: { studio?: boolean } = {}): string {
   const inner = `
   <div class="card${item.visibility === "hidden" ? " hidden-item" : ""}">
-    <div class="thumb">${item.image_url ? `<img src="${esc(item.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : esc(KIND_ICON[item.kind] ?? "→")}</div>
+    <div class="thumb">${imageSrc(item.image_url) ? `<img src="${esc(imageSrc(item.image_url))}" alt="" loading="lazy" onerror="this.remove()">` : esc(KIND_ICON[item.kind] ?? "→")}</div>
     <div class="body">
       <div class="meta">
         <span class="cat"><i style="background:${catColor(item.category)}"></i>${esc(item.category)}</span>
@@ -528,9 +539,9 @@ function rollupCard(category: string, items: Item[]): string {
   const names = [...new Set(items.map(leadName).filter(Boolean))];
   const shown = names.slice(0, 3).join(" · ");
   const more = names.length > 3 ? ` +${names.length - 3} more` : "";
-  const covers = items.filter((i) => i.image_url).slice(0, 4);
+  const covers = items.filter((i) => imageSrc(i.image_url)).slice(0, 4);
   const mosaic = covers.length
-    ? `<div class="mosaic${covers.length > 1 ? " grid" : ""}">${covers.map((c) => `<img src="${esc(c.image_url)}" alt="" loading="lazy" onerror="this.remove()">`).join("")}</div>`
+    ? `<div class="mosaic${covers.length > 1 ? " grid" : ""}">${covers.map((c) => `<img src="${esc(imageSrc(c.image_url))}" alt="" loading="lazy" onerror="this.remove()">`).join("")}</div>`
     : `<div class="thumb">♫</div>`;
   const verb = category === "Music" ? "Listening" : category;
   return `<details class="card rollup" data-item-cat="${esc(category)}">
