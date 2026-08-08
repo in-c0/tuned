@@ -62,6 +62,25 @@ async function drainCapped(res: Response, cap: number): Promise<void> {
   }
 }
 
+/** Absolute http(s) form of an image URL, or "" if there isn't one.
+ *
+ * `og:image` is routinely relative — arXiv, for one, publishes
+ * `/static/browse/0.3.4/images/arxiv-logo-fb.png`. Stored verbatim, that path is later rendered on
+ * our own origin, where it resolves to justtuned.com and 404s. EXP-003's browser run against
+ * production found exactly that, on a live landing-page card.
+ *
+ * Anything that is not http(s) after resolution is dropped rather than passed through: `data:` and
+ * `javascript:` values arrive from pages we do not control and end up in an `src` attribute. */
+export function resolveImageUrl(raw: string, base: string | URL): string {
+  if (!raw) return "";
+  try {
+    const u = new URL(raw, base);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 async function fetchOg(target: URL): Promise<Partial<LinkMeta>> {
   const res = await fetch(target.toString(), {
     headers: {
@@ -94,7 +113,9 @@ async function fetchOg(target: URL): Promise<Partial<LinkMeta>> {
   return {
     title: decodeEntities(meta["og:title"] ?? meta["twitter:title"] ?? titleText.trim()),
     description: decodeEntities(meta["og:description"] ?? meta["twitter:description"] ?? meta["description"] ?? ""),
-    image_url: meta["og:image"] ?? meta["twitter:image"] ?? "",
+    // Resolved against the URL we actually fetched, which after `redirect: "follow"` is not
+    // necessarily the one we asked for.
+    image_url: resolveImageUrl(meta["og:image"] ?? meta["twitter:image"] ?? "", res.url || target),
     site_name: decodeEntities(meta["og:site_name"] ?? ""),
   };
 }
