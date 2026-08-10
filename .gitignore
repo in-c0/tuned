@@ -8,5 +8,14 @@ src/build-info.ts
 
 # Marketing Manager instance — strategy/tracker/cold-reach lists (never commit)
 marketing/
+
+# Cold-outreach shortlists naming real public creators. Nothing confidential, but a
+# prioritised who-to-approach ordering does not belong in a public repository. Untracked
+# 2026-08-10 by cached removal only — the local working copy and the history both stand.
+outreach/
+
+# Local wrangler dev state (D1 dummies). Verified non-functional against production and
+# accepted as-is by the owner; ignored so no more of it accumulates.
+.wrangler-state/
 .agent-studios
 .owner-login

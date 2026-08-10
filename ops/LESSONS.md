@@ -265,3 +265,41 @@ not only a tool for the question that motivated it.**
 
 Corollary, learned the same run: leaving a `[TOKEN]` in a deliverable is a debt, not a handoff. It
 looks like collaboration and reads like an unfinished job.
+
+## L-12 — A green instrument and a reachable subject are two different assumptions, and only one of them was ever checked
+
+**Where it came from:** run 25, the 2026-08-10 edge-challenge incident.
+
+For nineteen runs this loop treated GitHub Actions as *the* production vantage point, because the
+executor's own egress to justtuned.com has been blocked since run 1. That was a sound workaround and
+it worked. What went unexamined is that it left the loop with **one** eye — and no way to tell the
+difference between "the instrument broke" and "the subject became unreachable".
+
+On 2026-08-10 both readers went red within 20 minutes of each other. The natural reading, and the
+one the reviewer directive encoded, was an access regression *between GitHub and Cloudflare* — a
+request-contract defect on our side. It was not. A managed challenge had been switched on for the
+whole zone, and it was refusing **everything**: our verifier, our snapshot, open RSS, and a real
+Chromium on `GET /` at both widths. The instrument was fine. The site was dark.
+
+**What made the difference was costing one dispatch:** pointing the existing browser harness at
+production *before* building the fix. That took 48 seconds and turned "our CI is broken" into "our
+public site is refusing real browsers" — a different severity, a different owner action, and a
+different answer to whether the Show HN post should go out.
+
+**The rule:** when every instrument aimed at a subject fails at once, the first hypothesis is not
+that every instrument broke — it is that the subject changed. Test the subject with the most
+*unlike* instrument available before believing a diagnosis about the instruments. Two readers that
+share a network path and a client library are one observation, not two.
+
+**Prevention check.** Before accepting "our checks are broken": *what is the least-similar client I
+can point at this, and what did it see?*
+
+**Second, smaller lesson from the same run, worth separating out.** The directive proposed fixing
+the 403 with "a shared explicit request contract (for example User-Agent/Accept/cache headers)".
+Built honestly — a named first-party monitor linking to this repository — that contract changed
+nothing: bare and contract variants both returned 403. Built dishonestly, a borrowed browser
+user-agent might well have worked. **That a workaround exists is not an argument that it is
+available.** Passing a security control by disguise would have evaded a control the owner enabled,
+hidden the incident from the very dashboard meant to surface it, and left the request looking
+legitimate the next time something was genuinely wrong. The correct output of a blocked fix is an
+accurate escalation, not a quieter symptom.

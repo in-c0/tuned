@@ -3,7 +3,7 @@
 
 import { layout, esc, BRAND, TAGLINE } from "./pages";
 
-export const LEGAL_CONTACT = "wldud5192+tuned@gmail.com"; // swap when a Tuned domain exists
+export const LEGAL_CONTACT = "legal@justtuned.com"; // Cloudflare Email Routing → owner inbox
 const EFFECTIVE = "29 July 2026";
 
 const LEGAL_CSS = `
