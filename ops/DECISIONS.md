@@ -689,3 +689,57 @@ overrule the reading.
 copy/positioning/channel work, no publication, no traction claim.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+---
+
+## Run 26 — 2026-08-11 08:04–09:xx Sydney (2026-08-10 22:04–23:xx UTC)
+
+**No reviewer directive follows run 25's report.** The [21:30 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5246263030)
+was claimed, executed and reported in full, including its stop condition — one bounded attempt at the
+403, falsified, escalated. So this run selected its own action and is accountable for the selection.
+
+**What it chose: restore deploy verification, which the incident took away and nobody had counted.**
+
+The challenge's obvious cost is that the public cannot reach Tuned; that blocker is the owner's and is
+unchanged. Its second cost went unnamed for a full run — the loop can no longer verify its own
+deploys, and it deployed anyway. `16d522b` changed the contact address on the public terms and privacy
+pages and was recorded as "unverified, not green". Honest, and left as a fact rather than a problem.
+
+**The fix was in `wrangler.jsonc` the whole time.** `workers_dev: true` puts the same Worker on a
+second route outside the challenged zone. Run 25 tested it **from the executor**, where egress has been
+403 since run 1, and concluded "I could not check it myself" — true, and beside the point, because the
+loop has not read production from the executor in nineteen runs. Every production fact it holds comes
+from GitHub Actions, which has egress and was never asked. Cost to settle: one script command.
+
+**Why this is not the disguise run 25 refused.** Nothing here tries to get a 200 out of the challenged
+zone. The origin is our own first-party route, reached under the same honest `tuned-ops-verifier`
+user-agent that run 25 built. The refusal to borrow a browser user-agent stands untouched.
+
+**The load-bearing constraint: a restored instrument must not widen what a pass means.** Reading from
+the origin proves the code is deployed and behaving and proves nothing about reachability. So
+`prod-http.sh vantage` returns the zone's state as a **separate** fact, and `verify production` grades
+public availability **last**, in a step that can fail a job in which every other check passed. A green
+run still means the public can use Tuned. Without that step this change would have converted a visible
+outage into a green dashboard, which is strictly worse than the outage.
+
+**Also asserted, because `16d522b` could not:** `/terms` and `/privacy` must show `legal@justtuned.com`
+and must not contain a personal address. That was the acceptance criterion of the
+[2026-08-10 hygiene directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5238395114) and it
+had shipped unchecked. A contact address that silently reverts is a privacy regression.
+
+**Verified rather than reasoned about.** `vantage` was exercised against a local server on all three
+branches — healthy zone, challenged zone with healthy origin, both dead. That test found a real defect:
+`cmd_get` emitted `000000` on transport failure, because `-w` already prints `000` and the `|| echo 000`
+concatenated a second. Benign against `= "200"`, and `vantage` now reports that field where someone
+reads it. Fixed and re-tested.
+
+**Graceful degradation, stated because it is the reason this was safe to ship blind.** The executor
+cannot reach `workers.dev` either, so the hostname could not be confirmed before merge. A wrong
+hostname yields `vantage=none` with the base left on the zone — byte-identical to today's behaviour.
+This change cannot make production reads worse than they already are.
+
+**Not done, deliberately:** no second attempt at the 403, no WAF or access-policy change, no
+`workers_dev` flip, no secret read or rotation, no copy/positioning/channel work, no publication, no
+traction claim, no spend.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

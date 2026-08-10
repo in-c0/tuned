@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-11 07:55 Sydney (2026-08-10 21:55 UTC), run 25 · **Head:** [`55ece3c`](https://github.com/in-c0/tuned/commit/55ece3c609f000ad4dd2312846501dbd34baf26a)
+**Last updated:** 2026-08-11 08:2x Sydney (2026-08-10 22:2x UTC), run 26 · **Head:** [`16d522b`](https://github.com/in-c0/tuned/commit/16d522b6881054a00ffc14b3f3313fb0eefa5064)
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -65,7 +65,7 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 | Production serving | **UNKNOWN — edge-challenged** | Every path 403 `cf-mitigated: challenge` at [run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722). The Worker itself is not known to be broken; it is not known to be reachable either, and this row will not claim health it cannot read. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
-| Deploy verification by version identity | working | `verify-production.yml` polls `/api/version` for the pushed SHA, fails closed |
+| Deploy verification by version identity | **shipped with an origin fallback — awaiting its first real exercise** | `verify-production.yml` polls `/api/version` for the pushed SHA and fails closed. Run 26 adds a fallback: when the zone will not answer, identity and health are read from the Worker's own `workers.dev` origin, and public availability is then graded **separately** and can fail the job on its own. A green run still means the public can use Tuned. The three vantage branches are proven against a local server; the real origin hostname is unconfirmed until a run on `master` exercises it, and a wrong one degrades to today's behaviour |
 | Funnel telemetry (9 counters, 2 additive tables) | deployed and **read** | `feb6c4f`; `src/metrics.ts` |
 | Aggregate read path `GET /api/metrics` | **working, authenticated** | HTTP 200 in [run 31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587); key-gated, fails closed |
 | Metrics snapshot → repository | **working** | `ops/metrics/latest.json`, `ops/metrics/2026-08-08.json` at `a00a8fe` |
