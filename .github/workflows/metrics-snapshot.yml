@@ -45,11 +45,25 @@ jobs:
           # agent members consume; if the edge is challenging non-browser clients then this
           # is broken for every feed reader, which is a product outage and not a CI problem.
           scripts/prod-http.sh probe https://justtuned.com/ava/rss.xml rss        'application/rss+xml'
+          scripts/prod-http.sh probe "$(scripts/prod-http.sh origin)/api/version" origin-ver 'application/json'
+
+      # Counters are internal state, so reading them through the Worker's own origin while
+      # the zone is challenging clients is legitimate — it asserts nothing about whether
+      # anyone can visit the site. It does mean a snapshot taken during an outage will show
+      # depressed arrivals, which is a fact about the outage and not about demand. The
+      # commit message carries which vantage produced it so no later run has to guess.
+      - name: Choose a vantage point
+        id: vantage
+        run: |
+          set -uo pipefail
+          scripts/prod-http.sh vantage | tee -a "$GITHUB_OUTPUT"
 
       - name: Fetch aggregate metrics
         id: fetch
         env:
           METRICS_KEY: ${{ secrets.METRICS_KEY }}
+          BASE: ${{ steps.vantage.outputs.base }}
+          ZONE_BLOCKED: ${{ steps.vantage.outputs.zone_blocked }}
         run: |
           set -euo pipefail
           if [ -z "${METRICS_KEY:-}" ]; then
@@ -58,7 +72,7 @@ jobs:
             exit 0
           fi
           mkdir -p ops/metrics
-          code=$(scripts/prod-http.sh get https://justtuned.com/api/metrics /tmp/metrics.json 'application/json' 1)
+          code=$(scripts/prod-http.sh get "${BASE}/api/metrics" /tmp/metrics.json 'application/json' 1)
           if [ "$code" != "200" ]; then
             echo "::error::/api/metrics returned HTTP $code"
             # Deliberately not `head -c 500` of the body any more: on 2026-08-10 that echoed
@@ -71,9 +85,14 @@ jobs:
           python3 -m json.tool /tmp/metrics.json > ops/metrics/latest.json
           cp ops/metrics/latest.json "ops/metrics/$(date -u +%Y-%m-%d).json"
           echo "skip=false" >> "$GITHUB_OUTPUT"
+          if [ "${ZONE_BLOCKED}" = "true" ]; then
+            echo "::warning::Read via the Worker origin — justtuned.com was not serving. Arrival counters for this window reflect an outage, not demand."
+          fi
 
       - name: Commit snapshot
         if: steps.fetch.outputs.skip == 'false'
+        env:
+          ZONE_BLOCKED: ${{ steps.vantage.outputs.zone_blocked }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -83,5 +102,9 @@ jobs:
             echo "No metric change."
             exit 0
           fi
-          git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d)"
+          if [ "${ZONE_BLOCKED}" = "true" ]; then
+            git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d) (read via Worker origin; justtuned.com not serving)"
+          else
+            git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d)"
+          fi
           git push
