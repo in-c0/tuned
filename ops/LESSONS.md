@@ -303,3 +303,35 @@ available.** Passing a security control by disguise would have evaded a control 
 hidden the incident from the very dashboard meant to surface it, and left the request looking
 legitimate the next time something was genuinely wrong. The correct output of a blocked fix is an
 accurate escalation, not a quieter symptom.
+
+## L-13 — An outage takes away more than the thing it breaks, and the second loss is the quiet one
+
+**Where it came from:** run 26, the day after the 2026-08-10 edge challenge began.
+
+The visible cost of the challenge was obvious and got all the attention: the public cannot reach
+Tuned. The cost nobody named for a full run is that the loop **also lost the ability to verify its
+own deploys** — and it kept deploying. `16d522b` changed the address printed on the public terms and
+privacy pages, shipped, and was recorded as *"unverified, not green"*. That was honest. It was also
+left there, as a fact about the incident rather than a problem with a fix.
+
+There was a fix, and it had been sitting in `wrangler.jsonc` the whole time. `workers_dev: true`
+means the same Worker answers on a second route that is not inside the challenged zone. Run 25
+looked straight at it, tested it **from the executor** — where egress has been blocked since run 1 —
+found it blocked, and wrote *"I could not check it myself."* True, and beside the point: the loop had
+not read production from the executor in nineteen runs. Every production fact it holds came from
+GitHub Actions, which has egress, and which was never asked.
+
+**The rule:** when an incident disables a capability, list what *else* went dark with it and fix the
+recoverable ones — degraded is not the same as gone. And when a check is refused, re-ask it from
+every vantage point you own before recording it as impossible. "I could not check it" is a statement
+about a client, not about a question.
+
+**The trap to avoid while doing it.** The restored path must not quietly widen what a green result
+claims. Reading health from the origin proves the code is deployed and behaving; it proves nothing
+about whether anyone can reach the site. So `vantage` returns the zone's state as a separate fact and
+`verify production` grades on it **last**, in a step that can fail a job in which every other check
+passed. A restored instrument that reports a healthy Worker as a healthy site would be worse than the
+outage — the outage at least announced itself.
+
+**Prevention check.** After any incident: *what capability did this quietly remove, and is it
+recoverable from a vantage point I already own — without changing what a pass means?*

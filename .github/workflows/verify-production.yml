@@ -47,11 +47,26 @@ jobs:
           scripts/prod-http.sh probe https://justtuned.com/api/version version 'application/json'
           scripts/prod-http.sh probe https://justtuned.com/api/metrics metrics 'application/json'
           scripts/prod-http.sh probe https://justtuned.com/ava/rss.xml rss     'application/rss+xml'
+          # The same Worker reached directly, outside the zone. Two rows that disagree put
+          # the fault at the edge in a single reading; two rows that agree say the Worker
+          # itself is down. Before this existed, telling those apart was an owner action.
+          scripts/prod-http.sh probe "$(scripts/prod-http.sh origin)/api/version" origin-version 'application/json'
+
+      # Which host the steps below read from, and — separately — whether the public zone is
+      # serving at all. The second fact is graded at the end of the job and can turn a fully
+      # healthy Worker into a red run, which is correct: a site the public cannot reach is
+      # down no matter how well the code behind it is working.
+      - name: Choose a vantage point
+        id: vantage
+        run: |
+          set -uo pipefail
+          scripts/prod-http.sh vantage | tee -a "$GITHUB_OUTPUT"
 
       - name: Wait for the expected commit to be serving
         id: live
         env:
           EXPECTED: ${{ github.sha }}
+          BASE: ${{ steps.vantage.outputs.base }}
         run: |
           set -uo pipefail
           # 24 x 20s = 8 minutes. Workers Builds normally lands in ~2; the margin is for
@@ -59,7 +74,7 @@ jobs:
           # look like a match.
           serving=""
           for attempt in $(seq 1 24); do
-            code=$(scripts/prod-http.sh get https://justtuned.com/api/version /tmp/version.json 'application/json')
+            code=$(scripts/prod-http.sh get "${BASE}/api/version" /tmp/version.json 'application/json')
             body=$([ "$code" = "200" ] && cat /tmp/version.json || echo '')
             # Extracted by pattern rather than parsed. A commit stamp is a fixed shape, so
             # this accepts only that shape: an old Worker's 404 text, an HTML error page,
@@ -86,20 +101,24 @@ jobs:
           exit 1
 
       - name: Site is up
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
         run: |
           set -euo pipefail
-          code=$(scripts/prod-http.sh get https://justtuned.com/ /tmp/home.html 'text/html')
+          code=$(scripts/prod-http.sh get "${BASE}/" /tmp/home.html 'text/html')
           if [ "$code" != "200" ]; then
-            echo "::error::justtuned.com returned HTTP $code"
+            echo "::error::${BASE} returned HTTP $code"
             exit 1
           fi
           grep -qi 'tuned' /tmp/home.html || { echo "::error::landing page body does not look like Tuned"; exit 1; }
-          echo "justtuned.com: HTTP 200, landing page rendered ($(wc -c < /tmp/home.html) bytes)"
+          echo "${BASE}: HTTP 200, landing page rendered ($(wc -c < /tmp/home.html) bytes)"
 
       - name: Metrics endpoint refuses unauthenticated callers
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
         run: |
           set -euo pipefail
-          code=$(scripts/prod-http.sh get https://justtuned.com/api/metrics /tmp/m.json 'application/json')
+          code=$(scripts/prod-http.sh get "${BASE}/api/metrics" /tmp/m.json 'application/json')
           case "$code" in
             401) echo "/api/metrics without a key: HTTP 401 — key is set and the endpoint is closed." ;;
             503) echo "/api/metrics without a key: HTTP 503 — METRICS_KEY is not configured yet; endpoint fails closed." ;;
@@ -115,10 +134,45 @@ jobs:
           echo "Unauthenticated \`/api/metrics\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Public pages still render
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
         run: |
           set -euo pipefail
           for path in /terms /privacy; do
-            code=$(scripts/prod-http.sh get "https://justtuned.com${path}" /dev/null 'text/html')
+            code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/legal.html 'text/html')
             [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code"; exit 1; }
-            echo "${path}: HTTP 200"
+            # 16d522b replaced the owner's personal Gmail on these pages with a role
+            # address, and shipped without anything able to confirm it — the edge was
+            # challenging every reader that day. A contact address that silently reverts
+            # or 404s is a privacy regression, so it is asserted here rather than assumed.
+            grep -q 'legal@justtuned.com' /tmp/legal.html || { echo "::error::${path} does not show the role contact address"; exit 1; }
+            if grep -qE '[A-Za-z0-9._%+-]+@gmail\.com' /tmp/legal.html; then
+              echo "::error::${path} exposes a personal Gmail address"
+              exit 1
+            fi
+            echo "${path}: HTTP 200, contact is legal@justtuned.com, no personal address"
           done
+
+      # Last, and deliberately able to fail a job in which every check above passed.
+      #
+      # When the zone is challenging clients, everything above has been read from the Worker's
+      # own origin: it proves the code is deployed and behaving, and it proves nothing at all
+      # about whether a visitor can reach the site. Those are different claims and this job
+      # settles the second one. A green run must continue to mean "the public can use Tuned".
+      - name: Public availability
+        if: always() && steps.vantage.outputs.zone_blocked == 'true'
+        env:
+          ZONE_STATUS: ${{ steps.vantage.outputs.zone_status }}
+          ZONE_RAY: ${{ steps.vantage.outputs.zone_ray }}
+          VANTAGE: ${{ steps.vantage.outputs.vantage }}
+        run: |
+          set -uo pipefail
+          echo "::error::justtuned.com is not serving (HTTP ${ZONE_STATUS}, cf-ray ${ZONE_RAY}). Checks above ran from the Worker origin (vantage=${VANTAGE}) and describe the code, not public availability."
+          {
+            echo "### Public availability: DOWN"
+            echo ""
+            echo "- \`justtuned.com/api/version\` → HTTP \`${ZONE_STATUS}\`, cf-ray \`${ZONE_RAY}\`"
+            echo "- Checks above read from vantage \`${VANTAGE}\` — Worker health, not site reachability."
+            echo "- Owner action: Cloudflare → justtuned.com → Security → Events, filter that Ray ID."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1

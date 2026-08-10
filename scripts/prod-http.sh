@@ -30,6 +30,22 @@ set -euo pipefail
 
 UA='tuned-ops-verifier/1.0 (+https://github.com/in-c0/tuned; first-party uptime and metrics check)'
 
+# The two ways to reach the same Worker.
+#
+# PUBLIC_BASE is the zone, and it is what "the site is up" means — nothing below ever lets
+# a healthy Worker be reported as a healthy site.
+#
+# ORIGIN_BASE is that same Worker on its workers.dev route, which sits outside the zone and
+# therefore outside whatever is challenging it. This is not a costume and not a way past a
+# control: it is our own origin, enabled by `workers_dev: true` in wrangler.jsonc, reached
+# under the same honest user-agent. It is here because the 2026-08-10 challenge took away
+# this loop's ability to verify its own deploys — `16d522b` shipped a change to the public
+# legal pages and nothing could confirm it was live. Reading *identity and health* from the
+# origin restores that. Reading *availability* from it would be a lie, so `vantage` reports
+# the zone's state as a separate fact and the callers grade on it.
+PUBLIC_BASE="${PUBLIC_BASE:-https://justtuned.com}"
+ORIGIN_BASE="${ORIGIN_BASE:-https://attention-feed.wldud5192.workers.dev}"
+
 # Build the shared header set. The metrics key is passed only when the caller explicitly
 # asks for it, and is read from the environment rather than interpolated by a caller, so
 # it never lands in a command line, a log line or an error message.
@@ -52,7 +68,12 @@ cmd_get() {
   local url="$1" out="$2" accept="${3:-*/*}" authed="${4:-0}"
   local -a hdr=()
   while IFS= read -r -d '' arg; do hdr+=("$arg"); done < <(_headers "$accept" "$authed")
-  curl -sS --max-time "${TIMEOUT:-30}" "${hdr[@]}" -o "$out" -w '%{http_code}' "$url" || echo 000
+  # `-w` already prints 000 on a transport failure, so the old `|| echo 000` concatenated a
+  # second one and callers saw `000000`. Harmless against `= "200"`, but it is a status line
+  # that lies about its own shape, and `vantage` now reports it where someone will read it.
+  local code
+  code=$(curl -sS --max-time "${TIMEOUT:-30}" "${hdr[@]}" -o "$out" -w '%{http_code}' "$url") || code="000"
+  printf '%s\n' "$code"
 }
 
 # probe <url> [label] [accept] [authed]
@@ -88,8 +109,51 @@ cmd_probe() {
   done
 }
 
+# vantage
+#
+# Decides which host this run should read production from, and reports the zone's own state
+# alongside it. Emits `key=value` lines, ready to append to $GITHUB_OUTPUT.
+#
+# The zone is always asked first and always wins when it answers, so in normal operation
+# this changes nothing and no caller behaves differently. The origin is consulted only when
+# the zone does not serve, and whenever it is used the caller is handed `zone_blocked=true`.
+# What a caller does with that is its own decision: `verify production` treats it as a
+# failure because public availability is the product, while `metrics snapshot` proceeds,
+# because counters are internal state and reading them does not assert that anyone can
+# visit the site.
+#
+# If neither answers, the base stays on the zone. A run that cannot see production at all
+# should fail against the host that actually matters.
+cmd_vantage() {
+  local zone_code zone_ray origin_code hdrs body
+  hdrs=$(mktemp); body=$(mktemp)
+  local -a hdr=()
+  while IFS= read -r -d '' arg; do hdr+=("$arg"); done < <(_headers 'application/json' 0)
+  zone_code=$(curl -sS --max-time "${TIMEOUT:-30}" "${hdr[@]}" -D "$hdrs" -o "$body" -w '%{http_code}' "${PUBLIC_BASE}/api/version" || echo 000)
+  zone_ray=$(grep -i '^cf-ray:' "$hdrs" | head -1 | cut -d' ' -f2- | tr -d '\r' || true)
+  rm -f "$hdrs" "$body"
+
+  if [ "$zone_code" = "200" ]; then
+    printf 'base=%s\nvantage=public\nzone_blocked=false\nzone_status=%s\nzone_ray=%s\norigin_status=not-tried\n' \
+      "$PUBLIC_BASE" "$zone_code" "${zone_ray:--}"
+    return 0
+  fi
+
+  origin_code=$(cmd_get "${ORIGIN_BASE}/api/version" /dev/null 'application/json' 0)
+  if [ "$origin_code" = "200" ]; then
+    printf 'base=%s\nvantage=origin\nzone_blocked=true\nzone_status=%s\nzone_ray=%s\norigin_status=%s\n' \
+      "$ORIGIN_BASE" "$zone_code" "${zone_ray:--}" "$origin_code"
+    return 0
+  fi
+
+  printf 'base=%s\nvantage=none\nzone_blocked=true\nzone_status=%s\nzone_ray=%s\norigin_status=%s\n' \
+    "$PUBLIC_BASE" "$zone_code" "${zone_ray:--}" "$origin_code"
+}
+
 case "${1:-}" in
-  get)   shift; cmd_get "$@" ;;
-  probe) shift; cmd_probe "$@" ;;
-  *) echo "usage: prod-http.sh get <url> <outfile> [accept] [authed] | probe <url> [label] [accept] [authed]" >&2; exit 2 ;;
+  get)     shift; cmd_get "$@" ;;
+  probe)   shift; cmd_probe "$@" ;;
+  vantage) shift; cmd_vantage "$@" ;;
+  origin)  printf '%s\n' "$ORIGIN_BASE" ;;
+  *) echo "usage: prod-http.sh get <url> <outfile> [accept] [authed] | probe <url> [label] [accept] [authed] | vantage | origin" >&2; exit 2 ;;
 esac
