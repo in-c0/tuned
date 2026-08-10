@@ -32,6 +32,22 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      # Never fails the job. Its whole purpose is to leave a diagnosis in the log of the
+      # run that went red — on 2026-08-10 the wait step below burned eight minutes printing
+      # "<no build stamp>" twenty-four times, which recorded that something was wrong and
+      # nothing about what. Bodies are never printed; the Cloudflare Ray ID is, because that
+      # is what locates the matching Security Event when the edge is what answered.
+      - name: Diagnose the production read path
+        run: |
+          set -uo pipefail
+          chmod +x scripts/prod-http.sh
+          scripts/prod-http.sh probe https://justtuned.com/            landing 'text/html'
+          scripts/prod-http.sh probe https://justtuned.com/api/version version 'application/json'
+          scripts/prod-http.sh probe https://justtuned.com/api/metrics metrics 'application/json'
+          scripts/prod-http.sh probe https://justtuned.com/ava/rss.xml rss     'application/rss+xml'
+
       - name: Wait for the expected commit to be serving
         id: live
         env:
@@ -43,7 +59,8 @@ jobs:
           # look like a match.
           serving=""
           for attempt in $(seq 1 24); do
-            body=$(curl -sS --max-time 20 -H 'cache-control: no-cache' https://justtuned.com/api/version || echo '')
+            code=$(scripts/prod-http.sh get https://justtuned.com/api/version /tmp/version.json 'application/json')
+            body=$([ "$code" = "200" ] && cat /tmp/version.json || echo '')
             # Extracted by pattern rather than parsed. A commit stamp is a fixed shape, so
             # this accepts only that shape: an old Worker's 404 text, an HTML error page,
             # a non-string commit, or an empty body all yield "" and keep the loop waiting.
@@ -71,7 +88,7 @@ jobs:
       - name: Site is up
         run: |
           set -euo pipefail
-          code=$(curl -sS --max-time 20 -o /tmp/home.html -w '%{http_code}' https://justtuned.com/ || echo 000)
+          code=$(scripts/prod-http.sh get https://justtuned.com/ /tmp/home.html 'text/html')
           if [ "$code" != "200" ]; then
             echo "::error::justtuned.com returned HTTP $code"
             exit 1
@@ -82,7 +99,7 @@ jobs:
       - name: Metrics endpoint refuses unauthenticated callers
         run: |
           set -euo pipefail
-          code=$(curl -sS --max-time 20 -o /tmp/m.json -w '%{http_code}' https://justtuned.com/api/metrics || echo 000)
+          code=$(scripts/prod-http.sh get https://justtuned.com/api/metrics /tmp/m.json 'application/json')
           case "$code" in
             401) echo "/api/metrics without a key: HTTP 401 — key is set and the endpoint is closed." ;;
             503) echo "/api/metrics without a key: HTTP 503 — METRICS_KEY is not configured yet; endpoint fails closed." ;;
@@ -101,7 +118,7 @@ jobs:
         run: |
           set -euo pipefail
           for path in /terms /privacy; do
-            code=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "https://justtuned.com${path}" || echo 000)
+            code=$(scripts/prod-http.sh get "https://justtuned.com${path}" /dev/null 'text/html')
             [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code"; exit 1; }
             echo "${path}: HTTP 200"
           done

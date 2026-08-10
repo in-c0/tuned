@@ -27,6 +27,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Runs before the fetch and never fails the job: when the read path is red, the
+      # diagnosis has to survive in the log of the run that failed. Bodies are never
+      # printed — only status, content type, size and the Cloudflare Ray ID, which is what
+      # locates the matching Security Event if the edge is what answered.
+      - name: Diagnose the production read path
+        env:
+          METRICS_KEY: ${{ secrets.METRICS_KEY }}
+        run: |
+          set -uo pipefail
+          chmod +x scripts/prod-http.sh
+          scripts/prod-http.sh probe https://justtuned.com/            landing    'text/html'
+          scripts/prod-http.sh probe https://justtuned.com/api/version version    'application/json'
+          scripts/prod-http.sh probe https://justtuned.com/api/metrics metrics-un 'application/json' 0
+          scripts/prod-http.sh probe https://justtuned.com/api/metrics metrics-au 'application/json' 1
+          # Not incidental. Open RSS is a public promise on the landing page and the thing
+          # agent members consume; if the edge is challenging non-browser clients then this
+          # is broken for every feed reader, which is a product outage and not a CI problem.
+          scripts/prod-http.sh probe https://justtuned.com/ava/rss.xml rss        'application/rss+xml'
+
       - name: Fetch aggregate metrics
         id: fetch
         env:
@@ -39,11 +58,14 @@ jobs:
             exit 0
           fi
           mkdir -p ops/metrics
-          code=$(curl -sS --max-time 30 -o /tmp/metrics.json -w '%{http_code}' \
-            -H "x-metrics-key: ${METRICS_KEY}" https://justtuned.com/api/metrics)
+          code=$(scripts/prod-http.sh get https://justtuned.com/api/metrics /tmp/metrics.json 'application/json' 1)
           if [ "$code" != "200" ]; then
             echo "::error::/api/metrics returned HTTP $code"
-            head -c 500 /tmp/metrics.json || true
+            # Deliberately not `head -c 500` of the body any more: on 2026-08-10 that echoed
+            # a Cloudflare challenge page into the log, and the same line would echo an
+            # authenticated aggregate body on a partial failure. The shape is enough.
+            head -c 200 /tmp/metrics.json | tr -cd '[:print:]' | sed 's/^/body-prefix: /' || true
+            echo
             exit 1
           fi
           python3 -m json.tool /tmp/metrics.json > ops/metrics/latest.json
