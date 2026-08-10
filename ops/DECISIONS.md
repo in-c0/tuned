@@ -743,3 +743,46 @@ This change cannot make production reads worse than they already are.
 traction claim, no spend.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+**Result, recorded after the fact rather than predicted.** The fallback was exercised for real on
+`master` at [verify production 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360),
+and it behaved exactly as designed — including the part that fails:
+
+| Step | Outcome |
+| --- | --- |
+| Choose a vantage point | `vantage=origin`, `BASE=https://attention-feed.wldud5192.workers.dev`, `zone_status=403` |
+| Wait for the expected commit | **success** — `f46105d` confirmed live (41s, vs 8 minutes of `<no build stamp>` the run before) |
+| Site is up · `/api/metrics` 401 | **success** — landing renders, endpoint still closed |
+| Public pages still render | **success** — `/terms` and `/privacy` 200, `contact is legal@justtuned.com, no personal address` |
+| **Public availability** | **failure** — `justtuned.com is not serving (HTTP 403, cf-ray a2925e55ea742973-LAX)` |
+
+Three things this settles that were open at the start of the run:
+
+1. **`16d522b` is verified.** The legal-contact swap is live and correct on both public pages. Run 25
+   shipped it unverified; it is no longer unverified.
+2. **The Worker is healthy; the incident is purely zone configuration.** No redeploy or rollback helps,
+   and reverting would only restore the owner's personal Gmail to the public pages. The owner's manual
+   `workers.dev` check is done and does not need doing.
+3. **The metrics read path is unfrozen.** [Snapshot 31437732863](https://github.com/in-c0/tuned/actions/runs/31437732863)
+   authenticated 200 through the origin and committed [`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e),
+   the first successful snapshot since 2026-08-09 21:05 UTC — with the vantage in the commit message so
+   the outage-truncated day is never later misread as demand collapse.
+
+**A finding the owner should decide on, not the executor.** The Worker answers the public on
+`attention-feed.wldud5192.workers.dev` with **none of the zone's protections in front of it** — that is
+how this run verified anything. Normal Cloudflare behaviour, not a break-in, but if the challenge was
+deliberate then the bypass is worth a decision. `workers_dev: false` closes it. **Deliberately not
+changed:** it is also the only production vantage point the loop currently has, so closing it while the
+zone is down would leave Tuned unverifiable, and that trade is the owner's to make.
+
+**Second-order cleanup this run absorbed, because leaving it would have been dishonest.**
+`ops/DASHBOARD.md` had drifted two runs behind STATUS, and the drift was not cosmetic: §1 still told the
+owner to **publish the Show HN post**, which for a full day meant publishing a link that 403s, and the
+header still claimed the repository was private after it was made public on 2026-08-09. §1, §4, §5 and
+§8 are resynchronized; §3, §6 and §7 are left as-is and **labelled stale by section** rather than the
+file claiming one blanket freshness word. A mirror that is sometimes current is read with the same
+confidence as one that always is, which is what made this harmful rather than untidy.
+
+**No push notification this run.** Run 25 sent one at 21:53 UTC about this same blocker; the owner
+action is unchanged, and contract rule 6 says escalate once then stand down until state changes. The
+Worker-is-healthy finding sharpens the diagnosis but does not change what the owner must do.
