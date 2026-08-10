@@ -382,3 +382,49 @@ $500**. No conversion, retention, demand or traction claim is made beyond the ta
 
 Executor egress to `justtuned.com` re-tested this run — still **403 CONNECT** at the proxy, sixteenth
 consecutive run. GitHub Actions remains the production read path, and it has now proven itself.
+
+---
+
+## Run 26 snapshot — 2026-08-10 22:18:30 UTC (2026-08-11 08:18 Sydney)
+
+**The read path is unfrozen.** Source: `ops/metrics/latest.json` at
+[`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e), from
+[snapshot run 31437732863](https://github.com/in-c0/tuned/actions/runs/31437732863). Covers **5 UTC
+days**, 2026-08-06 → 2026-08-10.
+
+**Provenance, stated first because it changes how one row should be read.** The zone was still
+answering `403 cf-mitigated: challenge`, so this was read through the Worker's own `workers.dev`
+origin. That does not affect the values — the counters are D1 state and the route used to read them
+is irrelevant. The commit message records the vantage so this is never guessed at later.
+
+| | 08-06 | 08-07 | 08-08 | 08-09 | 08-10 | total |
+| --- | --- | --- | --- | --- | --- | --- |
+| `landing_view` (UA-heuristic human) | 29 | 69 | 56 | 56 | 75 | **285** |
+| `landing_view_bot` | 15 | 23 | 43 | 7 | 15 | **103** |
+| `feed_view` | 5 | 2 | 3 | 8 | 14 | **32** |
+| `feed_view_bot` | 0 | 5 | 2 | 4 | 9 | **20** |
+| `application_submit` | 0 | 0 | 0 | 0 | 0 | **0** |
+
+**Five counters have still never fired:** `application_submit`, `member_login`, `desk_view`,
+`attention_star`, `attention_skip`. `members_ever_active` = **0** of 1. `members_returned_after_first_day`,
+`active_last_7d`, `active_last_28d` — all **0**.
+
+**Landing → application: 0 / 285 = 0.0%**, 95% one-sided upper bound ~1.1% (was ~1.4% at n=207).
+The bound tightens; the estimate does not move. Zero remains zero.
+
+**On 08-10 being the highest day (75), and why it is not a signal.** It is tempting, on the day the
+read path comes back, to read the biggest number in the table as the loop's first upward trend. Two
+independent reasons not to. First, the standing one: nothing has been published to any channel, so
+arrivals to a site with no distribution are most plausibly crawlers the UA heuristic did not catch.
+Second, new this run: **the day is censored.** The zone began refusing clients partway through
+2026-08-10 UTC, and a request stopped at the edge never reaches the Worker and is never counted. So
+08-10 is a partial count of an interrupted day. A number that is both possibly-inflated-by-bots and
+definitely-truncated-by-an-outage supports no direction at all.
+
+**Inventory, not activity** (predates instrumentation): 79 public items, **42 queued** (27 at the
+last reading — the `*/30` cron kept ingesting straight through the outage, which is independent
+evidence the Worker never stopped), 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member,
+0 followers, 1 connection.
+
+**Gross cash: AUD $0.** Source: *no billing exists* — not an estimate, not a forecast.
+**Autonomous spend: AUD $0.00 of $500.**

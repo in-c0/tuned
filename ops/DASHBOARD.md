@@ -1,6 +1,8 @@
 # Tuned — OWNER DASHBOARD
 
-**Private.** This file lives in the private `in-c0/tuned` repository and is served on no Tuned route.
+**Public repository, no Tuned route.** This file lives in `in-c0/tuned`, which the owner **made public
+on 2026-08-09**, and is served on no Tuned route. It said "Private" until run 26; that was written when
+the repository was private and was simply never revisited. Write nothing here you would not publish.
 
 **This is a mirror, not a source of truth.** Every number here is copied from a canonical file and
 linked back to it. If this file and a canonical file disagree, **the canonical file is right and this
@@ -20,22 +22,26 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **Publish the Show HN post — ~3 minutes, nothing to write.**
+### **justtuned.com is answering a Cloudflare challenge to every client. Clear it before anything else.**
+
+**This section said "Publish the Show HN post" until run 26, and following it would have spent the one
+attributable channel on a link that 403s.** STATUS was corrected in run 25; this mirror was not. That is
+the failure mode the mirror rule exists to catch, and it is recorded in §8 rather than quietly fixed.
 
 | | |
 | --- | --- |
-| **Severity** | **Highest.** The only step between the loop and its first known-human traffic. |
-| **Blocked outcome** | EXP-002 cannot start; the 0/115 conversion figure stays ungradeable; every demand, pricing and retention question below it stays unreadable. |
-| **Why owner authority** | The executor holds no Hacker News session — no credential, no cookie, no route to the host (`curl` exit 56, CONNECT 403, run 20). Posting in your name would be impersonation. |
-| **Exact minimum action** | <https://news.ycombinator.com/submit> signed in → paste title + URL from [EXP-002-PACKET.md](EXP-002-PACKET.md) → submit → post the body as the first comment → paste the `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). |
-| **Success check** | That canonical item URL exists and is recorded in issue #1. Authorization alone does **not** clear this. |
-| **Blocker age** | Opened 2026-08-08 13:56 UTC, when you authorized it. Packet ready since run 9. |
-| **Last surfaced** | Here, [STATUS.md](STATUS.md), and the run-20 report. **No phone/email/SMS alert was sent** — private channels stay unauthorized. |
+| **Severity** | **Highest.** Every path on the zone returns `403 cf-mitigated: challenge`, including a real headless Chromium on `GET /`. |
+| **Blocked outcome** | Open RSS, agent fetchers and every non-browser client are refused. The public cannot use Tuned. |
+| **Why owner authority** | The refusal is at the Cloudflare edge, before the Worker — a zone security setting the executor holds no credential for. |
+| **Exact minimum action** | Cloudflare → `justtuned.com` → **Security → Events**, filter Ray ID `a2925e55ea742973` (or `a2924f531a38e16d`, `a29223cf1b49492d`) → read which rule fired → turn it off or scope it away from `GET /`, `/ava/*`, `/api/*`. |
+| **Confirmed, so you can skip a step** | The **Worker is healthy** — run 26 read it directly on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. This is purely zone configuration; **no redeploy or rollback will help.** |
+| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, which is the only one still failing. |
+| **Blocker age** | Onset between 2026-08-09 21:05 UTC and 2026-08-10 20:48 UTC. No product commit falls in that window. |
+| **Last surfaced** | [STATUS.md](STATUS.md), the run-25 report, and one push notification at 2026-08-10 21:53 UTC. **Not re-notified in run 26** — the action is unchanged, and contract rule 6 says escalate once. |
 
-The previous owner action — synchronizing `METRICS_KEY` — **met its success check and stays retired**:
-snapshot run [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) authenticated with
-HTTP 200 and committed [`ops/metrics/latest.json`](metrics/latest.json) at
-[`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9).
+**The Show HN paste is displaced, not cancelled.** It is written and checked in
+[EXP-002-PACKET.md](EXP-002-PACKET.md) and returns to the top of this card the moment the zone serves
+200. EXP-002 stays `AUTHORIZED / NOT STARTED`.
 
 **Still deliberately *not* listed:** payment-provider account creation. It becomes the blocking step
 when there is paid demand to collect. There is none — see [§4](#4-funnel-revenue-and-spend). One
@@ -102,31 +108,36 @@ whether the apply path works at all.
 ## 4. Funnel, revenue and spend
 
 Source: [`ops/metrics/latest.json`](metrics/latest.json) at
-[`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9),
-`generated_at` 2026-08-08T07:35:20Z. Covers **3 UTC days** (2026-08-06 → 08-08); the last is partial,
-ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
+[`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e), `generated_at` 2026-08-10T22:18:30Z.
+Covers **5 UTC days** (2026-08-06 → 08-10). Read through the Worker's origin because the zone would not
+answer — the counters are D1 state, unaffected by the route. Full reading and caveats in
+[METRICS.md](METRICS.md).
 
 | Stage | Observed | Note |
 | --- | --- | --- |
-| Landing views, human-flagged | **115** (29 / 69 / 17) | UA heuristic — **not** verified human traffic |
-| Landing views, bot-flagged | **42** (15 / 23 / 4) | never merged with the above |
-| Feed views | **7** human-flagged, 5 bot-flagged | 08-06 and 08-07 only |
+| Landing views, human-flagged | **285** (29 / 69 / 56 / 56 / 75) | UA heuristic — **not** verified human traffic |
+| Landing views, bot-flagged | **103** (15 / 23 / 43 / 7 / 15) | never merged with the above |
+| Feed views | **32** human-flagged, 20 bot-flagged | all five days |
 | **Applications submitted** | **0** | `application_submit` has never fired |
 | Member logins · desk views | **0** · **0** | counters have never fired |
 | Attention actions since instrumentation | **0** | `attention_star` / `attention_skip` never fired |
 | Members ever active | **0 of 1** | `member_days` is empty |
 | Return use (D1+, 2+ active days) | **0** | nothing to return from |
 
-- **Landing → application: 0 / 115 = 0.0%.** With zero events in 115 trials the 95% one-sided upper
-  bound is ~2.6% — the true rate could be small-but-positive, but it is **not** high. Do not treat
-  "0%" as a measured constant.
+- **Landing → application: 0 / 285 = 0.0%.** 95% one-sided upper bound ~1.1% (was ~2.6% at n=115).
+  The bound tightens; the estimate does not move. Do not treat "0%" as a measured constant.
+- **08-10 is the highest day (75) and supports no conclusion.** Nothing has been published anywhere, so
+  the arrivals are still most plausibly crawlers — and the zone began refusing clients partway through
+  that same UTC day, so the day is **truncated**: blocked requests never reach the Worker and are never
+  counted. Possibly inflated and definitely censored, in one number.
 - **Gross cash collected: AUD $0.** Source: *no billing exists*. Not an estimate, not a forecast.
 - **Autonomous spend: AUD $0.00 of the AUD $500 cap.** Running total in [DECISIONS.md](DECISIONS.md).
-- **No traction is claimed.** Tuned has never been posted anywhere; 115 UA-flagged views on a product
-  with no distribution is most plausibly incidental and scanner traffic the heuristic missed, plus the
-  owner and this loop's own verification runs. It proves **the counters work**, not that demand exists.
+- **No traction is claimed.** 285 UA-flagged views on a product with no distribution proves **the
+  counters work**, not that demand exists.
 - All-time content totals **predate instrumentation and are inventory, not activity**: 79 public items,
-  27 queued, 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
+  **42** queued (27 at the last reading — the `*/30` cron ingested straight through the outage, which is
+  independent evidence the Worker never stopped), 5 feeds (1 human / 4 agent), 8 stars, 33 skips,
+  1 member, 0 followers, 1 connection.
 - **On the AUD $1,000,000 / 60-day stretch target:** it is optimization pressure and direction. No
   number on this dashboard forecasts it and none should be read as predicting it.
 
@@ -134,10 +145,11 @@ ending 07:35 UTC. Full reading and caveats in [METRICS.md](METRICS.md).
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so 0/115 is no longer explainable by a broken form — and the denominator becomes the problem. 115 UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is currently ungradeable. | Owner authorizes a channel; executor measures | AUD $0 | **Open — the active objective.** Replaced the run-17 entry, which run 18 answered. |
+| 0 | **The Cloudflare edge challenges every client of `justtuned.com`.** `403 cf-mitigated: challenge` on `/`, `/api/version`, `/api/metrics` and `/ava/rss.xml`, across three colos (IAD, SJC, LAX), and a real Chromium refused on `GET /` at both widths. The Worker behind it is **healthy** — verified on its `workers.dev` origin in run 26 — so this is zone configuration, not code. | Owner — zone security settings | AUD $0 | **Open. Top blocker, displacing #1.** See §1. |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is no longer explainable by a broken form — the denominator is the problem. **285** UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is ungradeable. | Owner authorizes a channel; executor measures | AUD $0 | **Open, and now queued behind #0** — a channel cannot be spent while the destination 403s. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
 | 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met; the "do not publish into a possibly-broken funnel" objection **retired** by run 18; and as of run 19 the packet is **complete** — `[DEMO_FEED_URL]` = `https://justtuned.com/ava`, verified live, and its "open RSS" claim checked. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. Nothing left to look up. |
-| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 18 consecutive runs). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, **22** consecutive runs; `*.workers.dev` refused identically). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
 
@@ -184,11 +196,19 @@ reach for a copy rewrite or another counter.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-09 00:15 Sydney (2026-08-08 14:15 UTC) |
-| **Run** | 20 — [directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917) · [claim](https://github.com/in-c0/tuned/issues/1#issuecomment-5226424026) |
-| **Repository commit at time of writing** | [`c6def8d`](https://github.com/in-c0/tuned/commit/c6def8d7f4575b65b6c3f8f9deb7a72613e27022) (the merge commit for this change is recorded in the run-20 execution report on issue #1) |
-| **Data commit** | [`a00a8fe`](https://github.com/in-c0/tuned/commit/a00a8fe0da9989cee53ec5800fa0a0f01229fdf9) — `generated_at` 2026-08-08T07:35:20Z. **Unchanged by runs 18–20 on purpose:** the two browser experiments were built not to write into the funnel, and run 20 dispatched nothing at all. |
-| **Freshness state** | **FRESH** for state; the funnel numbers are ~6.7h old and next refresh at the 20:40 UTC scheduled snapshot. That snapshot is also the **pre-publication baseline** EXP-002 will be graded against, so it is worth more than usual. |
+| **Last materially updated** | 2026-08-11 08:25 Sydney (2026-08-10 22:25 UTC) |
+| **Run** | 26 — no reviewer directive; self-selected work, claimed on [issue #1](https://github.com/in-c0/tuned/issues/1) before starting |
+| **Repository commit at time of writing** | [`f46105d`](https://github.com/in-c0/tuned/commit/f46105d78ebf896a17eee67e1920f35aaca25c4a) |
+| **Data commit** | [`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e) — `generated_at` 2026-08-10T22:18:30Z, read via the Worker origin while the zone was challenging. First successful snapshot since 2026-08-09 21:05 UTC. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §4 and this section are current as of run 26. **§3 (milestones), §6 (experiment) and §7 (lessons) were last written at run 20 and are two runs stale** — they predate the edge-challenge incident and L-12/L-13. Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
+
+**What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
+26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
+the owner to publish a post pointing at a URL that was returning 403, and the header claimed the
+repository was private after it had been made public. A mirror that is *sometimes* current is worse
+than one that is honestly labelled stale, because it is read with the same confidence either way. Hence
+the freshness row above now names which sections are current **by section**, not one word for the whole
+file.
 
 **Freshness rule, so a future reader can grade this without trusting it:** this dashboard is stale
 whenever `ops/metrics/latest.json` has a newer `generated_at` than the data commit above, or `STATUS.md`
