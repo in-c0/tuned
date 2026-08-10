@@ -627,3 +627,65 @@ run that quietly rewrote the offer while the owner was asleep would have made EX
 against its own pre-registration.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## Run 25 — 2026-08-11 07:32–08:05 Sydney (2026-08-10 21:32–22:05 UTC) — the edge, not the contract
+
+**Directive:** restore the privacy-safe Actions production read path with the smallest falsifiable
+change; capture safe diagnostics only; determine whether a shared explicit request contract resolves
+the 403; also apply the approved legal-contact swap and cached-untrack `outreach/`
+([21:30 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5246263030)). Claimed at 21:32 UTC.
+
+**The decision that mattered was made before any code: spend one dispatch pointing the browser
+harness at production first.** The directive framed this as a GitHub-Actions-to-Cloudflare access
+regression — reasonable, and every piece of evidence available at 21:30 fit it. But two readers
+failing together is one observation if they share a client and a network path, and both of ours do.
+The cheapest way to tell "our instruments broke" from "the site is dark" was the least-similar client
+we own, and we have had one since run 18.
+
+It answered in 48 seconds: **real Chromium, 403 on `GET /`, both widths.** That is not a CI
+regression. It is a public-availability incident, and it changed the severity, the owner action, and
+— most consequentially — the answer to whether the Show HN post should go out. Publishing into a 403
+would have spent the single attributable channel on a dead link and produced an unreadable
+experiment. That reversal is the run's real output; the code is secondary.
+
+**The hypothesis was still tested rather than assumed dead.** `scripts/prod-http.sh probe` requests
+each path twice, once as a bare curl exactly like the callers that broke and once under the contract,
+so the comparison is controlled instead of argued. All ten probes: 403, `cf-mitigated: challenge`
+([run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722)). The contract does
+nothing. Recorded as falsified, not as "expected".
+
+**The boundary held, and it is worth naming because a workaround existed.** A borrowed browser
+user-agent would plausibly have moved the bot score and produced a green pipeline. It was refused:
+that is evasion of a control the owner enabled, it would have hidden the incident from the dashboard
+built to surface it, and it would have left these requests looking legitimate the next time something
+was genuinely wrong. The contract identifies the caller honestly and is explicit in the file about
+why it stops there.
+
+**Shipped anyway, and why that is not "finding something to ship".** The diagnostics are not an
+attempt at the 403; they are what makes the *next* run cheap — every failing run now prints status,
+content type and Ray ID per path, which is exactly what the owner needs in Security Events. The
+snapshot's failure path no longer echoes response bodies into logs (it printed a challenge page this
+week; on a different failure it would print an authenticated aggregate). And the two approved hygiene
+items were explicitly queued behind "the next run that touches the repo anyway" — this is that run:
+`LEGAL_CONTACT` → `legal@justtuned.com` removes the owner's personal Gmail from the public terms and
+privacy pages, and `outreach/` is ignored and cached-untracked with local files and history intact.
+
+**Deployed without post-deploy verification, stated plainly rather than glossed.** The gates passed
+locally and in CI, but `verify production` cannot confirm what is serving while the edge answers 403,
+so the deploy is **unverified** — not green. It is a one-line string constant plus workflow and
+documentation changes; no schema, route, auth surface or dependency moved, and Workers Builds fails
+closed if the build breaks. Reverting is `git revert` with no data step. Shipping the legal-contact
+swap now rather than holding it behind an unrelated outage was a deliberate call: it is a privacy
+improvement the owner already approved.
+
+**One push notification was sent**, breaking the run-20-to-24 pattern of silence. The owner-interface
+rule suppresses *repeated unchanged* blockers; this is a new public-availability incident with a
+time-sensitive consequence — the standing STATUS card was, until this run, telling the owner to
+publish a post pointing at a URL that 403s. Flagged in STATUS and in the report so the owner can
+overrule the reading.
+
+**Not done, deliberately:** no second attempt at the 403, no WAF or access-policy change, no
+`.wrangler-state` cleanup beyond the ignore entry, no history rewrite, no secret read or rotation, no
+copy/positioning/channel work, no publication, no traction claim.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-09 00:15 Sydney (2026-08-08 14:15 UTC), run 20 · **Head:** [`c6def8d`](https://github.com/in-c0/tuned/commit/c6def8d7f4575b65b6c3f8f9deb7a72613e27022)
+**Last updated:** 2026-08-11 07:55 Sydney (2026-08-10 21:55 UTC), run 25 · **Head:** [`55ece3c`](https://github.com/in-c0/tuned/commit/55ece3c609f000ad4dd2312846501dbd34baf26a)
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -8,22 +8,26 @@
 
 ## OWNER ACTION REQUIRED
 
-### **Publish the Show HN post. It is written, checked and one paste away.**
+### **justtuned.com is answering a Cloudflare challenge to every client we can test, including a real browser. Clear it before anything else.**
 
 | | |
 | --- | --- |
-| **Severity** | **Highest.** It is the only step between the loop and its first known-human traffic, and every other open question is downstream of it. |
-| **Blocked outcome** | EXP-002 cannot start. Without it no arrival is known to be human, so the 0/115 conversion figure stays ungradeable and no demand, pricing or retention experiment below it is readable. |
-| **Why owner authority** | Public posting carries account and reputational authority the executor does not hold — and holds no session for: no Hacker News credential, no cookie, and no network route to the host (`curl` exit 56, CONNECT 403, run 20). Posting on your behalf would be impersonation. |
-| **Exact minimum action** | Open <https://news.ycombinator.com/submit> signed in → paste the title and URL from **[EXP-002-PACKET.md](EXP-002-PACKET.md)** → submit → post the body text as the first comment → paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). Nothing to look up, nothing to fill in, nothing to word. ~3 minutes. |
-| **Success check** | A canonical `https://news.ycombinator.com/item?id=…` URL exists and is recorded in issue #1. Authorization alone does not satisfy it, and the executor will not mark EXP-002 `STARTED` before that URL exists. |
-| **Blocker age** | Opened 2026-08-08 13:56 UTC (23:56 Sydney), when authorization arrived. The packet itself has been ready since run 9 (2026-08-07). |
-| **Last surfaced** | Here, and in the run-20 execution report. Per the owner-interface rule, no private channel was used: **no phone, email or SMS alert was sent.** |
+| **Severity** | **Highest, and it displaced the Show HN paste.** Every path tested returns `403` with `cf-mitigated: challenge` — `/`, `/api/version`, `/api/metrics`, and `/ava/rss.xml`. A real headless Chromium got `403` on `GET /` at **both** 1440×900 and 390×844. |
+| **Blocked outcome** | Anything that is not an interactive browser session is refused: open RSS, agent fetchers, both production readers. Publishing the Show HN post into this state would spend the single attributable channel on a link that 403s — **do not publish until this is cleared.** |
+| **Why owner authority** | The refusal happens at the Cloudflare edge, before the Worker. Changing it means changing zone security settings, which the executor holds no credential for and would not touch uninvited. The one thing that *would* have worked from our side — dressing the requests up as a browser — is evasion of a control you enabled, and is refused on principle, not on capability. |
+| **Exact minimum action** | Cloudflare dashboard → `justtuned.com` → **Security → Events**, filter by any Ray ID below → read which rule fired and what enabled it. Most likely candidates: Bot Fight Mode, a Managed Challenge WAF rule, or Under Attack mode left on. Then either turn it off or scope it so it does not challenge `GET /`, `/ava/*` and `/api/*`. |
+| **Ray IDs (2026-08-10 21:37:06 UTC, colo IAD)** | `/` → `a29223cf1b49492d` · `/api/version` → `a29223cfee915b41` · `/api/metrics` (authenticated) → `a29223d17905ab5c` · `/ava/rss.xml` → `a29223d238415df7`. Browser hit 21:33:30 UTC → `a2921e88dcf2c67f` (`cType: 'managed'`, `cZone: 'justtuned.com'`). |
+| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green and [metrics snapshot](https://github.com/in-c0/tuned/actions/workflows/metrics-snapshot.yml) commits a fresh `ops/metrics/latest.json`. Both self-diagnose now — their logs print status, content type and Ray ID per path. |
+| **Onset** | Between 2026-08-09 21:05 UTC (last successful snapshot, `55ece3c`) and 2026-08-10 20:48 UTC (first failed verify). **No product commit falls in that window** — nothing we shipped caused it. |
+| **Last surfaced** | Here, in the run-25 execution report, and — unlike the unchanged Show HN blocker — **by one push notification**, on the judgement that a new public-availability incident is not the "repeated unchanged blocker" the owner-interface rule suppresses. Correct me if that reading is wrong and I will not repeat it. |
+
+The Show HN action is **not cancelled, only displaced** — it is written, checked and one paste away in
+[EXP-002-PACKET.md](EXP-002-PACKET.md), and it returns to the top of this card the moment the site
+serves 200 again. EXP-002 stays `AUTHORIZED / NOT STARTED`.
 
 The previous entry — `METRICS_KEY` mismatch across the two secret stores — remains **resolved and
-removed**; its success check passed at snapshot run
-[31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587) (HTTP 200, `ops/metrics/latest.json`
-committed at `a00a8fe`).
+removed**. Note that this incident is **not** a recurrence of it: the key still matches, and the 403 is
+served by the edge before the Worker ever evaluates it.
 
 Payment-provider account creation is still **not** listed as an action: it becomes the blocking step
 when there is paid demand to collect, and there is none. One action at a time, and this is the one.
@@ -34,10 +38,15 @@ One screen of current state. Not a diary — the narrative lives in
 
 ## Phase and single active objective
 
-**Phase:** the funnel is readable, and as of run 18 the **apply path is proven to work in
-production**. The constraint is no longer inside the product.
+**Phase: incident.** The funnel was readable and the apply path was proven working in production
+(run 18) — but as of 2026-08-10 nothing can read production at all. An edge challenge sits in front
+of every path, so the funnel, the verifier and the public surfaces are all dark at once.
 
-**Active objective: obtain controlled, known-human traffic.** EXP-003 answered the mechanism
+**Active objective: get production answering non-browser clients again.** The previous objective —
+controlled, known-human traffic — is unchanged in importance and strictly downstream: known-human
+traffic sent at a 403 is worse than none, because it spends the channel and teaches nothing.
+
+**The superseded objective, retained because it resumes unchanged the moment the edge clears:** EXP-003 answered the mechanism
 question — a visitor who arrives *can* apply, at both mobile and desktop widths — so the remaining
 explanations for 0/115 are that the arrivals were never human, or that the offer does not land on
 whoever is arriving. **Neither is decidable from a denominator of UA-classified requests.** Until
@@ -53,7 +62,7 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | healthy | `/` 200, `/api/version` = `5ef6970`, [run 31251251027](https://github.com/in-c0/tuned/actions/runs/31251251027) |
+| Production serving | **UNKNOWN — edge-challenged** | Every path 403 `cf-mitigated: challenge` at [run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722). The Worker itself is not known to be broken; it is not known to be reachable either, and this row will not claim health it cannot read. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | working | `verify-production.yml` polls `/api/version` for the pushed SHA, fails closed |
@@ -68,14 +77,15 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 
 ## Real metrics and revenue
 
-First observed baseline. Source: `ops/metrics/latest.json`, `generated_at` 2026-08-08T07:35:20Z.
-Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 07:35 UTC.
+Source: `ops/metrics/latest.json`, `generated_at` **2026-08-09T21:05:15Z** — the last snapshot that
+could be read before the edge challenge began. Covers **4 UTC days** (2026-08-06 → 2026-08-09).
+**No snapshot has succeeded since**, so these numbers are frozen, not current.
 
 | Stage | Observed | Note |
 | --- | --- | --- |
-| Landing views, human-flagged | **115** (29 / 69 / 17) | UA heuristic — **not** verified human traffic |
-| Landing views, bot-flagged | **42** (15 / 23 / 4) | never merged with the above |
-| Feed views | **7** human-flagged, 5 bot-flagged | 2026-08-06 and 08-07 only |
+| Landing views, human-flagged | **207** (29 / 69 / 56 / 53) | UA heuristic — **not** verified human traffic |
+| Landing views, bot-flagged | **88** (15 / 23 / 43 / 7) | never merged with the above |
+| Feed views | **18** human-flagged, 11 bot-flagged | all four days |
 | **Applications submitted** | **0** | `application_submit` never fired; `waitlist` empty all-time |
 | Member logins | **0** | counter never fired |
 | Desk views | **0** | counter never fired |
@@ -83,13 +93,13 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
 | Members ever active (≥1 active day) | **0 of 1** member | `member_days` is empty |
 | Return use (D1+ / 2+ active days) | **0** | nothing to return from |
 
-- **Landing → application conversion: 0 / 115 = 0.0%.** With zero events in 115 trials the 95%
-  one-sided upper bound is ~2.6%; the true rate could be small-but-positive, but it is **not** high.
+- **Landing → application conversion: 0 / 207 = 0.0%.** With zero events in 207 trials the 95%
+  one-sided upper bound is ~1.4%; the true rate could be small-but-positive, but it is **not** high.
 - All-time content totals, which **predate** instrumentation and are not activity: 79 public items,
   27 queued, 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
 - **Gross cash collected: AUD $0.** Source: *no billing exists*. Not an estimate, not a forecast.
 - **Autonomous spend: AUD $0.00 of $500.**
-- **No traction is claimed.** 115 human-flagged views on a product that has never been posted
+- **No traction is claimed.** 207 human-flagged views on a product that has never been posted
   anywhere is most likely incidental and scanner traffic the UA heuristic did not catch. It is
   evidence that the counters work, **not** evidence of demand.
 
@@ -97,6 +107,7 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
+| 0 | **The Cloudflare edge challenges every request to justtuned.com.** 403 + `cf-mitigated: challenge` on `/`, `/api/version`, `/api/metrics` and `/ava/rss.xml`; a real Chromium is refused on `GET /` at both widths. Falsified this run: an honest, explicitly-identified request contract changes nothing (bare and contract variants both 403, [run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722)). | Owner — zone security settings | AUD $0 | **Open. Top blocker, displacing #1.** See OWNER ACTION REQUIRED. |
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0/115 — the apply path works in production at both widths — so the denominator is the problem. **The authorization half is now resolved** (2026-08-08 13:56 UTC); what remains is the publication itself, which is an authentication boundary: the executor holds no Hacker News session and has no route to the host. | Owner publishes; executor measures | AUD $0 | **Open, still the top blocker — but its shape changed from a decision to a paste.** See OWNER ACTION REQUIRED. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | **EXP-002 is authorized and unpublished.** ~~Needs owner authorization~~ — **received 2026-08-08 13:56 UTC.** Measurement precondition met; no unfilled token; no unverified claim. The packet is now a single canonical file, [EXP-002-PACKET.md](EXP-002-PACKET.md), rather than a comment to scroll for. | Owner publishes | AUD $0 | **Merged into blocker #1** — same paste, same success check. Kept here only so the authorization is on the record as resolved. |
@@ -129,13 +140,18 @@ Covers **3 UTC days** (2026-08-06 → 2026-08-08); the last is partial, ending 0
 
 ## Next action
 
-**Owner:** publish (above). **Executor:** nothing that competes with it. The pre-publication baseline
-is already committed and current — `ops/metrics/latest.json` at `a00a8fe` — so the contrast EXP-002
-grades against exists, and the daily 20:40 UTC snapshot keeps it fresh without a dispatch.
+**Owner:** clear the edge challenge (above). **Executor:** nothing until it clears — and specifically
+not a second attempt at the 403. The one bounded workflow-side attempt was made and falsified this
+run, and the remaining ways to get a 200 out of a managed challenge are disguise, which is off the
+table on principle.
 
-Explicitly **not** a copy or positioning rewrite, and **not** a CTA-reach counter: the mechanism is
-proven, the denominator is about to change, and both would be measuring or persuading crawlers a few
-hours before real arrivals make the same work gradeable.
+When it clears, in order: confirm both readers green, take a fresh aggregate baseline, then hand the
+Show HN paste back to the owner as the top card. The pre-publication baseline for EXP-002 already
+exists at `55ece3c` and is not invalidated by this incident — but the days it spans now include days
+production was unreachable, and that will be stated when EXP-002 is graded rather than discovered
+afterwards.
+
+Explicitly **not** a copy or positioning rewrite, and **not** a CTA-reach counter.
 
 ## Not doing (deliberate holds)
 
