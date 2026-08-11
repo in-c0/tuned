@@ -854,3 +854,65 @@ for these two items and nothing else. No Cloudflare setting was changed by the e
 once" dispatch is held for when the owner confirms the change.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## Run 30 — 2026-08-11 20:05–20:35 Sydney (10:05–10:35 UTC) — clear the standing advisories, because nothing commercial was available to clear
+
+**Directive state: none new.** The [09:30 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5251394556)
+was executed in full by run 29 and its report posted at 09:43 UTC, twenty minutes before this run
+started. No reviewer pass has happened since, and no `item?id=…` URL has been pasted. Every
+commercial path — EXP-002, distribution, activation, billing — remains behind an owner boundary.
+
+**So this run took the action run 29 had already named for exactly this case:** the 6 high `npm audit`
+findings, flagged in that report as *"a clean bounded action for a run with no better claim on it."*
+This run had no better claim on it.
+
+**What the findings actually were.** `sharp`, `undici` and `ws`, reached through **two** vulnerable
+copies of miniflare, not one:
+
+| package | miniflare | in advisory range `3.20250204.0 - 5.20260801.0-alpha`? |
+| --- | --- | --- |
+| `wrangler@4.119.0` | `5.20260801.0-alpha` | yes — exactly at the ceiling |
+| `@cloudflare/vitest-pool-workers@0.8.71` | `4.20250906.0` (plus its own `wrangler@4.35.0`) | yes |
+
+None reaches the deployed Worker. Dev toolchain only, so this is hygiene and was recorded as hygiene
+rather than dressed up as risk reduction.
+
+**The vitest major was not a preference.** The top-level half is a *minor* bump — `wrangler` 4.120.1
+pulls `miniflare@5.20260804.0-alpha`, out of range. The nested half has no cheap fix: every pool
+release shipping a clean miniflare (0.19.0 onward) peers on `vitest ^4.1.0`. That was checked across
+0.19.0 → 0.21.0 rather than assumed, and it holds for all of them, so the vitest 3 → 4 major is
+entailed by the fix regardless of which pool version is chosen. `0.21.0` was picked because it pins
+`wrangler@4.120.1` exactly, collapsing the tree to a **single** wrangler and a **single** miniflare
+instead of carrying two of each.
+
+**Three call sites moved with it**, all consequences of pool 0.21 making the workers pool a Vite
+plugin and dropping the `/config` subpath export. The rename `vitest.config.ts` → `.mts` is the
+non-obvious one: the pool is ESM-only, this package has no `"type": "module"`, so Vite loads a `.ts`
+config through `require` and fails to resolve the import. `.mts` is targeted; `"type": "module"`
+would have reinterpreted every other file in the repo.
+
+**Shipped as [#27](https://github.com/in-c0/tuned/pull/27) → [`92d850e`](https://github.com/in-c0/tuned/commit/92d850e).**
+`npm audit` 6 high → **0**. `npm run check` exit 0 · `npm test` 30 passed on vitest 4.1.10 ·
+`wrangler deploy --dry-run` exit 0 with `env.DB (attention_feed)` resolving · clean-clone
+`npm ci && npm run check` exit 0, which is the run that matters because it is exactly what Workers
+Builds executes.
+
+**Process error worth recording, because it nearly produced a false finding.** The local `master` ref
+was stale at the bootstrap commit `6c63da0` — `git fetch origin master` had updated `origin/master`
+but not the local branch. Branching from `master` therefore cut from a five-day-old base and reverted
+the working tree to it. The audit run against that tree reported a **moderate `hono` advisory**, which
+looked like a production-dependency finding and was not: `6c63da0` declares `hono ^4.6.0`, while real
+master pins `^4.12.34` and is clean. Caught by noticing that the installed tree disagreed with the
+lockfile. **Lesson: `git fetch` does not move the local branch ref; verify `git rev-parse master
+origin/master` agree before branching, and treat "the lockfile disagrees with what npm installed" as
+a signal that the checkout is not what you think it is.**
+
+**Scope.** No `src/` change — the deployed Worker is byte-identical, which is what makes the revert
+clean. No schema, route, auth surface, Cloudflare setting, product, copy, pricing or distribution work.
+No metric moved and none is claimed; the daily snapshot was already taken this morning at `ae37b7e`.
+EXP-002 remains `AUTHORIZED / NOT STARTED` and is unaffected.
+
+**Executor egress, twenty-sixth consecutive run.** `justtuned.com:443` still 403 CONNECT at the proxy.
+All production evidence continues to come from GitHub's network.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

@@ -371,3 +371,35 @@ experience should carry that provenance in the sentence, not just in the reasoni
 path we can test returns 403"* was true and was read by three runs as *"every path returns 403."* The
 words that would have prevented a week of misdirection were already available: **say who was refused,
 not just what.**
+
+## L-15 — `git fetch` does not move the branch you are standing on, and a stale base invents findings
+
+**What happened.** Run 30 ran `git fetch origin master`, watched it report
+`6c63da0..32f8ac2  master -> origin/master`, and read that as "the repo is current." It was current —
+`origin/master` was. The **local** `master` ref was still at `6c63da0`, the bootstrap commit from five
+days earlier, because a fetch updates remote-tracking refs and nothing else. `git rev-parse HEAD
+origin/master` had agreed, which made the tree look right; local `master` was never in that comparison.
+
+Branching with `git checkout -b <new> master` then cut from the five-day-old commit **and reverted the
+working tree to it.** The dependency bump under test was applied to that tree.
+
+**The finding it manufactured.** `npm audit` against the stale base reported a **moderate advisory in
+`hono`** — a *production* runtime dependency, and therefore exactly the kind of result that would have
+outranked the dev-toolchain work and redirected the run. It was an artifact: `6c63da0` declares
+`hono ^4.6.0`, which resolves into the vulnerable range, while real master pins `^4.12.34` and is
+clean. Had it been believed, the run would have shipped a "production security fix" for a
+vulnerability production never had, and the report would have claimed a risk reduction that never
+existed.
+
+**What actually caught it** was not vigilance about git. It was an inconsistency too small to explain
+away: the installed tree disagreed with the lockfile — `npm ci` had produced `wrangler@4.119.0` while
+`git show master:package-lock.json` said `4.114.0`, and `hono@4.12.32` did not satisfy the declared
+`^4.12.34`. A lockfile and its `node_modules` cannot legally disagree. That impossibility was the
+thread; pulling it revealed the checkout was not the commit it was assumed to be.
+
+**The rule.** Before branching, verify the base rather than the fetch: `git rev-parse master
+origin/master` must agree, or branch from `origin/master` explicitly. And treat *any* impossibility in
+tooling output — a lockfile contradicting its install, a declared range excluding the installed
+version — as evidence about your environment before it is evidence about the code. The first
+interpretation of a surprising audit result should be "am I looking at what I think I am looking at,"
+because a wrong base does not fail loudly; it answers a different question fluently.

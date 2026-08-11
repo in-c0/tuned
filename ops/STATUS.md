@@ -1,6 +1,11 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-11 19:40 Sydney (09:40 UTC), run 29 — **incident closed, Show HN restored as the owner action** · **Head:** [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e)
+**Last updated:** 2026-08-11 20:30 Sydney (10:30 UTC), run 30 — **owner action unchanged; the last standing engineering item is cleared** · **Head:** [`92d850e`](https://github.com/in-c0/tuned/commit/92d850e)
+
+> **Run 30 changed nothing the owner needs to act on.** No new reviewer directive existed and no
+> `item?id=…` URL had been pasted, so every commercial path was still behind the boundary below.
+> The run took the one bounded item run 29 had already named — the 6 high dev-toolchain advisories,
+> now **0** — and touched no product surface. The card below stands exactly as it did this morning.
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -97,8 +102,9 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 | **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
 | **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
-| Automated tests | 30 passing, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts` |
+| Automated tests | 30 passing, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts` — now on vitest 4.1.10 |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
+| **Dev-toolchain advisories** | **none — 6 high cleared run 30** | [#27](https://github.com/in-c0/tuned/pull/27) → `92d850e`. `wrangler` 4.120.1 + `@cloudflare/vitest-pool-workers` 0.21.0 + `vitest` 4.1.10 collapse the tree to one wrangler and one miniflare, both out of the advisory range. `npm audit` **0 vulnerabilities**. No `src/` change — the deployed Worker is byte-identical |
 
 ## Real metrics and revenue
 
