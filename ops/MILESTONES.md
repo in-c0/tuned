@@ -1,6 +1,6 @@
 # Tuned — MILESTONES
 
-**Last updated:** 2026-08-08 (run 20 — sub-day ladder re-anchored; EXP-002 authorization recorded). Update when evidence, status,
+**Last updated:** 2026-08-11 (run 29 — 1-week horizon regraded after the Bot Fight Mode incident closed; the six sub-day windows below are **stale, anchored at run 20, and deliberately left ungraded** rather than back-filled). Update when evidence, status,
 timing or strategy changes — not every run. Current state lives in [STATUS.md](STATUS.md); the owner's
 one-screen view is [DASHBOARD.md](DASHBOARD.md); reasoning lives in [DECISIONS.md](DECISIONS.md) and
 [EXPERIMENTS.md](EXPERIMENTS.md).
@@ -134,19 +134,33 @@ the ladder above feeds the 1-week horizon rather than this one.*
 - **Evidence of completion:** ≥3 consecutive daily snapshots in `ops/metrics/`; EXP-001 graded in
   EXPERIMENTS.md against its written threshold (non-zero `landing_view` or `landing_view_bot` on ≥1
   day within 48h of a readable key); if EXP-002 ran, it is graded on its pre-registered bands.
-- **Status:** **active** — unblocked, and **half the outcome is already answered.**
-- **Progress:** EXP-001 graded **PASSED** and closed (run 16). One snapshot committed, covering 3 UTC
-  days; ≥3 *consecutive daily* snapshots still need the 20:40 UTC schedule to run twice more. The
-  constraint question is answered in a direction neither branch of EXP-001 predicted: **not
-  distribution volume and not broken instrumentation, but conversion** — 0 applications from 115
-  human-flagged views (0.0%, 95% upper bound ~2.6%). EXP-002 packet remains pre-registered, unpublished.
-- **Blocker:** **publication.** Owner authorization arrived 2026-08-08 13:56 UTC, and the run-18
-  objection (do not post into a possibly-broken funnel) was retired by EXP-003 proving the apply path
-  works. What is left is a paste into a Hacker News session the executor does not hold.
+- **Status:** **active, and one of its two evidence conditions is now met** — with 4 days left in the
+  window.
+- **Progress:**
+  - **Snapshot condition: MET.** Four daily snapshots now exist in `ops/metrics/` — `2026-08-08`,
+    `2026-08-09`, `2026-08-10`, `2026-08-11` — clearing the "≥3 consecutive" bar. The 08-11 snapshot
+    ([`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e)) is the first since the incident read
+    through the **public zone** rather than the Worker origin.
+  - **EXP-001: PASSED and closed** (run 16).
+  - **Constraint question: answered, in a direction neither branch of EXP-001 predicted** — not
+    distribution volume and not broken instrumentation, but **conversion**: 0 applications from 333
+    human-flagged views (0.0%, 95% one-sided upper bound ~0.9%).
+  - **EXP-002: still pre-registered and unpublished.** This is the half that is not met.
+  - **Cost of the incident, recorded rather than smoothed over:** 2026-08-10 and 08-11 arrival counts
+    are censored — challenged requests never reached the Worker and were never counted.
+- **Blocker:** **publication.** Owner authorization arrived 2026-08-08 13:56 UTC; the run-18 objection
+  (do not post into a possibly-broken funnel) was retired by EXP-003; and the Bot Fight Mode objection
+  (do not point HN at a zone that challenges RSS readers) was retired **2026-08-11** when the toggle
+  came off. All three objections are now spent. What is left is a paste into a Hacker News session the
+  executor does not hold.
+- **Risk to the window:** if the paste does not happen by **2026-08-13**, EXP-002's 48-hour clock
+  cannot close inside this horizon and the milestone will be graded **missed on its second condition**
+  — stated in advance so the grade is not negotiated afterwards.
 - **Next action:** owner publishes from [EXP-002-PACKET.md](EXP-002-PACKET.md); executor grades EXP-002
-  on its pre-registered bands at window close, against the `a00a8fe` baseline.
-- **Last evidence-linked update:** 2026-08-08 — EXP-001 passed and closed on run
-  [31246496587](https://github.com/in-c0/tuned/actions/runs/31246496587).
+  on its pre-registered bands at window close, against the `55ece3c` baseline plus `ae37b7e`.
+- **Last evidence-linked update:** 2026-08-11 — snapshot condition met at
+  [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e); zone verified serving on
+  [run 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880).
 
 ## 2 weeks — by 2026-08-22
 

@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-11 14:55 Sydney (04:55 UTC), run 28 · **Head:** [`d9b7d4f`](https://github.com/in-c0/tuned/commit/d9b7d4f2ec649e22ce645c3c16bbd9377ca753f4)
+**Last updated:** 2026-08-11 19:40 Sydney (09:40 UTC), run 29 — **incident closed, Show HN restored as the owner action** · **Head:** [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e)
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -8,43 +8,46 @@
 
 ## OWNER ACTION REQUIRED
 
-### **Bot Fight Mode is on for `justtuned.com`. Turn it off — it challenges agent fetchers and RSS readers, which are the product.**
+### **Publish the Show HN. It is written, checked, and one paste away in [EXP-002-PACKET.md](EXP-002-PACKET.md).**
 
-**Corrected in run 28, from firewall data the owner supplied.** Runs 25–27 recorded this as
-*"the public cannot reach Tuned."* **That was overstated**, and the correction matters more than the
-outage: what Bot Fight Mode actually stopped was Tuned's own instruments, its own QA browser, and
-datacenter vulnerability scanners. No request from a residential or consumer ISP was challenged in
-24 hours. Evidence and its limits:
-[2026-08-10-cloudflare-firewall-bot-fight-mode.md](evidence/2026-08-10-cloudflare-firewall-bot-fight-mode.md).
+**Bot Fight Mode is off and the zone is serving.** The blocker that displaced this action for three
+runs is resolved — verified twice from GitHub's network, 4½ hours apart, from two Cloudflare colos,
+by both a plain `curl` and the named first-party contract. `/ava/rss.xml` returns 200 to a
+non-browser client again, which is the fact that mattered. Evidence in the resolved entry below. The
+paste returns to the top of this card exactly as promised.
 
 | | |
 | --- | --- |
-| **The rule, no longer a guess** | `ruleId: bot_fight_mode`, `source: botFight`, `rulesetId: ""` — the zone toggle under **Security → Bots**. Not a WAF custom rule, not a managed ruleset, not Under Attack mode. All seven rays the loop recorded across three colos carry it. |
-| **Severity** | **High, but not the outage we called it.** 323 challenges in 24h: **322 from Microsoft AS8075 (Azure — GitHub Actions), 1 from Alibaba.** By user-agent: 187 blank (PHP scanner probes), 78 `tuned-ops-verifier` (**ours**), 52 `curl/8.5.0` (**ours**), 5 HeadlessChrome (**ours**), 1 other. A human clicking the link was probably always fine. |
-| **The real blocked outcome, and it is permanent, not an incident** | **`/ava/rss.xml` was challenged 12 times.** Bot Fight Mode challenges *every* non-browser client, and non-browser clients **are Tuned's product** — agent fetchers and open RSS on every feed. Hosted readers (Feedly, Inoreader, NewsBlur) fetch from datacenters and will be challenged exactly as our verifier was. This is a standing conflict with the doctrine, not a one-off. |
-| **What it means for Show HN** | The risk is **not** that the link 403s for HN readers — it likely does not. It is that the packet's sentence *"every feed has open RSS"* breaks for precisely the audience most likely to test it with a hosted reader. That argues for leaving bot protection off permanently rather than toggling it for the launch. |
-| **Why owner authority** | It is a zone security setting; the executor holds no Cloudflare credential and would not touch it uninvited. The one thing that would have worked from our side — dressing our requests up as a browser — is evasion of a control you enabled, and is refused on principle, not capability. |
-| **Exact minimum action** | Cloudflare → `justtuned.com` → **Security → Bots** → turn **Bot Fight Mode** off. If you want to keep something on, **Super Bot Fight Mode** is the one to use — it can allow verified bots and be scoped by path. Plain Bot Fight Mode cannot be scoped at all, which is the root of this. |
-| **Leave alone** | Your custom rule *"Block PHP/WordPress/.env scanner probes"* (82 blocks of `xmlrpc.php`, `.env`, `.git/config`) and the managed `CVE-2025-55182` rule are doing real work and are **not** implicated. |
-| **Worker health — settled, skip the manual check** | The Worker is fine. Run 26 read it on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`. **No redeploy or rollback helps** — reverting would only put your personal Gmail back on the public legal pages. |
-| **A second decision while you are in there** | The Worker answers on `attention-feed.wldud5192.workers.dev` with **none of the zone's protections in front of it** — that route is how runs 26–27 verified anything. Normal Cloudflare behaviour, not a break-in. `workers_dev: false` in `wrangler.jsonc` closes it. **Not changed unilaterally:** it is currently the loop's only production vantage point. |
-| **Ray IDs** | LAX `a2925e55ea742973` · SJC `a2924f531a38e16d` · IAD `a29223cf1b49492d`, `a29223cfee915b41`, `a29223d17905ab5c`, `a29223d238415df7`. **Correction:** `a2921e88dcf2c67f` was recorded here as the browser hit; the export shows it is `/api/version` from `curl/8.5.0`. The real browser rays are `a2921e953bfc77a8`, `a2921e952bd177a8`, `a2921e9cdb6b78ff`, `a2921ea13f718acf`, `a2921ea12f3e8acf`. |
-| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, the only one still failing. Both readers self-diagnose: their logs print status, content type and Ray ID per path, zone and origin side by side. |
-| **Onset** | First challenge **2026-08-10 06:53 UTC** — narrower than the previous 2026-08-09 21:05 → 2026-08-10 20:48 window, though not proof of the toggle's flip, since no Bot-Fight-eligible traffic is recorded in the preceding 100 minutes. **No product commit falls in the window** — nothing we shipped caused it. |
-| **Current state** | **STILL ON**, settled 2026-08-11 04:59:48 UTC — no longer an inference from the export's quiet tail. The push of [`932bf2c`](https://github.com/in-c0/tuned/commit/932bf2c0be718e2b448fa454e5cb8a0d62732d26) fired [verify production 31460181703](https://github.com/in-c0/tuned/actions/runs/31460181703): steps 3–8 green from the Worker origin, **Public availability failed** — `justtuned.com/api/version` → `HTTP 403`, **fresh ray `a294ab4b3e742668-LAX`**. Use that ray rather than yesterday's; it is ~19 hours newer and proves the toggle survived the night. |
-| **Last surfaced** | One push notification 2026-08-10 21:53 UTC; restated in the run-26/27 reports without re-notifying. Diagnosis delivered by the owner in-session 2026-08-11 ~04:40 UTC. |
+| **Severity** | **Top blocker, and now the only one.** Applications remain **0** across every day the loop has measured, against 333 UA-flagged human-shaped landing views since 2026-08-06. Nothing in the funnel can be graded while the denominator is crawler traffic and referral-less direct hits. |
+| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. Its 48-hour clock has never started and **will not start until a canonical `news.ycombinator.com/item?id=…` URL exists** — authorization is not publication, and treating it as such would produce a graded-looking experiment that never ran. |
+| **Why owner authority** | The executor holds no Hacker News session and has no route to the host. Posting in your name would be impersonation, which is a standing stop condition — this is a boundary, not a capability gap. |
+| **Exact minimum action** | Open [EXP-002-PACKET.md](EXP-002-PACKET.md); paste the title, the URL and the first comment into Show HN as written; then paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). Nothing else is required of you. |
+| **Why the packet is safe to paste now** | Its public claims were checked against live production by EXP-004 (run 19), and the one claim the incident put at risk — *"every feed has open RSS"* — is the exact thing re-verified green this run: `/ava/rss.xml` → `200 application/rss+xml`, 18,562 bytes, to bare `curl`. |
+| **Success check** | A canonical HN item URL appears in issue #1. That URL starts EXP-002's 48-hour clock; the executor grades it on its pre-registered bands against the `55ece3c` pre-publication baseline, now supplemented by the fresh baseline at [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e). |
+| **Blocker age** | Authorized **2026-08-08 13:56 UTC** — unpublished for 3 days, two of which were consumed by the Bot Fight Mode incident rather than by the decision. |
+| **Honest caveat to carry into grading** | The baseline window now spans days when the zone challenged every non-browser client. That will be stated when EXP-002 is graded, rather than discovered afterwards. |
+| **Last surfaced** | Run 25 report; one push notification 2026-08-10 21:53 UTC (about the incident, not this). This card was displaced, not withdrawn, in runs 25–28. |
 
-The Show HN action is **not cancelled, only displaced** — it is written, checked and one paste away in
-[EXP-002-PACKET.md](EXP-002-PACKET.md), and it returns to the top of this card the moment the toggle
-is off and `verify production` is green. EXP-002 stays `AUTHORIZED / NOT STARTED`.
+**Resolved and kept on the record: Bot Fight Mode.** Closed **2026-08-11**, by the owner, between
+04:59:48 and 05:06:18 UTC. Two independent readings settle it, and neither is an inference:
 
-**One thing run 28 does not license.** The severity correction says the *humans* were probably fine;
-it does **not** say publish now. The packet's RSS claim is still exposed while Bot Fight Mode is on,
-and the loop still has no confirmation of the zone's current state. Both close with the same toggle.
+| Reading | Time (UTC) | Vantage | Result |
+| --- | --- | --- | --- |
+| [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) | 05:06:19–05:07:02 | `vantage=public`, ray `a294b5e62f7b1039-IAD` | `/` 200 · `/api/version` 200 · `/api/metrics` **401** unauthenticated · `/terms` + `/privacy` 200 with `legal@justtuned.com` · `/ava/rss.xml` **200** `application/rss+xml` · **Public availability step skipped** because the zone was no longer blocked |
+| [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) | 09:33:53–09:33:57 | `vantage=public`, ray `a2963de05b50e51c-DFW` | same five paths green from a second colo · authenticated `/api/metrics` 200 · `zone_blocked=false` |
 
-The previous entry — `METRICS_KEY` mismatch across the two secret stores — remains **resolved and
-removed**. Note that this incident is **not** a recurrence of it: the key still matches, and the 403 is
-served by the edge before the Worker ever evaluates it.
+**`cf-mitigated` was empty on every row of both probe tables, and the `bare` variant — plain
+`curl/8.x`, the client that was being challenged — now passes identically to the named contract.**
+That is the signature of the toggle being off rather than of a client that learned to look
+acceptable. The executor changed no Cloudflare setting, sent no disguised request, and dispatched no
+`verify production` run: the 05:06 evidence was a byproduct of shipping [`1c3fe86`](https://github.com/in-c0/tuned/commit/1c3fe867f2a83903cf4bdeb9b3b3c12b1efbb519),
+and the 09:33 evidence a byproduct of taking the baseline.
+
+The custom *"Block PHP/WordPress/.env scanner probes"* rule and the managed `CVE-2025-55182` rule were
+never implicated and remain untouched. The standing recommendation from run 28 stands: if bot
+protection returns, use rate limiting or **Super Bot Fight Mode with path exemptions** for `GET /`,
+`/ava/*`, `/*/rss.xml` and `/api/*` — plain Bot Fight Mode cannot be scoped at all, which is what
+caused this.
 
 Payment-provider account creation is still **not** listed as an action: it becomes the blocking step
 when there is paid demand to collect, and there is none. One action at a time, and this is the one.
@@ -55,17 +58,18 @@ One screen of current state. Not a diary — the narrative lives in
 
 ## Phase and single active objective
 
-**Phase: incident, downgraded in run 28 — from "production is dark" to "production is closed to
-machines."** Bot Fight Mode challenges every non-browser client, so the funnel readers, the verifier
-and the **agent/RSS surfaces** went dark together; interactive human browsers most likely did not.
-That is a narrower incident and a wider product problem, because non-browser clients are what Tuned
-is for.
+**Phase: incident CLOSED 2026-08-11.** It ran from 2026-08-10 06:53 UTC to some point between
+04:59:48 and 05:06:18 UTC on 2026-08-11 — roughly 22 hours, of which the last three runs were spent
+correctly standing down rather than working around a control the owner had enabled. Both production
+readers are green through the public zone from two colos. What it cost: two days of ungradeable
+arrival counters, and one day where the loop believed the site was dark for everyone when it was
+in fact dark only to machines.
 
-**Active objective: get production answering non-browser clients again** — unchanged in wording,
-sharpened in meaning. It is not "restore the site"; the site was probably up for people the whole
-time. It is "stop challenging the clients the doctrine is built on." The previous objective —
-controlled, known-human traffic — remains strictly downstream, now for one reason rather than two:
-not because arrivals would hit a 403, but because the packet's open-RSS claim breaks under the toggle.
+**Active objective, restored: get one cohort of controlled, known-human traffic in front of the
+landing page, and find out whether anybody applies.** This was the objective before the incident
+displaced it, and nothing learned since has weakened it — 0 applications against 333 human-flagged
+views is still the finding that governs everything downstream. It is now blocked on exactly one
+thing, and that thing is a paste.
 
 **The superseded objective, retained because it resumes unchanged the moment the edge clears:** EXP-003 answered the mechanism
 question — a visitor who arrives *can* apply, at both mobile and desktop widths — so the remaining
@@ -83,7 +87,7 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | **Worker healthy · zone closed to non-browser clients** — two separate facts, and the second one is narrower than run 26 recorded it | Run 26 read the Worker directly on its `workers.dev` origin from Actions ([run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360)): `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. The **zone** answered `403 cf-ray a2925e55ea742973-LAX` in the same job. Run 28's firewall evidence names the cause — **Bot Fight Mode** — and shows every challenge went to a datacenter client, none to a consumer ISP. So the code is fine, **people could probably still use Tuned, and machines could not** — which for this product is the half that matters. The job stays red on exactly that. |
+| Production serving | **Green through the public zone**, from two colos, 4½ hours apart | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | **restored, and exercised for real** | `verify-production.yml` polls `/api/version` for the pushed SHA and fails closed. When the zone will not answer it reads identity and health from the Worker's `workers.dev` origin, then grades public availability **separately** — a step that failed [run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360) while every other check in it passed. That is the intended shape: a green run still means the public can use Tuned |
@@ -138,11 +142,11 @@ zone would not answer; the counters are D1 state and are unaffected by which rou
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 0 | **Bot Fight Mode challenges every non-browser request to justtuned.com** — named from owner-supplied firewall data in run 28 (`ruleId: bot_fight_mode`), no longer inferred. 403 + `cf-mitigated: challenge` on `/`, `/api/version`, `/api/metrics` and `/ava/rss.xml`. **Restated severity:** all 323 challenges in 24h hit datacenter clients (322 Azure/Actions, 1 Alibaba) and none hit a consumer ISP, so this closed Tuned to *machines* — including the agent fetchers and RSS readers the product exists for — rather than to people. Falsified earlier: an honest, explicitly-identified request contract changes nothing ([run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722)). | Owner — Security → Bots toggle | AUD $0 | **Open. Top blocker, displacing #1.** See OWNER ACTION REQUIRED. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0/115 — the apply path works in production at both widths — so the denominator is the problem. **The authorization half is now resolved** (2026-08-08 13:56 UTC); what remains is the publication itself, which is an authentication boundary: the executor holds no Hacker News session and has no route to the host. | Owner publishes; executor measures | AUD $0 | **Open, still the top blocker — but its shape changed from a decision to a paste.** See OWNER ACTION REQUIRED. |
+| 0 | ~~**Bot Fight Mode challenges every non-browser request to justtuned.com.**~~ **RESOLVED 2026-08-11** by the owner, between 04:59:48 and 05:06:18 UTC. Two independent post-change readings from two colos show the zone serving to bare `curl` with `cf-mitigated` empty — including `/ava/rss.xml` at 200 `application/rss+xml`. Kept as row 0 for one run so the resolution is on the record next to the claim; drops off next run. | — | AUD $0 | **Closed.** |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. The authorization half resolved 2026-08-08 13:56 UTC; what remains is the publication itself, an authentication boundary: the executor holds no Hacker News session and has no route to the host. **The incident that displaced this is closed, so it is once again the top blocker and once again a paste.** | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See OWNER ACTION REQUIRED. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | **EXP-002 is authorized and unpublished.** ~~Needs owner authorization~~ — **received 2026-08-08 13:56 UTC.** Measurement precondition met; no unfilled token; no unverified claim. The packet is now a single canonical file, [EXP-002-PACKET.md](EXP-002-PACKET.md), rather than a comment to scroll for. | Owner publishes | AUD $0 | **Merged into blocker #1** — same paste, same success check. Kept here only so the authorization is on the record as resolved. |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **24 consecutive runs**. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **25 consecutive runs**. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 ## Current experiment
 
@@ -171,18 +175,16 @@ zone would not answer; the counters are D1 state and are unaffected by which rou
 
 ## Next action
 
-**Owner:** clear the edge challenge (above). **Executor:** nothing until it clears — and specifically
-not a second attempt at the 403. The one bounded workflow-side attempt was made and falsified this
-run, and the remaining ways to get a 200 out of a managed challenge are disguise, which is off the
-table on principle.
+**Owner:** publish the Show HN from [EXP-002-PACKET.md](EXP-002-PACKET.md) and paste the resulting
+`item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). That is the whole action.
 
-When it clears, in order: confirm both readers green, take a fresh aggregate baseline, then hand the
-Show HN paste back to the owner as the top card. The pre-publication baseline for EXP-002 already
-exists at `55ece3c` and is not invalidated by this incident — but the days it spans now include days
-production was unreachable, and that will be stated when EXP-002 is graded rather than discovered
-afterwards.
+**Executor:** nothing further until that URL exists. On the run after it appears: start EXP-002's
+48-hour clock from the publication timestamp, hold the daily snapshots, and grade on the
+pre-registered bands against `55ece3c` plus the fresh baseline at `ae37b7e` — stating plainly that
+the baseline window includes two days when the zone challenged non-browser clients.
 
-Explicitly **not** a copy or positioning rewrite, and **not** a CTA-reach counter.
+Explicitly **not** a copy or positioning rewrite, **not** a CTA-reach counter, and **not** a second
+distribution channel invented to fill the wait.
 
 ## Not doing (deliberate holds)
 
