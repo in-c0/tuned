@@ -1,4 +1,4 @@
-/// <reference types="@cloudflare/vitest-pool-workers" />
+/// <reference types="@cloudflare/vitest-pool-workers/types" />
 
 // `env` from cloudflare:test carries the bindings declared in wrangler.jsonc (DB),
 // plus the METRICS_KEY the test config supplies.
