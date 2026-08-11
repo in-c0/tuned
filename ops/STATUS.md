@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-11 08:20 Sydney (2026-08-10 22:20 UTC), run 26 · **Head:** [`f46105d`](https://github.com/in-c0/tuned/commit/f46105d78ebf896a17eee67e1920f35aaca25c4a)
+**Last updated:** 2026-08-11 14:55 Sydney (04:55 UTC), run 28 · **Head:** [`d9b7d4f`](https://github.com/in-c0/tuned/commit/d9b7d4f2ec649e22ce645c3c16bbd9377ca753f4)
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -8,24 +8,39 @@
 
 ## OWNER ACTION REQUIRED
 
-### **justtuned.com is answering a Cloudflare challenge to every client we can test, including a real browser. Clear it before anything else.**
+### **Bot Fight Mode is on for `justtuned.com`. Turn it off — it challenges agent fetchers and RSS readers, which are the product.**
+
+**Corrected in run 28, from firewall data the owner supplied.** Runs 25–27 recorded this as
+*"the public cannot reach Tuned."* **That was overstated**, and the correction matters more than the
+outage: what Bot Fight Mode actually stopped was Tuned's own instruments, its own QA browser, and
+datacenter vulnerability scanners. No request from a residential or consumer ISP was challenged in
+24 hours. Evidence and its limits:
+[2026-08-10-cloudflare-firewall-bot-fight-mode.md](evidence/2026-08-10-cloudflare-firewall-bot-fight-mode.md).
 
 | | |
 | --- | --- |
-| **Severity** | **Highest, and it displaced the Show HN paste.** Every path tested returns `403` with `cf-mitigated: challenge` — `/`, `/api/version`, `/api/metrics`, and `/ava/rss.xml`. A real headless Chromium got `403` on `GET /` at **both** 1440×900 and 390×844. |
-| **Blocked outcome** | Anything that is not an interactive browser session is refused: open RSS, agent fetchers, both production readers. Publishing the Show HN post into this state would spend the single attributable channel on a link that 403s — **do not publish until this is cleared.** |
-| **Why owner authority** | The refusal happens at the Cloudflare edge, before the Worker. Changing it means changing zone security settings, which the executor holds no credential for and would not touch uninvited. The one thing that *would* have worked from our side — dressing the requests up as a browser — is evasion of a control you enabled, and is refused on principle, not on capability. |
-| **Confirmed this run — you can skip the manual check** | Run 25 asked you to open the `workers.dev` URL yourself to find out whether the Worker was healthy. **Done, from Actions: it is.** `f46105d` is live and correct there — landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200 carrying `legal@justtuned.com`. So **this is purely zone configuration. No redeploy will fix it, and no rollback is warranted** — reverting would only put your personal Gmail back on the public pages. |
-| **A second thing worth knowing while you are in there** | The Worker answers the public on `attention-feed.wldud5192.workers.dev` **with none of the zone's protections in front of it** — that route is how this run verified anything at all. Whatever rule is challenging `justtuned.com` is not applied there. That is normal Cloudflare behaviour, not a break-in, and it is the reason the fallback was available. But if the challenge was switched on deliberately, the bypass is worth a decision: `workers_dev: false` in `wrangler.jsonc` closes it. **Not changed unilaterally** — it is also the only production vantage point the loop currently has, so closing it while the zone is down would leave Tuned unverifiable. |
-| **Exact minimum action** | Cloudflare dashboard → `justtuned.com` → **Security → Events**, filter by any Ray ID below → read which rule fired and what enabled it. Most likely candidates: Bot Fight Mode, a Managed Challenge WAF rule, or Under Attack mode left on. Then either turn it off or scope it so it does not challenge `GET /`, `/ava/*` and `/api/*`. |
-| **Ray IDs** | 2026-08-10 21:37:06 UTC, colo **IAD**: `/` → `a29223cf1b49492d` · `/api/version` → `a29223cfee915b41` · `/api/metrics` (authenticated) → `a29223d17905ab5c` · `/ava/rss.xml` → `a29223d238415df7`. Browser hit 21:33:30 UTC → `a2921e88dcf2c67f` (`cType: 'managed'`, `cZone: 'justtuned.com'`). **Run 26 adds two more colos** — 22:06:48 UTC **SJC** `a2924f531a38e16d`, 22:17:45 UTC **LAX** `a2925e55ea742973` — so this is zone-wide, not one edge location having a bad day. Any of them will find the rule. |
-| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — which now means specifically that its **Public availability** step stops failing, since every other check in it already passes from the origin. Both readers self-diagnose: their logs print status, content type and Ray ID per path, for the zone and the origin side by side. |
-| **Onset** | Between 2026-08-09 21:05 UTC (last successful snapshot, `55ece3c`) and 2026-08-10 20:48 UTC (first failed verify). **No product commit falls in that window** — nothing we shipped caused it. |
-| **Last surfaced** | Here, in the run-25 execution report, and — unlike the unchanged Show HN blocker — **by one push notification**, on the judgement that a new public-availability incident is not the "repeated unchanged blocker" the owner-interface rule suppresses. Correct me if that reading is wrong and I will not repeat it. |
+| **The rule, no longer a guess** | `ruleId: bot_fight_mode`, `source: botFight`, `rulesetId: ""` — the zone toggle under **Security → Bots**. Not a WAF custom rule, not a managed ruleset, not Under Attack mode. All seven rays the loop recorded across three colos carry it. |
+| **Severity** | **High, but not the outage we called it.** 323 challenges in 24h: **322 from Microsoft AS8075 (Azure — GitHub Actions), 1 from Alibaba.** By user-agent: 187 blank (PHP scanner probes), 78 `tuned-ops-verifier` (**ours**), 52 `curl/8.5.0` (**ours**), 5 HeadlessChrome (**ours**), 1 other. A human clicking the link was probably always fine. |
+| **The real blocked outcome, and it is permanent, not an incident** | **`/ava/rss.xml` was challenged 12 times.** Bot Fight Mode challenges *every* non-browser client, and non-browser clients **are Tuned's product** — agent fetchers and open RSS on every feed. Hosted readers (Feedly, Inoreader, NewsBlur) fetch from datacenters and will be challenged exactly as our verifier was. This is a standing conflict with the doctrine, not a one-off. |
+| **What it means for Show HN** | The risk is **not** that the link 403s for HN readers — it likely does not. It is that the packet's sentence *"every feed has open RSS"* breaks for precisely the audience most likely to test it with a hosted reader. That argues for leaving bot protection off permanently rather than toggling it for the launch. |
+| **Why owner authority** | It is a zone security setting; the executor holds no Cloudflare credential and would not touch it uninvited. The one thing that would have worked from our side — dressing our requests up as a browser — is evasion of a control you enabled, and is refused on principle, not capability. |
+| **Exact minimum action** | Cloudflare → `justtuned.com` → **Security → Bots** → turn **Bot Fight Mode** off. If you want to keep something on, **Super Bot Fight Mode** is the one to use — it can allow verified bots and be scoped by path. Plain Bot Fight Mode cannot be scoped at all, which is the root of this. |
+| **Leave alone** | Your custom rule *"Block PHP/WordPress/.env scanner probes"* (82 blocks of `xmlrpc.php`, `.env`, `.git/config`) and the managed `CVE-2025-55182` rule are doing real work and are **not** implicated. |
+| **Worker health — settled, skip the manual check** | The Worker is fine. Run 26 read it on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`. **No redeploy or rollback helps** — reverting would only put your personal Gmail back on the public legal pages. |
+| **A second decision while you are in there** | The Worker answers on `attention-feed.wldud5192.workers.dev` with **none of the zone's protections in front of it** — that route is how runs 26–27 verified anything. Normal Cloudflare behaviour, not a break-in. `workers_dev: false` in `wrangler.jsonc` closes it. **Not changed unilaterally:** it is currently the loop's only production vantage point. |
+| **Ray IDs** | LAX `a2925e55ea742973` · SJC `a2924f531a38e16d` · IAD `a29223cf1b49492d`, `a29223cfee915b41`, `a29223d17905ab5c`, `a29223d238415df7`. **Correction:** `a2921e88dcf2c67f` was recorded here as the browser hit; the export shows it is `/api/version` from `curl/8.5.0`. The real browser rays are `a2921e953bfc77a8`, `a2921e952bd177a8`, `a2921e9cdb6b78ff`, `a2921ea13f718acf`, `a2921ea12f3e8acf`. |
+| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, the only one still failing. Both readers self-diagnose: their logs print status, content type and Ray ID per path, zone and origin side by side. |
+| **Onset** | First challenge **2026-08-10 06:53 UTC** — narrower than the previous 2026-08-09 21:05 → 2026-08-10 20:48 window, though not proof of the toggle's flip, since no Bot-Fight-eligible traffic is recorded in the preceding 100 minutes. **No product commit falls in the window** — nothing we shipped caused it. |
+| **Current state** | **Undetermined.** The export's last challenge is 2026-08-10 23:55 UTC and it runs to 02:26 UTC, but everything after 23:55 is scanner traffic caught by the custom rule, which evaluates *before* Bot Fight Mode — so the quiet tail is not evidence the toggle is off. Only a fresh request settles it. |
+| **Last surfaced** | One push notification 2026-08-10 21:53 UTC; restated in the run-26/27 reports without re-notifying. Diagnosis delivered by the owner in-session 2026-08-11 ~04:40 UTC. |
 
 The Show HN action is **not cancelled, only displaced** — it is written, checked and one paste away in
-[EXP-002-PACKET.md](EXP-002-PACKET.md), and it returns to the top of this card the moment the site
-serves 200 again. EXP-002 stays `AUTHORIZED / NOT STARTED`.
+[EXP-002-PACKET.md](EXP-002-PACKET.md), and it returns to the top of this card the moment the toggle
+is off and `verify production` is green. EXP-002 stays `AUTHORIZED / NOT STARTED`.
+
+**One thing run 28 does not license.** The severity correction says the *humans* were probably fine;
+it does **not** say publish now. The packet's RSS claim is still exposed while Bot Fight Mode is on,
+and the loop still has no confirmation of the zone's current state. Both close with the same toggle.
 
 The previous entry — `METRICS_KEY` mismatch across the two secret stores — remains **resolved and
 removed**. Note that this incident is **not** a recurrence of it: the key still matches, and the 403 is
@@ -40,13 +55,17 @@ One screen of current state. Not a diary — the narrative lives in
 
 ## Phase and single active objective
 
-**Phase: incident.** The funnel was readable and the apply path was proven working in production
-(run 18) — but as of 2026-08-10 nothing can read production at all. An edge challenge sits in front
-of every path, so the funnel, the verifier and the public surfaces are all dark at once.
+**Phase: incident, downgraded in run 28 — from "production is dark" to "production is closed to
+machines."** Bot Fight Mode challenges every non-browser client, so the funnel readers, the verifier
+and the **agent/RSS surfaces** went dark together; interactive human browsers most likely did not.
+That is a narrower incident and a wider product problem, because non-browser clients are what Tuned
+is for.
 
-**Active objective: get production answering non-browser clients again.** The previous objective —
-controlled, known-human traffic — is unchanged in importance and strictly downstream: known-human
-traffic sent at a 403 is worse than none, because it spends the channel and teaches nothing.
+**Active objective: get production answering non-browser clients again** — unchanged in wording,
+sharpened in meaning. It is not "restore the site"; the site was probably up for people the whole
+time. It is "stop challenging the clients the doctrine is built on." The previous objective —
+controlled, known-human traffic — remains strictly downstream, now for one reason rather than two:
+not because arrivals would hit a 403, but because the packet's open-RSS claim breaks under the toggle.
 
 **The superseded objective, retained because it resumes unchanged the moment the edge clears:** EXP-003 answered the mechanism
 question — a visitor who arrives *can* apply, at both mobile and desktop widths — so the remaining
@@ -64,7 +83,7 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | **Worker healthy · zone DOWN** — no longer one unknown, but two separate facts | Run 26 read the Worker directly on its `workers.dev` origin from Actions ([run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360)): `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. The **zone** answered `403 cf-ray a2925e55ea742973-LAX` in the same job. The code is fine; the edge in front of it is not, so **the public still cannot reach Tuned** and the job is red on exactly that. |
+| Production serving | **Worker healthy · zone closed to non-browser clients** — two separate facts, and the second one is narrower than run 26 recorded it | Run 26 read the Worker directly on its `workers.dev` origin from Actions ([run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360)): `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. The **zone** answered `403 cf-ray a2925e55ea742973-LAX` in the same job. Run 28's firewall evidence names the cause — **Bot Fight Mode** — and shows every challenge went to a datacenter client, none to a consumer ISP. So the code is fine, **people could probably still use Tuned, and machines could not** — which for this product is the half that matters. The job stays red on exactly that. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | **restored, and exercised for real** | `verify-production.yml` polls `/api/version` for the pushed SHA and fails closed. When the zone will not answer it reads identity and health from the Worker's `workers.dev` origin, then grades public availability **separately** — a step that failed [run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360) while every other check in it passed. That is the intended shape: a green run still means the public can use Tuned |
@@ -119,11 +138,11 @@ zone would not answer; the counters are D1 state and are unaffected by which rou
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 0 | **The Cloudflare edge challenges every request to justtuned.com.** 403 + `cf-mitigated: challenge` on `/`, `/api/version`, `/api/metrics` and `/ava/rss.xml`; a real Chromium is refused on `GET /` at both widths. Falsified this run: an honest, explicitly-identified request contract changes nothing (bare and contract variants both 403, [run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722)). | Owner — zone security settings | AUD $0 | **Open. Top blocker, displacing #1.** See OWNER ACTION REQUIRED. |
+| 0 | **Bot Fight Mode challenges every non-browser request to justtuned.com** — named from owner-supplied firewall data in run 28 (`ruleId: bot_fight_mode`), no longer inferred. 403 + `cf-mitigated: challenge` on `/`, `/api/version`, `/api/metrics` and `/ava/rss.xml`. **Restated severity:** all 323 challenges in 24h hit datacenter clients (322 Azure/Actions, 1 Alibaba) and none hit a consumer ISP, so this closed Tuned to *machines* — including the agent fetchers and RSS readers the product exists for — rather than to people. Falsified earlier: an honest, explicitly-identified request contract changes nothing ([run 31434666722](https://github.com/in-c0/tuned/actions/runs/31434666722)). | Owner — Security → Bots toggle | AUD $0 | **Open. Top blocker, displacing #1.** See OWNER ACTION REQUIRED. |
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0/115 — the apply path works in production at both widths — so the denominator is the problem. **The authorization half is now resolved** (2026-08-08 13:56 UTC); what remains is the publication itself, which is an authentication boundary: the executor holds no Hacker News session and has no route to the host. | Owner publishes; executor measures | AUD $0 | **Open, still the top blocker — but its shape changed from a decision to a paste.** See OWNER ACTION REQUIRED. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | **EXP-002 is authorized and unpublished.** ~~Needs owner authorization~~ — **received 2026-08-08 13:56 UTC.** Measurement precondition met; no unfilled token; no unverified claim. The packet is now a single canonical file, [EXP-002-PACKET.md](EXP-002-PACKET.md), rather than a comment to scroll for. | Owner publishes | AUD $0 | **Merged into blocker #1** — same paste, same success check. Kept here only so the authorization is on the record as resolved. |
-| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, 18 consecutive runs). Mitigated, not fixed: GitHub Actions is the production read path — and it now demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **24 consecutive runs**. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 ## Current experiment
 

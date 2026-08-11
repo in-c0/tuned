@@ -22,22 +22,26 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **justtuned.com is answering a Cloudflare challenge to every client. Clear it before anything else.**
+### **Bot Fight Mode is on for `justtuned.com`. Turn it off — it challenges agent fetchers and RSS readers, which are the product.**
 
-**This section said "Publish the Show HN post" until run 26, and following it would have spent the one
-attributable channel on a link that 403s.** STATUS was corrected in run 25; this mirror was not. That is
-the failure mode the mirror rule exists to catch, and it is recorded in §8 rather than quietly fixed.
+**Runs 25–27 called this "the public cannot reach Tuned." Run 28 corrected that from firewall data the
+owner supplied**, and the correction matters more than the outage: Bot Fight Mode stopped Tuned's own
+instruments, its own QA browser and datacenter scanners — not people. Evidence and its limits:
+[2026-08-10-cloudflare-firewall-bot-fight-mode.md](evidence/2026-08-10-cloudflare-firewall-bot-fight-mode.md).
 
 | | |
 | --- | --- |
-| **Severity** | **Highest.** Every path on the zone returns `403 cf-mitigated: challenge`, including a real headless Chromium on `GET /`. |
-| **Blocked outcome** | Open RSS, agent fetchers and every non-browser client are refused. The public cannot use Tuned. |
-| **Why owner authority** | The refusal is at the Cloudflare edge, before the Worker — a zone security setting the executor holds no credential for. |
-| **Exact minimum action** | Cloudflare → `justtuned.com` → **Security → Events**, filter Ray ID `a2925e55ea742973` (or `a2924f531a38e16d`, `a29223cf1b49492d`) → read which rule fired → turn it off or scope it away from `GET /`, `/ava/*`, `/api/*`. |
-| **Confirmed, so you can skip a step** | The **Worker is healthy** — run 26 read it directly on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. This is purely zone configuration; **no redeploy or rollback will help.** |
-| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, which is the only one still failing. |
-| **Blocker age** | Onset between 2026-08-09 21:05 UTC and 2026-08-10 20:48 UTC. No product commit falls in that window. |
-| **Last surfaced** | [STATUS.md](STATUS.md), the run-25 report, and one push notification at 2026-08-10 21:53 UTC. **Not re-notified in run 26** — the action is unchanged, and contract rule 6 says escalate once. |
+| **The rule, no longer a guess** | `ruleId: bot_fight_mode`, `source: botFight`, empty `rulesetId` — the zone toggle under **Security → Bots**. Not a WAF rule, not Under Attack mode. |
+| **Severity** | **High, but not an outage for humans.** 323 challenges in 24h: 322 from Microsoft AS8075 (Azure/GitHub Actions), 1 Alibaba, **zero from a consumer ISP**. 135 of them were our own verifier, curl and QA browser; 187 were PHP scanner probes. |
+| **The real blocked outcome — permanent, not incidental** | **`/ava/rss.xml` was challenged 12 times.** Bot Fight Mode challenges every non-browser client, and non-browser clients **are the product**: agent fetchers and open RSS on every feed. Hosted readers (Feedly, Inoreader) fetch from datacenters and will be challenged identically. |
+| **What it means for Show HN** | Not that the link 403s for HN readers — it likely does not. That the packet's *"every feed has open RSS"* breaks for the audience most likely to test it. Leave bot protection off permanently rather than toggling it for the launch. |
+| **Why owner authority** | A zone security setting; the executor holds no Cloudflare credential and would not touch it uninvited. |
+| **Exact minimum action** | Cloudflare → `justtuned.com` → **Security → Bots** → turn **Bot Fight Mode** off. If you want protection, use **Super Bot Fight Mode**, which can allow verified bots and be scoped by path; plain Bot Fight Mode cannot be scoped at all. |
+| **Leave alone** | The custom *"Block PHP/WordPress/.env scanner probes"* rule (82 blocks) and the managed `CVE-2025-55182` rule are working and **not** implicated. |
+| **Confirmed, so you can skip a step** | The **Worker is healthy** — run 26 read it on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. **No redeploy or rollback will help.** |
+| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, the only one still failing. |
+| **Blocker age** | First challenge 2026-08-10 06:53 UTC; **current state undetermined** — the export's quiet tail after 23:55 UTC is scanner traffic caught by the custom rule, which evaluates before Bot Fight Mode, so it proves nothing. No product commit falls in the window. |
+| **Last surfaced** | [STATUS.md](STATUS.md), the run-25 report, one push notification 2026-08-10 21:53 UTC. **Not re-notified in runs 26–28** — the required action is unchanged and contract rule 6 says escalate once. |
 
 **The Show HN paste is displaced, not cancelled.** It is written and checked in
 [EXP-002-PACKET.md](EXP-002-PACKET.md) and returns to the top of this card the moment the zone serves
@@ -196,11 +200,11 @@ reach for a copy rewrite or another counter.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-11 08:25 Sydney (2026-08-10 22:25 UTC) |
-| **Run** | 26 — no reviewer directive; self-selected work, claimed on [issue #1](https://github.com/in-c0/tuned/issues/1) before starting |
-| **Repository commit at time of writing** | [`f46105d`](https://github.com/in-c0/tuned/commit/f46105d78ebf896a17eee67e1920f35aaca25c4a) |
-| **Data commit** | [`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e) — `generated_at` 2026-08-10T22:18:30Z, read via the Worker origin while the zone was challenging. First successful snapshot since 2026-08-09 21:05 UTC. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §4 and this section are current as of run 26. **§3 (milestones), §6 (experiment) and §7 (lessons) were last written at run 20 and are two runs stale** — they predate the edge-challenge incident and L-12/L-13. Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
+| **Last materially updated** | 2026-08-11 14:55 Sydney (04:55 UTC) |
+| **Run** | 28 — standing directive was inspect-and-stand-down; the owner then supplied firewall evidence in-session and explicitly authorized these two documentation changes |
+| **Repository commit at time of writing** | [`d9b7d4f`](https://github.com/in-c0/tuned/commit/d9b7d4f2ec649e22ce645c3c16bbd9377ca753f4) |
+| **Data commit** | [`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e) — `generated_at` 2026-08-10T22:18:30Z, read via the Worker origin while the zone was challenging. First successful snapshot since 2026-08-09 21:05 UTC, and **still the latest**: no snapshot has run since. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1 and this section are current as of run 28; §4 as of run 26. **§3 (milestones), §6 (experiment) and §7 (lessons) were last written at run 20** — they predate the Bot Fight Mode incident and L-12/L-13/L-14. Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
