@@ -40,7 +40,7 @@ instruments, its own QA browser and datacenter scanners — not people. Evidence
 | **Leave alone** | The custom *"Block PHP/WordPress/.env scanner probes"* rule (82 blocks) and the managed `CVE-2025-55182` rule are working and **not** implicated. |
 | **Confirmed, so you can skip a step** | The **Worker is healthy** — run 26 read it on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. **No redeploy or rollback will help.** |
 | **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, the only one still failing. |
-| **Blocker age** | First challenge 2026-08-10 06:53 UTC; **current state undetermined** — the export's quiet tail after 23:55 UTC is scanner traffic caught by the custom rule, which evaluates before Bot Fight Mode, so it proves nothing. No product commit falls in the window. |
+| **Blocker age** | First challenge 2026-08-10 06:53 UTC; **confirmed still on 2026-08-11 04:59:48 UTC** — [verify production 31460181703](https://github.com/in-c0/tuned/actions/runs/31460181703) got `HTTP 403`, fresh ray `a294ab4b3e742668-LAX`. Use that ray. No product commit falls in the window. |
 | **Last surfaced** | [STATUS.md](STATUS.md), the run-25 report, one push notification 2026-08-10 21:53 UTC. **Not re-notified in runs 26–28** — the required action is unchanged and contract rule 6 says escalate once. |
 
 **The Show HN paste is displaced, not cancelled.** It is written and checked in
