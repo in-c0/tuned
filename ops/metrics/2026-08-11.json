@@ -1,21 +1,26 @@
 {
-    "generated_at": "2026-08-11T09:33:57.909Z",
+    "generated_at": "2026-08-11T21:26:16.889Z",
     "note": "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     "daily": [
         {
             "day": "2026-08-11",
+            "name": "feed_view",
+            "count": 15
+        },
+        {
+            "day": "2026-08-11",
             "name": "feed_view_bot",
-            "count": 11
+            "count": 28
         },
         {
             "day": "2026-08-11",
             "name": "landing_view",
-            "count": 39
+            "count": 69
         },
         {
             "day": "2026-08-11",
             "name": "landing_view_bot",
-            "count": 11
+            "count": 24
         },
         {
             "day": "2026-08-10",
