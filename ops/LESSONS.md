@@ -335,3 +335,39 @@ outage — the outage at least announced itself.
 
 **Prevention check.** After any incident: *what capability did this quietly remove, and is it
 recoverable from a vantage point I already own — without changing what a pass means?*
+
+## L-14 — A defence that filters by "is this a bot" filters out whatever your product is made of
+
+**What happened.** Cloudflare Bot Fight Mode was switched on for `justtuned.com` around 2026-08-10
+06:53 UTC. The loop spent three runs (25, 26, 27) treating it as a public-availability outage —
+*"the public still cannot reach Tuned"* — escalated it as the top blocker, displaced the Show HN
+paste behind it, and pushed the owner about it once. When the owner supplied the firewall export,
+323 challenges in 24 hours resolved to: 322 from Azure (GitHub Actions), 1 from Alibaba, **none from
+a consumer ISP**. 135 of the 323 were Tuned's own verifier, `curl` and QA browser challenging
+themselves. The humans were probably never affected.
+
+**The first mistake was reading a control's *intent* off its *effect on us*.** Every client the loop
+owns runs in a datacenter, so every client the loop owns was challenged, so the loop concluded
+everything was challenged. The instruments were a biased sample of exactly the population the rule
+targeted, and nothing in the evidence chain flagged that — "a real headless Chromium got 403" reads
+like a statement about browsers and was actually a statement about Azure IP ranges.
+
+**The second mistake is the one worth carrying forward, because it points the other way.** While the
+severity was overstated, the *importance* was understated. `/ava/rss.xml` was challenged 12 times, and
+open RSS plus agent fetchers are not a peripheral integration for Tuned — they are the doctrine made
+concrete. Hosted feed readers and agent fetchers originate from datacenter IPs, so a bot filter cannot
+distinguish a subscriber's Feedly from a scanner. Bot Fight Mode did not degrade the product; **it
+deleted the product's primary surface while leaving the marketing site apparently fine.** The
+dashboard-visible symptom and the commercially important symptom were different symptoms.
+
+**The rule.** Before treating any traffic filter as neutral hardening, ask what fraction of *intended*
+users it classifies as the thing being blocked. For a product whose users are programs, "block
+non-browsers" is not a security setting, it is a product removal. And when a control appears to break
+everything, check whether "everything" is just everything you happen to own — the population your
+instruments sample is rarely the population your users belong to.
+
+**Corollary, for severity claims specifically.** A severity that was inferred from your own tooling's
+experience should carry that provenance in the sentence, not just in the reasoning behind it. *"Every
+path we can test returns 403"* was true and was read by three runs as *"every path returns 403."* The
+words that would have prevented a week of misdirection were already available: **say who was refused,
+not just what.**

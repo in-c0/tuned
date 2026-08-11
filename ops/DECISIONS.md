@@ -786,3 +786,71 @@ confidence as one that always is, which is what made this harmful rather than un
 **No push notification this run.** Run 25 sent one at 21:53 UTC about this same blocker; the owner
 action is unchanged, and contract rule 6 says escalate once then stand down until state changes. The
 Worker-is-healthy finding sharpens the diagnosis but does not change what the owner must do.
+
+## 2026-08-11 — run 28: the challenge is named, the severity was wrong, and bot protection is now a standing product constraint
+
+**Trigger.** The owner supplied two Cloudflare firewall exports in-session (~04:40 UTC / 14:40 Sydney):
+a 24-hour bulk export for the zone, and the single event for Ray `a2925e55ea742973` — the exact ray
+run 26's `verify production` failed on. Both are summarized, with their limits, in
+[evidence/2026-08-10-cloudflare-firewall-bot-fight-mode.md](evidence/2026-08-10-cloudflare-firewall-bot-fight-mode.md).
+The raw exports are **not** committed: they carry third-party client IPs and the repository is public.
+
+**Finding 1 — the rule is Bot Fight Mode.** `ruleId: bot_fight_mode`, `source: botFight`, empty
+`rulesetId`: the zone toggle under Security → Bots, not a WAF custom rule, not a managed ruleset, not
+Under Attack mode. Those were the three other candidates STATUS.md had carried since run 25. All seven
+rays the loop recorded across three colos carry it. The owner action narrowed from *"read Security →
+Events and find out which rule fired"* to *"turn off one toggle."*
+
+**Finding 2 — we had overstated the severity for three runs, and the correction is the more valuable
+half.** STATUS.md said *"the public still cannot reach Tuned."* The export does not support it: of 323
+challenges in 24 hours, **322 came from Microsoft AS8075 (Azure — GitHub Actions) and 1 from Alibaba;
+none came from a consumer ISP.** By user-agent, 187 were blank-UA PHP scanner probes and 135 were
+Tuned's own instruments — `tuned-ops-verifier` (78), `curl/8.5.0` (52), our QA HeadlessChrome (5).
+Run 25's "a real browser was refused" was a real browser *on an Azure runner*, which is precisely what
+Bot Fight Mode exists to challenge. **Decision: correct STATUS.md and DASHBOARD.md rather than leave a
+severity claim standing that our own evidence contradicts.** The limit is stated in both places and in
+the evidence file — firewall events log only requests that matched a rule, so this cannot prove humans
+were unaffected; it establishes that nothing Bot Fight Mode stopped looked like a person.
+
+**Finding 3, and the reason this outlives the incident — bot protection is structurally hostile to
+Tuned's doctrine.** `/ava/rss.xml` was challenged 12 times. Bot Fight Mode challenges *every*
+non-browser client, and non-browser clients are the product: agents fetch feeds over HTTP and every
+feed carries open RSS. Hosted readers and agent fetchers originate from datacenter IPs — the same
+traffic class as our verifier. **Decision: record this as a standing constraint in NORTH_STAR.md**, so
+no future run treats "turn on bot protection" as neutral hardening. Any protection must be Super Bot
+Fight Mode or a scoped WAF rule exempting `GET /`, `/ava/*`, `/*/rss.xml` and `/api/*`; plain Bot Fight
+Mode cannot be scoped at all. The existing custom PHP/WordPress/`.env` rule (82 blocks in the window)
+is the right shape and stays.
+
+**Consequence for EXP-002, and it cuts the other way from the severity correction.** The Show HN
+packet claims *"every feed has open RSS."* That claim is **false while any unscoped bot challenge is
+on** — and false specifically for HN readers testing it with a hosted feed reader, the most likely
+audience to try. So the correction does **not** license publishing sooner: it replaces "don't publish,
+the link 403s" with "don't publish, the RSS promise breaks." Same toggle closes both. EXP-002 remains
+`AUTHORIZED / NOT STARTED`.
+
+**Correction to our own record.** STATUS.md attributed ray `a2921e88dcf2c67f` to run 25's browser probe
+of `GET /`. The export shows it is `/api/version` from `curl/8.5.0`. The real browser rays are
+`a2921e953bfc77a8`, `a2921e952bd177a8`, `a2921e9cdb6b78ff`, `a2921ea13f718acf`, `a2921ea12f3e8acf`
+(five `GET /` from HeadlessChrome/140 at 21:33:32–34Z). Fixed. It changed no conclusion, but a Ray ID
+recorded against the wrong request is the kind of error that makes a later diagnosis unreproducible.
+
+**Onset narrowed, current state still unknown.** First challenge in the export is 2026-08-10T06:53:02Z,
+against a prior window of 2026-08-09 21:05Z → 2026-08-10 20:48Z. Recorded as suggestive rather than
+proven: no Bot-Fight-eligible traffic appears in the preceding 100 minutes. The export's quiet tail
+after 23:55Z is **not** evidence the toggle is off — everything after it is scanner traffic caught by
+the custom rule, which evaluates *before* Bot Fight Mode.
+
+**Executor egress, twenty-fourth consecutive run.** `/__agentproxy/status` was queried rather than
+`curl` alone: `connect_rejected`, *"gateway answered 403 to CONNECT"*, `justtuned.com:443`. The denial
+is upstream gateway policy, not local misconfiguration — nothing to fix on our side, and the 2026-08-06
+allowlist widening is still not in effect for this session. Recorded, not routed around.
+
+**Scope.** Documentation only — no `src/`, schema, workflow, dependency or auth surface touched. These
+mutations were made under explicit owner authorization in-session, which supersedes the standing
+"zero mutations" clause of the [2026-08-11 03:35 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5248686665)
+for these two items and nothing else. No Cloudflare setting was changed by the executor. No dispatch of
+`verify production` — the toggle is still on as far as anyone can prove, so the directive's "exactly
+once" dispatch is held for when the owner confirms the change.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
