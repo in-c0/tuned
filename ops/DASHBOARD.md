@@ -22,30 +22,34 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **Bot Fight Mode is on for `justtuned.com`. Turn it off — it challenges agent fetchers and RSS readers, which are the product.**
+### **Publish the Show HN. It is one paste, from [EXP-002-PACKET.md](EXP-002-PACKET.md).**
 
-**Runs 25–27 called this "the public cannot reach Tuned." Run 28 corrected that from firewall data the
-owner supplied**, and the correction matters more than the outage: Bot Fight Mode stopped Tuned's own
-instruments, its own QA browser and datacenter scanners — not people. Evidence and its limits:
-[2026-08-10-cloudflare-firewall-bot-fight-mode.md](evidence/2026-08-10-cloudflare-firewall-bot-fight-mode.md).
+**Bot Fight Mode is off — the incident is closed.** Verified twice from GitHub's network, 4½ hours
+apart, from two Cloudflare colos, by both a plain `curl` and the named first-party contract.
+`/ava/rss.xml` answers 200 to a non-browser client again. The paste returns to the top of this card
+exactly as run 28 promised it would.
 
 | | |
 | --- | --- |
-| **The rule, no longer a guess** | `ruleId: bot_fight_mode`, `source: botFight`, empty `rulesetId` — the zone toggle under **Security → Bots**. Not a WAF rule, not Under Attack mode. |
-| **Severity** | **High, but not an outage for humans.** 323 challenges in 24h: 322 from Microsoft AS8075 (Azure/GitHub Actions), 1 Alibaba, **zero from a consumer ISP**. 135 of them were our own verifier, curl and QA browser; 187 were PHP scanner probes. |
-| **The real blocked outcome — permanent, not incidental** | **`/ava/rss.xml` was challenged 12 times.** Bot Fight Mode challenges every non-browser client, and non-browser clients **are the product**: agent fetchers and open RSS on every feed. Hosted readers (Feedly, Inoreader) fetch from datacenters and will be challenged identically. |
-| **What it means for Show HN** | Not that the link 403s for HN readers — it likely does not. That the packet's *"every feed has open RSS"* breaks for the audience most likely to test it. Leave bot protection off permanently rather than toggling it for the launch. |
-| **Why owner authority** | A zone security setting; the executor holds no Cloudflare credential and would not touch it uninvited. |
-| **Exact minimum action** | Cloudflare → `justtuned.com` → **Security → Bots** → turn **Bot Fight Mode** off. If you want protection, use **Super Bot Fight Mode**, which can allow verified bots and be scoped by path; plain Bot Fight Mode cannot be scoped at all. |
-| **Leave alone** | The custom *"Block PHP/WordPress/.env scanner probes"* rule (82 blocks) and the managed `CVE-2025-55182` rule are working and **not** implicated. |
-| **Confirmed, so you can skip a step** | The **Worker is healthy** — run 26 read it on its `workers.dev` origin: `f46105d` live, landing 200, `/api/metrics` 401, `/terms` and `/privacy` 200. **No redeploy or rollback will help.** |
-| **Success check** | [verify production](https://github.com/in-c0/tuned/actions/workflows/verify-production.yml) goes green — specifically its **Public availability** step, the only one still failing. |
-| **Blocker age** | First challenge 2026-08-10 06:53 UTC; **confirmed still on 2026-08-11 04:59:48 UTC** — [verify production 31460181703](https://github.com/in-c0/tuned/actions/runs/31460181703) got `HTTP 403`, fresh ray `a294ab4b3e742668-LAX`. Use that ray. No product commit falls in the window. |
-| **Last surfaced** | [STATUS.md](STATUS.md), the run-25 report, one push notification 2026-08-10 21:53 UTC. **Not re-notified in runs 26–28** — the required action is unchanged and contract rule 6 says escalate once. |
+| **Severity** | **Top blocker, and now the only one.** **0 applications** against **333** human-flagged landing views over 6 days. Nothing downstream is gradeable until some known-human traffic arrives. |
+| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. Its 48-hour clock has never started and will not start until a canonical `news.ycombinator.com/item?id=…` URL exists. Authorization is not publication. |
+| **Why owner authority** | The executor holds no Hacker News session. Posting in your name would be impersonation — a standing stop condition, not a capability gap. |
+| **Exact minimum action** | Paste the title, URL and first comment from [EXP-002-PACKET.md](EXP-002-PACKET.md) into Show HN as written, then paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). |
+| **Why it is safe to paste now** | The packet's public claims were checked against live production by EXP-004. The one claim the incident put at risk — *"every feed has open RSS"* — is the exact thing re-verified green this run. |
+| **Success check** | A canonical HN item URL in issue #1. It starts the 48-hour clock; the executor grades on the pre-registered bands. |
+| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; unpublished 3 days, two of them consumed by the incident. |
+| **Last surfaced** | Run 25 report; displaced but never withdrawn in runs 25–28. |
 
-**The Show HN paste is displaced, not cancelled.** It is written and checked in
-[EXP-002-PACKET.md](EXP-002-PACKET.md) and returns to the top of this card the moment the zone serves
-200. EXP-002 stays `AUTHORIZED / NOT STARTED`.
+**Resolved, kept visible for one run: Bot Fight Mode.** Closed by the owner on **2026-08-11** between
+04:59:48 and 05:06:18 UTC. [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014)
+(05:06 UTC, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880)
+(09:33 UTC, ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `/`, `/api/version`,
+`/terms`, `/privacy` and `/ava/rss.xml` all 200, unauthenticated `/api/metrics` 401, `cf-mitigated`
+empty on every row, and the **bare `curl` variant passing identically to the named contract** — the
+signature of the toggle being off, not of a client that learned to look acceptable. The custom
+PHP/`.env` scanner rule and the managed `CVE-2025-55182` rule were never implicated and are untouched.
+If bot protection returns, use rate limiting or Super Bot Fight Mode with path exemptions for `GET /`,
+`/ava/*`, `/*/rss.xml`, `/api/*`.
 
 **Still deliberately *not* listed:** payment-provider account creation. It becomes the blocking step
 when there is paid demand to collect. There is none — see [§4](#4-funnel-revenue-and-spend). One
@@ -60,14 +64,16 @@ only with explicit owner authorization.
 
 ## 2. Current phase and single objective
 
-**Phase:** the funnel is readable, and as of run 18 the **apply path is proven to work in
-production**. The constraint is no longer inside the product.
+**Phase:** incident **closed** 2026-08-11 (~22 hours, 2026-08-10 06:53 → 2026-08-11 ~05:00 UTC). The
+funnel is readable again through the public zone, and as of run 18 the **apply path is proven to work
+in production**. The constraint is not inside the product.
 
 **Single active objective: obtain controlled, known-human traffic.** EXP-003 killed the mechanism
 explanation for 0/115 — a real browser applied successfully at both mobile and desktop widths. What
 remains is that **no arrival is known to be human**, and with an unknown denominator no conversion
-figure is gradeable. **The channel is now authorized** (2026-08-08 13:56 UTC), so the binding step
-moved from *decide* to *publish* — see [§1](#1-owner-action-required).
+figure is gradeable. **The channel is authorized** (2026-08-08 13:56 UTC) and the incident that
+displaced it is closed, so the binding step is once again a single paste — see
+[§1](#1-owner-action-required).
 
 **Explicitly not doing** (full list in [STATUS.md](STATUS.md)): no pricing/positioning/copy work
 while the denominator is unknown; no CTA-reach counter yet — right instrument, wrong traffic; no
@@ -112,36 +118,36 @@ whether the apply path works at all.
 ## 4. Funnel, revenue and spend
 
 Source: [`ops/metrics/latest.json`](metrics/latest.json) at
-[`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e), `generated_at` 2026-08-10T22:18:30Z.
-Covers **5 UTC days** (2026-08-06 → 08-10). Read through the Worker's origin because the zone would not
-answer — the counters are D1 state, unaffected by the route. Full reading and caveats in
+[`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e), `generated_at` 2026-08-11T09:33:57Z.
+Covers **6 UTC days** (2026-08-06 → 08-11, the last partial). **Read through the public zone** — the
+first snapshot since 2026-08-09 not taken via the Worker origin. Full reading and caveats in
 [METRICS.md](METRICS.md).
 
 | Stage | Observed | Note |
 | --- | --- | --- |
-| Landing views, human-flagged | **285** (29 / 69 / 56 / 56 / 75) | UA heuristic — **not** verified human traffic |
-| Landing views, bot-flagged | **103** (15 / 23 / 43 / 7 / 15) | never merged with the above |
-| Feed views | **32** human-flagged, 20 bot-flagged | all five days |
+| Landing views, human-flagged | **333** (29 / 69 / 56 / 56 / 84 / 39) | UA heuristic — **not** verified human traffic |
+| Landing views, bot-flagged | **117** (15 / 23 / 43 / 7 / 18 / 11) | never merged with the above |
+| Feed views | **32** human-flagged, **31** bot-flagged | 08-11 is 0 human-flagged against 11 bot-flagged |
 | **Applications submitted** | **0** | `application_submit` has never fired |
 | Member logins · desk views | **0** · **0** | counters have never fired |
 | Attention actions since instrumentation | **0** | `attention_star` / `attention_skip` never fired |
 | Members ever active | **0 of 1** | `member_days` is empty |
 | Return use (D1+, 2+ active days) | **0** | nothing to return from |
 
-- **Landing → application: 0 / 285 = 0.0%.** 95% one-sided upper bound ~1.1% (was ~2.6% at n=115).
+- **Landing → application: 0 / 333 = 0.0%.** 95% one-sided upper bound ~0.9% (was ~1.1% at n=285).
   The bound tightens; the estimate does not move. Do not treat "0%" as a measured constant.
-- **08-10 is the highest day (75) and supports no conclusion.** Nothing has been published anywhere, so
-  the arrivals are still most plausibly crawlers — and the zone began refusing clients partway through
-  that same UTC day, so the day is **truncated**: blocked requests never reach the Worker and are never
-  counted. Possibly inflated and definitely censored, in one number.
+- **08-10 revised upward, 75 → 84.** The previous reading was taken at 22:18 UTC, before the UTC day
+  closed. It is not new traffic and not a trend — it is the same day, finished.
+- **The 08-10 and 08-11 arrival counts remain censored, not merely noisy.** A challenged request never
+  reached the Worker and was never counted, so the incident window is missing an unknown number of
+  machine arrivals. This is stated, not estimated.
 - **Gross cash collected: AUD $0.** Source: *no billing exists*. Not an estimate, not a forecast.
 - **Autonomous spend: AUD $0.00 of the AUD $500 cap.** Running total in [DECISIONS.md](DECISIONS.md).
-- **No traction is claimed.** 285 UA-flagged views on a product with no distribution proves **the
+- **No traction is claimed.** 333 UA-flagged views on a product with no distribution proves **the
   counters work**, not that demand exists.
 - All-time content totals **predate instrumentation and are inventory, not activity**: 79 public items,
-  **42** queued (27 at the last reading — the `*/30` cron ingested straight through the outage, which is
-  independent evidence the Worker never stopped), 5 feeds (1 human / 4 agent), 8 stars, 33 skips,
-  1 member, 0 followers, 1 connection.
+  42 queued, 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
+  Unchanged from the last reading.
 - **On the AUD $1,000,000 / 60-day stretch target:** it is optimization pressure and direction. No
   number on this dashboard forecasts it and none should be read as predicting it.
 
@@ -149,8 +155,8 @@ answer — the counters are D1 state, unaffected by the route. Full reading and 
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 0 | **The Cloudflare edge challenges every client of `justtuned.com`.** `403 cf-mitigated: challenge` on `/`, `/api/version`, `/api/metrics` and `/ava/rss.xml`, across three colos (IAD, SJC, LAX), and a real Chromium refused on `GET /` at both widths. The Worker behind it is **healthy** — verified on its `workers.dev` origin in run 26 — so this is zone configuration, not code. | Owner — zone security settings | AUD $0 | **Open. Top blocker, displacing #1.** See §1. |
-| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is no longer explainable by a broken form — the denominator is the problem. **285** UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is ungradeable. | Owner authorizes a channel; executor measures | AUD $0 | **Open, and now queued behind #0** — a channel cannot be spent while the destination 403s. |
+| 0 | ~~**The Cloudflare edge challenges every client of `justtuned.com`.**~~ **RESOLVED 2026-08-11** — Bot Fight Mode off; two post-change readings from two colos show the zone serving to bare `curl`, `/ava/rss.xml` included, `cf-mitigated` empty. Kept for one run beside the claim it retires. | — | AUD $0 | **Closed.** |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **333** UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is ungradeable. **No longer queued behind #0.** | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See §1. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
 | 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met; the "do not publish into a possibly-broken funnel" objection **retired** by run 18; and as of run 19 the packet is **complete** — `[DEMO_FEED_URL]` = `https://justtuned.com/ava`, verified live, and its "open RSS" claim checked. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. Nothing left to look up. |
 | 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, **22** consecutive runs; `*.workers.dev` refused identically). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
@@ -200,11 +206,11 @@ reach for a copy rewrite or another counter.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-11 14:55 Sydney (04:55 UTC) |
-| **Run** | 28 — standing directive was inspect-and-stand-down; the owner then supplied firewall evidence in-session and explicitly authorized these two documentation changes |
-| **Repository commit at time of writing** | [`d9b7d4f`](https://github.com/in-c0/tuned/commit/d9b7d4f2ec649e22ce645c3c16bbd9377ca753f4) |
-| **Data commit** | [`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e) — `generated_at` 2026-08-10T22:18:30Z, read via the Worker origin while the zone was challenging. First successful snapshot since 2026-08-09 21:05 UTC, and **still the latest**: no snapshot has run since. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1 and this section are current as of run 28; §4 as of run 26. **§3 (milestones), §6 (experiment) and §7 (lessons) were last written at run 20** — they predate the Bot Fight Mode incident and L-12/L-13/L-14. Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
+| **Last materially updated** | 2026-08-11 19:40 Sydney (09:40 UTC) |
+| **Run** | 29 — the stand-down directive's *cleared* branch: the inspection found the toggle off, so the run took the baseline and resynchronized rather than terminating silently |
+| **Repository commit at time of writing** | [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e) |
+| **Data commit** | [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e) — `generated_at` 2026-08-11T09:33:57Z, **read through the public zone**, the first snapshot since the incident not taken via the Worker origin. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §2, §4, §5 and this section are current as of run 29. **§3 (milestones), §6 (experiment) and §7 (lessons) were last written at run 20** — §3 is partially refreshed this run (1-week horizon only). Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
