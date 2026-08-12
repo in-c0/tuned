@@ -916,3 +916,59 @@ EXP-002 remains `AUTHORIZED / NOT STARTED` and is unaffected.
 All production evidence continues to come from GitHub's network.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+---
+
+## Run 31 — 2026-08-13 07:38–07:55 Sydney (2026-08-12 21:38–21:55 UTC) — apply a grade the loop wrote down in advance
+
+**Directive.** One bounded state reconciliation: consume snapshot
+[`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), mark the 1-week milestone missed on its
+second condition exactly as precommitted, refresh snapshot freshness/counts, blocker age and
+status/dashboard consistency — then reinstate the silent URL gate.
+
+**Gate checked first, as required.** [Issue #1](https://github.com/in-c0/tuned/issues/1) contains no
+canonical `news.ycombinator.com/item?id=<digits>` URL. The most recent comment is the directive
+itself. This run therefore executes the reconciliation branch and nothing else.
+
+**Decision: the 1-week horizon is graded MISSED on its publication condition, and the grade is
+applied verbatim from the precommitment rather than re-argued.** On 2026-08-11 that horizon recorded:
+*if the paste does not happen by 2026-08-13, EXP-002's 48-hour clock cannot close inside this horizon
+and the milestone will be graded missed on its second condition — stated in advance so the grade is
+not negotiated afterwards.* It is 2026-08-13 in Sydney and the paste has not happened. Grading it now
+costs nothing and is the entire value of having written it down; grading it later, or softening it,
+would retroactively make the precommitment decorative.
+
+**What was deliberately not changed.** The 2026-08-15 deadline, both evidence thresholds, and every
+EXP-002 band stay exactly where they were. **EXP-002 remains `AUTHORIZED / NOT STARTED`** — a missed
+milestone is a fact about the calendar, not a failed experiment, and collapsing the two would
+manufacture a graded-looking result from an experiment that never ran. The owner action card is
+unchanged in substance: same ask, same packet, same success check. No product, copy, billing, channel,
+workflow or spend change was made, and no new experiment was opened.
+
+**Condition 1 re-confirmed while there:** five daily snapshots now exist (`2026-08-08` through
+`2026-08-12`), well past the "≥3 consecutive" bar.
+
+**Counts reconciled to `567dad0`** (`generated_at` 2026-08-12T21:24:27Z, 7 UTC days, 08-12 partial):
+431 UA-heuristic human landing views, 140 bot, 62 / 58 feed views, **0 applications**, 0 active
+members, AUD $0 cash. Landing → application 0/431, 95% one-sided upper bound ~0.7%. Production green
+on [verify production 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) at
+2026-08-12 21:03 UTC through the public zone, `zone_blocked=false`.
+
+**One thing found that was not looked for, and is recorded rather than acted on.** `items_public` has
+been **79 on every committed snapshot from 08-08 to 08-12**, and `items_queued` has been flat at 42
+since its single 27 → 42 jump on 08-10. Either the queue → public step needs a selection action nobody
+has taken, or ingestion and publication have stalled. It is written up in
+[METRICS.md](METRICS.md) and named as the leading engineering candidate for the next run that has one.
+It was not investigated this run: the directive is a bounded reconciliation, and a waiting loop that
+invents adjacent work is the specific failure mode the last four directives have been guarding
+against. It matters because the EXP-002 packet points strangers at `/ava`, and a stale feed would be a
+weak first impression at exactly the wrong moment.
+
+**Stale-count sweep.** Two figures in `STATUS.md` and the whole of `DASHBOARD.md` §4 still carried the
+n=285 and n=333 readings; both are now n=431. The Bot Fight Mode row was retired from both blocker
+tables as those files promised, with the full incident record kept in `STATUS.md`.
+
+**Executor egress, twenty-seventh consecutive run.** `justtuned.com:443` still 403 CONNECT at the
+proxy, re-tested this run. All production evidence continues to come from GitHub's network.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

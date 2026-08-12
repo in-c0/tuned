@@ -428,3 +428,65 @@ evidence the Worker never stopped), 5 feeds (1 human / 4 agent), 8 stars, 33 ski
 
 **Gross cash: AUD $0.** Source: *no billing exists* — not an estimate, not a forecast.
 **Autonomous spend: AUD $0.00 of $500.**
+
+---
+
+## Run 31 snapshot — 2026-08-12 21:24:27 UTC (2026-08-13 07:24 Sydney)
+
+**Two readings behind, now caught up.** Source: `ops/metrics/latest.json` at
+[`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), from the scheduled
+[snapshot run 31642357056](https://github.com/in-c0/tuned/actions/runs/31642357056). Covers **7 UTC
+days**, 2026-08-06 → 2026-08-12. Read through the **public zone** — `zone_blocked=false` on the same
+day's [verify production run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090).
+
+| | 08-06 | 08-07 | 08-08 | 08-09 | 08-10 | 08-11 | 08-12 | total |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `landing_view` (UA-heuristic human) | 29 | 69 | 56 | 56 | 84 | 71 | 66 | **431** |
+| `landing_view_bot` | 15 | 23 | 43 | 7 | 18 | 26 | 8 | **140** |
+| `feed_view` | 5 | 2 | 3 | 8 | 14 | 15 | 15 | **62** |
+| `feed_view_bot` | 0 | 5 | 2 | 4 | 9 | 32 | 6 | **58** |
+| `application_submit` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** |
+
+**08-12 is partial.** The snapshot was taken at 21:24 UTC, so roughly two and a half hours of that day
+are missing from every column. It will be revised upward and that revision will not be a trend.
+
+**08-11 was revised upward exactly the same way, which is the point of saying it twice.** The run-29
+reading caught that day at 09:33 UTC and recorded 39 human-flagged and 11 bot-flagged landing views
+with 0 human-flagged feed views. Finished, the day is **71 / 26 / 15**. Nothing arrived that was not
+already arriving; a third of a day was read as if it were a whole one. Any reading taken before a UTC
+day closes is a floor, not a count.
+
+**Five counters have still never fired:** `application_submit`, `member_login`, `desk_view`,
+`attention_star`, `attention_skip`. `members_ever_active` = **0** of 1.
+`members_returned_after_first_day`, `active_last_7d`, `active_last_28d` — all **0**.
+
+**Landing → application: 0 / 431 = 0.0%**, 95% one-sided upper bound ~0.7% (was ~0.9% at n=333, ~1.1%
+at n=285). The bound tightens with the denominator and the estimate does not move — but the
+denominator is UA-classified requests, not people, so this is not yet a conversion rate about humans.
+**The 08-10 and 08-11 counts also remain censored** by the Bot Fight Mode window: a request stopped at
+the edge never reached the Worker and was never counted. Both caveats travel with these numbers into
+EXP-002's grading.
+
+**Inventory, not activity** (predates instrumentation): 79 public items, 42 queued, 5 feeds
+(1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
+
+**A new observation, recorded but not acted on this run: nothing has been published in five days, and
+nothing has been queued in two.** Across every committed snapshot — 08-08, 08-09, 08-10, 08-11,
+08-12 — `items_public` is **79**, unchanged. `items_queued` went 27 → 27 → **42** → 42 → 42: one jump
+on 08-10 and flat since. Stars and skips are frozen at 8 and 33, but those need a member and there is
+effectively none, so they say nothing.
+
+Two readings fit and this run does not choose between them. Either the queue → public step requires a
+selection action nobody has taken (in which case the numbers are correct and the desk is simply
+unattended), or ingestion and publication have stalled. **This matters more than its size suggests:**
+Tuned's promise is a feed of fresh attention, and the EXP-002 packet points strangers at `/ava`. A
+five-day-old feed would be a weak first impression at exactly the wrong moment. It is named here as
+the leading engineering candidate for the next run that has one, and deliberately left uninvestigated
+now — the current directive is a bounded reconciliation, and inventing work is how a waiting loop
+convinces itself it is progressing.
+
+**Gross cash: AUD $0.** Source: *no billing exists* — not an estimate, not a forecast.
+**Autonomous spend: AUD $0.00 of $500.**
+
+Executor egress to `justtuned.com` re-tested this run — still **403 CONNECT** at the proxy,
+twenty-seventh consecutive run. GitHub Actions remains the production read path.
