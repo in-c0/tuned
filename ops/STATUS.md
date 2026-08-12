@@ -1,11 +1,14 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-11 20:30 Sydney (10:30 UTC), run 30 — **owner action unchanged; the last standing engineering item is cleared** · **Head:** [`92d850e`](https://github.com/in-c0/tuned/commit/92d850e)
+**Last updated:** 2026-08-13 07:40 Sydney (2026-08-12 21:40 UTC), run 31 — **the one-week milestone is graded missed on its publication condition; the owner action is unchanged** · **Head:** [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0)
 
-> **Run 30 changed nothing the owner needs to act on.** No new reviewer directive existed and no
-> `item?id=…` URL had been pasted, so every commercial path was still behind the boundary below.
-> The run took the one bounded item run 29 had already named — the 6 high dev-toolchain advisories,
-> now **0** — and touched no product surface. The card below stands exactly as it did this morning.
+> **Run 31 recorded a grade the loop had written down in advance, and changed nothing else.** On
+> 2026-08-11 the 1-week horizon precommitted that if the Show HN paste had not happened by
+> **2026-08-13**, the milestone would be **missed on its second condition**. It has not happened, so
+> that grade is now applied as written — deadline, thresholds and EXP-002's bands all untouched.
+> **EXP-002 remains `AUTHORIZED / NOT STARTED`:** a missed milestone is a fact about the calendar, not
+> a failed experiment, and nothing in this run converts one into the other. The card below stands
+> exactly as it did. No product, copy, billing, channel or workflow change was made.
 
 > **Owner:** [**DASHBOARD.md**](DASHBOARD.md) is the one-screen view of everything below plus
 > milestones, experiment, lessons and freshness. It **mirrors** this file — where the two disagree,
@@ -23,13 +26,13 @@ paste returns to the top of this card exactly as promised.
 
 | | |
 | --- | --- |
-| **Severity** | **Top blocker, and now the only one.** Applications remain **0** across every day the loop has measured, against 333 UA-flagged human-shaped landing views since 2026-08-06. Nothing in the funnel can be graded while the denominator is crawler traffic and referral-less direct hits. |
+| **Severity** | **Top blocker, and now the only one.** Applications remain **0** across every day the loop has measured, against **431** UA-flagged human-shaped landing views since 2026-08-06. Nothing in the funnel can be graded while the denominator is crawler traffic and referral-less direct hits. |
 | **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. Its 48-hour clock has never started and **will not start until a canonical `news.ycombinator.com/item?id=…` URL exists** — authorization is not publication, and treating it as such would produce a graded-looking experiment that never ran. |
 | **Why owner authority** | The executor holds no Hacker News session and has no route to the host. Posting in your name would be impersonation, which is a standing stop condition — this is a boundary, not a capability gap. |
 | **Exact minimum action** | Open [EXP-002-PACKET.md](EXP-002-PACKET.md); paste the title, the URL and the first comment into Show HN as written; then paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). Nothing else is required of you. |
 | **Why the packet is safe to paste now** | Its public claims were checked against live production by EXP-004 (run 19), and the one claim the incident put at risk — *"every feed has open RSS"* — is the exact thing re-verified green this run: `/ava/rss.xml` → `200 application/rss+xml`, 18,562 bytes, to bare `curl`. |
 | **Success check** | A canonical HN item URL appears in issue #1. That URL starts EXP-002's 48-hour clock; the executor grades it on its pre-registered bands against the `55ece3c` pre-publication baseline, now supplemented by the fresh baseline at [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e). |
-| **Blocker age** | Authorized **2026-08-08 13:56 UTC** — unpublished for 3 days, two of which were consumed by the Bot Fight Mode incident rather than by the decision. |
+| **Blocker age** | Authorized **2026-08-08 13:56 UTC** — unpublished for **4 days and 8 hours**, two of which were consumed by the Bot Fight Mode incident rather than by the decision. **It has now cost a milestone:** the 1-week horizon is graded missed on its publication condition as of 2026-08-13 Sydney, per a precommitment written on 2026-08-11. |
 | **Honest caveat to carry into grading** | The baseline window now spans days when the zone challenged every non-browser client. That will be stated when EXP-002 is graded, rather than discovered afterwards. |
 | **Last surfaced** | Run 25 report; one push notification 2026-08-10 21:53 UTC (about the incident, not this). This card was displaced, not withdrawn, in runs 25–28. |
 
@@ -72,7 +75,7 @@ in fact dark only to machines.
 
 **Active objective, restored: get one cohort of controlled, known-human traffic in front of the
 landing page, and find out whether anybody applies.** This was the objective before the incident
-displaced it, and nothing learned since has weakened it — 0 applications against 333 human-flagged
+displaced it, and nothing learned since has weakened it — 0 applications against 431 human-flagged
 views is still the finding that governs everything downstream. It is now blocked on exactly one
 thing, and that thing is a paste.
 
@@ -92,7 +95,7 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | **Green through the public zone**, from two colos, 4½ hours apart | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
+| Production serving | **Green through the public zone**, most recently [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) on 2026-08-12 at **21:03 UTC** — landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. The two readings that closed the incident are kept below as the record of that closure | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | **restored, and exercised for real** | `verify-production.yml` polls `/api/version` for the pushed SHA and fails closed. When the zone will not answer it reads identity and health from the Worker's `workers.dev` origin, then grades public availability **separately** — a step that failed [run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360) while every other check in it passed. That is the intended shape: a green run still means the public can use Tuned |
@@ -108,17 +111,16 @@ The binding step moved from *decide* to *publish*, and no executor work substitu
 
 ## Real metrics and revenue
 
-Source: `ops/metrics/latest.json`, `generated_at` **2026-08-10T22:18:30Z** — **unfrozen this run.**
-Covers **5 UTC days** (2026-08-06 → 2026-08-10). Read through the Worker's own origin, because the
-zone would not answer; the counters are D1 state and are unaffected by which route read them
-([snapshot run 31437732863](https://github.com/in-c0/tuned/actions/runs/31437732863), committed as
-[`92ff81e`](https://github.com/in-c0/tuned/commit/92ff81e) with the vantage in its message).
+Source: `ops/metrics/latest.json` at [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0),
+`generated_at` **2026-08-12T21:24:27Z**. Covers **7 UTC days** (2026-08-06 → 2026-08-12, the last
+partial — it was read at 21:24 UTC, before that day closed). Read through the **public zone**;
+`zone_blocked=false`.
 
 | Stage | Observed | Note |
 | --- | --- | --- |
-| Landing views, human-flagged | **285** (29 / 69 / 56 / 56 / 75) | UA heuristic — **not** verified human traffic |
-| Landing views, bot-flagged | **103** (15 / 23 / 43 / 7 / 15) | never merged with the above |
-| Feed views | **32** human-flagged, 20 bot-flagged | all five days |
+| Landing views, human-flagged | **431** (29 / 69 / 56 / 56 / 84 / 71 / 66) | UA heuristic — **not** verified human traffic |
+| Landing views, bot-flagged | **140** (15 / 23 / 43 / 7 / 18 / 26 / 8) | never merged with the above |
+| Feed views | **62** human-flagged, **58** bot-flagged | all seven days |
 | **Applications submitted** | **0** | `application_submit` never fired; `waitlist` empty all-time |
 | Member logins | **0** | counter never fired |
 | Desk views | **0** | counter never fired |
@@ -126,21 +128,24 @@ zone would not answer; the counters are D1 state and are unaffected by which rou
 | Members ever active (≥1 active day) | **0 of 1** member | `member_days` is empty |
 | Return use (D1+ / 2+ active days) | **0** | nothing to return from |
 
-- **Landing → application conversion: 0 / 285 = 0.0%.** With zero events in 285 trials the 95%
-  one-sided upper bound is ~1.1%; the true rate could be small-but-positive, but it is **not** high.
-- **08-10 is the highest day so far (75) and that means nothing yet.** Two reasons to hold it
-  loosely rather than one: nothing has been published anywhere, so the arrivals are still most
-  plausibly crawlers the UA heuristic missed; and the zone began refusing clients partway through
-  that same UTC day, so the day is **truncated, not complete** — requests blocked at the edge never
-  reach the Worker and are never counted. A rise and a censored tail in the same number is not a
-  trend.
+- **Landing → application conversion: 0 / 431 = 0.0%.** With zero events in 431 trials the 95%
+  one-sided upper bound is ~0.7% (was ~1.1% at n=285). The bound tightens; the estimate does not move,
+  and the denominator is still UA-classified requests rather than known people.
+- **08-11 finished far above where it was last read: 39 → 71 human-flagged, 11 → 26 bot-flagged, and
+  feed views 0 → 15 human-flagged.** That is not new traffic and not a trend — the previous reading
+  was taken at 09:33 UTC, a third of the way into the day. The same caution now applies to 08-12 (66),
+  which is itself partial.
+- **08-10 and 08-11 arrival counts remain censored, not merely noisy.** The zone challenged clients
+  through part of that window; a request blocked at the edge never reached the Worker and was never
+  counted. This is stated, not estimated, and it will be stated again when EXP-002 is graded against
+  a baseline that includes those days.
 - All-time content totals, which **predate** instrumentation and are not activity: 79 public items,
   **42** queued (up from 27 — the `*/30` cron is still ingesting, which is its own evidence the
   Worker never stopped), 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers,
   1 connection.
 - **Gross cash collected: AUD $0.** Source: *no billing exists*. Not an estimate, not a forecast.
 - **Autonomous spend: AUD $0.00 of $500.**
-- **No traction is claimed.** 285 human-flagged views on a product that has never been posted
+- **No traction is claimed.** 431 human-flagged views on a product that has never been posted
   anywhere is most likely incidental and scanner traffic the UA heuristic did not catch. It is
   evidence that the counters work, **not** evidence of demand.
 
@@ -148,11 +153,10 @@ zone would not answer; the counters are D1 state and are unaffected by which rou
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 0 | ~~**Bot Fight Mode challenges every non-browser request to justtuned.com.**~~ **RESOLVED 2026-08-11** by the owner, between 04:59:48 and 05:06:18 UTC. Two independent post-change readings from two colos show the zone serving to bare `curl` with `cf-mitigated` empty — including `/ava/rss.xml` at 200 `application/rss+xml`. Kept as row 0 for one run so the resolution is on the record next to the claim; drops off next run. | — | AUD $0 | **Closed.** |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. The authorization half resolved 2026-08-08 13:56 UTC; what remains is the publication itself, an authentication boundary: the executor holds no Hacker News session and has no route to the host. **The incident that displaced this is closed, so it is once again the top blocker and once again a paste.** | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See OWNER ACTION REQUIRED. |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. The authorization half resolved 2026-08-08 13:56 UTC; what remains is the publication itself, an authentication boundary: the executor holds no Hacker News session and has no route to the host. **The incident that displaced this is closed, so it is once again the top blocker and once again a paste** — and as of 2026-08-13 Sydney it has cost the 1-week milestone its publication condition. | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See OWNER ACTION REQUIRED. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | **EXP-002 is authorized and unpublished.** ~~Needs owner authorization~~ — **received 2026-08-08 13:56 UTC.** Measurement precondition met; no unfilled token; no unverified claim. The packet is now a single canonical file, [EXP-002-PACKET.md](EXP-002-PACKET.md), rather than a comment to scroll for. | Owner publishes | AUD $0 | **Merged into blocker #1** — same paste, same success check. Kept here only so the authorization is on the record as resolved. |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **25 consecutive runs**. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **27 consecutive runs**, re-tested this run. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 ## Current experiment
 

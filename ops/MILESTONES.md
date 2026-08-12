@@ -1,6 +1,6 @@
 # Tuned — MILESTONES
 
-**Last updated:** 2026-08-11 (run 29 — 1-week horizon regraded after the Bot Fight Mode incident closed; the six sub-day windows below are **stale, anchored at run 20, and deliberately left ungraded** rather than back-filled). Update when evidence, status,
+**Last updated:** 2026-08-13 Sydney / 2026-08-12 UTC (run 31 — the 1-week horizon's **second condition is graded MISSED** at its precommitted 2026-08-13 cutoff; the six sub-day windows below remain **stale, anchored at run 20, and deliberately left ungraded** rather than back-filled). Update when evidence, status,
 timing or strategy changes — not every run. Current state lives in [STATUS.md](STATUS.md); the owner's
 one-screen view is [DASHBOARD.md](DASHBOARD.md); reasoning lives in [DECISIONS.md](DECISIONS.md) and
 [EXPERIMENTS.md](EXPERIMENTS.md).
@@ -134,17 +134,30 @@ the ladder above feeds the 1-week horizon rather than this one.*
 - **Evidence of completion:** ≥3 consecutive daily snapshots in `ops/metrics/`; EXP-001 graded in
   EXPERIMENTS.md against its written threshold (non-zero `landing_view` or `landing_view_bot` on ≥1
   day within 48h of a readable key); if EXP-002 ran, it is graded on its pre-registered bands.
-- **Status:** **active, and one of its two evidence conditions is now met** — with 4 days left in the
-  window.
+- **Status:** **split, and now half-graded: condition 1 MET, condition 2 MISSED.** The window itself
+  stays open until 2026-08-15 and its thresholds are unchanged — what closed on 2026-08-13 is the
+  publication precommitment recorded under *Risk to the window* below, which was written in advance
+  precisely so this grade would not be negotiated after the fact.
 - **Progress:**
-  - **Snapshot condition: MET.** Four daily snapshots now exist in `ops/metrics/` — `2026-08-08`,
-    `2026-08-09`, `2026-08-10`, `2026-08-11` — clearing the "≥3 consecutive" bar. The 08-11 snapshot
-    ([`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e)) is the first since the incident read
-    through the **public zone** rather than the Worker origin.
+  - **Snapshot condition: MET.** Five daily snapshots now exist in `ops/metrics/` — `2026-08-08`,
+    `2026-08-09`, `2026-08-10`, `2026-08-11`, `2026-08-12` — clearing the "≥3 consecutive" bar with
+    room to spare. The 08-11 snapshot
+    ([`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e)) was the first since the incident read
+    through the **public zone** rather than the Worker origin; `2026-08-12`
+    ([`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), `generated_at` 2026-08-12T21:24:27Z)
+    is the current one.
+  - **Publication condition: MISSED, graded 2026-08-13 Sydney.** No canonical
+    `news.ycombinator.com/item?id=…` URL exists in [issue #1](https://github.com/in-c0/tuned/issues/1),
+    so EXP-002 was never published, its 48-hour clock never started, and it cannot be graded on its
+    pre-registered bands inside this horizon. **EXP-002 stays `AUTHORIZED / NOT STARTED` and its bands
+    are untouched** — a missed milestone is not a failed experiment, and nothing here converts one into
+    the other.
   - **EXP-001: PASSED and closed** (run 16).
   - **Constraint question: answered, in a direction neither branch of EXP-001 predicted** — not
-    distribution volume and not broken instrumentation, but **conversion**: 0 applications from 333
-    human-flagged views (0.0%, 95% one-sided upper bound ~0.9%).
+    distribution volume and not broken instrumentation, but **conversion**: 0 applications from 431
+    human-flagged views (0.0%, 95% one-sided upper bound ~0.7%). The denominator is UA-heuristic
+    traffic, so the ratio remains ungradeable as a conversion rate; that is the whole reason the
+    publication condition mattered.
   - **EXP-002: still pre-registered and unpublished.** This is the half that is not met.
   - **Cost of the incident, recorded rather than smoothed over:** 2026-08-10 and 08-11 arrival counts
     are censored — challenged requests never reached the Worker and were never counted.
@@ -153,14 +166,21 @@ the ladder above feeds the 1-week horizon rather than this one.*
   (do not point HN at a zone that challenges RSS readers) was retired **2026-08-11** when the toggle
   came off. All three objections are now spent. What is left is a paste into a Hacker News session the
   executor does not hold.
-- **Risk to the window:** if the paste does not happen by **2026-08-13**, EXP-002's 48-hour clock
-  cannot close inside this horizon and the milestone will be graded **missed on its second condition**
-  — stated in advance so the grade is not negotiated afterwards.
-- **Next action:** owner publishes from [EXP-002-PACKET.md](EXP-002-PACKET.md); executor grades EXP-002
-  on its pre-registered bands at window close, against the `55ece3c` baseline plus `ae37b7e`.
-- **Last evidence-linked update:** 2026-08-11 — snapshot condition met at
-  [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e); zone verified serving on
-  [run 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880).
+- **Risk to the window: REALIZED 2026-08-13.** The precommitment read: *if the paste does not happen by
+  **2026-08-13**, EXP-002's 48-hour clock cannot close inside this horizon and the milestone will be
+  graded **missed on its second condition** — stated in advance so the grade is not negotiated
+  afterwards.* The paste did not happen. The grade is applied as written: **missed on condition 2**,
+  with the deadline, the thresholds and EXP-002's bands all left exactly where they were. Even a
+  publication today could not close a 48-hour clock and be graded before 2026-08-15.
+- **Next action:** unchanged, and unchanged deliberately — owner publishes from
+  [EXP-002-PACKET.md](EXP-002-PACKET.md). The missed grade removes nothing from the packet's value: it
+  records that a week passed without known-human traffic, not that the channel was tried and failed.
+  When the URL appears, the executor starts the 48-hour clock from the publication timestamp and grades
+  EXP-002 on its pre-registered bands against the `55ece3c` baseline plus `ae37b7e`.
+- **Last evidence-linked update:** 2026-08-12 UTC / 2026-08-13 Sydney — condition 1 re-confirmed and
+  condition 2 graded missed against snapshot
+  [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0); production verified green on
+  [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) at 21:03 UTC.
 
 ## 2 weeks — by 2026-08-22
 

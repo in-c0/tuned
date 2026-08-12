@@ -31,25 +31,20 @@ exactly as run 28 promised it would.
 
 | | |
 | --- | --- |
-| **Severity** | **Top blocker, and now the only one.** **0 applications** against **333** human-flagged landing views over 6 days. Nothing downstream is gradeable until some known-human traffic arrives. |
+| **Severity** | **Top blocker, and now the only one — and it has now cost a milestone.** **0 applications** against **431** human-flagged landing views over 7 days. Nothing downstream is gradeable until some known-human traffic arrives, and the 1-week horizon is graded **missed on its publication condition** as of 2026-08-13 Sydney. |
 | **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. Its 48-hour clock has never started and will not start until a canonical `news.ycombinator.com/item?id=…` URL exists. Authorization is not publication. |
 | **Why owner authority** | The executor holds no Hacker News session. Posting in your name would be impersonation — a standing stop condition, not a capability gap. |
 | **Exact minimum action** | Paste the title, URL and first comment from [EXP-002-PACKET.md](EXP-002-PACKET.md) into Show HN as written, then paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). |
 | **Why it is safe to paste now** | The packet's public claims were checked against live production by EXP-004. The one claim the incident put at risk — *"every feed has open RSS"* — is the exact thing re-verified green this run. |
 | **Success check** | A canonical HN item URL in issue #1. It starts the 48-hour clock; the executor grades on the pre-registered bands. |
-| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; unpublished 3 days, two of them consumed by the incident. |
-| **Last surfaced** | Run 25 report; displaced but never withdrawn in runs 25–28. |
+| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; unpublished **4 days and 8 hours**, two of them consumed by the incident. |
+| **Last surfaced** | Run 25 report; displaced but never withdrawn in runs 25–28; carried unchanged through runs 29–31. |
 
-**Resolved, kept visible for one run: Bot Fight Mode.** Closed by the owner on **2026-08-11** between
-04:59:48 and 05:06:18 UTC. [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014)
-(05:06 UTC, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880)
-(09:33 UTC, ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `/`, `/api/version`,
-`/terms`, `/privacy` and `/ava/rss.xml` all 200, unauthenticated `/api/metrics` 401, `cf-mitigated`
-empty on every row, and the **bare `curl` variant passing identically to the named contract** — the
-signature of the toggle being off, not of a client that learned to look acceptable. The custom
-PHP/`.env` scanner rule and the managed `CVE-2025-55182` rule were never implicated and are untouched.
-If bot protection returns, use rate limiting or Super Bot Fight Mode with path exemptions for `GET /`,
-`/ava/*`, `/*/rss.xml`, `/api/*`.
+**Bot Fight Mode: closed 2026-08-11, and now retired from this card** as promised — the full record,
+including the two colo readings that settled it and the standing recommendation to use path exemptions
+if bot protection ever returns, lives in [STATUS.md](STATUS.md). Production has stayed green through
+the public zone since, most recently [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090)
+on 2026-08-12 at 21:03 UTC.
 
 **Still deliberately *not* listed:** payment-provider account creation. It becomes the blocking step
 when there is paid demand to collect. There is none — see [§4](#4-funnel-revenue-and-spend). One
@@ -102,7 +97,7 @@ one thing this ladder must not do.
 | 6 hours | 15:30 UTC | Owner has an explicit, single decision in front of them: authorize a first channel, or say what to do instead | active | owner is asleep — 19:30 Sydney | surfaced in the run-18 report; do not re-ask |
 | 12 hours | 21:30 UTC | ≥1 arrival is **known** to be human, or a recorded reason none can be | not started | owner authorization for a first channel | nothing executor-side unblocks this |
 | 1 day | 2026-08-09 | The funnel is readable — one authenticated snapshot | **achieved** 2026-08-08 | cleared | — |
-| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution | **active** — the constraint is now identified as **distribution**, on run-18 evidence | owner authorization for a first channel | publish one authorized channel and measure it separately |
+| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution; EXP-002 graded if it ran | **condition 1 MET** (5 snapshots) · **condition 2 MISSED**, graded 2026-08-13 Sydney per the 2026-08-11 precommitment — EXP-002 was never published, so no 48-hour clock can close inside the window | the paste (owner) | unchanged: publish from [EXP-002-PACKET.md](EXP-002-PACKET.md); the grade is recorded, not renegotiated |
 | 2 weeks | 2026-08-22 | A real payment path exists; first genuine willingness-to-pay evidence — or the wedge is falsified | not started | payment-provider account is an owner boundary | request the account once demand exists |
 | 1 month | 2026-09-08 | First gross cash; activation measured, not assumed | not started | all of the above, in order | decided by the baseline |
 | 3 months | 2026-11-08 | A small **retained paying cohort** | not started — *past the 2026-10-05 operating date; owner's to carry* | everything above | hand over an honest cohort table at closeout |
@@ -118,32 +113,33 @@ whether the apply path works at all.
 ## 4. Funnel, revenue and spend
 
 Source: [`ops/metrics/latest.json`](metrics/latest.json) at
-[`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e), `generated_at` 2026-08-11T09:33:57Z.
-Covers **6 UTC days** (2026-08-06 → 08-11, the last partial). **Read through the public zone** — the
-first snapshot since 2026-08-09 not taken via the Worker origin. Full reading and caveats in
-[METRICS.md](METRICS.md).
+[`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), `generated_at` 2026-08-12T21:24:27Z.
+Covers **7 UTC days** (2026-08-06 → 08-12, the last partial). **Read through the public zone.** Full
+reading and caveats in [METRICS.md](METRICS.md).
 
 | Stage | Observed | Note |
 | --- | --- | --- |
-| Landing views, human-flagged | **333** (29 / 69 / 56 / 56 / 84 / 39) | UA heuristic — **not** verified human traffic |
-| Landing views, bot-flagged | **117** (15 / 23 / 43 / 7 / 18 / 11) | never merged with the above |
-| Feed views | **32** human-flagged, **31** bot-flagged | 08-11 is 0 human-flagged against 11 bot-flagged |
+| Landing views, human-flagged | **431** (29 / 69 / 56 / 56 / 84 / 71 / 66) | UA heuristic — **not** verified human traffic |
+| Landing views, bot-flagged | **140** (15 / 23 / 43 / 7 / 18 / 26 / 8) | never merged with the above |
+| Feed views | **62** human-flagged, **58** bot-flagged | 08-11's 32 bot-flagged feed views are the largest single day of either kind |
 | **Applications submitted** | **0** | `application_submit` has never fired |
 | Member logins · desk views | **0** · **0** | counters have never fired |
 | Attention actions since instrumentation | **0** | `attention_star` / `attention_skip` never fired |
 | Members ever active | **0 of 1** | `member_days` is empty |
 | Return use (D1+, 2+ active days) | **0** | nothing to return from |
 
-- **Landing → application: 0 / 333 = 0.0%.** 95% one-sided upper bound ~0.9% (was ~1.1% at n=285).
+- **Landing → application: 0 / 431 = 0.0%.** 95% one-sided upper bound ~0.7% (was ~0.9% at n=333).
   The bound tightens; the estimate does not move. Do not treat "0%" as a measured constant.
-- **08-10 revised upward, 75 → 84.** The previous reading was taken at 22:18 UTC, before the UTC day
-  closed. It is not new traffic and not a trend — it is the same day, finished.
+- **08-11 revised upward as the day finished: 39 → 71 human-flagged, 11 → 26 bot-flagged, and feed
+  views 0 → 15 human-flagged.** The previous reading was taken at 09:33 UTC, a third of the way into
+  the day. Not new traffic, not a trend — the same day, finished. 08-12 (66) is partial for the same
+  reason and will move too.
 - **The 08-10 and 08-11 arrival counts remain censored, not merely noisy.** A challenged request never
   reached the Worker and was never counted, so the incident window is missing an unknown number of
   machine arrivals. This is stated, not estimated.
 - **Gross cash collected: AUD $0.** Source: *no billing exists*. Not an estimate, not a forecast.
 - **Autonomous spend: AUD $0.00 of the AUD $500 cap.** Running total in [DECISIONS.md](DECISIONS.md).
-- **No traction is claimed.** 333 UA-flagged views on a product with no distribution proves **the
+- **No traction is claimed.** 431 UA-flagged views on a product with no distribution proves **the
   counters work**, not that demand exists.
 - All-time content totals **predate instrumentation and are inventory, not activity**: 79 public items,
   42 queued, 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
@@ -155,8 +151,7 @@ first snapshot since 2026-08-09 not taken via the Worker origin. Full reading an
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 0 | ~~**The Cloudflare edge challenges every client of `justtuned.com`.**~~ **RESOLVED 2026-08-11** — Bot Fight Mode off; two post-change readings from two colos show the zone serving to bare `curl`, `/ava/rss.xml` included, `cf-mitigated` empty. Kept for one run beside the claim it retires. | — | AUD $0 | **Closed.** |
-| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **333** UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is ungradeable. **No longer queued behind #0.** | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See §1. |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is ungradeable. It has now cost the 1-week milestone its publication condition. | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See §1. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
 | 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met; the "do not publish into a possibly-broken funnel" objection **retired** by run 18; and as of run 19 the packet is **complete** — `[DEMO_FEED_URL]` = `https://justtuned.com/ava`, verified live, and its "open RSS" claim checked. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. Nothing left to look up. |
 | 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, **22** consecutive runs; `*.workers.dev` refused identically). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
@@ -206,11 +201,11 @@ reach for a copy rewrite or another counter.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-11 19:40 Sydney (09:40 UTC) |
-| **Run** | 29 — the stand-down directive's *cleared* branch: the inspection found the toggle off, so the run took the baseline and resynchronized rather than terminating silently |
-| **Repository commit at time of writing** | [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e) |
-| **Data commit** | [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e) — `generated_at` 2026-08-11T09:33:57Z, **read through the public zone**, the first snapshot since the incident not taken via the Worker origin. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §2, §4, §5 and this section are current as of run 29. **§3 (milestones), §6 (experiment) and §7 (lessons) were last written at run 20** — §3 is partially refreshed this run (1-week horizon only). Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
+| **Last materially updated** | 2026-08-13 07:40 Sydney (2026-08-12 21:40 UTC) |
+| **Run** | 31 — a bounded state reconciliation: consume the 08-12 snapshot, apply the precommitted 1-week grade, refresh blocker age, then return to the silent URL gate |
+| **Repository commit at time of writing** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) |
+| **Data commit** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) — `generated_at` 2026-08-12T21:24:27Z, read through the public zone, covering 7 UTC days with 08-12 partial. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §4, §5 and this section are current as of run 31, and §3's 1-week row carries this run's grade. **§2 (phase), the rest of §3, §6 (experiment) and §7 (lessons) were last written at run 20** and are stale. Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
