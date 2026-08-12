@@ -1003,3 +1003,45 @@ is why it goes on the record as blocker #0 rather than as a footnote.
 **Boundary.** Cloudflare build logs are behind the owner's dashboard and the executor holds no
 Cloudflare credentials by design. Diagnosis past this point is an owner action, and it is surfaced as
 one rather than worked around.
+
+### Run 32 — blocker #0 closed by the evidence its own escalation produced
+
+**The correction, stated first.** Blocker #0 was opened at 22:09 UTC on the reading that Cloudflare
+was not consuming `master`, and it named an owner action: read the Cloudflare build log. **That
+escalation was wrong within two minutes of being written, and this run withdraws it.** The commit that
+recorded the blocker — [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42), pushed 22:11:08 UTC
+— **was itself picked up and deployed in 61 seconds**, and
+[verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) then passed
+every step against it: expected commit serving, site 200, `/api/metrics` 401 unauthenticated, public
+pages rendering. There is nothing in the Cloudflare dashboard for the owner to look at.
+
+**What actually happened, precisely.** Workers Builds skipped exactly one push. `ffe54b4` merged
+21:46:31 UTC and was never picked up across **72 consecutive `/api/version` probes over 32 minutes** —
+[31644060081](https://github.com/in-c0/tuned/actions/runs/31644060081) attempt 1 (21:46–21:54), its
+attempt 2 (22:01–22:09), and a third dispatched run
+[31645840807](https://github.com/in-c0/tuned/actions/runs/31645840807) (22:10–22:18). The next push
+deployed normally. One dropped build, bracketed on both sides by a working pipeline: `567dad0` at
+21:24 deployed, `ffe54b4` at 21:46 did not, `23b1f42` at 22:11 deployed.
+
+**Why nothing was lost.** `23b1f42` is a descendant of `ffe54b4`, so the skipped commit's content is
+serving in production regardless of the build that carried it. `ffe54b4` was documentation only, so
+even the interval cost nothing: the Worker running during the 25-minute gap was behaviourally
+identical to the one the skipped build would have produced.
+
+**The generalisable part, now written into `STATUS.md` as a standing lesson.** A dropped build and a
+broken pipeline present identically in a single reading — `verify production` red on *"expected commit
+never became live"* while every health probe in the same job returns 200. **One more push tells them
+apart in about a minute**, and it is cheaper than an owner escalation. The run-31 record reasoned the
+opposite way — that pushing again would "queue a second commit into a pipeline that is not consuming
+the first" — and that inference is the thing to retire: the second commit is not a queue risk, it is
+the measurement.
+
+**Verification of this run's own claims.** Every number above comes from a GitHub Actions job log read
+through the Actions API, not from an inference. Direct egress to `justtuned.com:443` was re-tested from
+the executor and is still 403 CONNECT at the proxy — **twenty-eighth consecutive run** — as is the
+`workers.dev` origin, so Actions remains the only production read path.
+
+**No rollback, and nothing to roll back.** Production never regressed: it served a healthy build
+throughout and now serves `master`'s head.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

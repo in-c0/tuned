@@ -1,6 +1,11 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-13 07:40 Sydney (2026-08-12 21:40 UTC), run 31 — **the one-week milestone is graded missed on its publication condition; the owner action is unchanged** · **Head:** [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0)
+**Last updated:** 2026-08-13 08:30 Sydney (2026-08-12 22:30 UTC), run 32 — **blocker #0 opened and closed inside 25 minutes: one dropped Cloudflare build, not a broken pipeline; production is green and current** · **Head:** [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42)
+
+> **Run 32 closed the deploy scare and changed nothing else.** `ffe54b4` was never picked up by Workers
+> Builds; the next push deployed in 61 seconds and `verify production` passed every step against it.
+> Production serves `master` and the skipped commit's content is live inside its descendant. The owner
+> action below is untouched and remains the only open one — **there is nothing to check in Cloudflare.**
 
 > **Run 31 recorded a grade the loop had written down in advance, and changed nothing else.** On
 > 2026-08-11 the 1-week horizon precommitted that if the Show HN paste had not happened by
@@ -153,11 +158,19 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 0 | **The deploy pipeline did not pick up `master`.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged at 21:46 UTC on 2026-08-12; **23 minutes later production was still serving [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0)**, on 48 consecutive `/api/version` probes across two runs of [verify production 31644060081](https://github.com/in-c0/tuned/actions/runs/31644060081). **Production itself is healthy** — it answers 200 with a valid build stamp every time; what is stuck is the *replacement* of that build. Not a code fault: the identical tree built and deployed on the PR branch in 49 seconds, and the previous master push (`567dad0`, a bot snapshot commit at 21:24 UTC) deployed normally. Cost is currently zero — the change is documentation, so the running Worker is behaviourally identical — but the next change that matters will not reach users either. Cloudflare build logs are behind the owner's dashboard. | Owner reads the Cloudflare build log; executor cannot | AUD $0 | **Open, new 2026-08-12 22:09 UTC.** Nothing to roll back. |
+| 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. The authorization half resolved 2026-08-08 13:56 UTC; what remains is the publication itself, an authentication boundary: the executor holds no Hacker News session and has no route to the host. **The incident that displaced this is closed, so it is once again the top blocker and once again a paste** — and as of 2026-08-13 Sydney it has cost the 1-week milestone its publication condition. | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See OWNER ACTION REQUIRED. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | **EXP-002 is authorized and unpublished.** ~~Needs owner authorization~~ — **received 2026-08-08 13:56 UTC.** Measurement precondition met; no unfilled token; no unverified claim. The packet is now a single canonical file, [EXP-002-PACKET.md](EXP-002-PACKET.md), rather than a comment to scroll for. | Owner publishes | AUD $0 | **Merged into blocker #1** — same paste, same success check. Kept here only so the authorization is on the record as resolved. |
 | 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **27 consecutive runs**, re-tested this run. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+
+**Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
+Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
+commit never became live"* while every health probe in the same job returns 200 — the site is fine, the
+*replacement* did not happen. **The first response is another push, not an owner escalation**, because
+a later commit that carries the skipped one makes the skip moot and re-proves the pipeline in about a
+minute. Escalate only if a second consecutive push is also not picked up; that is the reading that
+distinguishes a dropped build from a broken pipeline, and it costs one commit to obtain.
 
 ## Current experiment
 
