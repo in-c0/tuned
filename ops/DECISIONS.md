@@ -972,3 +972,34 @@ tables as those files promised, with the full incident record kept in `STATUS.md
 proxy, re-tested this run. All production evidence continues to come from GitHub's network.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+### Run 31 addendum — the reconciliation shipped, and the pipeline did not carry it
+
+**What happened.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged to `master` at
+**21:46:31 UTC**. `verify production` [31644060081](https://github.com/in-c0/tuned/actions/runs/31644060081)
+polled `/api/version` **24 times over 8 minutes** and read `567dad0` every time; a re-run of the same
+job at 22:01 polled **24 more times** and read `567dad0` again. Twenty-three minutes after the merge,
+production had not moved.
+
+**What this is, stated precisely.** Not an outage and not a regression: every probe returned HTTP 200
+with a well-formed build stamp, so `justtuned.com` is up and serving the previous build correctly. It
+is a **deploy-pickup failure** — Cloudflare Workers Builds did not replace the running Worker.
+
+**What rules out a fault in the change.** The identical tree built and deployed on the PR branch in
+**49 seconds** (21:45:22 → 21:46:11, check `Workers Builds: attention-feed` green), and the preceding
+master push — `567dad0`, the bot's 08-12 snapshot at 21:24 UTC — deployed normally, since it is the
+build now serving. The gates were also green before merge: `npm run check` exit 0, 30/30 tests,
+`npm audit` 0, GitGuardian clean.
+
+**Rollback: none, deliberately.** There is nothing to revert. No new code reached production, the
+change is documentation only, and reverting would merely queue a second commit into the same pipeline
+that is not consuming the first. Reverting to "fix" a stuck deploy would be motion, not recovery.
+
+**Why the cost is currently zero and will not stay that way.** The undeployed commit touches only
+`ops/`, so the running Worker is behaviourally identical to the one this change would have produced.
+The exposure is forward-looking: the next change that *does* matter will sit in the same queue. That
+is why it goes on the record as blocker #0 rather than as a footnote.
+
+**Boundary.** Cloudflare build logs are behind the owner's dashboard and the executor holds no
+Cloudflare credentials by design. Diagnosis past this point is an owner action, and it is surfaced as
+one rather than worked around.
