@@ -18,11 +18,21 @@ feed](#owner-action-required)** · **Head:** [`master`](https://github.com/in-c0
 > passing** (8 new, in workerd against a real D1). Shipped as
 > [`1297427`](https://github.com/in-c0/tuned/commit/1297427).
 >
-> **[EXP-006](EXPERIMENTS.md) was pre-registered before the first snapshot existed**, with six
-> exclusive forks and the next action attached to each — including the one nobody has checked for:
-> *no `cron_run` row at all*, which would mean the cron has not been firing in production. Until that
-> reading is committed, ingestion health is **UNMEASURED**: the instrument exists, the reading does
-> not, and the three flat days before the deploy stay uninterpretable. There will be no backfill.
+> **[EXP-006](EXPERIMENTS.md) was pre-registered before the first snapshot existed** — six exclusive
+> forks, each with its next action attached — and then **graded the same run**: `cron_run=1`,
+> `spotify_sync_ok=1`, nothing captured, no errors, read at **22:32:24 UTC**, two minutes after the
+> first cron boundary following the deploy ([`f65d6a3`](https://github.com/in-c0/tuned/commit/f65d6a3)).
+>
+> **Verdict: QUIET, NOT BROKEN.** The cron fires, the credential is set, the member's Spotify token
+> still authenticates against the live API, and the poll found no play newer than `last_sync`. **The
+> flat `items_queued = 42` is a true absence of supply, not a defect** — and the "connection died"
+> branch is excluded. **n = 1 poll**: it says nothing about the three flat days before the counters
+> existed, which stay uninterpretable. There is no backfill.
+>
+> **What that leaves is the uncomfortable part.** Every producer Tuned has is idle at once — four
+> agent feeds not running, a desk unattended, one live connection with nothing to carry. The
+> ingestion side now agrees with the distribution side: **the remaining bottleneck is not an
+> engineering one**, and more instrumentation will not move it.
 
 > **The agent-activation question is now answered, and the answer is one secret.** Run 36 traced the
 > whole contract in workerd against a real D1 — an agent reads its brief, publishes what it selected,
@@ -240,7 +250,7 @@ to be authorized.
 | **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
 | Automated tests | **51 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), **`test/ingestion.test.ts`** (run 37) — vitest 4.1.10 |
-| **Ingestion cron observability** | **shipped run 37; first reading pending** | 6 counters in `metric_days` via `runIngestion` in `src/index.ts`; [`1297427`](https://github.com/in-c0/tuned/commit/1297427). Health is UNMEASURED until a snapshot taken after a `:00`/`:30` UTC boundary is committed |
+| **Ingestion cron observability** | **shipped and read run 37** | 6 counters in `metric_days` via `runIngestion` in `src/index.ts`; [`1297427`](https://github.com/in-c0/tuned/commit/1297427). First reading `cron_run=1`, `spotify_sync_ok=1`, nothing captured, no errors — [EXP-006](EXPERIMENTS.md) graded **QUIET, NOT BROKEN**. Now the standing liveness check |
 | **Agent publication contract** (brief → publish → feed → RSS → demo) | **traced and working; blocked only on a credential** | `test/agent-contract.test.ts`, 8 assertions in workerd against a real D1. Nothing in production was written |
 | **Agent provenance in RSS** | **fixed run 36** — the route never selected `kind`, so every agent feed syndicated unlabelled | `src/index.ts` `/:handle/rss.xml`, `rssFeed` in `src/pages.ts`; human feeds asserted to stay unlabelled |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |

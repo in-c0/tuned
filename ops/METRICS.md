@@ -565,7 +565,21 @@ one. The counters record what happened, never what was listened to: no URLs, tit
 timestamps. Counting starts at the deploy above; the three flat days before it stay uninterpretable
 and will not be reconstructed.
 
-**First reading is not in this section yet.** The cron fires at :00 and :30 UTC, so the earliest
-snapshot that can contain a non-zero `cron_run` is one taken after the first firing that follows the
-deploy. Until that snapshot is committed, ingestion health is **UNMEASURED** — the instrument exists,
-the reading does not.
+**First reading — 2026-08-13T22:32:24Z, taken 2 minutes after the first cron boundary following the
+deploy.** Source: `ops/metrics/latest.json` at [`f65d6a3`](https://github.com/in-c0/tuned/commit/f65d6a3).
+
+| Counter | 2026-08-13 |
+| --- | --- |
+| `cron_run` | **1** |
+| `spotify_sync_ok` | **1** |
+| `spotify_items_captured` | *absent* |
+| `spotify_sync_auth_error` · `spotify_sync_error` · `cron_no_credentials` | *absent* |
+
+**Ingestion is alive and there is nothing to ingest.** The cron fires, the credential is set, the
+member's Spotify token still authenticates against the live API, and the poll found no play newer
+than `last_sync`. [EXP-006](EXPERIMENTS.md) is graded **QUIET, NOT BROKEN** — the flat
+`items_queued = 42` is a true absence of supply, not a defect, and the "the connection died" branch is
+excluded.
+
+**n = 1 poll.** This is a present-tense fact about 22:30 UTC. It does not reach backwards: the three
+flat days before the counters existed remain uninterpretable and will not be reconstructed.

@@ -774,3 +774,44 @@ read as a zero.
 says nothing about demand, activation, retention or revenue, and no conversion inference may be drawn
 from it in either direction. A high `spotify_items_captured` is one member listening to music — it is
 supply, not traction.
+
+### EXP-006 — GRADED: **QUIET, NOT BROKEN** (2026-08-13 22:32:24 UTC, run 37)
+
+**Fork 1 of the six applies.** Source: `ops/metrics/latest.json` at
+[`f65d6a3`](https://github.com/in-c0/tuned/commit/f65d6a3), `generated_at` **2026-08-13T22:32:24Z**,
+taken 17 minutes after the deploy and **2 minutes after the first cron boundary** (`22:30` UTC) that
+followed it — the reading window fixed above, satisfied exactly once.
+
+| Counter | 2026-08-13 |
+| --- | --- |
+| `cron_run` | **1** |
+| `spotify_sync_ok` | **1** |
+| `spotify_items_captured` | *absent* |
+| `spotify_sync_auth_error` | *absent* |
+| `spotify_sync_error` | *absent* |
+| `cron_no_credentials` | *absent* |
+
+**What this establishes, precisely.** The cron fires in production. `SPOTIFY_CLIENT_ID` is set. The
+member's connection is **live**: `recentlyPlayed` was called with that token and Spotify answered
+`200`, which a revoked token or withdrawn consent could not have produced. And the poll found **no
+play newer than `last_sync`** — so at 22:30 UTC there was nothing to capture.
+
+**Therefore the flat `items_queued = 42` is a true absence of supply, not a defect.** Four of the six
+forks are excluded outright: the cron is firing, the secret exists, no auth failure, no transient
+error. The competing hypothesis — that the connection died somewhere after 2026-08-11 — is dead.
+
+**What this does *not* establish, stated because one firing is one firing.** n = **1 poll**. It proves
+the pipeline is alive *now*; it says nothing about the three flat days before the counters existed,
+and those stay uninterpretable exactly as pre-registered. **No backfill, and no retroactive claim that
+ingestion was healthy on 08-11, 08-12 or 08-13.** A single "nothing new" is also weak evidence about
+the member's listening in general — it is one 30-minute window.
+
+**Decision: no code action, and none is warranted.** There is no bug here to fix. The verdict is that
+Tuned's item supply is genuinely absent across every producer it has — four agent feeds not running,
+a desk unattended, and one live Spotify connection with nothing to carry. **That is the same
+conclusion the 2026-08-13 review reached from the distribution side**, now reached independently from
+the ingestion side, and it means the remaining bottleneck is not an engineering one.
+
+**Status: PASSED / CLOSED**, on the fork that says the instrument found no fault. The counters stay in
+place; they are now the standing liveness check, and the next run reads them without re-running this
+experiment.
