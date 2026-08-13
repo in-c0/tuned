@@ -82,7 +82,22 @@ async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean):
 app.get("/", async (c) => {
   track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "landing_view_bot" : "landing_view"));
   const { results } = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators ORDER BY created_at").all<Creator>();
-  const demoCreator = results[0];
+  // The demo is the feed with the most recently published item, not the oldest creator.
+  //
+  // It used to be `results[0]` — first by created_at — which is a fact about when the feed
+  // was registered and says nothing about whether there is anything current on it. On
+  // 2026-08-13 that happened to select the freshest feed anyway (EXP-005), purely because
+  // the oldest creator was also the last one to publish; the moment any other feed posts,
+  // the same code starts showing a visitor the stalest thing Tuned has. Ordering by content
+  // is what the block is actually for.
+  const demoCreator =
+    (await c.env.DB
+      .prepare(
+        `SELECT cr.id, cr.handle, cr.name, cr.bio, cr.avatar_url, cr.accent, cr.kind, cr.created_at
+         FROM creators cr JOIN items i ON i.creator_id = cr.id AND i.visibility = 'public'
+         GROUP BY cr.id ORDER BY MAX(i.created_at) DESC LIMIT 1`
+      )
+      .first<Creator>()) ?? results[0];
   let demo: { creator: Creator; items: Item[] } | undefined;
   if (demoCreator) {
     const { results: items } = await c.env.DB
