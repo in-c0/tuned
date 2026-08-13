@@ -1,6 +1,15 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-13 08:30 Sydney (2026-08-12 22:30 UTC), run 32 — **blocker #0 opened and closed inside 25 minutes: one dropped Cloudflare build, not a broken pipeline; production is green and current** · **Head:** [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42)
+**Last updated:** 2026-08-13 10:35 Sydney (00:35 UTC), run 33 — **the Show HN was submitted and killed at submission; EXP-002 remains `AUTHORIZED / NOT STARTED`** · **Head:** [`bbb9a4d`](https://github.com/in-c0/tuned/commit/bbb9a4d)
+
+> **The paste happened, and it did not publish anything.** The owner submitted the Show HN at
+> **2026-08-13 10:13:23 Sydney** and item [`49280269`](https://news.ycombinator.com/item?id=49280269)
+> came back **`dead: true`** — killed at submission, with no title, no url and no comments on the
+> record. Verified independently from GitHub's network, not taken on report:
+> [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210).
+> **No 48-hour clock started. No arrival on 2026-08-13 may be attributed to this channel, and no
+> grade was assigned** — a submission nobody could see tests nothing. The owner action below is
+> replaced with the one recovery step that is not evasion: ask moderation to review it.
 
 > **Run 32 closed the deploy scare and changed nothing else.** `ffe54b4` was never picked up by Workers
 > Builds; the next push deployed in 61 seconds and `verify production` passed every step against it.
@@ -21,25 +30,28 @@
 
 ## OWNER ACTION REQUIRED
 
-### **Publish the Show HN. It is written, checked, and one paste away in [EXP-002-PACKET.md](EXP-002-PACKET.md).**
+### **Ask Hacker News moderation to review the dead item. One email, and nothing else.**
 
-**Bot Fight Mode is off and the zone is serving.** The blocker that displaced this action for three
-runs is resolved — verified twice from GitHub's network, 4½ hours apart, from two Cloudflare colos,
-by both a plain `curl` and the named first-party contract. `/ava/rss.xml` returns 200 to a
-non-browser client again, which is the fact that mattered. Evidence in the resolved entry below. The
-paste returns to the top of this card exactly as promised.
+**You did the paste, and it did not publish.** The submission at **10:13:23 Sydney today** produced
+item [`49280269`](https://news.ycombinator.com/item?id=49280269), and that item is **`dead: true`** —
+killed at submission. There is no title, no url and no comment on its record; the page renders
+nothing. That is not a Tuned fault and it is not a mistake you made: `dead` at submission is applied
+by Hacker News, and it carries no public reason.
+
+**Do not repost.** A second submission of the same link is the one action that would turn a
+recoverable filter into a durable one.
 
 | | |
 | --- | --- |
-| **Severity** | **Top blocker, and now the only one.** Applications remain **0** across every day the loop has measured, against **431** UA-flagged human-shaped landing views since 2026-08-06. Nothing in the funnel can be graded while the denominator is crawler traffic and referral-less direct hits. |
-| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. Its 48-hour clock has never started and **will not start until a canonical `news.ycombinator.com/item?id=…` URL exists** — authorization is not publication, and treating it as such would produce a graded-looking experiment that never ran. |
-| **Why owner authority** | The executor holds no Hacker News session and has no route to the host. Posting in your name would be impersonation, which is a standing stop condition — this is a boundary, not a capability gap. |
-| **Exact minimum action** | Open [EXP-002-PACKET.md](EXP-002-PACKET.md); paste the title, the URL and the first comment into Show HN as written; then paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). Nothing else is required of you. |
-| **Why the packet is safe to paste now** | Its public claims were checked against live production by EXP-004 (run 19), and the one claim the incident put at risk — *"every feed has open RSS"* — is the exact thing re-verified green this run: `/ava/rss.xml` → `200 application/rss+xml`, 18,562 bytes, to bare `curl`. |
-| **Success check** | A canonical HN item URL appears in issue #1. That URL starts EXP-002's 48-hour clock; the executor grades it on its pre-registered bands against the `55ece3c` pre-publication baseline, now supplemented by the fresh baseline at [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e). |
-| **Blocker age** | Authorized **2026-08-08 13:56 UTC** — unpublished for **4 days and 8 hours**, two of which were consumed by the Bot Fight Mode incident rather than by the decision. **It has now cost a milestone:** the 1-week horizon is graded missed on its publication condition as of 2026-08-13 Sydney, per a precommitment written on 2026-08-11. |
-| **Honest caveat to carry into grading** | The baseline window now spans days when the zone challenged every non-browser client. That will be stated when EXP-002 is graded, rather than discovered afterwards. |
-| **Last surfaced** | Run 25 report; one push notification 2026-08-10 21:53 UTC (about the incident, not this). This card was displaced, not withdrawn, in runs 25–28. |
+| **Severity** | **Top blocker, and still the only one.** Applications remain **0** across every day the loop has measured, against **431** UA-flagged human-shaped landing views. The channel that was supposed to change the denominator did not reach anybody. |
+| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. **No 48-hour clock started**, no window is open, no arrival today is attributable to it, and no grade was assigned. A submission nobody could see tests nothing. |
+| **Why owner authority** | Contacting moderation is private outbound correspondence in your name. The executor does not send it — that is a standing stop condition, not a capability gap. It also holds no Hacker News session and no route to the host. |
+| **Exact minimum action** | Email **`hn@ycombinator.com`**, subject *"Show HN submission killed at submission — item 49280269"*, and ask them to take a look. Suggested body, adapt freely: *"I submitted https://news.ycombinator.com/item?id=49280269 (Show HN: Tuned — follow attention, not content) this morning and it came back dead. It's my own project, submitted once, no votes solicited. Could you tell me whether it was caught by a filter, and whether there's anything I should fix before it can be shown?"* Then paste their reply, or the fact that they replied, into [issue #1](https://github.com/in-c0/tuned/issues/1). |
+| **Success check** | **Executable, and no longer a receipt** — this is the correction this run exists for. Dispatch [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml) (Actions → *hn item status* → Run workflow, item `49280269`). **Green = restored:** the official record says `dead: false`, carries a title, and its `url` still points at `justtuned.com`. Red = not yet. The executor will run it each cycle; you do not have to. |
+| **Why the old success check was wrong** | It was *"a canonical `item?id=…` URL appears in issue #1"*. That URL arrived and published nothing — submitting a form mints an item id whether or not the story lives. Recorded as **[L-16](LESSONS.md)**: write success checks against the observable outcome, never against the receipt. |
+| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; attempted **2026-08-13 00:13 UTC**, 4 days 10 hours later; unpublished still. It has already cost the 1-week milestone its publication condition. |
+| **What happens if moderation declines or does not reply** | Then the channel is closed and the loop says so rather than working around it. No second account, no reposting, no alternate link, no vote solicitation. The next candidate becomes a *different* channel proposed openly, not the same one retried quietly. |
+| **Last surfaced** | Run 33 report; push notification 2026-08-13 00:xx UTC. The previous card (publish the Show HN) is retired — its action was performed. |
 
 **Resolved and kept on the record: Bot Fight Mode.** Closed **2026-08-11**, by the owner, between
 04:59:48 and 05:06:18 UTC. Two independent readings settle it, and neither is an inference:
@@ -159,7 +171,7 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. The authorization half resolved 2026-08-08 13:56 UTC; what remains is the publication itself, an authentication boundary: the executor holds no Hacker News session and has no route to the host. **The incident that displaced this is closed, so it is once again the top blocker and once again a paste** — and as of 2026-08-13 Sydney it has cost the 1-week milestone its publication condition. | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See OWNER ACTION REQUIRED. |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. Authorization resolved 2026-08-08 13:56 UTC and **publication was attempted 2026-08-13 00:13 UTC and killed at submission** (`dead: true`, item 49280269, verified [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210)). The blocker did not move: what stood between Tuned and known-human traffic was exposure, and there was none. What changed is the shape of the remaining step — from *publish* to *ask moderation to review*, still an owner action, now for two reasons: private outbound correspondence, and no route to the host. | Owner requests review; executor measures | AUD $0 | **Open. Top blocker.** See OWNER ACTION REQUIRED. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | **EXP-002 is authorized and unpublished.** ~~Needs owner authorization~~ — **received 2026-08-08 13:56 UTC.** Measurement precondition met; no unfilled token; no unverified claim. The packet is now a single canonical file, [EXP-002-PACKET.md](EXP-002-PACKET.md), rather than a comment to scroll for. | Owner publishes | AUD $0 | **Merged into blocker #1** — same paste, same success check. Kept here only so the authorization is on the record as resolved. |
 | 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **27 consecutive runs**, re-tested this run. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
@@ -189,26 +201,34 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
   resolves to `https://justtuned.com/ava`, that feed serves 200 with **24 items** and no empty
   state, `/ava/rss.xml` serves 200 `application/rss+xml` with **38 items**, and there are no
   first-party errors and no horizontal overflow. GETs only — nothing was written.
-- **EXP-002 — Show HN distribution smoke test: AUTHORIZED, NOT STARTED.** Pre-registered; measurement-
-  unblocked; the "0%-conversion funnel" objection retired by run 18; packet complete and its public
-  claims checked by EXP-004. Owner authorized publication
-  [2026-08-08 13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917).
-  **Its 48-hour clock has NOT started and will not start until a canonical
-  `news.ycombinator.com/item?id=…` URL exists** — authorization is not publication, and the
-  distinction is the difference between a graded experiment and a fabricated one.
+- **EXP-002 — Show HN distribution smoke test: AUTHORIZED, NOT STARTED — attempted 2026-08-13 and
+  killed at submission.** Pre-registered; measurement-unblocked; packet complete and its public claims
+  checked by EXP-004. Owner authorized publication
+  [2026-08-08 13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917) and
+  submitted it at **2026-08-13 00:13:23 UTC**. Item `49280269` is **`dead: true`** with no title, url
+  or comments on its record — verified from GitHub's network in
+  [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210), byte-identical to the
+  reviewer's reading. **No t0, no window, no post-exposure snapshot, no conversion inference, no
+  grade.** If moderation restores the item, EXP-002 starts **at the restoration timestamp**, not at
+  the original submission time — a story restored hours late gets a different trajectory, and dating
+  the window from `time` would assign it exposure it never had. Every band, threshold and definition
+  stands unchanged. Full entry in [EXPERIMENTS.md](EXPERIMENTS.md).
 
 ## Next action
 
-**Owner:** publish the Show HN from [EXP-002-PACKET.md](EXP-002-PACKET.md) and paste the resulting
-`item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). That is the whole action.
+**Owner:** email `hn@ycombinator.com` asking them to review dead item `49280269`. That is the whole
+action. Do not repost.
 
-**Executor:** nothing further until that URL exists. On the run after it appears: start EXP-002's
-48-hour clock from the publication timestamp, hold the daily snapshots, and grade on the
-pre-registered bands against `55ece3c` plus the fresh baseline at `ae37b7e` — stating plainly that
-the baseline window includes two days when the zone challenged non-browser clients.
+**Executor:** dispatch [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml) once per run
+against item `49280269` and record the reading. **Green starts EXP-002 at that moment**, from the
+restoration timestamp, graded on the pre-registered bands against `55ece3c` plus the fresh baseline at
+`ae37b7e` — stating plainly that the baseline window includes two days when the zone challenged
+non-browser clients. Red is a one-line record and nothing else.
 
-Explicitly **not** a copy or positioning rewrite, **not** a CTA-reach counter, and **not** a second
-distribution channel invented to fill the wait.
+Explicitly **not** a copy or positioning rewrite, **not** a CTA-reach counter, **not** a reworded
+resubmission, **not** a second Hacker News account or a second link to the same site, and **not** a
+different distribution channel invented to fill the wait. The one engineering candidate that survives
+the wait is the flat `items_public` / `items_queued` count, unexamined since run 31 recorded it.
 
 ## Not doing (deliberate holds)
 
@@ -216,9 +236,11 @@ distribution channel invented to fill the wait.
   not weaker: the apply path is proven, so a failed copy test could no longer even be blamed on a
   broken form — it would simply be ungradeable against crawler traffic.
 - No CTA-reach counter yet. It is the right instrument against the wrong traffic.
-- No publication of EXP-002 **by the executor** — authorization is now given, but the executor holds
-  no Hacker News session and posting in the owner's name would be impersonation. No second channel,
-  no outreach, no seeding of the thread, no reword of the approved text.
+- No publication of EXP-002 **by the executor** — authorization is given and the attempt was made and
+  killed, but the executor holds no Hacker News session and acting in the owner's name would be
+  impersonation. **Nothing that could read as evading the kill:** no repost, no second account, no
+  reworded resubmission, no alternate link to the same site, no vote or comment solicitation, no
+  contact with moderation. The recovery is one owner email and the loop waits for it.
 - No secret read, hash, rotation, comparison or exposure — ever.
 - No spend; the executor holds no payment credentials.
 - No generic summarizer, content generator or enterprise agent-observability dashboard. Humans

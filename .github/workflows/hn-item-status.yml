@@ -15,9 +15,18 @@ name: hn item status
 # yes/no question about a public record, asked repeatedly over days. This makes it one
 # dispatch instead of an owner attestation.
 #
-# GREEN means restored. The job fails while the item is dead, missing, or not rendering,
+# GREEN means restored. The job fails while the item is dead, missing, or untitled,
 # which is deliberate: the run's colour is the answer, so a passing run is the evidence
 # that the recovery worked and a red run is the durable evidence that it has not yet.
+#
+# The grade comes from the API record alone, and that is a correction, not a shortcut.
+# The first dispatch (run 31654090210) graded on the item page too and read HTTP 429 —
+# Hacker News rate-limits datacenter IPs, and GitHub's runners are datacenter IPs. A page
+# reading that is unavailable by construction cannot be a success condition: requiring it
+# would have handed the owner a check that can never go green no matter what moderation
+# does. The record carries everything the check needs anyway — `dead`, `title`, `url` and
+# `kids` (the first comment) are all fields on it. The page is still read, still reported,
+# and explicitly marked inconclusive on 429/403 rather than folded into the verdict.
 #
 # Reads only. Two GETs of public URLs — the documented Firebase API record and the item
 # page — no session, no account, no vote, no reply, no comment, no repeated polling. It is
@@ -30,7 +39,7 @@ on:
         required: true
         default: "49280269"
       expect_url_substring:
-        description: "String that must appear in the item page for it to count as our post"
+        description: "String that must appear in the item's url for it to count as our post"
         required: false
         default: "justtuned.com"
 
@@ -62,6 +71,7 @@ jobs:
         id: record
         env:
           ITEM: ${{ steps.input.outputs.item }}
+          NEEDLE: ${{ inputs.expect_url_substring }}
         run: |
           set -uo pipefail
           code=$(curl -sS --max-time 25 -o /tmp/item.json -w '%{http_code}' \
@@ -77,7 +87,9 @@ jobs:
           if [ "$code" != "200" ] || [ -z "$body" ] || [ "$body" = "null" ]; then
             echo "state=missing" >> "$GITHUB_OUTPUT"
             echo "dead=unknown" >> "$GITHUB_OUTPUT"
-            echo "title=" >> "$GITHUB_OUTPUT"
+            echo "title=unknown" >> "$GITHUB_OUTPUT"
+            echo "url=unknown" >> "$GITHUB_OUTPUT"
+            echo "kids=unknown" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -100,6 +112,29 @@ jobs:
             echo "title=absent" >> "$GITHUB_OUTPUT"
           fi
 
+          # The submitted link, matched inside the record's own `url` field rather than
+          # anywhere in the document, so a needle appearing in a title or a moderator note
+          # cannot pass for the submission itself.
+          if printf '%s' "$body" | grep -oE '"url"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -qiF "$NEEDLE"; then
+            echo "url=present" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=absent" >> "$GITHUB_OUTPUT"
+          fi
+
+          # `kids` is the first-comment reading. A restored Show HN should carry the packet's
+          # body as its first comment; this says whether any comment exists, which is as far
+          # as a field can settle it. Reported, never required — moderation restoring a story
+          # whose comment did not survive is still a restored story.
+          if printf '%s' "$body" | grep -qE '"kids"[[:space:]]*:[[:space:]]*\[[[:space:]]*[0-9]'; then
+            echo "kids=present" >> "$GITHUB_OUTPUT"
+          else
+            echo "kids=absent" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Corroboration only. Hacker News answered 429 to GitHub's runner on the first
+      # dispatch, so this reading is frequently unavailable and is never allowed to decide
+      # the verdict in either direction — an absent needle behind a 429 says nothing about
+      # the item, and it must not be recorded as though it did.
       - name: Read the public item page
         id: page
         env:
@@ -114,8 +149,17 @@ jobs:
           echo "HTTP $code, ${bytes} bytes"
           echo "status=$code" >> "$GITHUB_OUTPUT"
 
-          # Never dumped. Only three yes/no readings are taken off it, which is all the
-          # success check needs and keeps a third party's page out of this repository's logs.
+          case "$code" in
+            200) ;;
+            *)
+              echo "The item page was not served to this runner (HTTP $code) — reading is inconclusive, not negative."
+              echo "link=inconclusive" >> "$GITHUB_OUTPUT"
+              echo "comments=inconclusive" >> "$GITHUB_OUTPUT"
+              exit 0 ;;
+          esac
+
+          # Never dumped. Only two yes/no readings are taken off it, which keeps a third
+          # party's page out of this repository's logs.
           if grep -qiF "$NEEDLE" /tmp/item.html 2>/dev/null; then
             echo "link=present" >> "$GITHUB_OUTPUT"
           else
@@ -133,6 +177,8 @@ jobs:
           STATE: ${{ steps.record.outputs.state }}
           DEAD: ${{ steps.record.outputs.dead }}
           TITLE: ${{ steps.record.outputs.title }}
+          URL: ${{ steps.record.outputs.url }}
+          KIDS: ${{ steps.record.outputs.kids }}
           PAGE: ${{ steps.page.outputs.status }}
           LINK: ${{ steps.page.outputs.link }}
           COMMENTS: ${{ steps.page.outputs.comments }}
@@ -141,26 +187,30 @@ jobs:
           {
             echo "### Hacker News item \`${ITEM}\`"
             echo ""
-            echo "| Reading | Value |"
-            echo "| --- | --- |"
-            echo "| Official record | \`${STATE}\` |"
-            echo "| \`dead\` | \`${DEAD}\` |"
-            echo "| Title in record | \`${TITLE}\` |"
-            echo "| Item page | HTTP \`${PAGE}\` |"
-            echo "| Tuned link on page | \`${LINK}\` |"
-            echo "| Comments on page | \`${COMMENTS}\` |"
+            echo "| Reading | Value | Decides the verdict? |"
+            echo "| --- | --- | --- |"
+            echo "| Official record | \`${STATE}\` | — |"
+            echo "| \`dead\` | \`${DEAD}\` | **yes** |"
+            echo "| Title in record | \`${TITLE}\` | **yes** |"
+            echo "| Tuned link in record \`url\` | \`${URL}\` | **yes** |"
+            echo "| First comment (\`kids\`) | \`${KIDS}\` | no — reported only |"
+            echo "| Item page | HTTP \`${PAGE}\` | no — HN rate-limits CI runners |"
+            echo "| Tuned link on page | \`${LINK}\` | no — corroboration |"
+            echo "| Comments on page | \`${COMMENTS}\` | no — corroboration |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # All four must hold. Restoration is not "the API stopped saying dead" — the post
-          # has to be a post again: titled in the record, and rendering its link publicly.
-          if [ "$DEAD" = "false" ] && [ "$TITLE" = "present" ] && [ "$PAGE" = "200" ] && [ "$LINK" = "present" ]; then
-            echo "RESTORED: item ${ITEM} is live, titled, and rendering the Tuned link."
+          # Three record fields, all required. Restoration is not "the API stopped saying
+          # dead" — the post has to be a post again: alive, titled, and still pointing at
+          # Tuned. The page reading is deliberately absent from this condition; see the
+          # header note on 429.
+          if [ "$DEAD" = "false" ] && [ "$TITLE" = "present" ] && [ "$URL" = "present" ]; then
+            echo "RESTORED: item ${ITEM} is live, titled, and still points at Tuned (first comment: ${KIDS})."
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "**RESTORED** — the success check for the moderation request is met." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
-          echo "::error::Item ${ITEM} is NOT publicly restored (state=${STATE}, dead=${DEAD}, title=${TITLE}, page=${PAGE}, link=${LINK})."
+          echo "::error::Item ${ITEM} is NOT publicly restored (state=${STATE}, dead=${DEAD}, title=${TITLE}, record-url=${URL})."
           {
             echo ""
             echo "**NOT RESTORED.** This red run is the evidence, not a harness fault."

@@ -22,23 +22,24 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **Publish the Show HN. It is one paste, from [EXP-002-PACKET.md](EXP-002-PACKET.md).**
+### **Ask Hacker News moderation to review the dead item. One email, and do not repost.**
 
-**Bot Fight Mode is off — the incident is closed.** Verified twice from GitHub's network, 4½ hours
-apart, from two Cloudflare colos, by both a plain `curl` and the named first-party contract.
-`/ava/rss.xml` answers 200 to a non-browser client again. The paste returns to the top of this card
-exactly as run 28 promised it would.
+**You did the paste this morning and it published nothing.** Item
+[`49280269`](https://news.ycombinator.com/item?id=49280269), submitted **10:13:23 Sydney**, came back
+**`dead: true`** — killed at submission, no title, no url, no comments on its record. Verified from
+GitHub's network in [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210), not
+taken on report. Not a Tuned fault and not a mistake you made.
 
 | | |
 | --- | --- |
-| **Severity** | **Top blocker, and now the only one — and it has now cost a milestone.** **0 applications** against **431** human-flagged landing views over 7 days. Nothing downstream is gradeable until some known-human traffic arrives, and the 1-week horizon is graded **missed on its publication condition** as of 2026-08-13 Sydney. |
-| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. Its 48-hour clock has never started and will not start until a canonical `news.ycombinator.com/item?id=…` URL exists. Authorization is not publication. |
-| **Why owner authority** | The executor holds no Hacker News session. Posting in your name would be impersonation — a standing stop condition, not a capability gap. |
-| **Exact minimum action** | Paste the title, URL and first comment from [EXP-002-PACKET.md](EXP-002-PACKET.md) into Show HN as written, then paste the resulting `item?id=…` URL into [issue #1](https://github.com/in-c0/tuned/issues/1). |
-| **Why it is safe to paste now** | The packet's public claims were checked against live production by EXP-004. The one claim the incident put at risk — *"every feed has open RSS"* — is the exact thing re-verified green this run. |
-| **Success check** | A canonical HN item URL in issue #1. It starts the 48-hour clock; the executor grades on the pre-registered bands. |
-| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; unpublished **4 days and 8 hours**, two of them consumed by the incident. |
-| **Last surfaced** | Run 25 report; displaced but never withdrawn in runs 25–28; carried unchanged through runs 29–31. |
+| **Severity** | **Top blocker, and still the only one.** **0 applications** against **431** human-flagged landing views over 7 days. The channel meant to change that reached nobody. |
+| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. **No 48-hour clock started**, no window is open, nothing today is attributable to it, and **no grade was assigned** — a submission nobody could see tests nothing. |
+| **Why owner authority** | Contacting moderation is private outbound correspondence in your name — a standing stop condition. The executor also has no session and no route to the host. |
+| **Exact minimum action** | Email **`hn@ycombinator.com`** about item `49280269`: submitted once, own project, no votes solicited, came back dead — ask whether a filter caught it and whether anything should be fixed. Full suggested wording in [STATUS.md](STATUS.md). Then paste their reply into [issue #1](https://github.com/in-c0/tuned/issues/1). |
+| **Do not** | Repost, resubmit reworded, use a second account or an alternate link, or solicit votes. That converts a recoverable filter into a durable one. |
+| **Success check** | **Executable, not a receipt.** Dispatch [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml) with item `49280269`. **Green = restored** (`dead: false`, titled, `url` still points at `justtuned.com`). The executor runs it each cycle; you do not have to. |
+| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; attempted **2026-08-13 00:13 UTC**; still unpublished. Already cost the 1-week milestone its publication condition. |
+| **Last surfaced** | Run 33 report and a push notification. The previous card — *publish the Show HN* — is retired: its action was performed. |
 
 **Bot Fight Mode: closed 2026-08-11, and now retired from this card** as promised — the full record,
 including the two colo readings that settled it and the standing recommendation to use path exemptions
@@ -66,14 +67,16 @@ in production**. The constraint is not inside the product.
 **Single active objective: obtain controlled, known-human traffic.** EXP-003 killed the mechanism
 explanation for 0/115 — a real browser applied successfully at both mobile and desktop widths. What
 remains is that **no arrival is known to be human**, and with an unknown denominator no conversion
-figure is gradeable. **The channel is authorized** (2026-08-08 13:56 UTC) and the incident that
-displaced it is closed, so the binding step is once again a single paste — see
-[§1](#1-owner-action-required).
+figure is gradeable. **The channel was authorized** (2026-08-08 13:56 UTC) **and published on
+2026-08-13 — and Hacker News killed the submission at submission.** The objective is unchanged and so
+is the blocker; only the shape of the remaining step moved, from *publish* to *ask moderation to
+review* — see [§1](#1-owner-action-required).
 
 **Explicitly not doing** (full list in [STATUS.md](STATUS.md)): no pricing/positioning/copy work
 while the denominator is unknown; no CTA-reach counter yet — right instrument, wrong traffic; no
-EXP-002 publication **by the executor**, which holds no HN session; no second channel and no thread
-seeding; no secret read, hash, rotation or exposure, ever; no
+EXP-002 publication **by the executor**, which holds no HN session; **no repost, no second account,
+no reworded resubmission, no alternate link and no contact with moderation by the executor**; no
+second channel and no thread seeding; no secret read, hash, rotation or exposure, ever; no
 spend; no generic summarizer, content generator or enterprise observability dashboard; no invented
 baseline, forecast or traction claim.
 
@@ -97,7 +100,7 @@ one thing this ladder must not do.
 | 6 hours | 15:30 UTC | Owner has an explicit, single decision in front of them: authorize a first channel, or say what to do instead | active | owner is asleep — 19:30 Sydney | surfaced in the run-18 report; do not re-ask |
 | 12 hours | 21:30 UTC | ≥1 arrival is **known** to be human, or a recorded reason none can be | not started | owner authorization for a first channel | nothing executor-side unblocks this |
 | 1 day | 2026-08-09 | The funnel is readable — one authenticated snapshot | **achieved** 2026-08-08 | cleared | — |
-| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution; EXP-002 graded if it ran | **condition 1 MET** (5 snapshots) · **condition 2 MISSED**, graded 2026-08-13 Sydney per the 2026-08-11 precommitment — EXP-002 was never published, so no 48-hour clock can close inside the window | the paste (owner) | unchanged: publish from [EXP-002-PACKET.md](EXP-002-PACKET.md); the grade is recorded, not renegotiated |
+| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution; EXP-002 graded if it ran | **condition 1 MET** (5 snapshots) · **condition 2 MISSED**, graded 2026-08-13 Sydney per the 2026-08-11 precommitment. The paste happened hours later and was **killed at submission**, which does not disturb the grade: the condition was a graded experiment, and *"if it ran"* was never satisfied | HN moderation review (owner) | email `hn@ycombinator.com` about item `49280269`; the grade is recorded, not renegotiated |
 | 2 weeks | 2026-08-22 | A real payment path exists; first genuine willingness-to-pay evidence — or the wedge is falsified | not started | payment-provider account is an owner boundary | request the account once demand exists |
 | 1 month | 2026-09-08 | First gross cash; activation measured, not assumed | not started | all of the above, in order | decided by the baseline |
 | 3 months | 2026-11-08 | A small **retained paying cohort** | not started — *past the 2026-10-05 operating date; owner's to carry* | everything above | hand over an honest cohort table at closeout |
@@ -151,10 +154,10 @@ reading and caveats in [METRICS.md](METRICS.md).
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. Every conversion figure is ungradeable. It has now cost the 1-week milestone its publication condition. | Owner publishes; executor measures | AUD $0 | **Open. Top blocker.** See §1. |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. **The channel meant to fix this was submitted 2026-08-13 and killed at submission** (`dead: true`, item 49280269), so the blocker did not move: what was missing was exposure, and there still is none. | Owner requests moderation review; executor measures | AUD $0 | **Open. Top blocker.** See §1. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
-| 3 | **EXP-002 (first distribution test) authored but unpublished.** Measurement precondition met; the "do not publish into a possibly-broken funnel" objection **retired** by run 18; and as of run 19 the packet is **complete** — `[DEMO_FEED_URL]` = `https://justtuned.com/ava`, verified live, and its "open RSS" claim checked. | Owner authorizes; executor prepared | AUD $0 | Ready, held on **authorization alone**. Nothing left to look up. |
-| 4 | **Executor has no direct egress to `justtuned.com`** (403 CONNECT at the proxy, **22** consecutive runs; `*.workers.dev` refused identically). GitHub's REST API is likewise blocked to direct `curl`. | Environment | — | Mitigated, not fixed: Actions is the production read path and it works. Standing limitation, not a stop condition. |
+| 3 | **EXP-002 authored, authorized, submitted — and killed at submission.** Authorization arrived 2026-08-08 13:56 UTC; the packet is complete and its public claims verified by EXP-004; the owner submitted it 2026-08-13 00:13 UTC and Hacker News marked the item `dead`. Nothing about the packet has been tested, because nobody saw it. | Owner emails `hn@ycombinator.com`; executor checks restoration by dispatch | AUD $0 | **Merged into blocker #1** — same channel, new success check. Kept so the sequence authorize → publish → killed stays on the record. |
+| 4 | **Executor has no direct egress** — 403 CONNECT at the proxy, **29** consecutive runs, re-tested this run and now confirmed for `hacker-news.firebaseio.com` as well as `justtuned.com` and `*.workers.dev`. Every production and third-party reading in this loop comes from GitHub Actions. | Environment | — | Mitigated, not fixed: Actions is the read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
 
@@ -173,11 +176,13 @@ reading and caveats in [METRICS.md](METRICS.md).
   ([run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974)): demo link → `/ava`,
   feed 200 with **24 items** and no empty state, `/ava/rss.xml` 200 `application/rss+xml` with **38**,
   no first-party errors, no horizontal overflow. GETs only; nothing written.
-- **EXP-002 — Show HN distribution smoke test: AUTHORIZED, NOT STARTED.** Pre-registered;
-  measurement-unblocked; packet canonical and checked in [EXP-002-PACKET.md](EXP-002-PACKET.md).
-  Authorized [13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917).
-  **The 48h clock has not started and will not until a `news.ycombinator.com/item?id=…` URL exists** —
-  authorization is not publication.
+- **EXP-002 — Show HN distribution smoke test: AUTHORIZED, NOT STARTED — attempted and killed.**
+  Pre-registered; packet canonical and checked in [EXP-002-PACKET.md](EXP-002-PACKET.md). Authorized
+  [13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917), submitted
+  **2026-08-13 00:13:23 UTC**, and item `49280269` is **`dead: true`** —
+  [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210). **No t0, no window, no
+  snapshot, no inference, no grade.** If moderation restores it, the experiment starts **at the
+  restoration timestamp**, not at submission time. All bands unchanged.
 
 Details and grading rules: [EXPERIMENTS.md](EXPERIMENTS.md).
 
@@ -188,24 +193,25 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
-| **L-10** | **An experiment that writes into its own measurement is worthless — so make that structural.** EXP-003 had to submit an application to test the application path, against the very counter whose zero is the finding. Interception + an invalid-email negative control + a headless UA kept all three funnel figures untouched. | Give every QA harness a **contamination block** in its output — what it wrote, what it incremented, how its traffic is classified — so the answer is in the log, not in someone's memory of the design. |
-| **L-09** | **Two explanations that produce the same number are one unanswered question.** A broken form and an unpersuasive offer produce byte-identical funnel data. Every instrument proposed against 0/115 measured the *message* while assuming the *mechanism* away — and the mechanism turned out to be fine, at the first attempt, in ~11 seconds of browser time. | Before instrumenting a funnel stage, write the two sentences that would both explain the number. If the proposed instrument cannot separate them, it is the wrong instrument however cheap. |
-| **L-08** | **Control-plane work is the easiest thing to keep choosing.** By day 3: build gate, CI, telemetry, 23 tests, version-stamped deploys, trigger guards, claim protocol — and zero distribution, no payment capability, no funnel ever read. Every step locally justified; the aggregate spent days on the machine that produces evidence rather than on evidence. | When the next-best action is control-plane work, **first name the demand experiment it unblocks** and check whether that experiment could run without it. |
+| **L-16** | **A URL proves a form was submitted, not that anything was published.** The owner action's success check was *"a canonical `item?id=…` URL appears in issue #1"*. It did — and the item was `dead: true`. Had nobody looked closely, this loop would have started a 48-hour clock over an empty page and written *"Show HN produced no arrivals"* into durable state as a finding about Tuned's positioning. | Write success checks against the observable outcome, never the receipt — and make them executable. If the executor cannot run and grade the check, it is an attestation and should be labelled one. |
+| **L-15** | **`git fetch` does not move the branch you are standing on, and a stale base invents findings.** Run 30 branched from a five-day-old local `master` and `npm audit` reported a *production* `hono` advisory that real master never had. What caught it was an impossibility — a lockfile disagreeing with its own install — not vigilance about git. | Verify the base, not the fetch: `git rev-parse master origin/master` must agree, or branch from `origin/master`. Treat any impossibility in tooling output as evidence about your environment first. |
+| **L-14** | **A defence that filters by "is this a bot" filters out whatever your product is made of.** Bot Fight Mode challenged every non-browser client for ~22 hours, and Tuned's RSS and agent surfaces *are* non-browser clients. The product's own traffic looked exactly like the thing being blocked. | Before enabling a generic bot defence, enumerate the first-party non-browser clients the product ships, and exempt their paths explicitly rather than discovering them through an outage. |
 
-L-08's test from run 17 — *does the next run spend its cycle on the conversion diagnosis instead of on
-more dashboard?* — **passed.** Run 18 shipped the diagnosis, and the only documentation it touched was
-the record of the result. The same test now points forward: run 19 passes only if it does **not**
-reach for a copy rewrite or another counter.
+Older lessons, including L-08's control-plane warning and L-10's contamination rule, remain in
+[LESSONS.md](LESSONS.md). L-08's forward test — *does the next run spend its cycle on demand evidence
+rather than more control plane?* — is the one this run had to answer carefully: the instrument it
+built exists to grade an owner action it cannot perform, and it is deliberately the smallest thing
+that turns an attestation into a check.
 
 ## 8. Last materially updated and freshness
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-13 07:40 Sydney (2026-08-12 21:40 UTC) |
-| **Run** | 31 — a bounded state reconciliation: consume the 08-12 snapshot, apply the precommitted 1-week grade, refresh blocker age, then return to the silent URL gate |
-| **Repository commit at time of writing** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) |
-| **Data commit** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) — `generated_at` 2026-08-12T21:24:27Z, read through the public zone, covering 7 UTC days with 08-12 partial. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §4, §5 and this section are current as of run 31, and §3's 1-week row carries this run's grade. **§2 (phase), the rest of §3, §6 (experiment) and §7 (lessons) were last written at run 20** and are stale. Read [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), [EXPERIMENTS.md](EXPERIMENTS.md) and [LESSONS.md](LESSONS.md) for those. |
+| **Last materially updated** | 2026-08-13 10:50 Sydney (00:50 UTC) |
+| **Run** | 33 — the Show HN was submitted and killed at submission; record the failed attempt, replace the owner action with a moderation review, and give its success check an executable form |
+| **Repository commit at time of writing** | [`bbb9a4d`](https://github.com/in-c0/tuned/commit/bbb9a4d) |
+| **Data commit** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) — `generated_at` 2026-08-12T21:24:27Z, read through the public zone, covering 7 UTC days with 08-12 partial. **Unchanged this run: no new snapshot was taken and no metric moved.** |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §3's 1-week row, §5, §6 and §7 are current as of run 33; §4 and this section are current as of the 08-12 snapshot. **§2 (phase) and the rest of §3 were last written at run 20** and are stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

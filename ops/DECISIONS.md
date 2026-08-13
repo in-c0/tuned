@@ -1045,3 +1045,69 @@ the executor and is still 403 CONNECT at the proxy — **twenty-eighth consecuti
 throughout and now serves `master`'s head.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## Run 33 — 2026-08-13 10:15–10:50 Sydney (00:15–00:50 UTC) — the paste happened, the publication did not
+
+**Directive.** [Review 2026-08-13 00:15 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5274299491):
+one bounded failure-reconciliation cycle. Record item `49280269` as an invalid/dead publication
+attempt; keep EXP-002 `AUTHORIZED / NOT STARTED`; reconcile STATUS, MILESTONES, DASHBOARD, EXPERIMENTS,
+DECISIONS and LESSONS; replace the owner action with the minimum non-reposting recovery — owner asks
+Hacker News moderation to review the dead item; then stop pending owner evidence or restoration.
+
+**Decision 1 — verify the reviewer's reading before writing it into durable state, and build the
+instrument that does it.** The reviewer pasted the item record. Run 32's lesson is that a claim read
+once and written down is how a working pipeline got escalated to the owner as broken, and this claim
+is load-bearing for an entire channel. The executor has no route to Hacker News — 403 CONNECT at the
+proxy, every host, re-tested this run, 29th consecutive run — so verification needed a vantage point.
+[`hn-item-status.yml`](../.github/workflows/hn-item-status.yml)
+([#30](https://github.com/in-c0/tuned/pull/30) → [`bbb9a4d`](https://github.com/in-c0/tuned/commit/bbb9a4d))
+reads the documented Firebase item record and the public item page from GitHub's network, dispatch-only,
+`contents: read`, no secrets, two GETs of public URLs per dispatch, no session and no interaction with
+the third party.
+
+**The verification confirmed the reviewer exactly.** [Run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210),
+HTTP 200 from the API: `{"by":"avajiyo","dead":true,"id":49280269,"score":1,"time":1786580003,"type":"story"}`
+— byte-identical, no title, no url, no descendants. Item time = 2026-08-13T00:13:23Z.
+
+**Decision 2 — the same run corrected the instrument it had just built.** The first grader also
+required the public item page to return 200; Hacker News answered **429**, because it rate-limits
+datacenter IPs and GitHub's runners are datacenter IPs. A success condition that cannot be obtained
+from where the check runs is not a strict condition, it is a permanently red light — the owner would
+have been handed a restoration check that stays red after a successful restoration. Corrected to grade
+on the record's `dead`, `title` and `url` fields, with the page kept as **non-deciding** corroboration
+and reported `inconclusive` rather than `absent` on 429. The `url` match is taken inside the record's
+own `url` field so a needle appearing elsewhere cannot pass for the submission.
+
+**Decision 3 — replace the owner action's success check, not just its text.** The retired check was
+*"a canonical `item?id=…` URL appears in issue #1."* That condition was **satisfied** — and nothing was
+published. Submitting a form mints an item id whether or not the story lives. The new check is
+executable by the executor and gradeable by machine: dispatch the workflow, green means the record is
+not dead, is titled, and still points at `justtuned.com`. Recorded as **[L-16](LESSONS.md)**: write
+success checks against the observable outcome, never the receipt.
+
+**Decision 4 — create no t0, no window, no snapshot, no inference and no grade.** EXP-002 stays
+`AUTHORIZED / NOT STARTED` with every band, threshold and definition untouched. The available
+temptation was real and is named so it stays refused: today's funnel numbers will be flat, and
+attaching them to a "Show HN" label would have produced a clean-looking negative result about Tuned's
+positioning from an experiment in which no human ever saw Tuned. Recorded in
+[EXPERIMENTS.md](EXPERIMENTS.md), including the rule that **restoration starts the clock at the
+restoration timestamp, not at the original submission time** — a story restored hours late gets a
+different trajectory, and dating the window from `time` would credit it with exposure it never had.
+
+**Decision 5 — no repost, and the boundary is written down rather than assumed.** `dead: true` at
+submission carries no public reason and is not diagnosable from outside. Rewriting the title or body
+would be guessing at a cause; resubmitting the same link is what Hacker News treats as evasion. The
+recovery is one owner email to `hn@ycombinator.com` and nothing else. Explicitly refused this run and
+standing: no second account, no reworded resubmission, no alternate link to the same site, no vote or
+comment solicitation, and no contact with moderation by the executor — that is private outbound
+correspondence in the owner's name.
+
+**Verification.** `npm ci` exit 0 · `npm run check` exit 0 · `npm test` **30 passed** · `npm audit
+--omit=dev` **0 vulnerabilities**. PR checks green on both PRs (`check`, GitGuardian, Workers Builds).
+Production verified after each push.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+**What did not change.** No `src/` change beyond the two workflow files, no product surface, no copy,
+no pricing, no schema, no billing, no experiment band, no metric. The Worker is behaviourally
+identical.
