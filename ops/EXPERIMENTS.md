@@ -624,3 +624,66 @@ permission to submit again. Absent all three, there is no attempt to prepare.
 against a zero baseline, sound only because no channel has ever been posted. That is still true: a
 dead submission put nothing in front of anyone, so the baseline is uncontaminated and no window has
 been spent. The distribution question is exactly as open as it was on 2026-08-08 — see [L-17](LESSONS.md).
+
+---
+
+## EXP-005 — is the attention Tuned publishes actually recent? (2026-08-13, run 35)
+
+**Pre-registered before any production reading, and before any copy is touched.** The threshold below
+is fixed here first so it cannot be relaxed once the measurement is in. Same discipline as EXP-003
+and EXP-004.
+
+Not a demand experiment. Like EXP-004 this is a **check on a public claim**, and it is the claim that
+sits on Tuned's highest-traffic page — 431 UA-flagged human-shaped landing views have now seen it.
+
+- **What the landing page claims, verbatim.** The demo block is headed *"Live demo — a real feed,
+  right now"*. The top-of-page link to it reads *"live demo"*. The following-side explainer says
+  *"**Right now** — what they're into today, live, with a pulse: 'active 2h ago'"*. Each demo card
+  renders its own timestamp through `data-t`, which the page's own script turns into `Nm ago` /
+  `Nh ago` / `Nd ago` in the reader's browser.
+- **Why now.** `items_public` is **79 on every committed metrics snapshot from 2026-08-08 through
+  2026-08-12** — five days in which nothing anywhere on Tuned was published, while `items_queued`
+  went 27 → 42 and then flat for two. `ops/METRICS.md` recorded that on 2026-08-12 as the leading
+  engineering candidate and left it deliberately uninvestigated, because run 34's directive was a
+  bounded compliance reconciliation that forbade inventing replacement work. Run 34 then raised its
+  priority: the Show HN packet was withdrawn partly for pointing at an application-gated landing
+  page, so **whether Tuned has a directly usable destination worth pointing anyone at is now the
+  question in front of the loop**, and a stale demo is a poor answer to it.
+- **What `items_public` cannot settle, and this can.** It is a total across all feeds, so it cannot
+  distinguish *"the feed a visitor is shown is stale"* from *"one feed is stale and another is
+  fresh"*. Those have different fixes: the first is an emptiness problem, the second is a defect in
+  how the demo feed is chosen. `src/index.ts` picks the demo as `ORDER BY created_at` **LIMIT 1** —
+  the oldest creator — which is a choice about the *feed's* age and not about its *content's*.
+- **Hypothesis:** the demo block a visitor sees is stale enough that the words above it are not
+  defensible. If it is fresh, the flat `items_public` is explained elsewhere and the landing copy is
+  fine as written.
+- **Baseline:** unmeasured in both directions. No run has ever read an item timestamp out of
+  production. EXP-004 established that the demo feed renders **cards** and that RSS serves at least
+  one `<item>`; neither criterion looked at a date.
+- **Change under test:** none to the product in this measurement phase. A read-only browser spec
+  (`qa/freshness.spec.mjs`) dispatched through the existing `qa-browser` workflow.
+
+**Success criterion — one, pre-registered, graded on production:**
+
+> The newest item in the landing page's demo block is **less than 48 hours old** at the moment of
+> measurement, read from the `data-t` attribute the page actually renders.
+
+48 hours is deliberately generous. It is the most permissive reading of *"right now"* anyone could
+defend in public, so a failure at this threshold is not a matter of taste. The spec also reports,
+without grading, the newest-item age of **every** public feed the landing page lists, whether any
+feed is fresh, and whether the feed chosen as the demo is the freshest one available.
+
+**Contamination rules, fixed in advance:**
+
+- **GETs only.** No application, no member, no follow, no write of any kind, no mutating route.
+- The harness announces a headless user-agent, so `src/metrics.ts` classifies its requests as bots.
+  Expected effect on the human-flagged series: **zero**. Declared bot-flagged cost: 1 landing view
+  plus 1 feed-page-equivalent RSS read per listed feed, once, from the desktop project only.
+- The measurement reads the **rendered page and the published RSS**, not the database. What a reader
+  sees is the claim under test; a database that disagreed with the page would itself be the finding.
+
+**Falsification, stated so this cannot be graded generously afterwards:** if the demo block's newest
+item is under 48 hours old, the hypothesis is **refuted**, the landing copy stands unchanged, and the
+flat `items_public` needs a different explanation. No copy is edited on a refuted hypothesis.
+
+**Result: pending — measurement dispatched 2026-08-13, run 35.**
