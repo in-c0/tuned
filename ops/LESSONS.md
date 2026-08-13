@@ -403,3 +403,55 @@ tooling output — a lockfile contradicting its install, a declared range exclud
 version — as evidence about your environment before it is evidence about the code. The first
 interpretation of a surprising audit result should be "am I looking at what I think I am looking at,"
 because a wrong base does not fail loudly; it answers a different question fluently.
+
+## L-16 — A URL proves a form was submitted, not that anything was published
+
+**What happened.** The one owner action this loop had been asking for since 2026-08-08 was performed:
+the Show HN was submitted, and a canonical `news.ycombinator.com/item?id=49280269` URL came back. That
+URL was the exact success check written into the owner action card, on the reasoning that a canonical
+item URL cannot be produced without publishing. It can. The item was **`dead: true`** — killed at
+submission — and the pre-registered exposure never occurred. Item time 2026-08-13T00:13:23Z.
+
+**The mistake is in the success check, not in the owner.** The card promised that the URL *"starts
+EXP-002's 48-hour clock; the executor grades it on its pre-registered bands."* Had the URL arrived
+while nobody was looking closely, this loop would have started a 48-hour clock over an empty page,
+watched the flat counters it was always going to see, and graded a distribution experiment that had no
+distribution in it. The bands would have been applied honestly to a number that meant nothing, and the
+resulting *"Show HN produced no measurable arrivals"* would have entered durable state as a finding
+about Tuned's positioning. It is a finding about a killed submission.
+
+**Why the check was wrong.** It confused an artifact of the act with the effect of the act. Submitting
+a form mints an item id whatever happens next — dead, flagged, buried, or fine. The thing EXP-002
+needs is not a URL; it is *exposure*, and exposure is a property of the item's public state at a later
+time, not of the moment it was created. Every success check in this loop that names an artifact rather
+than an observable outcome has the same defect latent in it.
+
+**Evidence and cost.** Firebase item record read from GitHub's network in
+[run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210):
+`{"by":"avajiyo","dead":true,"id":49280269,"score":1,"time":1786580003,"type":"story"}` — no title, no
+url, no descendants. Cost: the one-week milestone's publication condition, already graded missed
+hours earlier, plus the channel itself pending moderation. AUD $0.
+
+**A second, smaller mistake caught in the same hour.** The instrument built to check this
+([`bbb9a4d`](https://github.com/in-c0/tuned/commit/bbb9a4d)) graded restoration partly on the public
+item page, and Hacker News answered **HTTP 429** to GitHub's runner — it rate-limits datacenter IPs.
+A success condition that depends on a reading unavailable by construction can never go green, so the
+check would have reported "not restored" forever, including after a successful restoration. Corrected
+in the same run to grade on the API record's `dead`, `title` and `url` fields, with the page kept as
+non-deciding corroboration and marked `inconclusive` rather than `absent` on 429. This is [L-05](#l-05--this-loops-instruments-mislead-more-often-than-its-product-does)
+again, one layer up: the instrument built to verify a claim needed verifying too.
+
+**The lesson.** *Write success checks against the observable outcome, never against the receipt.* "A
+URL appears in issue #1" is a receipt. "The item's public record is not dead, carries a title, and
+still points at Tuned" is the outcome — and it is checkable repeatedly, by machine, days later, which
+a receipt never is.
+
+**More elegant next attempt.** Every owner action card's success check should be executable. If the
+executor cannot express the check as something it can run and grade, the check is an attestation and
+should be labelled one.
+
+**Prevention check.** Before a success check is written into an owner action card, ask: *could this
+condition be satisfied while the thing it is standing in for did not happen?* If yes, it is a receipt.
+Replace it. And before an instrument's verdict is trusted, confirm each of its inputs is actually
+obtainable from where it runs — an unobtainable input is not a failing condition, it is no condition
+at all.

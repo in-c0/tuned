@@ -1,6 +1,6 @@
 # Tuned — MILESTONES
 
-**Last updated:** 2026-08-13 Sydney / 2026-08-12 UTC (run 31 — the 1-week horizon's **second condition is graded MISSED** at its precommitted 2026-08-13 cutoff; the six sub-day windows below remain **stale, anchored at run 20, and deliberately left ungraded** rather than back-filled). Update when evidence, status,
+**Last updated:** 2026-08-13 Sydney (run 33 — the Show HN was submitted at 10:13 Sydney and **killed at submission**; the 1-week horizon's second condition stays **MISSED** as graded by run 31, since a dead submission is not a run experiment; the six sub-day windows below remain **stale, anchored at run 20, and deliberately left ungraded** rather than back-filled). Update when evidence, status,
 timing or strategy changes — not every run. Current state lives in [STATUS.md](STATUS.md); the owner's
 one-screen view is [DASHBOARD.md](DASHBOARD.md); reasoning lives in [DECISIONS.md](DECISIONS.md) and
 [EXPERIMENTS.md](EXPERIMENTS.md).
@@ -146,12 +146,20 @@ the ladder above feeds the 1-week horizon rather than this one.*
     through the **public zone** rather than the Worker origin; `2026-08-12`
     ([`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), `generated_at` 2026-08-12T21:24:27Z)
     is the current one.
-  - **Publication condition: MISSED, graded 2026-08-13 Sydney.** No canonical
-    `news.ycombinator.com/item?id=…` URL exists in [issue #1](https://github.com/in-c0/tuned/issues/1),
-    so EXP-002 was never published, its 48-hour clock never started, and it cannot be graded on its
-    pre-registered bands inside this horizon. **EXP-002 stays `AUTHORIZED / NOT STARTED` and its bands
-    are untouched** — a missed milestone is not a failed experiment, and nothing here converts one into
-    the other.
+  - **Publication condition: MISSED, graded 2026-08-13 Sydney — and the attempt that followed does
+    not disturb the grade.** The grade was applied at 07:55 Sydney on the precommitment below. At
+    **10:13:23 Sydney** the owner submitted the Show HN, and item
+    [`49280269`](https://news.ycombinator.com/item?id=49280269) came back **`dead: true`** — killed at
+    submission, verified from GitHub's network in
+    [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210). The condition was
+    *"if EXP-002 ran, it is graded on its pre-registered bands"*; it never ran, so the grade stands
+    for the same reason it was written, not by re-argument. **EXP-002 stays `AUTHORIZED / NOT
+    STARTED` and its bands are untouched** — a missed milestone is not a failed experiment, and a
+    killed submission is not a failed one either.
+  - **What the attempt did settle, and it is worth the horizon's record:** the blocker was never the
+    owner's willingness. It was exposure, and the paste proved that by producing a canonical URL that
+    published nothing. See **[L-16](LESSONS.md)** — the success check named the receipt, not the
+    outcome.
   - **EXP-001: PASSED and closed** (run 16).
   - **Constraint question: answered, in a direction neither branch of EXP-001 predicted** — not
     distribution volume and not broken instrumentation, but **conversion**: 0 applications from 431
@@ -164,19 +172,21 @@ the ladder above feeds the 1-week horizon rather than this one.*
 - **Blocker:** **publication.** Owner authorization arrived 2026-08-08 13:56 UTC; the run-18 objection
   (do not post into a possibly-broken funnel) was retired by EXP-003; and the Bot Fight Mode objection
   (do not point HN at a zone that challenges RSS readers) was retired **2026-08-11** when the toggle
-  came off. All three objections are now spent. What is left is a paste into a Hacker News session the
-  executor does not hold.
+  came off. All three objections are now spent, and the paste itself was made on 2026-08-13. **What
+  is left is no longer publication but restoration:** the submission was killed at submission, and the
+  only non-evasive recovery is an owner request for moderation review.
 - **Risk to the window: REALIZED 2026-08-13.** The precommitment read: *if the paste does not happen by
   **2026-08-13**, EXP-002's 48-hour clock cannot close inside this horizon and the milestone will be
   graded **missed on its second condition** — stated in advance so the grade is not negotiated
   afterwards.* The paste did not happen. The grade is applied as written: **missed on condition 2**,
   with the deadline, the thresholds and EXP-002's bands all left exactly where they were. Even a
   publication today could not close a 48-hour clock and be graded before 2026-08-15.
-- **Next action:** unchanged, and unchanged deliberately — owner publishes from
-  [EXP-002-PACKET.md](EXP-002-PACKET.md). The missed grade removes nothing from the packet's value: it
-  records that a week passed without known-human traffic, not that the channel was tried and failed.
-  When the URL appears, the executor starts the 48-hour clock from the publication timestamp and grades
-  EXP-002 on its pre-registered bands against the `55ece3c` baseline plus `ae37b7e`.
+- **Next action:** owner emails `hn@ycombinator.com` asking them to review dead item `49280269`; no
+  repost, no second account, no reworded resubmission. The packet is untouched and still valid — it
+  was never seen, so nothing about it has been tested. When the item is restored, the executor starts
+  the 48-hour clock **from the restoration timestamp** and grades EXP-002 on its pre-registered bands
+  against the `55ece3c` baseline plus `ae37b7e`. Restoration is checked by dispatching
+  [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml), not by attestation.
 - **Last evidence-linked update:** 2026-08-12 UTC / 2026-08-13 Sydney — condition 1 re-confirmed and
   condition 2 graded missed against snapshot
   [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0); production verified green on

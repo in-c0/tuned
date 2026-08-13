@@ -512,3 +512,55 @@ applications, 0 logins, 0 attention actions** across 3 UTC days. The scheduled 2
 refreshes it before any plausible publication time. Attribution remains by time-window contrast
 against this zero, which is sound **only** because this is the first and only channel ever posted; the
 `?src=shn-2026-08` tag is still inert.
+
+### EXP-002 status revision — 2026-08-13 (run 33): the publication was attempted and it did not happen
+
+**Status: `AUTHORIZED / NOT STARTED`. Unchanged, and that is the substantive finding of this entry.**
+
+The owner published, and the submission was killed. Item
+[`49280269`](https://news.ycombinator.com/item?id=49280269) — the canonical URL the owner action card
+asked for — is **`dead: true`**. The pre-registered exposure never occurred, so there is nothing to
+start, nothing to grade, and no window inside which any arrival may be attributed to this channel.
+
+**Evidence, read independently rather than accepted.** The reviewer supplied the record; the executor
+has no route to Hacker News (403 CONNECT at the proxy, every host, 29th consecutive run), so a
+dispatch-only workflow was built to read it from GitHub's network before it was written down here.
+[hn item status, run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210), HTTP 200
+from the documented Firebase item API:
+
+```
+{"by":"avajiyo","dead":true,"id":49280269,"score":1,"time":1786580003,"type":"story"}
+```
+
+Byte-identical to the reviewer's reading. `title`, `url` and `descendants` are **absent** — a killed
+story keeps none of them. Item time `1786580003` = **2026-08-13T00:13:23Z** (10:13:23 Sydney).
+
+**What is explicitly NOT created by this entry**, because each one would be a fabrication:
+
+- **No t0.** The 48-hour clock does not start. It starts at exposure, and there was none.
+- **No post-exposure snapshot**, and no day marked in-window.
+- **No conversion inference.** Nothing observed in the funnel on 2026-08-13 may be attributed to, or
+  read against, this attempt — including the absence of anything.
+- **No grade.** EXP-002 is not `PASSED`, not `FAILED` and not `ABANDONED`. A submission that was never
+  publicly visible tests nothing about the hypothesis, which is about *what agent operators do when
+  they see Tuned*. Nobody saw Tuned.
+- **No band, threshold, definition or baseline is altered.** All of them stand exactly as
+  pre-registered on run 9, including the `55ece3c` pre-publication baseline and the fresh one at
+  [`ae37b7e`](https://github.com/in-c0/tuned/commit/ae37b7e).
+
+**Why the packet is not being rewritten, and no repost is being prepared.** `dead: true` at submission
+carries no public reason. It is consistent with an account-level or domain-level filter, with a
+new-account submission rule, or with an automated flag — and it is *not* diagnosable from the outside.
+Rewriting the title or the body would be guessing at a cause, and a second submission of the same link
+is exactly the behaviour Hacker News treats as evasion. The recovery path is moderation review by the
+owner, and nothing else. See the owner action in [STATUS.md](STATUS.md).
+
+**If the item is restored**, EXP-002 starts then, at the restoration timestamp — not at the original
+submission time. A story restored hours later gets a different front-page trajectory than one that
+lived from the start, and dating the window from `time` would silently assign it exposure it never
+had. The pre-registered bands apply unchanged from that new t0.
+
+**Attribution note that now matters more.** Attribution for this channel is by time-window contrast
+against a zero baseline, which is sound only because it is the first and only channel ever posted.
+That remains true — a dead submission put nothing in front of anyone, so the baseline is uncontaminated
+and no window has been spent.
