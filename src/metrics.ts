@@ -70,14 +70,22 @@ function ensureTables(db: D1Database): Promise<void> {
 
 /** Increment a daily counter. Never throws — telemetry must not break a page. */
 export async function count(db: D1Database, name: string, day = utcDay()): Promise<void> {
+  return countBy(db, name, 1, day);
+}
+
+/** Add `by` to a daily counter in one statement. A batch of ingested items is one
+ *  event with a size, not N events; incrementing it N times is N round trips for
+ *  the same number. `by <= 0` writes nothing — a zero is the absence of a row. */
+export async function countBy(db: D1Database, name: string, by: number, day = utcDay()): Promise<void> {
+  if (!Number.isFinite(by) || by <= 0) return;
   try {
     await ensureTables(db);
     await db
       .prepare(
-        `INSERT INTO metric_days (day, name, count) VALUES (?, ?, 1)
-         ON CONFLICT(day, name) DO UPDATE SET count = count + 1`
+        `INSERT INTO metric_days (day, name, count) VALUES (?, ?, ?3)
+         ON CONFLICT(day, name) DO UPDATE SET count = count + ?3`
       )
-      .bind(day, name)
+      .bind(day, name, Math.trunc(by))
       .run();
   } catch (err) {
     console.log(JSON.stringify({ level: "error", message: "metric count failed", name, detail: String(err) }));

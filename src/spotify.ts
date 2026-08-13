@@ -14,6 +14,28 @@ export interface Connection {
   last_sync: string;
 }
 
+/** A refused call to Spotify, carrying enough to tell "we are locked out" from "it is having a bad day".
+ *
+ *  The distinction is operational, not cosmetic. A revoked refresh token or withdrawn consent
+ *  (400 `invalid_grant`, 401, 403) can only be fixed by the member reconnecting — an owner action.
+ *  A 429 or a 5xx fixes itself on the next half-hourly run. Collapsing both into "sync failed"
+ *  is what makes a dead connection look like a quiet one. */
+export class SpotifyError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly phase: "token" | "recently-played"
+  ) {
+    super(message);
+    this.name = "SpotifyError";
+  }
+
+  /** True when only a human reconnecting can clear it. 429 is explicitly not auth: it is a wait. */
+  get isAuth(): boolean {
+    return this.status >= 400 && this.status < 500 && this.status !== 429;
+  }
+}
+
 const AUTH_URL = "https://accounts.spotify.com/authorize";
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SCOPES = "user-read-recently-played";
@@ -42,7 +64,7 @@ async function tokenRequest(clientId: string, clientSecret: string, body: URLSea
     body,
     signal: AbortSignal.timeout(10000),
   });
-  if (!res.ok) throw new Error(`spotify token ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) throw new SpotifyError(`spotify token ${res.status}: ${(await res.text()).slice(0, 200)}`, res.status, "token");
   return await res.json();
 }
 
@@ -82,7 +104,7 @@ export async function recentlyPlayed(accessToken: string, since: string): Promis
     headers: { authorization: `Bearer ${accessToken}` },
     signal: AbortSignal.timeout(10000),
   });
-  if (!res.ok) throw new Error(`spotify recently-played ${res.status}`);
+  if (!res.ok) throw new SpotifyError(`spotify recently-played ${res.status}`, res.status, "recently-played");
   const data = (await res.json()) as {
     items?: Array<{
       played_at: string;

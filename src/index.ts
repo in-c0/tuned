@@ -5,13 +5,13 @@ import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
-import { authorizeUrl, exchangeCode, syncConnection, type Connection } from "./spotify";
-import { count, memberActive, isBot, snapshot } from "./metrics";
+import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connection } from "./spotify";
+import { count, countBy, memberActive, isBot, snapshot } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 
-type Bindings = { DB: D1Database; ADMIN_KEY: string; METRICS_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
+export type Bindings = { DB: D1Database; ADMIN_KEY: string; METRICS_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
 const app = new Hono<{ Bindings: Bindings }>();
 
 /** Fire-and-forget telemetry: never blocks the response, never fails a request. */
@@ -682,23 +682,51 @@ app.onError((err, c) => {
   return c.text("Something broke on our side.", 500);
 });
 
+// Ingestion is the only thing on this platform that currently produces items, and until now
+// its entire output was a console.log inside a cron the operating loop cannot read. A queue
+// that stops growing therefore had two indistinguishable explanations — the member stopped
+// listening, or the pipeline broke — and the loop had no way to tell them apart without
+// Cloudflare credentials it deliberately does not hold.
+//
+// These counters make the difference readable through the aggregate metrics path that already
+// exists. They record what happened, never what was listened to:
+//
+//   cron_run                 the scheduled handler ran at all. Zero of these means the cron
+//                            trigger is not firing, which no other counter can tell you.
+//   cron_no_credentials      it ran, but SPOTIFY_CLIENT_ID is unset in production.
+//   spotify_sync_ok          one connection was polled and Spotify answered.
+//   spotify_items_captured   how many plays were captured — the supply of real attention.
+//   spotify_sync_auth_error  4xx: the token is revoked or consent withdrawn. Only a member
+//                            reconnecting clears it, so it is the one that needs an owner.
+//   spotify_sync_error       anything else (network, 5xx, 429) — transient, self-clearing.
+//
+// Exported and injectable because the alternative is testing a cron by waiting half an hour.
+export async function runIngestion(env: Bindings, sync = syncConnection): Promise<void> {
+  await count(env.DB, "cron_run");
+  if (!env.SPOTIFY_CLIENT_ID) {
+    await count(env.DB, "cron_no_credentials");
+    console.log(JSON.stringify({ level: "error", message: "spotify sync skipped: no credentials" }));
+    return;
+  }
+  const { results } = await env.DB.prepare("SELECT * FROM connections WHERE provider = 'spotify'").all<Connection>();
+  for (const conn of results) {
+    try {
+      const r = await sync(env.DB, env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET, conn);
+      await count(env.DB, "spotify_sync_ok");
+      await countBy(env.DB, "spotify_items_captured", r.added);
+      console.log(JSON.stringify({ level: "info", message: "spotify sync", member: conn.member_id, added: r.added }));
+    } catch (err) {
+      const auth = err instanceof SpotifyError && err.isAuth;
+      await count(env.DB, auth ? "spotify_sync_auth_error" : "spotify_sync_error");
+      console.log(JSON.stringify({ level: "error", message: "spotify sync failed", member: conn.member_id, auth, detail: String(err) }));
+    }
+  }
+}
+
 export default {
   fetch: app.fetch,
   // every 30 min: pull new plays for every connection into each member's queue
   async scheduled(_event: ScheduledController, env: Bindings, ctx: ExecutionContext) {
-    ctx.waitUntil(
-      (async () => {
-        if (!env.SPOTIFY_CLIENT_ID) return;
-        const { results } = await env.DB.prepare("SELECT * FROM connections WHERE provider = 'spotify'").all<Connection>();
-        for (const conn of results) {
-          try {
-            const r = await syncConnection(env.DB, env.SPOTIFY_CLIENT_ID, env.SPOTIFY_CLIENT_SECRET, conn);
-            console.log(JSON.stringify({ level: "info", message: "spotify sync", member: conn.member_id, added: r.added }));
-          } catch (err) {
-            console.log(JSON.stringify({ level: "error", message: "spotify sync failed", member: conn.member_id, detail: String(err) }));
-          }
-        }
-      })()
-    );
+    ctx.waitUntil(runIngestion(env));
   },
 };
