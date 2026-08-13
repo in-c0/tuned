@@ -515,3 +515,41 @@ returns nothing, will I be able to tell "nobody wanted it" apart from "it was ne
 the second answer is no, the experiment is ungradeable before it starts. And any text the executor
 drafts for a human to publish under their own name carries a third: *is authorship by a machine
 allowed here?*
+
+---
+
+## L-18 — a hardcoded claim about live data is a claim nobody can keep true (2026-08-13, run 35)
+
+**What happened.** The landing page headed its demo block *"Live demo — a real feed, right now"*. That
+sentence was a string constant. EXP-005 measured what was underneath it in production: the newest item
+in that block was **270.6 hours — 11.3 days — old**, and the page's own script stamped each card
+**"11d ago"** directly beneath the word *now*. Every other feed was 13.5 days stale. At least 431
+UA-flagged human-shaped landing views had arrived on that page in that state.
+
+**Why it survived eleven days.** Not for lack of checking. The landing page has been driven by a real
+browser twice — EXP-003 at two viewports, EXP-004 against the very same demo block — and it passed
+both. Every criterion asked *does this render?*: 200s, a card present rather than the empty state, no
+console errors, no horizontal overflow, RSS with at least one `<item>`. **Not one of them looked at a
+date.** A stale page and a fresh page are byte-for-byte identical in structure, so a suite that grades
+structure will grade a corpse as healthy, forever, and report green while doing it.
+
+**The lesson.** *A claim about live data must be derived from that data at render time, or it is not a
+claim — it is a decoration that was true once.* Prose asserting freshness, activity, recency or volume
+cannot be maintained by anyone: no reviewer re-reads a heading they have already approved, and no
+structural test can see through it. The same page already had the honest version of this pattern in
+`publicPage` — a presence pulse that reads the newest item and greys itself out past 24 hours — so the
+fix was not an invention but a consistency: the landing page was the one surface allowed to look
+fresher than the feed it was showing.
+
+**More elegant version of the fix, which is what shipped.** Delete the adjective from the prose and
+let the data speak in its place. The heading now says only what the block *is* (`Live demo — a real
+feed`); the pulse underneath says how current it is, and degrades by itself into *"last active 11d
+ago"*. There is no branch to get wrong and no sentence that can rot, because there is no longer a
+sentence making the claim.
+
+**Prevention check, added to the pre-ship list.** For any user-facing string containing *now, live,
+today, currently, active, fresh, latest, real-time* or a sample reading like *"active 2h ago"*: **what
+query would falsify this, and does the page run it?** If nothing in the request path could make the
+sentence false, it is a decoration and must be replaced by a rendered value. And when a QA suite
+declares a surface healthy, ask what it would look like if the content behind that surface had died —
+if the answer is *identical*, the suite is measuring the frame and not the picture.

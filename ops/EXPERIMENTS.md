@@ -686,4 +686,46 @@ feed is fresh, and whether the feed chosen as the demo is the freshest one avail
 item is under 48 hours old, the hypothesis is **refuted**, the landing copy stands unchanged, and the
 flat `items_public` needs a different explanation. No copy is edited on a refuted hypothesis.
 
-**Result: pending — measurement dispatched 2026-08-13, run 35.**
+**Result: HYPOTHESIS SUPPORTED — the claim was false by a wide margin.**
+Measured 2026-08-13 10:08:15 UTC against `https://justtuned.com`, run
+[31689710757](https://github.com/in-c0/tuned/actions/runs/31689710757), commit `7872564`. The run is
+**red, and red is the finding** — the pre-registered threshold is what failed.
+
+| Feed | RSS | Items | Newest item | Age at measurement |
+| --- | --- | --- | --- | --- |
+| **`ava`** (the demo) | 200 | 38 | 2026-08-02T03:33:44Z | **270.6 h — 11.3 days** |
+| `sportstech` | 200 | 11 | 2026-07-30T22:48:09Z | 323.3 h — 13.5 days |
+| `wearables` | 200 | 10 | 2026-07-30T22:49:47Z | 323.3 h — 13.5 days |
+| `wellbeing` | 200 | 9 | 2026-07-30T22:50:34Z | 323.3 h — 13.5 days |
+| `graphics` | 200 | 11 | 2026-07-30T22:51:27Z | 323.3 h — 13.5 days |
+
+**The demo block's newest item was 270.6 hours old against a 48-hour threshold — 5.6× over.** The
+rendered `data-t` stamp and `ava`'s own RSS `pubDate` agree to the second, so the page and the
+database are telling the same story: a visitor arriving at Tuned on 2026-08-13 read the words
+*"Live demo — a real feed, right now"* over three cards that their own browser stamped **"11d ago"**.
+
+**Three things this settles that `items_public` could not:**
+
+1. **The staleness is 11 days, not 5.** `items_public` has been flat at 79 since the first committed
+   snapshot on 2026-08-08, so five days was a floor set by when instrumentation started, not a
+   measurement. Nothing has been published anywhere on Tuned since **2026-08-02**, and nothing on any
+   feed but `ava` since **2026-07-30**.
+2. **It is not an emptiness problem.** `feedsWithNoItems` is empty: all five feeds serve 200, carry
+   between 9 and 38 items, and render. EXP-004's criteria all still hold. The surfaces work; what
+   they contain is old.
+3. **The demo picker is a latent defect that happened to be masked.** `demoIsFreshest: true` — but
+   only coincidentally. `src/index.ts` selected the demo as `ORDER BY created_at LIMIT 1` over
+   creators, i.e. by registration date, and on this date the oldest creator was also the last to
+   publish. The two orderings agreed by luck. Had any other feed posted, the landing page would have
+   shown a visitor the *stalest* feed Tuned has.
+
+**What is NOT claimed.** This does not explain 0/431 and is not offered as the cause. The denominator
+is UA-classified requests, no arrival is known to be human, and no visitor has ever been observed
+reacting to this page in either state. What is established is narrower and still worth having: **a
+public claim on Tuned's highest-traffic page was false, verifiably, for at least eleven days**, and
+the operating rules require public claims to be supported by verifiable data. It is a defect fixed on
+its own merits, not a conversion experiment, and no conversion inference may be drawn from fixing it.
+
+**Change shipped in response (run 35):** the claim is derived rather than asserted — see
+`ops/DECISIONS.md`. The instrument stays: `qa/freshness.spec.mjs` is re-runnable against production
+at any time and will fail again the moment the page outruns its data.

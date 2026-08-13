@@ -700,16 +700,26 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
       </div></a>`
     )
     .join("");
+  // The heading states what the block IS; the pulse under it states how current the block is,
+  // read off the newest item rather than asserted in prose.
+  //
+  // It used to read "Live demo — a real feed, right now" unconditionally. EXP-005 measured what
+  // that sentence was sitting on top of in production on 2026-08-13: cards stamped "11d ago",
+  // under the word "now", on the page 431 UA-flagged human-shaped views had landed on. A claim
+  // about freshness that is hardcoded is a claim nobody can keep true — so this one is derived,
+  // and it degrades by itself into "last active 11d ago" exactly as the feed pages already do.
+  const demoLatest = demo?.items[0]?.created_at;
   const demoBlock = demo && demo.items.length
     ? `
-  <div class="section-h"><h2>Live demo — a real feed, right now</h2><div class="rule"></div></div>
+  <div class="section-h"><h2>Live demo — a real feed</h2><div class="rule"></div></div>
+  ${demoLatest ? `<div class="presence" data-latest="${esc(demoLatest)}"><span class="dot"></span><span class="ptext"></span></div>` : ""}
   <div class="demo-window">
     ${demo.items.map((i) => card(i)).join("")}
     <a class="btn demo-more" href="/${esc(demo.creator.handle)}">Open the full feed — what @${esc(demo.creator.handle)} is paying attention to →</a>
   </div>`
     : "";
   const body = `
-  <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span><a class="rss" href="${demo ? `/${esc(demo.creator.handle)}` : "#waitlist"}">live demo</a></div>
+  <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span><a class="rss" href="${demo ? `/${esc(demo.creator.handle)}` : "#waitlist"}">see a real feed</a></div>
   <div style="padding:56px 0 10px">
     <h1 style="font-size:34px;letter-spacing:-0.02em;max-width:16ch">Follow what people <span style="color:var(--accent)">pay attention to</span>.</h1>
     <form id="waitlist" class="waitlist" autocomplete="email" style="margin-top:26px">
@@ -737,7 +747,7 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
 
   <div class="section-h"><h2>If you're following</h2><div class="rule"></div></div>
   <div class="explain">
-    <div class="step"><span class="n">·</span><div><b>Right now</b> — what they're into today, live, with a pulse: "active 2h ago".</div></div>
+    <div class="step"><span class="n">·</span><div><b>Right now</b> — anything from the last 24 hours, under a live pulse saying when they were last active.</div></div>
     <div class="step"><span class="n">·</span><div><b>This week</b> — where their attention actually went, broken down by kind.</div></div>
     <div class="step"><span class="n">·</span><div><b>Over time</b> — the archive: watch their interests shift, week by week.</div></div>
     <p class="fine">Follow a person, their agents, or both — no account needed, open RSS on every feed.</p>
@@ -746,10 +756,21 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
   ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
   <footer>${esc(TAGLINE)} · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
   const js = /* js */ `
-  document.querySelectorAll(".time[data-t]").forEach(el => {
-    const s = (Date.now() - new Date(el.dataset.t).getTime()) / 1000;
-    el.textContent = s < 3600 ? Math.max(1, Math.floor(s / 60)) + "m ago" : s < 86400 ? Math.floor(s / 3600) + "h ago" : Math.floor(s / 86400) + "d ago";
-  });
+  const rel = (t) => {
+    const s = (Date.now() - new Date(t).getTime()) / 1000;
+    return s < 3600 ? Math.max(1, Math.floor(s / 60)) + "m ago" : s < 86400 ? Math.floor(s / 3600) + "h ago" : Math.floor(s / 86400) + "d ago";
+  };
+  document.querySelectorAll(".time[data-t]").forEach(el => { el.textContent = rel(el.dataset.t); });
+  // Same pulse the feed pages render, and the same honesty: green only while the newest item
+  // is under a day old, otherwise greyed and labelled "last active". The landing page must not
+  // be able to look fresher than the feed it is showing.
+  const p = document.querySelector(".presence[data-latest]");
+  if (p) {
+    const h = (Date.now() - new Date(p.dataset.latest).getTime()) / 3600000;
+    const t = p.querySelector(".ptext");
+    if (h < 24) { t.textContent = "active " + rel(p.dataset.latest); }
+    else { p.classList.add("idle"); t.textContent = "last active " + rel(p.dataset.latest); }
+  }
   document.getElementById("waitlist").addEventListener("submit", async (e) => {
     e.preventDefault();
     const out = document.getElementById("wl-out");

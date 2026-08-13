@@ -1,26 +1,37 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-13 19:39 Sydney (09:39 UTC), run 34 — **the Show HN packet is WITHDRAWN and EXP-002 is `INVALIDATED / NOT STARTED`; OWNER ACTION REQUIRED: NONE** · **Head:** [`166604e`](https://github.com/in-c0/tuned/commit/166604e)
+**Last updated:** 2026-08-13 20:15 Sydney (10:15 UTC), run 35 — **the landing page was claiming a
+freshness it did not have; the claim is now rendered from data** · **OWNER ACTION REQUIRED: NONE** ·
+**Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
 
-> **The packet could not have worked, and that is a fact about the packet.** Reviewed against Hacker
-> News' published rules: **§3 was AI-written and the packet told the owner to post it as their own
-> first comment**, and **§2 submitted an application-gated landing page** where Show HN asks for
-> something a reader can try directly. Either defect alone disqualifies it. So
-> [EXP-002-PACKET.md](EXP-002-PACKET.md) is **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**, EXP-002
-> is **`INVALIDATED / NOT STARTED`**, and the moderation-email action is **withdrawn**: restoring an
-> item that points at a landing page, with an AI-written comment beneath it, would restore an invalid
-> test rather than start a valid one. The restoration checker is retired and no longer dispatched.
+> **Nothing has been published on Tuned since 2026-08-02, and the landing page did not say so.**
+> [EXP-005](EXPERIMENTS.md) read the dates out of production: the demo block on `/` — headed *"Live
+> demo — a real feed, right now"* — had a newest item **270.6 hours (11.3 days)** old, under cards the
+> page's own script stamped **"11d ago"**. The other four feeds are **13.5 days** stale. All five
+> serve, carry items and render correctly; what they contain is simply old. **431 UA-flagged
+> human-shaped landing views arrived while that heading was false.**
 >
-> **Nothing here is evidence about demand.** No t0, no window, no grade, no inference in either
-> direction — the hypothesis was never tested, because nobody ever saw Tuned through this channel. The
-> zero baseline is intact and unspent. Recorded as **[L-17](LESSONS.md)**: a channel can be invalid on
-> its own terms, and that says nothing about the product.
+> **Fixed by deleting the claim rather than by faking the data.** The heading now states only what the
+> block is, and a presence pulse beneath it reads the real newest timestamp and degrades into *"last
+> active 11d ago"* — the same honest pulse `publicPage` has always rendered. The demo also now selects
+> the feed with the newest public item instead of the oldest creator: that picker was choosing on
+> registration date and was passing **only by coincidence**. Recorded as [L-18](LESSONS.md): *a
+> hardcoded claim about live data is a claim nobody can keep true.*
 >
-> **The earlier record, still true:** the owner did paste it, at 2026-08-13 10:13:23 Sydney, and item
-> [`49280269`](https://news.ycombinator.com/item?id=49280269) came back **`dead: true`** — verified
-> from GitHub's network in [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210),
-> not taken on report. `dead` at submission carries no public reason, and **this run does not claim the
-> two defects caused it.** They are sufficient to withdraw the packet either way.
+> **No conversion inference, in either direction.** No visitor has ever been observed reacting to this
+> page in either state. This is a false public claim corrected on its own merits, not an experiment.
+>
+> **Why the feeds are stale is not a bug.** Publication needs an agent posting or a member approving
+> from the queue. The four agent feeds are not running and the desk is unattended. **The executor did
+> not and will not manufacture items to make the demo look alive** — that is content generation by the
+> machine, the inversion of doctrine [L-17](LESSONS.md) put a standing hold on.
+
+> **Run 34 stands unchanged:** the Show HN packet is **WITHDRAWN**, EXP-002 is `INVALIDATED / NOT
+> STARTED`, the moderation-email owner action is **retired unperformed — please do not send it**, and
+> the restoration checker is not dispatched. Full reasoning in [DECISIONS.md](DECISIONS.md) and
+> [EXP-002-PACKET.md](EXP-002-PACKET.md). Any future Hacker News attempt still needs all three:
+> a directly usable destination, the owner's own genuinely human-written words, and explicit
+> moderator permission.
 
 > **Two earlier banners retired here, because run 34 falsified their closing lines** — each said the
 > owner action below was untouched and remained the only open one, and it is now withdrawn. Their
@@ -113,6 +124,15 @@ views is still the finding that governs everything downstream. **As of run 34 it
 the owner can do, and on no channel that currently exists.** The one channel it had was withdrawn as
 inadmissible, so the objective stands with no route in front of it — which is the honest state, and is
 the reason the next candidate has to be a different channel rather than a retry of this one.
+
+**Run 35 sharpened what any such channel would need, and the news is mixed.** The destination is now
+*honest* — it no longer claims a freshness it lacks — but it is not yet *compelling*: a stranger who
+opens `/ava` today sees a real, working, provenance-carrying feed whose newest item is eleven days
+old. **That is a truthful answer to "is there something to try?" and a weak one**, and the weakness is
+not a code defect. It is the absence of anyone — human or agent — currently contributing attention.
+**The next candidate is therefore upstream of distribution: make one feed genuinely live**, by the
+member approving from the queue or by an agent actually running. Until something on Tuned is current,
+a channel would be pointing strangers at an archive.
 
 **The superseded objective, retained because it resumes unchanged the moment the edge clears:** EXP-003 answered the mechanism
 question — a visitor who arrives *can* apply, at both mobile and desktop widths — so the remaining

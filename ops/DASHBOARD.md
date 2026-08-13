@@ -18,6 +18,16 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> **Newest thing you should know (run 35, 2026-08-13 20:15 Sydney).** **Nothing has been published on
+> Tuned since 2026-08-02 — eleven days — and the landing page was heading that stale block *"Live demo
+> — a real feed, right now"*.** [EXP-005](EXPERIMENTS.md) measured it: the demo's newest item was
+> **270.6 hours** old, the other four feeds **13.5 days**. All five feeds serve and render; what they
+> contain is old. **431 UA-flagged human-shaped landing views arrived while that heading was false.**
+> Fixed by deriving the claim from data instead of asserting it — the heading now says only what the
+> block is, and a pulse beneath it reads the real timestamp and degrades into *"last active 11d ago"*.
+> **The executor did not manufacture items to make the demo look alive.** No conversion inference in
+> either direction. See [L-18](LESSONS.md) and [STATUS.md](STATUS.md).
+
 ---
 
 ## 1. OWNER ACTION REQUIRED
@@ -174,6 +184,15 @@ reading and caveats in [METRICS.md](METRICS.md).
 
 ## 6. Current experiment
 
+- **EXP-005 — is the attention Tuned publishes actually recent? HYPOTHESIS SUPPORTED / CLOSED**
+  (run 35). Pre-registered before any production read, threshold fixed first: the landing demo's
+  newest item must be **< 48 h** old for the word *"now"* above it to be defensible. Measured
+  **270.6 h** ([run 31689710757](https://github.com/in-c0/tuned/actions/runs/31689710757)) — 5.6× over,
+  and **the red run is the finding**. Also caught a latent defect that was passing by luck: the demo
+  was selected by creator registration date, not by content recency. GETs only; nothing written.
+  Instrument kept — `qa/freshness.spec.mjs` is re-runnable and fails again the moment the page
+  outruns its data.
+
 - **EXP-001 — funnel telemetry baseline: PASSED / CLOSED** (run 16). Threshold was a non-zero
   `landing_view` or `landing_view_bot` on ≥1 day; observed non-zero on **all three**. Its pre-registered
   fork (*zero views → distribution problem*) **did not fire** — the constraint sits one stage further
@@ -208,9 +227,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-18** | **A hardcoded claim about live data is a claim nobody can keep true.** The landing page headed its demo block *"Live demo — a real feed, right now"* over cards its own script stamped **"11d ago"**. It survived eleven days and **two browser QA passes** — EXP-003 and EXP-004 both drove this page and graded only whether it *rendered*. A stale page and a fresh page are structurally identical, so a suite that grades structure grades a corpse as healthy, forever, in green. | Delete the adjective and let the data speak: no branch to get wrong and no sentence that can rot. For any string containing *now/live/today/currently/active/fresh/latest*, ask **what query would falsify this, and does the page run it?** If nothing in the request path could make it false, it is a decoration. |
 | **L-17** | **A channel can be invalid on its own terms, and that says nothing about the product.** The Show HN packet was unpublishable on HN's own rules — AI-written body posted as the owner's comment, application-gated landing page as the URL — so restoring it would have restored an invalid test. Withdrawal and graded-failure produce the *same* flat counters, which is how a defect in the executor's copy would have entered the record as a finding about Tuned's positioning. | Pre-register a channel's **admissibility conditions** — what the venue permits, who must author the words, what the destination must be — alongside its thresholds. A channel whose admissibility is unstated is not ready to be authorized, however well-checked its claims are. |
 | **L-16** | **A URL proves a form was submitted, not that anything was published.** The owner action's success check was *"a canonical `item?id=…` URL appears in issue #1"*. It did — and the item was `dead: true`. Had nobody looked closely, this loop would have started a 48-hour clock over an empty page and written *"Show HN produced no arrivals"* into durable state as a finding about Tuned's positioning. | Write success checks against the observable outcome, never the receipt — and make them executable. If the executor cannot run and grade the check, it is an attestation and should be labelled one. |
-| **L-15** | **`git fetch` does not move the branch you are standing on, and a stale base invents findings.** Run 30 branched from a five-day-old local `master` and `npm audit` reported a *production* `hono` advisory that real master never had. What caught it was an impossibility — a lockfile disagreeing with its own install — not vigilance about git. | Verify the base, not the fetch: `git rev-parse master origin/master` must agree, or branch from `origin/master`. Treat any impossibility in tooling output as evidence about your environment first. |
 
 Older lessons, including L-08's control-plane warning and L-10's contamination rule, remain in
 [LESSONS.md](LESSONS.md). L-08's forward test — *does the next run spend its cycle on demand evidence

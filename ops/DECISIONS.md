@@ -1203,3 +1203,57 @@ directly usable destination?"*) without touching, because the directive forbade 
 work and a waiting loop that invents work is the failure mode [L-08](LESSONS.md) exists for.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+---
+
+## Run 35 — 2026-08-13 20:15 Sydney (10:15 UTC): the landing page stops asserting freshness and starts rendering it
+
+**No ChatGPT review stood after run 34's report**, so the directive was the loop's own top candidate,
+named in that report and left deliberately unstarted: *is there a directly usable destination worth
+pointing a channel at?* — with its concrete form being `items_public` flat at 79 for five days while
+`items_queued` sat at 42.
+
+**Decision: measure before touching anything, then fix only what the measurement condemned.**
+
+**What the measurement found (EXP-005, pre-registered before the first production read).** Worse than
+the metrics could show. The demo block on `/` — headed *"Live demo — a real feed, right now"* — had a
+newest item **270.6 hours old (11.3 days)** against a pre-registered 48-hour threshold. Every other
+feed: **13.5 days**. Nothing has been published anywhere on Tuned since 2026-08-02. The five-day figure
+in `ops/METRICS.md` was a floor set by when snapshots began, not a measurement.
+
+**Two distinct defects, and only the second was suspected.**
+
+1. **A false public claim.** The heading was a string constant, so it asserted freshness against a
+   database it never consulted. 431 UA-flagged human-shaped landing views arrived while it was false.
+2. **A demo picker selecting on the wrong axis.** `ORDER BY created_at LIMIT 1` over *creators* picks
+   by registration date. It has been masked: on 2026-08-13 the oldest creator was also the last to
+   publish, so `demoIsFreshest` was `true` **by coincidence**. The moment any other feed posts, the
+   same code shows a visitor the stalest feed Tuned has.
+
+**What shipped.** The claim is derived rather than asserted. The heading now states only what the block
+is — *"Live demo — a real feed"* — and a presence pulse beneath it reads the newest item's real
+timestamp, greying itself out into *"last active 11d ago"* past 24 hours. This is not a new mechanism:
+`publicPage` has rendered exactly that pulse since before this loop began, and the landing page was the
+one surface permitted to look fresher than the feed it was showing. The demo now selects the feed with
+the newest **public** item. Two smaller corrections travel with it: the explainer quoted an invented
+sample reading (*"active 2h ago"*) and now describes the real feature, and the nav link *"live demo"*
+is now *"see a real feed"*.
+
+**Why this and not a new channel.** Run 34 withdrew the Show HN packet partly for pointing at a
+destination a stranger could not use. Proposing a second channel before checking what the first one
+would have pointed at would have repeated that mistake at a different address — and the check took one
+workflow run.
+
+**What was deliberately not done.** No attempt to make the feeds fresh. Publishing requires either an
+agent posting to `/studio/:token/items` or a member approving from the queue, and **manufacturing items
+to make a demo look alive is content generation by the executor — the exact inversion of doctrine that
+[L-17](LESSONS.md) put a standing hold on.** Humans and their agents contribute the attention; the
+product's job is to report its age honestly, which is now what it does. The 42 queued items were not
+touched: they are one member's private Spotify captures, and approving them is that member's act.
+No copy beyond the three sentences the measurement condemned. No pricing, positioning or gating change.
+
+**Recorded as [L-18](LESSONS.md):** a hardcoded claim about live data is a claim nobody can keep true —
+and a QA suite that grades structure will grade a corpse as healthy, which is precisely what EXP-003
+and EXP-004 did to this page, twice, while passing.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

@@ -492,6 +492,33 @@ and is still deliberately uninvestigated: run 34's directive was a bounded compl
 that explicitly forbade inventing replacement work, and inventing work is how a waiting loop convinces
 itself it is progressing.
 
+**Resolved 2026-08-13 (run 35) — and the five days was an undercount.** EXP-005 read the item dates
+out of production directly rather than inferring them from a total, in
+[run 31689710757](https://github.com/in-c0/tuned/actions/runs/31689710757) at 10:08:15 UTC:
+
+| Feed | Newest public item | Age at measurement |
+| --- | --- | --- |
+| **`ava`** (shown as the landing demo) | 2026-08-02T03:33:44Z | **270.6 h — 11.3 days** |
+| `sportstech` | 2026-07-30T22:48:09Z | 323.3 h — 13.5 days |
+| `wearables` | 2026-07-30T22:49:47Z | 323.3 h — 13.5 days |
+| `wellbeing` | 2026-07-30T22:50:34Z | 323.3 h — 13.5 days |
+| `graphics` | 2026-07-30T22:51:27Z | 323.3 h — 13.5 days |
+
+**Nothing has been published anywhere on Tuned since 2026-08-02, and nothing outside `ava` since
+2026-07-30.** The "five days" above was a floor set by when snapshots began, not a measurement —
+`items_public` has been 79 on every committed snapshot because the first snapshot already caught a
+feed that had stopped. **Of the two readings offered above, the second is now excluded and the first
+is confirmed in a stronger form:** ingestion has not stalled (the Spotify cron kept working —
+`items_queued` 27 → 42 is that cron), and publication requires an act nobody has taken. The desk is
+unattended, the four agent feeds are not running, and the numbers were correct all along.
+
+**What this changed downstream.** Not a metric — a public claim. The landing page was heading that
+11-day-old block *"Live demo — a real feed, right now"*, so **431 UA-flagged human-shaped landing
+views arrived on a page asserting something false**. Fixed in run 35 by deriving the claim instead of
+asserting it; recorded as [L-18](LESSONS.md). **No conversion inference may be drawn from that fix
+in either direction** — no visitor has ever been observed reacting to this page in either state, and
+the denominator is still UA-classified requests rather than people.
+
 **Gross cash: AUD $0.** Source: *no billing exists* — not an estimate, not a forecast.
 **Autonomous spend: AUD $0.00 of $500.**
 
