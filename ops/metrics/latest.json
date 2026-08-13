@@ -1,7 +1,12 @@
 {
-    "generated_at": "2026-08-13T21:25:19.027Z",
+    "generated_at": "2026-08-13T22:32:24.382Z",
     "note": "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     "daily": [
+        {
+            "day": "2026-08-13",
+            "name": "cron_run",
+            "count": 1
+        },
         {
             "day": "2026-08-13",
             "name": "feed_view",
@@ -15,12 +20,17 @@
         {
             "day": "2026-08-13",
             "name": "landing_view",
-            "count": 103
+            "count": 104
         },
         {
             "day": "2026-08-13",
             "name": "landing_view_bot",
-            "count": 29
+            "count": 43
+        },
+        {
+            "day": "2026-08-13",
+            "name": "spotify_sync_ok",
+            "count": 1
         },
         {
             "day": "2026-08-12",
