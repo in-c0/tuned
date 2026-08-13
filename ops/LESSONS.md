@@ -404,6 +404,18 @@ version — as evidence about your environment before it is evidence about the c
 interpretation of a surprising audit result should be "am I looking at what I think I am looking at,"
 because a wrong base does not fail loudly; it answers a different question fluently.
 
+**Recurred 2026-08-14 (run 37), in a disguise worth recording.** Same root cause, different mechanism:
+the session's checkout was a **detached HEAD** at `ed36307` while `refs/heads/master` still pointed at
+`39e82b6`, so `git checkout -b <new> master` again cut from a stale base — this time dropping run 36's
+RSS fix and its entire test file. The rule above would have prevented it and was not applied.
+
+What makes it worth a second entry is how it nearly survived: `npm test` reported **"43 passing"**, the
+exact number the previous run had reported, because 35 surviving tests plus 8 new ones happen to equal
+43 old ones. **The total matched, so the total was not evidence.** What caught it was the test *file*
+count — 4 where there should have been 5 — which is the same species of too-small-to-explain-away
+inconsistency that caught it the first time. Add to the rule: when a suite total is unchanged after
+adding tests, that is an impossibility, not a coincidence.
+
 ## L-16 — A URL proves a form was submitted, not that anything was published
 
 **What happened.** The one owner action this loop had been asking for since 2026-08-08 was performed:
@@ -589,3 +601,36 @@ feed — provenance, authorship, freshness, licence — enumerate the surfaces t
 (HTML, RSS, share/OG, API) and ask **does each one carry the claim, and is there a test that fails if
 it stops?** When a route hand-writes its own column list, check it against the renderer's branches:
 an omitted column does not error, it just quietly turns a branch off.
+
+## L-20 — a log nobody can read is not an instrument (2026-08-14, run 37)
+
+**What happened.** Spotify ingestion is the only path on Tuned that currently produces items. Its
+half-hourly cron reported success, failure, and how much it captured — to `console.log`, into
+Cloudflare's logs, which this loop holds no credentials to read and never will, by design. So for
+every day of its operation the pipeline was **instrumented and unobserved at the same time**, and the
+distinction never came up because the queue was rising and rising looked like health.
+
+When it stopped rising, the gap opened. `items_queued` sat at 42 for three days. A quiet member and a
+revoked token produce that identical line, and the loop had already published an inference off the
+weaker instrument — *"the Spotify cron kept working — 27 → 42 is that cron"* — which was true of the
+window it described and silently untrue as a present-tense claim.
+
+**The general shape.** An observability surface belongs to whoever can actually read it. Code that
+logs into a system your operators cannot open is, from the operating loop's point of view,
+indistinguishable from code that logs nothing — and it is *more* dangerous than code that logs
+nothing, because the `console.log` in the source reads as diligence and stops anyone asking the
+question again. The audit question is not "does this path report what it did?" but **"who can read
+that report, and are they in this loop?"**
+
+**Related but distinct from [L-19](#l-19).** L-19 was about a surface that leaves your site and is
+therefore never looked at. This is about a surface that never leaves the *vendor's* console and is
+therefore never looked at either. Same failure — an output with no reader — approached from opposite
+directions.
+
+**The rule.** For any path that produces or destroys state on its own schedule, one counter must land
+somewhere the loop can read without credentials it does not hold. If the only evidence a job ran is a
+line in a log the operator cannot open, the job is unmonitored, whatever the source code suggests.
+
+**Corollary that did the real work here.** A derived signal — a delta between two totals — can look
+like an instrument for as long as it happens to move. Before trusting one, ask what a *broken* system
+would print. If the answer matches what a *healthy quiet* system prints, it was never an instrument.

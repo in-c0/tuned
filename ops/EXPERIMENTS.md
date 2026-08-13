@@ -729,3 +729,48 @@ its own merits, not a conversion experiment, and no conversion inference may be 
 **Change shipped in response (run 35):** the claim is derived rather than asserted — see
 `ops/DECISIONS.md`. The instrument stays: `qa/freshness.spec.mjs` is re-runnable against production
 at any time and will fail again the moment the page outruns its data.
+
+## EXP-006 — is the flat queue a quiet member or a dead pipeline? (2026-08-14, run 37)
+
+**Pre-registered before any reading, and before the instrument's first snapshot exists.** The forks
+below are fixed here first so none of them can be selected after the numbers arrive. Same discipline
+as EXP-003, EXP-004 and EXP-005.
+
+Not a demand experiment. This is a **liveness question about the only path on Tuned that currently
+produces items at all** — the half-hourly Spotify ingestion cron.
+
+- **Why now.** `items_queued` was **27** on 2026-08-08, **42** on 2026-08-11, and **42** again on
+  08-12 and 08-13. `items_public` has been **79** on every committed snapshot. `ops/STATUS.md` has
+  carried "the flat `items_public` / `items_queued` count, unexamined since run 31" as the one
+  surviving engineering candidate.
+- **Why it could not be answered before today.** The `scheduled` handler's only output was a
+  `console.log` in Cloudflare's logs, which this loop holds no credentials to read. A 24-hour delta
+  between snapshots was the entire instrument, and a flat delta is **exactly what both a quiet member
+  and a revoked token produce**. The two futures were indistinguishable, not merely unmeasured.
+- **Hypothesis:** the queue is flat because the single connected member has played nothing new — the
+  pipeline is alive and there is no defect. The competing hypothesis is that the connection died
+  (token revoked, consent withdrawn, or the cron not firing at all) somewhere after 2026-08-11.
+- **Baseline:** no counter has ever fired. Ingestion health is UNMEASURED in both directions, and
+  the three flat days before the deploy stay uninterpretable — there will be no backfill.
+- **Change under test:** six counters shipped in [`1297427`](https://github.com/in-c0/tuned/commit/1297427).
+  No change to ingestion behaviour itself: the sync call is byte-for-byte what it was.
+
+**Reading window:** the first `metrics snapshot` taken after at least one cron boundary (`:00` or
+`:30` UTC) has passed following the deploy. A snapshot taken sooner grades nothing and must not be
+read as a zero.
+
+**Pre-registered forks — exactly one applies, and each names its own next action:**
+
+| Reading | Verdict | What follows |
+| --- | --- | --- |
+| `cron_run` ≥ 1, `spotify_sync_ok` ≥ 1, no `spotify_items_captured` | **QUIET, NOT BROKEN** | No defect exists. The flat queue is a true absence of supply, and the bottleneck is that Tuned has no operating attention supplier — not a bug. No code action. |
+| `cron_run` ≥ 1, `spotify_items_captured` ≥ 1 | **ALIVE AND SUPPLYING** | Ingestion works and captured real plays. The flat days were quiet days. Record the supply rate; still no code action. |
+| `cron_run` ≥ 1, `spotify_sync_auth_error` ≥ 1 | **CONNECTION DEAD** | The member's Spotify token is revoked or consent withdrawn. **Owner card:** the member must reconnect at `/home`. The executor cannot fix this and must not try. |
+| `cron_run` ≥ 1, `spotify_sync_error` ≥ 1 only | **TRANSIENT — DO NOT CONCLUDE** | 429/5xx/network. Re-read on the next run before writing anything down. Two consecutive runs of this becomes a defect investigation. |
+| `cron_run` ≥ 1, `cron_no_credentials` ≥ 1 | **SECRET MISSING** | `SPOTIFY_CLIENT_ID` is unset on the Worker. **Owner card**, one secret. |
+| **no `cron_run` row at all**, in a snapshot taken after a cron boundary | **THE CRON IS NOT FIRING** | A deployment-configuration defect, executor-side: `triggers.crons` is declared in `wrangler.jsonc` but something is not registering it. Investigate before touching anything else — it would mean ingestion has been dead for an unknown number of days. |
+
+**What this experiment may not be used for.** It measures pipeline liveness and captured volume. It
+says nothing about demand, activation, retention or revenue, and no conversion inference may be drawn
+from it in either direction. A high `spotify_items_captured` is one member listening to music — it is
+supply, not traction.

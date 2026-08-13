@@ -1,8 +1,28 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-14 07:50 Sydney (2026-08-13 21:50 UTC), run 36 — **the agent contract works;
-only the credential is missing** · **OWNER ACTION REQUIRED: ONE — [credential one agent
+**Last updated:** 2026-08-14 08:20 Sydney (2026-08-13 22:20 UTC), run 37 — **the ingestion cron is now
+observable; its first reading is pending** · **OWNER ACTION REQUIRED: ONE — [credential one agent
 feed](#owner-action-required)** · **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> **The only path that makes items had no output anyone in this loop could read.** Spotify ingestion
+> runs every 30 minutes and is currently the sole producer of items on Tuned; its entire outcome went
+> to `console.log`, into Cloudflare's logs, which the executor holds no credentials for by design. So
+> `items_queued` standing at **42 on 08-11, 08-12 and 08-13** had two explanations that looked
+> identical from here — a member who stopped playing music, or a sync that stopped working — and the
+> only instrument available was a delta between daily snapshots, which is exactly what both produce.
+>
+> **Six counters now separate them**, written into the `metric_days` table that already exists and
+> arriving through the `/api/metrics` read path that already works: `cron_run`, `cron_no_credentials`,
+> `spotify_sync_ok`, `spotify_items_captured`, `spotify_sync_auth_error`, `spotify_sync_error`. No new
+> endpoint, no new table, no schema change, and no change to ingestion behaviour itself. **51 tests
+> passing** (8 new, in workerd against a real D1). Shipped as
+> [`1297427`](https://github.com/in-c0/tuned/commit/1297427).
+>
+> **[EXP-006](EXPERIMENTS.md) was pre-registered before the first snapshot existed**, with six
+> exclusive forks and the next action attached to each — including the one nobody has checked for:
+> *no `cron_run` row at all*, which would mean the cron has not been firing in production. Until that
+> reading is committed, ingestion health is **UNMEASURED**: the instrument exists, the reading does
+> not, and the three flat days before the deploy stay uninterpretable. There will be no backfill.
 
 > **The agent-activation question is now answered, and the answer is one secret.** Run 36 traced the
 > whole contract in workerd against a real D1 — an agent reads its brief, publishes what it selected,
@@ -209,7 +229,7 @@ to be authorized.
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | **Green through the public zone**, most recently [run 31746989255](https://github.com/in-c0/tuned/actions/runs/31746989255) on 2026-08-13 at **21:45 UTC** — `10d8557` live 60s after merge, landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. Before that, [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) on 2026-08-12 at **21:03 UTC** — landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. The two readings that closed the incident are kept below as the record of that closure | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
+| Production serving | **Green through the public zone**, most recently [run 31749138724](https://github.com/in-c0/tuned/actions/runs/31749138724) on 2026-08-13 at **22:15 UTC** — `1297427` live within 74 seconds of merge, landing and legal pages 200, unauthenticated `/api/metrics` 401, challenge-only failure step skipped because `zone_blocked=false`. Before that, [run 31746989255](https://github.com/in-c0/tuned/actions/runs/31746989255) on 2026-08-13 at **21:45 UTC** — `10d8557` live 60s after merge, landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. Before that, [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) on 2026-08-12 at **21:03 UTC** — landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. The two readings that closed the incident are kept below as the record of that closure | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | **restored, and exercised for real** | `verify-production.yml` polls `/api/version` for the pushed SHA and fails closed. When the zone will not answer it reads identity and health from the Worker's `workers.dev` origin, then grades public availability **separately** — a step that failed [run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360) while every other check in it passed. That is the intended shape: a green run still means the public can use Tuned |
@@ -219,7 +239,8 @@ to be authorized.
 | **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
 | **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
-| Automated tests | **43 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, **`test/agent-contract.test.ts`** (run 36) — vitest 4.1.10 |
+| Automated tests | **51 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), **`test/ingestion.test.ts`** (run 37) — vitest 4.1.10 |
+| **Ingestion cron observability** | **shipped run 37; first reading pending** | 6 counters in `metric_days` via `runIngestion` in `src/index.ts`; [`1297427`](https://github.com/in-c0/tuned/commit/1297427). Health is UNMEASURED until a snapshot taken after a `:00`/`:30` UTC boundary is committed |
 | **Agent publication contract** (brief → publish → feed → RSS → demo) | **traced and working; blocked only on a credential** | `test/agent-contract.test.ts`, 8 assertions in workerd against a real D1. Nothing in production was written |
 | **Agent provenance in RSS** | **fixed run 36** — the route never selected `kind`, so every agent feed syndicated unlabelled | `src/index.ts` `/:handle/rss.xml`, `rssFeed` in `src/pages.ts`; human feeds asserted to stay unlabelled |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
@@ -341,8 +362,12 @@ piece of work rather than a copy change.
 
 Explicitly **not** a copy or positioning rewrite, **not** a CTA-reach counter, **not** a reworded
 resubmission, **not** a second Hacker News account or a second link to the same site, and **not** a
-replacement channel invented and executed this cycle. The one engineering candidate that survives is
-the flat `items_public` / `items_queued` count, unexamined since run 31 recorded it.
+replacement channel invented and executed this cycle. ~~The one engineering candidate that survives is
+the flat `items_public` / `items_queued` count, unexamined since run 31 recorded it.~~ **Taken up in
+run 37** — the count was flat because nobody in this loop could see the pipeline behind it. The
+instrument is shipped and [EXP-006](EXPERIMENTS.md) is pre-registered, so **the next run's first job is
+to read the counters and grade the fork**. That needs no owner, no authorization and no new work: the
+verdict table is already written, including the fork that says the cron has not been firing at all.
 
 ## Not doing (deliberate holds)
 

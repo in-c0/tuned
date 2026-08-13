@@ -524,3 +524,48 @@ the denominator is still UA-classified requests rather than people.
 
 Executor egress to `justtuned.com` re-tested this run — still **403 CONNECT** at the proxy,
 twenty-seventh consecutive run. GitHub Actions remains the production read path.
+
+## Ingestion telemetry — added 2026-08-14 08:15 Sydney (2026-08-13 22:15 UTC), run 37
+
+**The only path on this platform that currently produces items had no output anyone in this loop
+could read.** The half-hourly `scheduled` handler wrote its entire outcome to `console.log`, which
+lives in Cloudflare's logs, which the executor holds no credentials for by design. So `items_queued`
+standing still had two explanations that looked identical from here — the member stopped playing
+music, or the sync stopped working — and the only instrument available was a 24-hour delta between
+committed snapshots.
+
+That instrument had already been leaned on. The run-35 note above reads *"ingestion has not stalled
+(the Spotify cron kept working — `items_queued` 27 → 42 is that cron)"*. That inference was sound for
+the window it covered and is **not** evidence about the window since: the queue has been **42 on
+2026-08-11, 08-12 and 08-13**, and a flat delta is exactly what both a quiet member and a dead
+connection produce.
+
+Six counters now separate them, written into the existing `metric_days` table and arriving through
+the existing `/api/metrics` read path — no new endpoint, no new table, no schema change. Shipped in
+[`1297427`](https://github.com/in-c0/tuned/commit/1297427).
+
+| Counter | Definition | What a reading means |
+| --- | --- | --- |
+| `cron_run` | the scheduled handler ran | **Absent = the cron is not firing.** No other counter can report this, because a cron that never fires writes nothing anywhere |
+| `cron_no_credentials` | it ran, but `SPOTIFY_CLIENT_ID` is unset in production | the Worker secret is missing — owner action |
+| `spotify_sync_ok` | one connection polled, Spotify answered | the pipeline is alive |
+| `spotify_items_captured` | plays captured into a queue | **supply of real attention** — the north-star input, previously with no direct measure |
+| `spotify_sync_auth_error` | 4xx from Spotify (400 / 401 / 403) | token revoked or consent withdrawn. **Only a member reconnecting clears it** |
+| `spotify_sync_error` | anything else — 429, 5xx, network | transient, self-clearing. Explicitly not an owner action |
+
+**The reading that settles the flat line:** `cron_run` ≥ 1 with `spotify_sync_ok` ≥ 1 and no
+`spotify_items_captured` row means the queue is **quiet, not broken** — the member has played nothing
+new and the product is working exactly as built. Any other combination names a specific fault with a
+specific owner.
+
+Honesty properties, unchanged from the rest of this file: nothing is backfilled and no day is
+estimated. A day with no row means the counter was never incremented, **not** that it was zero — and
+`countBy` writes nothing for a zero, so "captured nothing" leaves no row rather than a manufactured
+one. The counters record what happened, never what was listened to: no URLs, titles, member ids or
+timestamps. Counting starts at the deploy above; the three flat days before it stay uninterpretable
+and will not be reconstructed.
+
+**First reading is not in this section yet.** The cron fires at :00 and :30 UTC, so the earliest
+snapshot that can contain a non-zero `cron_run` is one taken after the first firing that follows the
+deploy. Until that snapshot is committed, ingestion health is **UNMEASURED** — the instrument exists,
+the reading does not.

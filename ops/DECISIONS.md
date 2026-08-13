@@ -1310,3 +1310,63 @@ nothing published under the owner, the member's 42 private queued items untouche
 manufactured to make the demo look alive.
 
 **Spend:** AUD $0.00. Running total unchanged at **AUD $0.00 of $500**.
+
+## 2026-08-14 — run 37: the only path that makes items had no output anyone could read
+
+**Directive state.** No new reviewer directive existed at the start of this run: the latest review
+([2026-08-13 21:32 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5286631362)) was answered
+in full by run 36 twenty-three minutes earlier, and nothing has been posted since. The operative
+instruction was therefore the standing one in `ops/STATUS.md`: **the flat `items_public` /
+`items_queued` count is the one engineering candidate that survives**, and nothing about agent
+activation may be attempted while the credential does not exist.
+
+**Decision — instrument the ingestion cron; do not touch agent activation.**
+
+The owner card at the top of `STATUS.md` was still unanswered when this run started: no reply on issue
+#1, no authorization line, and the `AGENT_STUDIO_TOKEN` secret cannot be observed by the executor
+anyway. Run 36's own conclusion applies unchanged — *there is no version of this the executor can do
+alone*. `agent preflight` was not dispatched, no creator was created, no agent identity invented,
+nothing published under the owner, and the member's 42 private queued items were not touched.
+
+**What the flat line actually was.** `items_queued` was 27 on 08-08, 42 on 08-11, and 42 again on
+08-12 and 08-13. Two explanations fit that exactly as well as each other: the member stopped playing
+music, or the sync stopped working. **Nothing in the system could tell them apart** — the half-hourly
+`scheduled` handler wrote its entire outcome to `console.log`, which lives in Cloudflare's logs, which
+this loop holds no credentials for by design. Spotify ingestion is currently the *only* path on the
+platform producing items at all, and it was in practice unobserved.
+
+Worse, the loop had already drawn an inference off the unreliable instrument. `ops/METRICS.md` (run
+35) reads *"ingestion has not stalled (the Spotify cron kept working — `items_queued` 27 → 42 is that
+cron)"*. That was sound for the window it covered and says nothing about the window since; a flat
+delta is the one reading both futures produce.
+
+**Three choices inside the decision.**
+
+1. **Counters into `metric_days`, not a new table or endpoint.** The aggregate read path already
+   exists, already works, and is already key-gated. A second surface would have needed its own auth,
+   its own snapshot step and its own privacy argument to answer a question the existing one can carry.
+2. **Split auth failures from transient ones.** `SpotifyError` now carries the HTTP status and the
+   phase. "Sync failed" as a single counter would either send the owner to reconnect an account that
+   was merely rate-limited, or leave a revoked token looking like a quiet week — the exact confusion
+   the instrument exists to end. 429 and 5xx are explicitly **not** auth failures.
+3. **Export `runIngestion` with an injectable syncer.** The failure modes worth testing — revoked
+   token, outage, rate limit — are precisely the ones a live Spotify call will not reproduce on
+   demand. The alternative was testing a cron by waiting half an hour and hoping it broke.
+
+**What was deliberately not built.** No per-item logging, no timestamps, no member ids, no
+"last_sync age" field — the question is *is this pipeline alive*, not *when does this person listen
+to music*. The counters record what happened, never what was listened to.
+
+**Pre-registration before reading.** EXP-006 was written into `ops/EXPERIMENTS.md` **before** the
+first snapshot was taken, with six exclusive forks and the next action attached to each. The instrument
+and its verdict table were fixed in advance so no reading can be interpreted after the fact.
+
+**A near-miss worth recording.** The first attempt branched from local `master`, which was **two
+commits stale** — the session's checkout was on a detached HEAD at `ed36307` while `refs/heads/master`
+still pointed at `39e82b6`. The branch silently dropped run 36's RSS fix and its test file, and the
+first `npm test` reported *"43 passing"* — the expected number, reached by a different route (35 old +
+8 new instead of 43 old). Caught by noticing the test-file count was 4 rather than 5, and fixed by
+rebasing onto `origin/master` before committing. This is [L-15](LESSONS.md) recurring in a new
+disguise, and the disguise is the finding: **the total matched, so the total was not evidence.**
+
+**Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
