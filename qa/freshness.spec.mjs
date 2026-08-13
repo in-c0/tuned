@@ -27,10 +27,18 @@ import path from "node:path";
 const ARTIFACTS = path.join(process.cwd(), "artifacts");
 fs.mkdirSync(ARTIFACTS, { recursive: true });
 
-// Pre-registered threshold. The demo block is captioned "right now"; 48 hours is the most generous
-// reading of that word anyone could defend in public. It is deliberately not tight — the question
-// is whether the claim is defensible at all, not whether the feed is minutes fresh.
+// Pre-registered threshold. When this was written the demo block was captioned "right now"; 48 hours
+// is the most generous reading of that word anyone could defend in public. It is deliberately not
+// tight — the question is whether the claim is defensible at all, not whether the feed is minutes
+// fresh. The threshold is kept at its pre-registered value now that EXP-005 has been graded against
+// it, so re-running this file reproduces the original measurement rather than a softened one.
 const RIGHT_NOW_HOURS = 48;
+
+// Sentences the page is no longer allowed to contain, because production falsified them on
+// 2026-08-13 and the fix was to stop asserting freshness in prose at all (L-18). This is the part
+// of the instrument that keeps working after the feeds go stale again: staleness is a fact about
+// the world and not a defect, but a page claiming otherwise is.
+const RETIRED_CLAIMS = ["a real feed, right now", '"active 2h ago"'];
 
 const hoursSince = (iso, now) => (now - new Date(iso).getTime()) / 3_600_000;
 
@@ -104,6 +112,10 @@ test.describe("EXP-005 — how old is the attention Tuned is publishing?", () =>
       // in the demo picker rather than an emptiness problem.
       freshestFeed: freshest ? { handle: freshest.handle, ageHours: freshest.ageHours } : null,
       demoIsFreshest: freshest ? freshest.handle === demoHandle : null,
+      // Does the page's prose still make a freshness claim, and does it hand the browser the real
+      // timestamp to render instead? These two are what survive the feeds going stale.
+      retiredClaimsStillPresent: RETIRED_CLAIMS.filter((c) => html.includes(c)),
+      pulseServesNewestItem: demoNewest !== null && html.includes(`class="presence" data-latest="${demoNewest}"`),
     };
 
     console.log(`\nEXP005_SUMMARY ${JSON.stringify(summary, null, 2)}\n`);
@@ -112,9 +124,26 @@ test.describe("EXP-005 — how old is the attention Tuned is publishing?", () =>
     // Graded last, and on purpose after the summary is already written: a red run must still leave
     // the measurement behind, because the number is the point and the pass/fail is only its verdict.
     expect(demoNewest, "the landing demo block rendered no item timestamps at all").not.toBeNull();
+
+    // The consistency criteria, added after EXP-005 was graded and separate from its threshold.
+    // These are the ones that can be satisfied: the page cannot make the feeds fresh, but it can
+    // decline to claim they are, and it can hand the browser the real date to display.
+    expect(
+      summary.retiredClaimsStillPresent,
+      "the landing page is asserting freshness in prose again — production falsified these sentences on 2026-08-13",
+    ).toEqual([]);
+    expect(
+      summary.pulseServesNewestItem,
+      "the demo block serves no presence pulse carrying its newest item's timestamp",
+    ).toBe(true);
+
+    // The original pre-registered criterion, kept last and kept exactly as it was graded. It fails
+    // whenever nothing has been published in two days — which is a true statement about Tuned and
+    // not a defect in the page. Read a red run here as the measurement it is, then read the two
+    // assertions above to find out whether anything is actually broken.
     expect(
       summary.demoBlockAgeHours,
-      `the landing page heads this block "a real feed, right now"; its newest item is ${summary.demoBlockAgeHours}h old`,
+      `nothing has been published on the demo feed for ${summary.demoBlockAgeHours}h (EXP-005 threshold: ${RIGHT_NOW_HOURS}h)`,
     ).toBeLessThan(RIGHT_NOW_HOURS);
   });
 });
