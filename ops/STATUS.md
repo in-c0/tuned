@@ -19,6 +19,13 @@ feed](#owner-action-required)** · **Head:** [`master`](https://github.com/in-c0
 > in their own reader was never told a machine chose them, which is the provenance promise inverted on
 > the one surface that leaves the site. The channel now carries it in both the title and the
 > description; human feeds are untouched and asserted to stay unlabelled. [L-19](LESSONS.md).
+>
+> **Shipped and verified in production:** [`10d8557`](https://github.com/in-c0/tuned/commit/10d8557)
+> was live 60 seconds after merge and [verify production 31746989255](https://github.com/in-c0/tuned/actions/runs/31746989255)
+> passed every step from the public zone. **One honest gap:** the agent branch of the RSS label cannot
+> be *observed* in production from here — the executor knows no agent feed's handle, and `/ava`, the
+> one handle it does know, is the human feed and correctly stays unlabelled. The branch is covered by
+> tests; the first `agent preflight` run will name a handle and settle it against live output.
 
 > **Nothing has been published on Tuned since 2026-08-02, and the landing page did not say so.**
 > [EXP-005](EXPERIMENTS.md) read the dates out of production: the demo block on `/` — headed *"Live
@@ -202,7 +209,7 @@ to be authorized.
 
 | Capability | State | Evidence |
 | --- | --- | --- |
-| Production serving | **Green through the public zone**, most recently [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) on 2026-08-12 at **21:03 UTC** — landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. The two readings that closed the incident are kept below as the record of that closure | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
+| Production serving | **Green through the public zone**, most recently [run 31746989255](https://github.com/in-c0/tuned/actions/runs/31746989255) on 2026-08-13 at **21:45 UTC** — `10d8557` live 60s after merge, landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. Before that, [run 31640663090](https://github.com/in-c0/tuned/actions/runs/31640663090) on 2026-08-12 at **21:03 UTC** — landing and legal pages 200, unauthenticated `/api/metrics` 401, and the challenge-only failure step correctly skipped because `zone_blocked=false`. The two readings that closed the incident are kept below as the record of that closure | [verify production 31460563014](https://github.com/in-c0/tuned/actions/runs/31460563014) at 05:06 UTC (`vantage=public`, ray `a294b5e62f7b1039-IAD`) and [metrics snapshot 31478252880](https://github.com/in-c0/tuned/actions/runs/31478252880) at 09:33 UTC (ray `a2963de05b50e51c-DFW`) both read `justtuned.com` directly: `1c3fe86` live, `/` 200, `/api/version` 200, unauthenticated `/api/metrics` 401, `/terms` and `/privacy` 200 with `legal@justtuned.com`, `/ava/rss.xml` 200 `application/rss+xml`. `cf-mitigated` empty on every row; the `bare` curl variant passes identically to the named contract. The origin route on `workers.dev` still answers and is no longer the only vantage. |
 | Deploy pipeline | working | Cloudflare Workers Builds on `master`; `npm ci && npm run check` → `wrangler deploy` |
 | Clean-clone build gate | fixed + CI-enforced | run 1, `.github/workflows/check.yml` |
 | Deploy verification by version identity | **restored, and exercised for real** | `verify-production.yml` polls `/api/version` for the pushed SHA and fails closed. When the zone will not answer it reads identity and health from the Worker's `workers.dev` origin, then grades public availability **separately** — a step that failed [run 31437633360](https://github.com/in-c0/tuned/actions/runs/31437633360) while every other check in it passed. That is the intended shape: a green run still means the public can use Tuned |
