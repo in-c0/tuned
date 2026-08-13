@@ -1,4 +1,28 @@
-name: hn item status
+name: hn item status (RETIRED — do not dispatch)
+
+# ############################################################################
+# RETIRED 2026-08-13 (run 34). DO NOT DISPATCH. A green run means nothing now.
+#
+# This workflow was the success check for one owner action: get killed item
+# 49280269 restored by Hacker News moderation. That action is WITHDRAWN. The
+# packet the item pointed at was found inadmissible on HN's own rules — its
+# body was AI-written and was to be posted as the owner's own first comment,
+# and its URL was an application-gated landing page where Show HN asks for
+# something a reader can try. See ops/EXP-002-PACKET.md (fenced WITHDRAWN),
+# ops/EXPERIMENTS.md (EXP-002 INVALIDATED / NOT STARTED) and ops/LESSONS.md
+# (L-17).
+#
+# So the green condition below is void, not merely unmet: restoring an item
+# that points at a landing page, with an AI-written comment beneath it, would
+# restore an invalid test rather than start a valid one. A green run must not
+# start a clock, mark EXP-002 STARTED, or be read as evidence about demand.
+#
+# Kept in the tree rather than deleted because it is the record of how the
+# claim was checked, and because L-16's rule — success checks are executable,
+# not attestations — still stands and this is its working example. If a future
+# channel ever needs an item-status check, write a new one against that
+# channel's own admissibility conditions instead of re-pointing this file.
+# ############################################################################
 
 # Is a given Hacker News item actually published and publicly visible?
 #

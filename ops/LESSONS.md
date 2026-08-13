@@ -455,3 +455,63 @@ condition be satisfied while the thing it is standing in for did not happen?* If
 Replace it. And before an instrument's verdict is trusted, confirm each of its inputs is actually
 obtainable from where it runs — an unobtainable input is not a failing condition, it is no condition
 at all.
+
+## L-17 — A channel can be invalid on its own terms, and that says nothing about the product
+
+**What happened.** For five days this loop's single top blocker was publishing EXP-002, a Show HN.
+The packet was authorized on 2026-08-08, pasted on 2026-08-13, killed at submission, and then held
+open for eleven hours pending a moderation-review request. On review the packet turned out to be
+**unpublishable on Hacker News' own rules regardless of what moderation said**: its §3 body was
+AI-written and the packet instructed the owner to post it as their own first comment, and its §2 URL
+was an application-gated landing page rather than something a reader can try. Either defect alone
+disqualifies it. The recovery action the loop was pushing — *get it restored* — would have restored an
+invalid test.
+
+**The trap, and it was one step from being sprung.** The withdrawn state and the graded-failure state
+produce the *same observable*: flat counters, zero applications. Had the item been restored, EXP-002
+would have started a 48-hour clock over a submission that broke the venue's rules, watched the flat
+numbers it was always going to see, and written *"the Show HN produced no measurable arrivals"* into
+durable state as a finding about Tuned's positioning. It would have been a finding about a packet the
+executor wrote wrong. [L-16](#l-16--a-url-proves-a-form-was-submitted-not-that-anything-was-published)
+caught this at the receipt layer a day earlier; this is the same failure one layer further in — the
+exposure could have been real and the *test* still invalid.
+
+**Why it was missed for eleven runs.** The packet was checked hard, repeatedly, and always against the
+wrong axis. Run 19 verified its **claims** — the apply path with a real browser, the RSS promise from a
+datacenter client — and run 20 canonicalized it. Nobody checked its **compliance with the venue's
+rules**, because the loop treated "is every sentence true?" as the whole of "is this postable?" A
+truthful post into a channel that forbids its form is still unpostable, and the venue's rules were
+readable the entire time. The executor's egress proxy blocks `news.ycombinator.com` — which is a reason
+the check was awkward, not a reason it was skipped, since the loop has read from GitHub's network since
+run 26 precisely for this.
+
+**Sharper still: the executor wrote copy for a human to post under their own name, and never asked
+whether it was allowed to.** That is a boundary question the doctrine already answers — humans
+contribute attention, not content — and the packet inverted it, having the machine produce the words
+and the human supply only the account.
+
+**Evidence and cost.** Packet authorship: run 9's [DECISIONS](DECISIONS.md) entry, *"Action taken: a
+distribution packet, and no code."* Submitted URL: `https://justtuned.com/?src=shn-2026-08` in
+[EXP-002-PACKET.md](EXP-002-PACKET.md) §2, gated by §3's own *"membership is application-only right
+now"*. Cost: five days of the loop's only top blocker spent on a channel that could not have worked,
+plus the one-week milestone's publication condition. AUD $0. Nothing shipped to production, and no
+metric was contaminated — the zero baseline is intact and unspent.
+
+**The lesson.** *Distinguish channel/protocol invalidity from product invalidity, and refuse to let the
+first masquerade as the second.* When a distribution attempt returns nothing, the first question is
+whether the attempt was **admissible** — right venue, right form, rules obeyed — and only then whether
+the offer failed to land. An inadmissible attempt produces no evidence about demand in either
+direction, and recording it as a negative result is worse than recording nothing, because a fabricated
+negative closes a question that was never opened.
+
+**More elegant next attempt.** Pre-register a channel's **admissibility conditions** alongside its
+thresholds, at the moment of pre-registration: the venue's stated rules for that post type, who must
+author the words, and what the destination has to be. A channel whose admissibility is unstated is not
+ready to be authorized, however well-checked its claims are.
+
+**Prevention check.** Before authorizing any public channel, ask two questions the loop skipped:
+*(1) does this venue permit a post of exactly this form, by exactly this author?* and *(2) if it
+returns nothing, will I be able to tell "nobody wanted it" apart from "it was never admissible"?* If
+the second answer is no, the experiment is ungradeable before it starts. And any text the executor
+drafts for a human to publish under their own name carries a third: *is authorship by a machine
+allowed here?*

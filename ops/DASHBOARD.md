@@ -22,24 +22,35 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **Ask Hacker News moderation to review the dead item. One email, and do not repost.**
+### **NONE.**
 
-**You did the paste this morning and it published nothing.** Item
-[`49280269`](https://news.ycombinator.com/item?id=49280269), submitted **10:13:23 Sydney**, came back
-**`dead: true`** — killed at submission, no title, no url, no comments on its record. Verified from
-GitHub's network in [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210), not
-taken on report. Not a Tuned fault and not a mistake you made.
+**The card that stood here — *email Hacker News moderation about the dead item* — is withdrawn, and it
+was never performed. Do not send it, and do not repost.**
+
+**Why.** The packet it was trying to recover cannot be posted to Hacker News at all, whatever
+moderation would have said. Two defects, either one disqualifying, both in the executor's own work:
 
 | | |
 | --- | --- |
-| **Severity** | **Top blocker, and still the only one.** **0 applications** against **431** human-flagged landing views over 7 days. The channel meant to change that reached nobody. |
-| **The blocked outcome** | EXP-002 is `AUTHORIZED / NOT STARTED`. **No 48-hour clock started**, no window is open, nothing today is attributable to it, and **no grade was assigned** — a submission nobody could see tests nothing. |
-| **Why owner authority** | Contacting moderation is private outbound correspondence in your name — a standing stop condition. The executor also has no session and no route to the host. |
-| **Exact minimum action** | Email **`hn@ycombinator.com`** about item `49280269`: submitted once, own project, no votes solicited, came back dead — ask whether a filter caught it and whether anything should be fixed. Full suggested wording in [STATUS.md](STATUS.md). Then paste their reply into [issue #1](https://github.com/in-c0/tuned/issues/1). |
-| **Do not** | Repost, resubmit reworded, use a second account or an alternate link, or solicit votes. That converts a recoverable filter into a durable one. |
-| **Success check** | **Executable, not a receipt.** Dispatch [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml) with item `49280269`. **Green = restored** (`dead: false`, titled, `url` still points at `justtuned.com`). The executor runs it each cycle; you do not have to. |
-| **Blocker age** | Authorized **2026-08-08 13:56 UTC**; attempted **2026-08-13 00:13 UTC**; still unpublished. Already cost the 1-week milestone its publication condition. |
-| **Last surfaced** | Run 33 report and a push notification. The previous card — *publish the Show HN* — is retired: its action was performed. |
+| **§3 was written by an AI** | ...and the packet instructed *you* to post it as your own first comment. HN asks people not to post generated or AI-edited text in comments. |
+| **§2 was a landing page** | `https://justtuned.com/?src=shn-2026-08` is application-gated. Show HN asks for something a reader can try directly and treats landing/sign-up pages as off-topic. |
+
+Restoring the item would have restored an **invalid test** — and an invalid test produces exactly the
+flat counters a genuine rejection produces, which is how a defect in the executor's copy would have
+entered the record as a finding about Tuned. It didn't. Recorded as [L-17](LESSONS.md).
+
+**Nothing here is evidence about demand**, in either direction. EXP-002 is `INVALIDATED / NOT STARTED`
+with no t0, no window and no grade; the zero baseline is intact and unspent.
+
+**A future Hacker News attempt needs all three of these first** — standing constraint, not an action:
+a **directly usable destination** that needs no application; **your own genuinely human-written words**
+for the title and any comment, which the executor will not draft or edit; and **explicit moderator
+permission** to submit again. None is urgent, and none is queued.
+
+**Underneath, the real blocker is unchanged and is not yours right now:** 0 applications against 431
+UA-flagged human-shaped landing views, so no arrival is known to be human. The channel meant to fix it
+turned out to be inadmissible; the next candidate is a *different* channel, proposed openly by the
+executor for authorization.
 
 **Bot Fight Mode: closed 2026-08-11, and now retired from this card** as promised — the full record,
 including the two colo readings that settled it and the standing recommendation to use path exemptions
@@ -67,16 +78,18 @@ in production**. The constraint is not inside the product.
 **Single active objective: obtain controlled, known-human traffic.** EXP-003 killed the mechanism
 explanation for 0/115 — a real browser applied successfully at both mobile and desktop widths. What
 remains is that **no arrival is known to be human**, and with an unknown denominator no conversion
-figure is gradeable. **The channel was authorized** (2026-08-08 13:56 UTC) **and published on
-2026-08-13 — and Hacker News killed the submission at submission.** The objective is unchanged and so
-is the blocker; only the shape of the remaining step moved, from *publish* to *ask moderation to
-review* — see [§1](#1-owner-action-required).
+figure is gradeable. **The one channel it had is gone.** It was authorized 2026-08-08, submitted
+2026-08-13, killed at submission — and then **withdrawn on review** as inadmissible on Hacker News' own
+rules. The objective is unchanged and so is the blocker; what changed is that there is now **no
+prepared channel and no owner step in front of it** — see [§1](#1-owner-action-required).
 
 **Explicitly not doing** (full list in [STATUS.md](STATUS.md)): no pricing/positioning/copy work
 while the denominator is unknown; no CTA-reach counter yet — right instrument, wrong traffic; no
-EXP-002 publication **by the executor**, which holds no HN session; **no repost, no second account,
-no reworded resubmission, no alternate link and no contact with moderation by the executor**; no
-second channel and no thread seeding; no secret read, hash, rotation or exposure, ever; no
+Hacker News activity at all — EXP-002 is withdrawn, and **no repost, no second account, no reworded
+resubmission, no alternate link and no contact with moderation**, the last of which was itself
+withdrawn this run; **no drafting of public copy for the owner to publish in their own name**, which
+was the defect in EXP-002 rather than an incidental detail of it; no replacement channel invented and
+executed this cycle, and no thread seeding; no secret read, hash, rotation or exposure, ever; no
 spend; no generic summarizer, content generator or enterprise observability dashboard; no invented
 baseline, forecast or traction claim.
 
@@ -100,7 +113,7 @@ one thing this ladder must not do.
 | 6 hours | 15:30 UTC | Owner has an explicit, single decision in front of them: authorize a first channel, or say what to do instead | active | owner is asleep — 19:30 Sydney | surfaced in the run-18 report; do not re-ask |
 | 12 hours | 21:30 UTC | ≥1 arrival is **known** to be human, or a recorded reason none can be | not started | owner authorization for a first channel | nothing executor-side unblocks this |
 | 1 day | 2026-08-09 | The funnel is readable — one authenticated snapshot | **achieved** 2026-08-08 | cleared | — |
-| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution; EXP-002 graded if it ran | **condition 1 MET** (5 snapshots) · **condition 2 MISSED**, graded 2026-08-13 Sydney per the 2026-08-11 precommitment. The paste happened hours later and was **killed at submission**, which does not disturb the grade: the condition was a graded experiment, and *"if it ran"* was never satisfied | HN moderation review (owner) | email `hn@ycombinator.com` about item `49280269`; the grade is recorded, not renegotiated |
+| 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution; EXP-002 graded if it ran | **condition 1 MET** (5 snapshots) · **condition 2 MISSED**, graded 2026-08-13 Sydney per the 2026-08-11 precommitment. Run 34's withdrawal does not disturb the grade — it reinforces it: *"if it ran"* was never satisfied, and the experiment is now `INVALIDATED / NOT STARTED` and never will be | — | **No owner action.** The grade is recorded, not renegotiated; an inadmissible packet does not excuse a publication that never happened |
 | 2 weeks | 2026-08-22 | A real payment path exists; first genuine willingness-to-pay evidence — or the wedge is falsified | not started | payment-provider account is an owner boundary | request the account once demand exists |
 | 1 month | 2026-09-08 | First gross cash; activation measured, not assumed | not started | all of the above, in order | decided by the baseline |
 | 3 months | 2026-11-08 | A small **retained paying cohort** | not started — *past the 2026-10-05 operating date; owner's to carry* | everything above | hand over an honest cohort table at closeout |
@@ -154,9 +167,9 @@ reading and caveats in [METRICS.md](METRICS.md).
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. **The channel meant to fix this was submitted 2026-08-13 and killed at submission** (`dead: true`, item 49280269), so the blocker did not move: what was missing was exposure, and there still is none. | Owner requests moderation review; executor measures | AUD $0 | **Open. Top blocker.** See §1. |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. **The channel meant to fix this was withdrawn as inadmissible on 2026-08-13** (see #3), so there is now no prepared channel and no owner step: the next move is an executor proposal for a *different* one, with admissibility pre-registered. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and nobody's queued action.** See §1. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
-| 3 | **EXP-002 authored, authorized, submitted — and killed at submission.** Authorization arrived 2026-08-08 13:56 UTC; the packet is complete and its public claims verified by EXP-004; the owner submitted it 2026-08-13 00:13 UTC and Hacker News marked the item `dead`. Nothing about the packet has been tested, because nobody saw it. | Owner emails `hn@ycombinator.com`; executor checks restoration by dispatch | AUD $0 | **Merged into blocker #1** — same channel, new success check. Kept so the sequence authorize → publish → killed stays on the record. |
+| 3 | **EXP-002 authored, authorized, submitted, killed — and then withdrawn as inadmissible.** Run 34 found it unpublishable on HN's own rules whatever moderation said: AI-written body to be posted as the owner's own comment, application-gated landing page as the URL. Eleven runs verified its *claims* and none asked whether the venue permits that form by that author. | Closed — no owner action | AUD $0 | **Closed unperformed.** Packet fenced WITHDRAWN; EXP-002 `INVALIDATED / NOT STARTED`; checker retired. [L-17](LESSONS.md). |
 | 4 | **Executor has no direct egress** — 403 CONNECT at the proxy, **29** consecutive runs, re-tested this run and now confirmed for `hacker-news.firebaseio.com` as well as `justtuned.com` and `*.workers.dev`. Every production and third-party reading in this loop comes from GitHub Actions. | Environment | — | Mitigated, not fixed: Actions is the read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
@@ -176,13 +189,15 @@ reading and caveats in [METRICS.md](METRICS.md).
   ([run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974)): demo link → `/ava`,
   feed 200 with **24 items** and no empty state, `/ava/rss.xml` 200 `application/rss+xml` with **38**,
   no first-party errors, no horizontal overflow. GETs only; nothing written.
-- **EXP-002 — Show HN distribution smoke test: AUTHORIZED, NOT STARTED — attempted and killed.**
-  Pre-registered; packet canonical and checked in [EXP-002-PACKET.md](EXP-002-PACKET.md). Authorized
-  [13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917), submitted
-  **2026-08-13 00:13:23 UTC**, and item `49280269` is **`dead: true`** —
-  [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210). **No t0, no window, no
-  snapshot, no inference, no grade.** If moderation restores it, the experiment starts **at the
-  restoration timestamp**, not at submission time. All bands unchanged.
+- **EXP-002 — Show HN distribution smoke test: `INVALIDATED / NOT STARTED`, withdrawn 2026-08-13.**
+  Authorized [13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917), submitted
+  **2026-08-13 00:13:23 UTC**, item `49280269` **`dead: true`**
+  ([run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210)) — and then found
+  unpublishable on HN's own rules regardless (AI-written body posted as the owner's comment;
+  application-gated landing page as the URL). **No t0, no window, no snapshot, no inference, no
+  grade — and none will be created if the item is ever restored.** All bands unspent; the packet is
+  fenced **WITHDRAWN** at [EXP-002-PACKET.md](EXP-002-PACKET.md).
+- **No experiment is currently running, and none is queued.** That is the honest state of §6.
 
 Details and grading rules: [EXPERIMENTS.md](EXPERIMENTS.md).
 
@@ -193,9 +208,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-17** | **A channel can be invalid on its own terms, and that says nothing about the product.** The Show HN packet was unpublishable on HN's own rules — AI-written body posted as the owner's comment, application-gated landing page as the URL — so restoring it would have restored an invalid test. Withdrawal and graded-failure produce the *same* flat counters, which is how a defect in the executor's copy would have entered the record as a finding about Tuned's positioning. | Pre-register a channel's **admissibility conditions** — what the venue permits, who must author the words, what the destination must be — alongside its thresholds. A channel whose admissibility is unstated is not ready to be authorized, however well-checked its claims are. |
 | **L-16** | **A URL proves a form was submitted, not that anything was published.** The owner action's success check was *"a canonical `item?id=…` URL appears in issue #1"*. It did — and the item was `dead: true`. Had nobody looked closely, this loop would have started a 48-hour clock over an empty page and written *"Show HN produced no arrivals"* into durable state as a finding about Tuned's positioning. | Write success checks against the observable outcome, never the receipt — and make them executable. If the executor cannot run and grade the check, it is an attestation and should be labelled one. |
 | **L-15** | **`git fetch` does not move the branch you are standing on, and a stale base invents findings.** Run 30 branched from a five-day-old local `master` and `npm audit` reported a *production* `hono` advisory that real master never had. What caught it was an impossibility — a lockfile disagreeing with its own install — not vigilance about git. | Verify the base, not the fetch: `git rev-parse master origin/master` must agree, or branch from `origin/master`. Treat any impossibility in tooling output as evidence about your environment first. |
-| **L-14** | **A defence that filters by "is this a bot" filters out whatever your product is made of.** Bot Fight Mode challenged every non-browser client for ~22 hours, and Tuned's RSS and agent surfaces *are* non-browser clients. The product's own traffic looked exactly like the thing being blocked. | Before enabling a generic bot defence, enumerate the first-party non-browser clients the product ships, and exempt their paths explicitly rather than discovering them through an outage. |
 
 Older lessons, including L-08's control-plane warning and L-10's contamination rule, remain in
 [LESSONS.md](LESSONS.md). L-08's forward test — *does the next run spend its cycle on demand evidence
@@ -207,11 +222,11 @@ that turns an attestation into a check.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-13 10:50 Sydney (00:50 UTC) |
-| **Run** | 33 — the Show HN was submitted and killed at submission; record the failed attempt, replace the owner action with a moderation review, and give its success check an executable form |
-| **Repository commit at time of writing** | [`bbb9a4d`](https://github.com/in-c0/tuned/commit/bbb9a4d) |
+| **Last materially updated** | 2026-08-13 19:39 Sydney (09:39 UTC) |
+| **Run** | 34 — the Show HN packet was found inadmissible on the venue's own rules and **withdrawn**; EXP-002 is `INVALIDATED / NOT STARTED`; the moderation-email action and the restoration checker are both retired; owner action is **NONE** |
+| **Repository commit at time of writing** | [`166604e`](https://github.com/in-c0/tuned/commit/166604e) |
 | **Data commit** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) — `generated_at` 2026-08-12T21:24:27Z, read through the public zone, covering 7 UTC days with 08-12 partial. **Unchanged this run: no new snapshot was taken and no metric moved.** |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §3's 1-week row, §5, §6 and §7 are current as of run 33; §4 and this section are current as of the 08-12 snapshot. **§2 (phase) and the rest of §3 were last written at run 20** and are stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §2, §3's 1-week row, §5, §6 and §7 are current as of run 34; §4 and this section are current as of the 08-12 snapshot, and **no new snapshot was taken this run — no metric moved.** **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

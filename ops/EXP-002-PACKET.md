@@ -1,32 +1,63 @@
-# EXP-002 — the Show HN packet, publish-ready
+# EXP-002 — the Show HN packet — **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**
 
-**Status: authorized, unpublished.** The owner authorized publication on
-[2026-08-08 13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917). The executor
-cannot publish it — see [Why the owner posts this](#why-the-owner-posts-this) — so it sits here until
-the owner pastes it.
+> # ⛔ WITHDRAWN 2026-08-13 (run 34). This is not publishable text.
+>
+> **Nobody should paste any part of this file into Hacker News — not the title, not the URL, not the
+> body — and the killed item [`49280269`](https://news.ycombinator.com/item?id=49280269) must not be
+> restored while it points at this packet.** The file is kept only as the record of what was written
+> and why it was wrong. It is no longer a plan, an instruction, or an owner action.
+>
+> **Two defects, either one disqualifying, and both are properties of the packet rather than of Tuned:**
+>
+> 1. **§3 was written by an AI, and it was to be posted as the owner's own first comment.** The
+>    executor authored it on run 9 ([DECISIONS](DECISIONS.md), *"Action taken: a distribution packet,
+>    and no code"*). Hacker News asks people not to post generated or AI-edited text in comments. The
+>    whole delivery mechanism in *How this was to be posted* below — "immediately post §3 as the first
+>    comment on your own thread" — is therefore an instruction to break that rule in the owner's name.
+> 2. **§2 submits an application-gated landing page.** Show HN asks for something a reader can try
+>    directly, and says landing and sign-up pages are off-topic. `https://justtuned.com/?src=shn-2026-08`
+>    is the marketing/application surface; §3 concedes the point in its own words — *"membership is
+>    application-only right now"*. That the packet also *mentions* `/ava` does not fix it, because the
+>    submitted URL is what the rule is about.
+>
+> **What a future Hacker News attempt requires, all three, before anything is drafted:**
+>
+> - a **directly usable destination** — something a reader can try without applying or signing up, not
+>   a landing page;
+> - the **owner's own words**, genuinely human-written and not AI-edited, for the title and for any
+>   comment. The executor must not draft, reword, or edit that text;
+> - **explicit moderator permission to submit again**, obtained by the owner, before any resubmission
+>   of this or any related link.
+>
+> **What this withdrawal does not mean.** It says nothing about whether Tuned is wanted. The channel
+> and the protocol were invalid; the product hypothesis was never tested, and is neither supported nor
+> weakened by any of this. See [L-17](LESSONS.md).
 
-**This file is the canonical copy of the post.** It was previously reachable only by scrolling issue
-#1; the text below is byte-identical to the packet approved in the
+**Status: `INVALIDATED / NOT STARTED`, withdrawn 2026-08-13.** The owner authorized publication on
+[2026-08-08 13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917) and pasted it
+on 2026-08-13 00:13 UTC; Hacker News killed the item at submission, and the packet has now been found
+non-compliant on review. It has **no t0, no window, no grade and no implication about demand.**
+
+**Historical note on provenance.** The text below is byte-identical to the packet approved in the
 [run-19 report](https://github.com/in-c0/tuned/issues/1#issuecomment-5225689140), which is itself
-run 9's packet with `[DEMO_FEED_URL]` resolved to `https://justtuned.com/ava`. **Nothing here is new
-wording, and nothing may be reworded without a fresh pre-registration** — the thresholds in
-[EXPERIMENTS.md](EXPERIMENTS.md) are fixed against *this* text.
+run 9's packet with `[DEMO_FEED_URL]` resolved to `https://justtuned.com/ava`. It is preserved
+unaltered **as evidence, not as copy** — rewriting it now would destroy the record of the defect.
 
 ---
 
-## 1. Title
+## 1. Title — **WITHDRAWN, do not post**
 
 ```
 Show HN: Tuned – a morning review queue for what your agents read overnight
 ```
 
-## 2. URL
+## 2. URL — **WITHDRAWN, do not post: application-gated landing page**
 
 ```
 https://justtuned.com/?src=shn-2026-08
 ```
 
-## 3. Text
+## 3. Text — **WITHDRAWN, do not post: AI-authored, and it was to be the owner's own comment**
 
 ```
 I run a couple of agents that read overnight — one on a schedule, one I kick off
@@ -60,7 +91,11 @@ pay for it, what would you expect it to cost?
 
 ---
 
-## How to post it
+## How this was to be posted — **WITHDRAWN. Do not follow these steps.**
+
+**Step 4 below is the defect, stated in its own words:** it instructs the owner to post
+executor-written text as their first comment. Preserved verbatim because the instruction is the
+evidence. Nobody should execute it.
 
 Open <https://news.ycombinator.com/submit> while signed in, then:
 
@@ -103,7 +138,12 @@ unposted one, and the packet has now been ready for eleven runs.
 - **Do not vote-ring, ask for upvotes, or seed the thread.** It would invalidate the result and
   violate HN's rules.
 
-## Clock
+## Clock — **void. No clock will ever start from this packet.**
+
+EXP-002 is `INVALIDATED / NOT STARTED`. There is no t0, no window and no grade, and none will be
+created retroactively if the item is ever restored — a restored item pointing at a landing page, with
+an AI-written comment beneath it, would be the same invalid test. The rule below is kept only to show
+what was pre-registered.
 
 The 48-hour window starts at the **actual publication time**, recorded in UTC and Sydney. It is not
 started by authorization, and the executor will not mark EXP-002 `STARTED` until the canonical item
