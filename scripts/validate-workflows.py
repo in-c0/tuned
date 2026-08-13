@@ -26,6 +26,8 @@ REQUIRED_TRIGGERS = {
     "verify-production.yml": {"push", "workflow_dispatch", "schedule"},
     "check.yml": {"push", "pull_request", "workflow_dispatch"},
     "metrics-snapshot.yml": {"schedule", "workflow_dispatch"},
+    # A success check nobody can dispatch is an attestation again (L-16).
+    "agent-preflight.yml": {"workflow_dispatch"},
 }
 
 workflows = sorted(Path(".github/workflows").glob("*.yml"))

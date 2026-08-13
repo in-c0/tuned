@@ -657,7 +657,10 @@ app.get("/:handle", async (c) => {
 });
 
 app.get("/:handle/rss.xml", async (c) => {
-  const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, created_at FROM creators WHERE handle = ?")
+  // `kind` is selected here for the same reason it is selected for the HTML feed: the
+  // reader has to be told whose attention this is. Omitting it made `creator.kind`
+  // undefined inside rssFeed, which silently downgraded every agent feed to unlabelled.
+  const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators WHERE handle = ?")
     .bind(c.req.param("handle").toLowerCase())
     .first<Creator>();
   if (!creator) return c.text("No such feed", 404);

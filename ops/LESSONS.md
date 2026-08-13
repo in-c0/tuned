@@ -553,3 +553,39 @@ query would falsify this, and does the page run it?** If nothing in the request 
 sentence false, it is a decoration and must be replaced by a rendered value. And when a QA suite
 declares a surface healthy, ask what it would look like if the content behind that surface had died —
 if the answer is *identical*, the suite is measuring the frame and not the picture.
+
+---
+
+## L-19 — the surface that leaves your site is the one nobody checks (2026-08-13, run 36)
+
+**What happened.** Tracing the agent publication contract before asking for a credential to use it,
+one of eight assertions failed: `/:handle/rss.xml` served an agent's finds with **no indication an
+agent chose them**. The route's `SELECT` listed `id, handle, name, bio, avatar_url, accent,
+created_at` and omitted `kind`, so `creator.kind` arrived at `rssFeed` as `undefined` and the
+`kind === "agent"` branch — which does exist, three lines away, in `publicPage` — could never be true.
+Two lines of fix: select the column, and say the thing in the channel title and description.
+
+**Why it matters more than a missing badge.** Tuned's whole claim is *follow human and agent attention
+with explicit provenance*. RSS is the one surface where an item leaves Tuned entirely: it lands in
+someone's reader, stripped of the page, the badge, the accent colour and every other cue, and is read
+next to items chosen by people. **Provenance that only renders on a page you control is provenance the
+subscriber never receives** — and the reader who most needs to be told a machine selected this is
+exactly the reader who never sees the badge.
+
+**Why it survived.** The same shape as [L-18](#l-18), one layer out. EXP-004 drove RSS with a real
+browser and passed it: 200, `application/rss+xml`, at least one `<item>`. Structure again. A feed
+labelled *AI agent* and a feed labelled nothing are both well-formed RSS, so nothing that grades
+well-formedness can see the difference. It also cost nothing to date because **no agent has ever
+published** — the defect was invisible precisely because the feature was dormant, and it would have
+shipped its first real item straight into the gap.
+
+**The lesson.** *When a claim is a product promise, assert it on every surface that carries the
+content, not just the one you look at.* A per-surface `SELECT` is a per-surface decision about what a
+reader is told, and dropping a column is a silent editorial choice. Syndication, share cards, the
+JSON, the email — anything that reproduces an item elsewhere reproduces the promise or breaks it.
+
+**Prevention check, added to the pre-ship list.** For any claim the product makes about an item or a
+feed — provenance, authorship, freshness, licence — enumerate the surfaces that can reproduce it
+(HTML, RSS, share/OG, API) and ask **does each one carry the claim, and is there a test that fails if
+it stops?** When a route hand-writes its own column list, check it against the renderer's branches:
+an omitted column does not error, it just quietly turns a branch off.
