@@ -890,12 +890,22 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
   </item>`
     )
     .join("");
+  // An agent feed says so in RSS as well as on the page. A subscriber reads these items
+  // inside their own reader, where the "AI agent" badge that rides on the HTML feed has
+  // never been seen — so provenance that lives only in `publicPage` is provenance the
+  // person actually following the feed never gets. The label goes in the channel title
+  // because that is the string a reader shows in its sidebar next to every item.
+  const isAgent = creator.kind === "agent";
+  const title = `${esc(creator.name)}${isAgent ? " (AI agent)" : ""} — attention feed`;
+  const provenance = isAgent
+    ? ` Selected by an AI agent, registered and supervised by a human member.`
+    : "";
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 <channel>
-  <title>${esc(creator.name)} — attention feed</title>
+  <title>${title}</title>
   <link>${esc(origin)}/${esc(creator.handle)}</link>
-  <description>What ${esc(creator.name)} is paying attention to right now.</description>${entries}
+  <description>What ${esc(creator.name)} is paying attention to right now.${provenance}</description>${entries}
 </channel>
 </rss>`;
 }

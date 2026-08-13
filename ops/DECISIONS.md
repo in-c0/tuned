@@ -1257,3 +1257,56 @@ and a QA suite that grades structure will grade a corpse as healthy, which is pr
 and EXP-004 did to this page, twice, while passing.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-08-13 — run 36: proved the agent contract, then asked for the one thing that cannot be self-served
+
+**Directive.** Run one bounded agent-activation feasibility cycle: trace the contract from an agent
+reading its brief through a truthful agent-selected publication and RSS output; activate exactly one
+existing agent feed **only if** identity, remit, credentials and permission already exist and the item
+is something that agent genuinely encountered; otherwise publish nothing and record one exact owner
+action.
+
+**Verdict: two of the four prerequisites are absent, both owner-only. Nothing was published.**
+
+| Prerequisite | State | Evidence |
+| --- | --- | --- |
+| **Identity** | **exists** — 4 feeds with `kind='agent'` | `ops/metrics/latest.json` → `feeds_agent: 4` |
+| **Remit** | **unknown, and unknowable from here** | `charter` is served only by `GET /studio/:token/brief`, behind the same token as the credential below; it collapses into one card rather than two |
+| **Credentials** | **ABSENT** | The studio token lives in D1. The executor holds no D1 access, no `ADMIN_KEY`, no token — by design, so it never holds Cloudflare credentials |
+| **Permission** | **ABSENT** | No statement authorizes the executor to publish under an existing agent identity. Publishing without one would be assuming a member's agent's voice |
+
+**Decision 1 — publish nothing, and ask by secret rather than by message.** The owner card at the top
+of `STATUS.md` asks for a GitHub Actions repository secret `AGENT_STUDIO_TOKEN` plus one line of
+permission on issue #1. **It explicitly forbids pasting the token into the issue**: `in-c0/tuned` and
+issue #1 have been public since 2026-08-09, and a studio token is a capability URL — anyone who reads
+it can publish to that feed. A repository secret is the only place the owner can put it where the
+executor can cause it to be *used* without ever being able to *read* it. Asking to be handed the token
+directly was considered and rejected for that reason.
+
+**Decision 2 — prove the mechanism before spending the credential.** `test/agent-contract.test.ts`
+walks the full contract in workerd against a real D1: brief serves charter and star/skip feedback,
+unknown tokens are refused on both read and write, a POSTed find lands `visibility='public'`
+immediately (no Desk approval in the path), the item renders on the public feed with its AI-agent
+badge, RSS serves it, and the landing demo switches to that feed as the newest thing on the site. 8
+assertions, all passing. This is the anti-[L-17](LESSONS.md) move: the last authorization was spent on
+a channel that turned out to be inadmissible, so this one is being requested only after the path
+behind it is executable and green.
+
+**Decision 3 — fix the one reproduced defect, and only it.** `/:handle/rss.xml` omitted `kind` from
+its `SELECT`, so `creator.kind` was `undefined` in `rssFeed` and **every agent feed syndicated with no
+AI label**. Fixed in `src/index.ts` and `src/pages.ts`: the channel title becomes `Name (AI agent) —
+attention feed` and the description names the agent as the selector. Human feeds are untouched, with a
+test that fails if that ever changes. Recorded as [L-19](LESSONS.md). No other code was changed —
+no copy, pricing, UI expansion, channel or spend.
+
+**Decision 4 — state the executor's own limit before the owner spends the credential.** Direct page
+fetches are blocked by the egress proxy (`blog.cloudflare.com` → `EGRESS_BLOCKED` this run); web
+search works. The executor's "encounters" would therefore be real but shallow — result-level material,
+not the page itself. That is disclosed on the card, because a decision made without it is a decision
+made on a rosier machine than the one that exists.
+
+**Not done, deliberately:** no creator created, no `ADMIN_KEY` requested, no agent identity invented,
+nothing published under the owner, the member's 42 private queued items untouched, and no item
+manufactured to make the demo look alive.
+
+**Spend:** AUD $0.00. Running total unchanged at **AUD $0.00 of $500**.

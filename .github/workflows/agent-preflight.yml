@@ -1,0 +1,83 @@
+name: agent preflight
+
+# The success check for one owner card: "credential one existing agent feed so it can be
+# activated". It answers, executably, the two questions the executor cannot answer for
+# itself — does the studio token work, and does that agent have a remit — without
+# publishing anything and without the token ever leaving GitHub.
+#
+# Why a workflow and not a request in the issue. `in-c0/tuned` and issue #1 are PUBLIC.
+# A studio token is a capability URL: whoever holds it can publish to that feed. It must
+# never be pasted into the issue, a commit, an ops file or an execution report. A
+# repository secret is the one place the owner can put it where the executor can cause it
+# to be used without ever being able to read it, which is also why the executor asked for
+# it this way rather than asking to be handed the token.
+#
+# This job READS ONLY. It fetches GET /studio/$TOKEN/brief and prints the two facts the
+# card turns on — the handle the token belongs to, and whether a charter exists — plus
+# nothing else. It never POSTs, so a green run means "activation is now possible", not
+# "something was published". Publishing is a separate, authorized step.
+#
+# Inert until the secret exists: without AGENT_STUDIO_TOKEN it exits green with a notice,
+# exactly like metrics-snapshot.yml, so the check can ship before the credential does.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Does the credential open the agent contract?
+        env:
+          AGENT_STUDIO_TOKEN: ${{ secrets.AGENT_STUDIO_TOKEN }}
+        run: |
+          set -uo pipefail
+          if [ -z "${AGENT_STUDIO_TOKEN:-}" ]; then
+            echo "::notice::AGENT_STUDIO_TOKEN is not set — no agent feed is credentialed yet. This is the owner card in ops/STATUS.md, not a failure."
+            {
+              echo "### Agent preflight: NOT CREDENTIALED"
+              echo ""
+              echo "No \`AGENT_STUDIO_TOKEN\` repository secret. See the owner card at the top of \`ops/STATUS.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # The token is in the path, so the URL is a secret too: it is never echoed, and
+          # curl is never run with -v. Only the status line and derived facts are printed.
+          code=$(curl -sS -o /tmp/brief.json -w '%{http_code}' \
+                   --max-time 20 \
+                   -H 'accept: application/json' \
+                   "https://justtuned.com/studio/${AGENT_STUDIO_TOKEN}/brief" || echo 000)
+
+          if [ "$code" != "200" ]; then
+            echo "::error::GET /studio/<token>/brief returned HTTP $code — the token does not open the contract (401 = wrong or revoked token, 000 = no answer)."
+            exit 1
+          fi
+
+          # Derived facts only. The charter is the owner's steering text and the feedback
+          # is a member's private attention, so neither is printed — only their shape.
+          handle=$(python3 -c "import json;print(json.load(open('/tmp/brief.json')).get('handle',''))")
+          charter_len=$(python3 -c "import json;print(len(json.load(open('/tmp/brief.json')).get('charter','') or ''))")
+          starred=$(python3 -c "import json;print(len(json.load(open('/tmp/brief.json'))['recent_feedback']['starred']))")
+          skipped=$(python3 -c "import json;print(len(json.load(open('/tmp/brief.json'))['recent_feedback']['skipped']))")
+
+          echo "brief served for @${handle}: charter ${charter_len} chars, ${starred} starred / ${skipped} skipped in feedback"
+
+          {
+            echo "### Agent preflight: CREDENTIALED"
+            echo ""
+            echo "- Feed: \`@${handle}\`"
+            echo "- Charter: **${charter_len}** characters $([ "$charter_len" -gt 0 ] && echo '— remit present' || echo '— **EMPTY: no remit, activation still blocked**')"
+            echo "- Supervisor feedback available to the agent: ${starred} starred, ${skipped} skipped"
+            echo ""
+            echo "Read-only. Nothing was published."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$charter_len" -eq 0 ]; then
+            echo "::error::@${handle} has no charter. An agent with credentials and no remit has nothing to honour — set the charter from the Desk before activation."
+            exit 1
+          fi

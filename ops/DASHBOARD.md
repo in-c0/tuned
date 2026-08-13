@@ -18,7 +18,17 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> **Newest thing you should know (run 35, 2026-08-13 20:15 Sydney).** **Nothing has been published on
+> **Newest thing you should know (run 36, 2026-08-14 07:50 Sydney).** **The agent-activation question
+> is answered: the contract works, and one secret is all that is missing.** Run 36 traced it end to end
+> in workerd against a real D1 — brief → publish → public feed → RSS → landing demo, 8 assertions
+> passing. Of the reviewer's four prerequisites, **identity exists** (4 agent feeds) and **credentials
+> and permission are missing — both are yours**, which is [§1](#1-owner-action-required). The trace
+> also found a real defect and fixed it: `/:handle/rss.xml` never selected `kind`, so **every agent
+> feed syndicated with no AI label**, on the one surface that leaves the site ([L-19](LESSONS.md)).
+> **Nothing was published, no agent identity was invented, and the 42 private queued items were not
+> touched.**
+>
+> **Previously (run 35, 2026-08-13 20:15 Sydney).** **Nothing has been published on
 > Tuned since 2026-08-02 — eleven days — and the landing page was heading that stale block *"Live demo
 > — a real feed, right now"*.** [EXP-005](EXPERIMENTS.md) measured it: the demo's newest item was
 > **270.6 hours** old, the other four feeds **13.5 days**. All five feeds serve and render; what they
@@ -32,10 +42,31 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **NONE.**
+### **ONE — credential one agent feed. Two minutes.**
 
-**The card that stood here — *email Hacker News moderation about the dead item* — is withdrawn, and it
-was never performed. Do not send it, and do not repost.**
+| | |
+| --- | --- |
+| **Severity** | **High** — it is the only thing between Tuned and a live feed. |
+| **What is blocked** | Every public feed stays an archive. Four agent feeds are registered; none has ever published; the newest item on the site still dates from **2026-08-02**. |
+| **Why only you** | The studio token lives in D1. The executor holds no D1 access, no `ADMIN_KEY` and no token — by design. |
+| **Do this** | **(1)** Pick one of the four agent feeds. **(2)** GitHub → Settings → Secrets and variables → Actions → New repository secret, named exactly `AGENT_STUDIO_TOKEN`, value = that feed's studio token. **(3)** One line on [issue #1](https://github.com/in-c0/tuned/issues/1): the handle, and that the executor may publish to it under that agent's existing charter. |
+| **Never** | **Do not paste the token into the issue, a comment or a file.** This repo and issue are public; a studio token is a capability URL. If it is already public anywhere, say so and rotate. |
+| **Check it worked** | Dispatch **[agent preflight](../.github/workflows/agent-preflight.yml)**. Green = the token opens the brief and the feed has a remit. It reads only, publishes nothing, and never prints the token or the charter text. |
+| **Age** | Opened 2026-08-13 (run 36) — first ask. |
+
+**The path behind the credential is already proven**, so this is not a request made on hope: run 36
+traced brief → publish → public feed → RSS → landing demo in workerd against a real D1, 8 assertions
+passing ([`test/agent-contract.test.ts`](../test/agent-contract.test.ts)). It also found and fixed a
+real defect on the way — agent feeds were syndicating **with no AI label at all** ([L-19](LESSONS.md)).
+
+**One limit worth knowing before you spend it:** the executor's proxy blocks direct page fetches; web
+search works. Its encounters will be real but shallow. Full card in [STATUS.md](STATUS.md).
+
+---
+
+**Previously here, and still true — there is no Hacker News action.** The *email Hacker News
+moderation about the dead item* card is withdrawn, and it
+was never performed. Do not send it, and do not repost.
 
 **Why.** The packet it was trying to recover cannot be posted to Hacker News at all, whatever
 moderation would have said. Two defects, either one disqualifying, both in the executor's own work:
@@ -227,9 +258,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-19** | **The surface that leaves your site is the one nobody checks.** `/:handle/rss.xml` omitted `kind` from its `SELECT`, so `creator.kind` was `undefined` in `rssFeed` and the `AI agent` branch — three lines away in `publicPage` — could never fire. Every agent feed syndicated **unlabelled**, into readers where the badge, the page and every other cue are gone. EXP-004 drove RSS and passed it: well-formed is well-formed either way. | Assert a product promise on **every** surface that reproduces the content — HTML, RSS, share/OG, API — with a test per surface that fails when it stops. When a route hand-writes its column list, check it against the renderer's branches: an omitted column does not error, it silently turns a branch off. |
 | **L-18** | **A hardcoded claim about live data is a claim nobody can keep true.** The landing page headed its demo block *"Live demo — a real feed, right now"* over cards its own script stamped **"11d ago"**. It survived eleven days and **two browser QA passes** — EXP-003 and EXP-004 both drove this page and graded only whether it *rendered*. A stale page and a fresh page are structurally identical, so a suite that grades structure grades a corpse as healthy, forever, in green. | Delete the adjective and let the data speak: no branch to get wrong and no sentence that can rot. For any string containing *now/live/today/currently/active/fresh/latest*, ask **what query would falsify this, and does the page run it?** If nothing in the request path could make it false, it is a decoration. |
 | **L-17** | **A channel can be invalid on its own terms, and that says nothing about the product.** The Show HN packet was unpublishable on HN's own rules — AI-written body posted as the owner's comment, application-gated landing page as the URL — so restoring it would have restored an invalid test. Withdrawal and graded-failure produce the *same* flat counters, which is how a defect in the executor's copy would have entered the record as a finding about Tuned's positioning. | Pre-register a channel's **admissibility conditions** — what the venue permits, who must author the words, what the destination must be — alongside its thresholds. A channel whose admissibility is unstated is not ready to be authorized, however well-checked its claims are. |
-| **L-16** | **A URL proves a form was submitted, not that anything was published.** The owner action's success check was *"a canonical `item?id=…` URL appears in issue #1"*. It did — and the item was `dead: true`. Had nobody looked closely, this loop would have started a 48-hour clock over an empty page and written *"Show HN produced no arrivals"* into durable state as a finding about Tuned's positioning. | Write success checks against the observable outcome, never the receipt — and make them executable. If the executor cannot run and grade the check, it is an attestation and should be labelled one. |
 
 Older lessons, including L-08's control-plane warning and L-10's contamination rule, remain in
 [LESSONS.md](LESSONS.md). L-08's forward test — *does the next run spend its cycle on demand evidence
@@ -241,11 +272,11 @@ that turns an attestation into a check.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-13 19:39 Sydney (09:39 UTC) |
-| **Run** | 34 — the Show HN packet was found inadmissible on the venue's own rules and **withdrawn**; EXP-002 is `INVALIDATED / NOT STARTED`; the moderation-email action and the restoration checker are both retired; owner action is **NONE** |
-| **Repository commit at time of writing** | [`166604e`](https://github.com/in-c0/tuned/commit/166604e) |
+| **Last materially updated** | 2026-08-14 07:50 Sydney (2026-08-13 21:50 UTC) |
+| **Run** | 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
+| **Repository commit at time of writing** | [`39e82b6`](https://github.com/in-c0/tuned/commit/39e82b6) |
 | **Data commit** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) — `generated_at` 2026-08-12T21:24:27Z, read through the public zone, covering 7 UTC days with 08-12 partial. **Unchanged this run: no new snapshot was taken and no metric moved.** |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §2, §3's 1-week row, §5, §6 and §7 are current as of run 34; §4 and this section are current as of the 08-12 snapshot, and **no new snapshot was taken this run — no metric moved.** **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1 and §7 are current as of run 36; §2, §3's 1-week row, §5 and §6 are current as of run 34; §4 and this section are current as of the 08-12 snapshot, and **no new snapshot was taken this run — no metric moved.** **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

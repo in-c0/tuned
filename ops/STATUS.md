@@ -1,8 +1,24 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-13 20:15 Sydney (10:15 UTC), run 35 — **the landing page was claiming a
-freshness it did not have; the claim is now rendered from data** · **OWNER ACTION REQUIRED: NONE** ·
-**Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+**Last updated:** 2026-08-14 07:50 Sydney (2026-08-13 21:50 UTC), run 36 — **the agent contract works;
+only the credential is missing** · **OWNER ACTION REQUIRED: ONE — [credential one agent
+feed](#owner-action-required)** · **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> **The agent-activation question is now answered, and the answer is one secret.** Run 36 traced the
+> whole contract in workerd against a real D1 — an agent reads its brief, publishes what it selected,
+> the find appears on the public feed and in RSS, and the landing demo picks that feed up as the
+> freshest thing on the site. **Eight assertions, all passing**
+> ([`test/agent-contract.test.ts`](../test/agent-contract.test.ts)). Of the four prerequisites the
+> reviewer set — identity, remit, credentials, permission — **identity exists** (four `kind='agent'`
+> feeds), and **credentials and permission are the missing pair**, both owner-only. Nothing was
+> published, and no agent identity was invented.
+>
+> **The trace found a real defect and it is fixed.** `GET /:handle/rss.xml` never selected `kind`, so
+> `creator.kind` was `undefined` inside `rssFeed` and **every agent feed syndicated with no AI label
+> at all** — the "AI agent" badge existed only on the HTML page. A subscriber reading an agent's finds
+> in their own reader was never told a machine chose them, which is the provenance promise inverted on
+> the one surface that leaves the site. The channel now carries it in both the title and the
+> description; human feeds are untouched and asserted to stay unlabelled. [L-19](LESSONS.md).
 
 > **Nothing has been published on Tuned since 2026-08-02, and the landing page did not say so.**
 > [EXP-005](EXPERIMENTS.md) read the dates out of production: the demo block on `/` — headed *"Live
@@ -48,9 +64,42 @@ freshness it did not have; the claim is now rendered from data** · **OWNER ACTI
 
 ## OWNER ACTION REQUIRED
 
-### **NONE.**
+### **ONE: credential one agent feed so it can start publishing.**
 
-**There is no owner action, and that is a withdrawal rather than a completion.** The moderation-email
+| | |
+| --- | --- |
+| **Severity** | **High.** It is the only thing standing between Tuned and a live feed. |
+| **Blocked outcome** | Every public feed stays an archive. Four agent feeds are registered, none has ever published, and the newest item on the site still dates from **2026-08-02**. Until one agent runs, the landing demo shows a visitor an archive and *"last active 11d ago"* — which is honest, and is not a product. |
+| **Why only you** | The studio token lives in D1. The executor holds no D1 access, no `ADMIN_KEY` and no token, by design — the deploy pipeline exists precisely so it never holds Cloudflare credentials. There is no path from the executor to this credential that is not you handing it over. |
+| **Minimum action** | Three steps, ~2 minutes. **(1)** Pick one of the four agent feeds. **(2)** Put its studio token — the secret part of its `/studio/<token>` URL — in **GitHub → Settings → Secrets and variables → Actions → New repository secret**, named exactly `AGENT_STUDIO_TOKEN`. **(3)** Post one line on [issue #1](https://github.com/in-c0/tuned/issues/1) naming the handle and saying the executor may publish to it under that agent's existing charter. |
+| **Do NOT** | **Do not paste the token into issue #1, a comment, a commit or a file.** This repository and that issue are public, and a studio token is a capability URL: whoever reads it can publish to that feed. The secret box is the only correct place. If it has already been pasted anywhere public, say so and rotate instead. |
+| **Success check** | Executable, not an attestation: dispatch **[agent preflight](../.github/workflows/agent-preflight.yml)**. Green = the token opens `GET /studio/<token>/brief` and the feed has a charter. It reads only; it publishes nothing, and it prints the handle and the charter's *length*, never the token, the charter text or the feedback. Without the secret it exits green with a notice. |
+| **Age** | Opened 2026-08-13 (run 36). First time this has been asked. |
+| **Surfaced at** | Here, [DASHBOARD.md §1](DASHBOARD.md), and the run-36 report on [issue #1](https://github.com/in-c0/tuned/issues/1). |
+
+**What run 36 established, so this card is a credential request and nothing more.** The rest of the
+agent contract was traced end to end in workerd against a real D1 and it works:
+[`test/agent-contract.test.ts`](../test/agent-contract.test.ts) walks brief → publish → public feed →
+RSS → landing demo, and eight assertions pass. One defect was found and fixed on the way (RSS carried
+no agent provenance at all — see below). So the credential is not being requested in the hope that the
+path behind it works; the path behind it is proven, and the token is the only missing piece.
+
+**What the executor will and will not do with it.** It will honour that agent's existing charter, and
+publish links it genuinely encountered and selected — attention, not content. It will not invent an
+agent identity, rewrite a remit, publish under you, approve the member's 42 private queued items, or
+manufacture items to make the demo look fresh. **The executor also never reads the secret**: the token
+stays in GitHub's secret store and is used only inside a workflow, which is why it was asked for that
+way rather than as a message.
+
+**One honest limit, stated before you spend the credential.** The executor's egress proxy blocks
+direct page fetches (`blog.cloudflare.com` → `EGRESS_BLOCKED` this run); web *search* works. So its
+encounters are real but shallow — it reads result-level material, not the page. That is a genuine
+constraint on how good the selections will be, and it is a fact you should have before deciding, not
+after.
+
+---
+
+**Previously here, and still true: there is no Hacker News action.** The moderation-email
 card that stood here — *ask Hacker News to review the dead item* — is **retired unperformed**. Do not
 send it. Do not repost, resubmit reworded, use a second account or an alternate link, or solicit
 votes. The channel is closed until all three conditions below are met, and none of them is urgent.
@@ -163,7 +212,9 @@ to be authorized.
 | **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
 | **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
-| Automated tests | 30 passing, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts` — now on vitest 4.1.10 |
+| Automated tests | **43 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, **`test/agent-contract.test.ts`** (run 36) — vitest 4.1.10 |
+| **Agent publication contract** (brief → publish → feed → RSS → demo) | **traced and working; blocked only on a credential** | `test/agent-contract.test.ts`, 8 assertions in workerd against a real D1. Nothing in production was written |
+| **Agent provenance in RSS** | **fixed run 36** — the route never selected `kind`, so every agent feed syndicated unlabelled | `src/index.ts` `/:handle/rss.xml`, `rssFeed` in `src/pages.ts`; human feeds asserted to stay unlabelled |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
 | **Dev-toolchain advisories** | **none — 6 high cleared run 30** | [#27](https://github.com/in-c0/tuned/pull/27) → `92d850e`. `wrangler` 4.120.1 + `@cloudflare/vitest-pool-workers` 0.21.0 + `vitest` 4.1.10 collapse the tree to one wrangler and one miniflare, both out of the advisory range. `npm audit` **0 vulnerabilities**. No `src/` change — the deployed Worker is byte-identical |
 
@@ -257,9 +308,22 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**Owner:** none. Do not email moderation, and do not repost.
+**Owner:** **one card, at the top of this file — credential one agent feed.** Two minutes: a
+repository secret plus one line on issue #1. Still do not email HN moderation, and do not repost.
 
-**Executor:** **stop dispatching [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml)** —
+**Executor, once the secret exists:** dispatch `agent preflight`. If green, activate that one feed —
+honour its charter, publish finds it genuinely encountered and selected, label them as the agent's,
+and pre-register what a working agent feed would have to show before reading any number off it. If
+red on an empty charter, that is a second, smaller owner card (set the remit from the Desk), not a
+reason for the executor to write one.
+
+**Executor, while the secret does not exist:** nothing about agent activation. Do not create a
+creator, do not ask for `ADMIN_KEY`, do not invent an agent identity, do not publish under the owner,
+do not approve the member's 42 private queued items, and do not manufacture items. The credential is
+the work; there is no version of this that the executor can do alone, and pretending otherwise is how
+the last invalid experiment got built.
+
+**Also standing: stop dispatching [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml)** —
 it is retired in place, its green condition is void, and no run should read item `49280269` again. The
 next candidate is to **propose a different distribution channel openly**, with its admissibility
 conditions pre-registered alongside its thresholds per [L-17](LESSONS.md): what the venue permits, who
