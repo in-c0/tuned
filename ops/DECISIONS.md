@@ -1111,3 +1111,95 @@ Production verified after each push.
 **What did not change.** No `src/` change beyond the two workflow files, no product surface, no copy,
 no pricing, no schema, no billing, no experiment band, no metric. The Worker is behaviourally
 identical.
+
+---
+
+## Run 34 — 2026-08-13 19:39–20:0x Sydney (09:39–10:0x UTC) — the packet could not have worked, and eleven runs of checking never asked why
+
+**Directive:** run one bounded compliance-reconciliation cycle. Mark `EXP-002-PACKET.md` **WITHDRAWN —
+DO NOT POST OR RESTORE UNCHANGED**; mark EXP-002 **INVALIDATED / NOT STARTED** with no result or demand
+inference; withdraw the moderation-restoration owner action and set `OWNER ACTION REQUIRED: NONE`; stop
+dispatching the restoration checker; synchronize STATUS, DASHBOARD, MILESTONES, EXPERIMENTS, DECISIONS
+and LESSONS; record that any future HN attempt requires a directly usable destination, the owner's
+genuinely human-written non-AI-edited words, and explicit moderator permission. Then stop — invent no
+replacement copy and no new channel.
+([directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5278582768), 09:35 UTC.)
+
+**Decision: implemented as directed, after checking the premises the loop could actually check.**
+
+The reviewer's case rests on two claims about the packet and two about Hacker News' rules. **The two
+about the packet are verifiable in this repository and both hold:**
+
+1. **§3 is AI-authored, and the packet instructs the owner to post it as their own first comment.**
+   Authorship: run 9's entry above, *"Action taken: a distribution packet, and no code."* The executor
+   wrote it. Delivery: the packet's own *How to post it* step 4 — *"Immediately post §3 as the first
+   comment on your own thread."*
+2. **§2 submits an application-gated landing page.** `https://justtuned.com/?src=shn-2026-08`, with §3
+   conceding the gate in its own words: *"membership is application-only right now."*
+
+**The two about Hacker News' rules were not re-read from source, and that is stated rather than
+smoothed over.** The executor's egress proxy answers 403 CONNECT to `news.ycombinator.com` — retested
+this run, 30th consecutive run — so the guideline quotes rest on the reviewer's reading. It does not
+change the outcome: **the in-repo facts alone make the packet unpublishable under any plausible reading
+of a venue that asks for the poster's own words and a directly tryable destination.** Recorded as a
+dependency on the reviewer, not laundered into a check this loop performed. If it ever matters enough
+to settle independently, it is readable from GitHub's network, the way every other production fact has
+been read since run 26.
+
+**The judgement worth defending: withdrawing beats restoring, and it is not the cautious choice.**
+Restoring the item was the loop's top blocker four hours ago and had an owner action queued behind it.
+Withdrawal throws away five days of the loop's only forward motion and leaves the objective with no
+route at all. It is still right, for a reason sharper than compliance: **a withdrawn channel and a
+rejected offer produce the same observable — flat counters, zero applications.** Had the item been
+restored, EXP-002 would have started a real clock over a rule-breaking submission, watched the flat
+numbers it was always going to see, and written *"the Show HN produced no measurable arrivals"* into
+durable state as a finding about Tuned's positioning. It would have been a finding about copy the
+executor wrote wrong. That is [L-16](LESSONS.md) one layer further in: the receipt problem was caught a
+day ago; this is the same failure where the *exposure* could have been genuine and the **test** still
+invalid. Written up as **[L-17](LESSONS.md)**.
+
+**The part that is the loop's own fault, stated plainly.** The packet was checked hard and repeatedly —
+run 19 drove the apply path with a real browser and verified the RSS promise from a datacenter client,
+run 20 canonicalized it — and every one of those checks asked *"is this sentence true?"* None asked
+*"does this venue permit a post of this form, by this author?"* A truthful post into a channel that
+forbids its form is still unpostable, and the rules were readable the whole time. Sharper still: **the
+executor wrote copy for a human to publish under their own name and never asked whether that was
+allowed.** Tuned's own doctrine answers it — humans contribute attention, not content — and the packet
+inverted it, machine supplying the words and human supplying only the account. That is now a standing
+hold in STATUS: the executor drafts no public copy for the owner to publish as their own, at any venue
+that asks for the poster's own words, and will decline if asked.
+
+**Changes shipped** — durable state and one workflow header; **no `src/` change, no product, copy,
+pricing, schema, billing, experiment band, threshold or metric touched:**
+
+- `ops/EXP-002-PACKET.md` — fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED** at the top, with
+  both defects named, the three conditions any future attempt needs, and every section of copy (§1,
+  §2, §3, *How to post it*, *Clock*) individually marked unpostable. **The copy itself is preserved
+  byte-identical** — rewriting it would destroy the evidence of the defect.
+- `ops/EXPERIMENTS.md` — EXP-002 status revision: **`INVALIDATED / NOT STARTED`**, superseding run 33's
+  hold-pending-moderation entry. No t0, no window, no snapshot, no grade, no demand inference in either
+  direction, and **none to be created if the item is ever restored.**
+- `ops/STATUS.md` — header, banner, **OWNER ACTION REQUIRED: NONE**, objective, next action, holds and
+  blockers #1/#3 reconciled. Blocker #1 changed hands: it is no longer waiting on the owner.
+- `ops/DASHBOARD.md` — mirrored, including the §6 line *"no experiment is currently running, and none
+  is queued"*, which is the honest state.
+- `ops/MILESTONES.md` — the 1-week grade **stands unchanged and is reinforced**: *"if it ran"* was never
+  satisfied and now never can be by this channel. Corrected one false sentence in that entry — *"the
+  packet is untouched and still valid"* — which was wrong when written.
+- `ops/METRICS.md` — the censored-days caveat now travels to *whatever first channel is authorized
+  next*, not to EXP-002's grading, which will not happen.
+- `ops/LESSONS.md` — **L-17**.
+- `.github/workflows/hn-item-status.yml` — renamed **(RETIRED — do not dispatch)** with a banner
+  explaining that its green condition is now void rather than merely unmet. Kept in the tree rather
+  than deleted: it is the record of how the claim was checked, and L-16's rule that success checks must
+  be executable still stands with this as its working example.
+
+**What was deliberately not done.** No repost, no reworded resubmission, no second account, no
+alternate link, no vote or comment solicitation, no contact with moderation — the email the loop spent
+a day asking for is itself withdrawn, unperformed. No replacement copy, no second channel, no product
+or positioning change. The one engineering candidate named and left alone: `items_public` flat at 79
+for five days, which run 34 **raised** in priority (a stale `/ava` is a poor answer to *"is there a
+directly usable destination?"*) without touching, because the directive forbade inventing replacement
+work and a waiting loop that invents work is the failure mode [L-08](LESSONS.md) exists for.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

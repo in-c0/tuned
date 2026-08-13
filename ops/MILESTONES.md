@@ -153,9 +153,13 @@ the ladder above feeds the 1-week horizon rather than this one.*
     submission, verified from GitHub's network in
     [run 31654090210](https://github.com/in-c0/tuned/actions/runs/31654090210). The condition was
     *"if EXP-002 ran, it is graded on its pre-registered bands"*; it never ran, so the grade stands
-    for the same reason it was written, not by re-argument. **EXP-002 stays `AUTHORIZED / NOT
-    STARTED` and its bands are untouched** — a missed milestone is not a failed experiment, and a
-    killed submission is not a failed one either.
+    for the same reason it was written, not by re-argument. **Updated 2026-08-13 (run 34): EXP-002 is
+    now `INVALIDATED / NOT STARTED`** — the packet was found inadmissible on Hacker News' own rules
+    (AI-written body posted as the owner's own comment; application-gated landing page as the URL) and
+    **withdrawn**. That strengthens this grade rather than disturbing it: *"if it ran"* was never
+    satisfied, and now never can be by this channel. Its bands remain untouched and unspent. A missed
+    milestone is not a failed experiment, a killed submission is not a failed one, and an inadmissible
+    packet is not evidence about demand.
   - **What the attempt did settle, and it is worth the horizon's record:** the blocker was never the
     owner's willingness. It was exposure, and the paste proved that by producing a canonical URL that
     published nothing. See **[L-16](LESSONS.md)** — the success check named the receipt, not the
@@ -166,27 +170,32 @@ the ladder above feeds the 1-week horizon rather than this one.*
     human-flagged views (0.0%, 95% one-sided upper bound ~0.7%). The denominator is UA-heuristic
     traffic, so the ratio remains ungradeable as a conversion rate; that is the whole reason the
     publication condition mattered.
-  - **EXP-002: still pre-registered and unpublished.** This is the half that is not met.
+  - **EXP-002: `INVALIDATED / NOT STARTED` as of run 34, and never published.** This is the half that
+    is not met, and it is now permanently unmeetable by this channel — which is a fact about the
+    packet, not about Tuned.
   - **Cost of the incident, recorded rather than smoothed over:** 2026-08-10 and 08-11 arrival counts
     are censored — challenged requests never reached the Worker and were never counted.
-- **Blocker:** **publication.** Owner authorization arrived 2026-08-08 13:56 UTC; the run-18 objection
-  (do not post into a possibly-broken funnel) was retired by EXP-003; and the Bot Fight Mode objection
-  (do not point HN at a zone that challenges RSS readers) was retired **2026-08-11** when the toggle
-  came off. All three objections are now spent, and the paste itself was made on 2026-08-13. **What
-  is left is no longer publication but restoration:** the submission was killed at submission, and the
-  only non-evasive recovery is an owner request for moderation review.
+- **Blocker:** **no admissible channel exists.** Owner authorization arrived 2026-08-08 13:56 UTC; the
+  run-18 objection (do not post into a possibly-broken funnel) was retired by EXP-003; the Bot Fight
+  Mode objection was retired **2026-08-11**; the paste was made on 2026-08-13 and killed at
+  submission. Run 34 then found the fourth objection nobody had raised in eleven runs — **the venue
+  does not permit a post of that form by that author** — and withdrew the packet. So the blocker is
+  no longer publication, and no longer restoration: it is that Tuned has **no prepared channel and no
+  directly usable destination** to point one at. Both are executor-side and neither is authorized
+  this cycle.
 - **Risk to the window: REALIZED 2026-08-13.** The precommitment read: *if the paste does not happen by
   **2026-08-13**, EXP-002's 48-hour clock cannot close inside this horizon and the milestone will be
   graded **missed on its second condition** — stated in advance so the grade is not negotiated
   afterwards.* The paste did not happen. The grade is applied as written: **missed on condition 2**,
   with the deadline, the thresholds and EXP-002's bands all left exactly where they were. Even a
   publication today could not close a 48-hour clock and be graded before 2026-08-15.
-- **Next action:** owner emails `hn@ycombinator.com` asking them to review dead item `49280269`; no
-  repost, no second account, no reworded resubmission. The packet is untouched and still valid — it
-  was never seen, so nothing about it has been tested. When the item is restored, the executor starts
-  the 48-hour clock **from the restoration timestamp** and grades EXP-002 on its pre-registered bands
-  against the `55ece3c` baseline plus `ae37b7e`. Restoration is checked by dispatching
-  [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml), not by attestation.
+- **Next action: NONE, and the previous one is withdrawn.** Run 34 retired *"owner emails
+  `hn@ycombinator.com`"* unperformed. The packet was **not** *"untouched and still valid"* as this
+  entry previously claimed — that sentence was wrong, and correcting it is the substance of the run:
+  it is inadmissible on the venue's rules, so no restoration, repost, rewording, second account or
+  alternate link is to be attempted, and `hn-item-status.yml` is retired rather than dispatched. The
+  48-hour clock will never start from this packet. A future channel must be a *different* one, with
+  its admissibility conditions pre-registered alongside its thresholds — [L-17](LESSONS.md).
 - **Last evidence-linked update:** 2026-08-12 UTC / 2026-08-13 Sydney — condition 1 re-confirmed and
   condition 2 graded missed against snapshot
   [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0); production verified green on

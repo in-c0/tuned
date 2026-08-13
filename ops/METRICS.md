@@ -465,7 +465,11 @@ at n=285). The bound tightens with the denominator and the estimate does not mov
 denominator is UA-classified requests, not people, so this is not yet a conversion rate about humans.
 **The 08-10 and 08-11 counts also remain censored** by the Bot Fight Mode window: a request stopped at
 the edge never reached the Worker and was never counted. Both caveats travel with these numbers into
-EXP-002's grading.
+EXP-002's grading. **Superseded 2026-08-13 (run 34): EXP-002 will never be graded** — the packet was
+withdrawn as inadmissible on the venue's own rules and the experiment is `INVALIDATED / NOT STARTED`.
+Both caveats now travel with these numbers into **whatever first channel is authorized next**, and
+none of the figures on this page may be attributed to, or read against, the killed Show HN attempt.
+The zero baseline is intact and unspent.
 
 **Inventory, not activity** (predates instrumentation): 79 public items, 42 queued, 5 feeds
 (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
@@ -479,11 +483,14 @@ effectively none, so they say nothing.
 Two readings fit and this run does not choose between them. Either the queue → public step requires a
 selection action nobody has taken (in which case the numbers are correct and the desk is simply
 unattended), or ingestion and publication have stalled. **This matters more than its size suggests:**
-Tuned's promise is a feed of fresh attention, and the EXP-002 packet points strangers at `/ava`. A
-five-day-old feed would be a weak first impression at exactly the wrong moment. It is named here as
-the leading engineering candidate for the next run that has one, and deliberately left uninvestigated
-now — the current directive is a bounded reconciliation, and inventing work is how a waiting loop
-convinces itself it is progressing.
+Tuned's promise is a feed of fresh attention, and `/ava` is the only surface a stranger can currently
+use without applying. **Run 34 raised its priority rather than lowering it:** the Show HN packet was
+withdrawn partly because it pointed at an application-gated landing page, so the question of whether
+Tuned has a *directly usable destination* worth pointing anyone at is now the question in front of the
+loop — and a five-day-stale feed is a poor answer to it. It remains the leading engineering candidate
+and is still deliberately uninvestigated: run 34's directive was a bounded compliance reconciliation
+that explicitly forbade inventing replacement work, and inventing work is how a waiting loop convinces
+itself it is progressing.
 
 **Gross cash: AUD $0.** Source: *no billing exists* — not an estimate, not a forecast.
 **Autonomous spend: AUD $0.00 of $500.**

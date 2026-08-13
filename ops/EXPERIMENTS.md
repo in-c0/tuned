@@ -564,3 +564,63 @@ had. The pre-registered bands apply unchanged from that new t0.
 against a zero baseline, which is sound only because it is the first and only channel ever posted.
 That remains true — a dead submission put nothing in front of anyone, so the baseline is uncontaminated
 and no window has been spent.
+
+### EXP-002 status revision — 2026-08-13 (run 34): **INVALIDATED / NOT STARTED**. The channel was never valid, so there is nothing to restore
+
+**Status: `INVALIDATED / NOT STARTED`.** This supersedes the run-33 entry above, which held the
+experiment open pending moderation review. It is not a grade, and it must never be read as one.
+
+**What changed is a finding about the packet, not about Tuned.** A compliance review of
+[EXP-002-PACKET.md](EXP-002-PACKET.md) against Hacker News' published rules found two defects, either
+one disqualifying:
+
+1. **§3 is AI-authored text that the packet instructs the owner to post as their own first comment.**
+   The executor wrote it on run 9. Hacker News asks people not to post generated or AI-edited text in
+   comments. The packet's *How to post it* step 4 — *"immediately post §3 as the first comment on your
+   own thread"* — is an instruction to break that rule under the owner's account.
+2. **§2 submits `https://justtuned.com/?src=shn-2026-08`, an application-gated landing page.** Show HN
+   asks for something a reader can try directly and treats landing/sign-up pages as off-topic. §3
+   states the gate in its own words: *"membership is application-only right now"*. Linking `/ava`
+   inside the body does not cure it — the rule is about the submitted URL.
+
+**Verification, and its honest limit.** The two defects are verified *in this repository*: run 9's
+[DECISIONS](DECISIONS.md) entry records the executor authoring the packet, and §2's URL is the gated
+landing page by inspection. The guideline texts themselves were **not** re-read from source this run —
+the executor's egress proxy answers 403 CONNECT to `news.ycombinator.com`, as it has since run 1, so
+the citations rest on the reviewer's reading. Recorded as a dependency, not laundered into a check the
+loop performed. It does not change the outcome: the in-repo facts alone make the packet unpublishable
+under any reading of those rules.
+
+**What this entry explicitly does NOT create, each of which would be a fabrication:**
+
+- **No t0, no window, no snapshot marked in-window.** The 48-hour clock never started and never will
+  from this packet.
+- **No grade.** EXP-002 is not `PASSED`, not `FAILED`, not `ABANDONED`. Its bands, thresholds,
+  definitions and baselines are untouched and unspent.
+- **No inference about demand, in either direction.** Nothing observed in the funnel on or after
+  2026-08-13 may be attributed to this attempt, *including the absence of anything*. The hypothesis —
+  what agent operators do when they see Tuned — remains entirely untested, because nobody saw it.
+- **No claim that `dead: true` was caused by these defects.** A kill at submission carries no public
+  reason. The defects are sufficient on their own to withdraw the packet; whether they are also the
+  cause is unknown and is not asserted.
+
+**Consequences now in force:**
+
+- The packet is **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**, and marked as such at the top of the
+  file and on every section of copy.
+- **The restoration gate is retired.** `hn-item-status.yml` is no longer dispatched by the loop, and
+  its green condition is void: restoring an item that points at a landing page, with an AI-written
+  comment beneath it, would restore an invalid test rather than start a valid one.
+- **The moderation-email owner action is withdrawn.** Owner action is `NONE`.
+- The item is **not** reposted, edited, defended, commented on, or resubmitted, and no second channel
+  is opened this cycle.
+
+**What any future Hacker News attempt requires — all three, before any drafting begins:** a directly
+usable destination that needs no application; the owner's own genuinely human-written, non-AI-edited
+words for the title and any comment, which the executor must not draft or edit; and explicit moderator
+permission to submit again. Absent all three, there is no attempt to prepare.
+
+**The baseline survives intact.** Attribution for a future first channel is by time-window contrast
+against a zero baseline, sound only because no channel has ever been posted. That is still true: a
+dead submission put nothing in front of anyone, so the baseline is uncontaminated and no window has
+been spent. The distribution question is exactly as open as it was on 2026-08-08 — see [L-17](LESSONS.md).
