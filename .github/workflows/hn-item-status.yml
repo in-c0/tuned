@@ -1,0 +1,169 @@
+name: hn item status
+
+# Is a given Hacker News item actually published and publicly visible?
+#
+# Why this exists. On 2026-08-13 the owner published the EXP-002 Show HN and supplied
+# item 49280269. The item was `dead: true` — killed at submission — so the pre-registered
+# exposure never happened. Nobody in the loop could check that independently: the executor's
+# egress proxy answers 403 CONNECT to every host, Hacker News included, so the only reading
+# available was the one the reviewer pasted in. This loop's standing lesson is that a claim
+# read once and written into durable state is how a working pipeline got reported as broken
+# to its owner (run 32). So the claim gets its own instrument, from GitHub's network.
+#
+# What it is for now. The recovery ask is a moderation review, and its success check is
+# "the same item renders publicly and its record no longer says dead: true". That is a
+# yes/no question about a public record, asked repeatedly over days. This makes it one
+# dispatch instead of an owner attestation.
+#
+# GREEN means restored. The job fails while the item is dead, missing, or not rendering,
+# which is deliberate: the run's colour is the answer, so a passing run is the evidence
+# that the recovery worked and a red run is the durable evidence that it has not yet.
+#
+# Reads only. Two GETs of public URLs — the documented Firebase API record and the item
+# page — no session, no account, no vote, no reply, no comment, no repeated polling. It is
+# dispatch-only for that reason: this must never become a crawler against a third party.
+on:
+  workflow_dispatch:
+    inputs:
+      item:
+        description: "Hacker News item id (digits only)"
+        required: true
+        default: "49280269"
+      expect_url_substring:
+        description: "String that must appear in the item page for it to count as our post"
+        required: false
+        default: "justtuned.com"
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      # Interpolated shell inputs are how a dispatch input becomes command execution. The id
+      # is checked against a fixed shape and re-exported, and every step below uses the
+      # checked copy rather than the raw input.
+      - name: Validate the item id
+        id: input
+        env:
+          RAW: ${{ inputs.item }}
+        run: |
+          set -euo pipefail
+          case "$RAW" in
+            ''|*[!0-9]*) echo "::error::item must be digits only, got '$RAW'"; exit 1 ;;
+          esac
+          echo "item=$RAW" >> "$GITHUB_OUTPUT"
+
+      # The official record. This is the authority on `dead` — the public item page for a
+      # killed story renders as an ordinary empty page and cannot be told apart from a
+      # transient error by looking at it.
+      - name: Read the official item record
+        id: record
+        env:
+          ITEM: ${{ steps.input.outputs.item }}
+        run: |
+          set -uo pipefail
+          code=$(curl -sS --max-time 25 -o /tmp/item.json -w '%{http_code}' \
+            -H 'accept: application/json' \
+            "https://hacker-news.firebaseio.com/v0/item/${ITEM}.json" || echo "000")
+          echo "HTTP $code from the Firebase item API"
+          body=$(cat /tmp/item.json 2>/dev/null || echo '')
+
+          # Printed in full and on purpose: it is the durable evidence this job exists to
+          # produce, and it contains nothing private — the poster's handle is public.
+          echo "record: ${body:-<empty>}"
+
+          if [ "$code" != "200" ] || [ -z "$body" ] || [ "$body" = "null" ]; then
+            echo "state=missing" >> "$GITHUB_OUTPUT"
+            echo "dead=unknown" >> "$GITHUB_OUTPUT"
+            echo "title=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Matched by shape rather than parsed, so a changed field order or an error
+          # document cannot be mistaken for a live story.
+          if printf '%s' "$body" | grep -qE '"dead"[[:space:]]*:[[:space:]]*true'; then
+            echo "dead=true" >> "$GITHUB_OUTPUT"
+            echo "state=dead" >> "$GITHUB_OUTPUT"
+          else
+            echo "dead=false" >> "$GITHUB_OUTPUT"
+            echo "state=present" >> "$GITHUB_OUTPUT"
+          fi
+
+          # A restored Show HN carries a title again; a killed one has none. Recorded as
+          # present/absent rather than compared to an expected string, because moderators
+          # may legitimately retitle a post.
+          if printf '%s' "$body" | grep -qE '"title"[[:space:]]*:[[:space:]]*"[^"]+"'; then
+            echo "title=present" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=absent" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Read the public item page
+        id: page
+        env:
+          ITEM: ${{ steps.input.outputs.item }}
+          NEEDLE: ${{ inputs.expect_url_substring }}
+        run: |
+          set -uo pipefail
+          code=$(curl -sS --max-time 25 -o /tmp/item.html -w '%{http_code}' \
+            -H 'accept: text/html' \
+            "https://news.ycombinator.com/item?id=${ITEM}" || echo "000")
+          bytes=$(wc -c < /tmp/item.html 2>/dev/null || echo 0)
+          echo "HTTP $code, ${bytes} bytes"
+          echo "status=$code" >> "$GITHUB_OUTPUT"
+
+          # Never dumped. Only three yes/no readings are taken off it, which is all the
+          # success check needs and keeps a third party's page out of this repository's logs.
+          if grep -qiF "$NEEDLE" /tmp/item.html 2>/dev/null; then
+            echo "link=present" >> "$GITHUB_OUTPUT"
+          else
+            echo "link=absent" >> "$GITHUB_OUTPUT"
+          fi
+          if grep -qiE 'class="(commtext|comment)' /tmp/item.html 2>/dev/null; then
+            echo "comments=present" >> "$GITHUB_OUTPUT"
+          else
+            echo "comments=absent" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Grade
+        env:
+          ITEM: ${{ steps.input.outputs.item }}
+          STATE: ${{ steps.record.outputs.state }}
+          DEAD: ${{ steps.record.outputs.dead }}
+          TITLE: ${{ steps.record.outputs.title }}
+          PAGE: ${{ steps.page.outputs.status }}
+          LINK: ${{ steps.page.outputs.link }}
+          COMMENTS: ${{ steps.page.outputs.comments }}
+        run: |
+          set -uo pipefail
+          {
+            echo "### Hacker News item \`${ITEM}\`"
+            echo ""
+            echo "| Reading | Value |"
+            echo "| --- | --- |"
+            echo "| Official record | \`${STATE}\` |"
+            echo "| \`dead\` | \`${DEAD}\` |"
+            echo "| Title in record | \`${TITLE}\` |"
+            echo "| Item page | HTTP \`${PAGE}\` |"
+            echo "| Tuned link on page | \`${LINK}\` |"
+            echo "| Comments on page | \`${COMMENTS}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # All four must hold. Restoration is not "the API stopped saying dead" — the post
+          # has to be a post again: titled in the record, and rendering its link publicly.
+          if [ "$DEAD" = "false" ] && [ "$TITLE" = "present" ] && [ "$PAGE" = "200" ] && [ "$LINK" = "present" ]; then
+            echo "RESTORED: item ${ITEM} is live, titled, and rendering the Tuned link."
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**RESTORED** — the success check for the moderation request is met." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "::error::Item ${ITEM} is NOT publicly restored (state=${STATE}, dead=${DEAD}, title=${TITLE}, page=${PAGE}, link=${LINK})."
+          {
+            echo ""
+            echo "**NOT RESTORED.** This red run is the evidence, not a harness fault."
+            echo "EXP-002 stays \`AUTHORIZED / NOT STARTED\`; no 48-hour clock starts from a dead item."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
