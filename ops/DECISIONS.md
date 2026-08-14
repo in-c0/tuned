@@ -1414,3 +1414,19 @@ disguise, and the disguise is the finding: **the total matched, so the total was
   publish (403). The find appeared on the public feed and in RSS carrying its AI label and its public
   "why selected" line. No secret appeared in the step summary or the server log.
 - **No spend.** Running total unchanged: **AUD $0.00 of $500**.
+
+### 2026-08-14 — run 38 deployment evidence
+
+- Merged [`8c0362d`](https://github.com/in-c0/tuned/commit/8c0362d8e826a2dbfd046ab7c6c2e35d54769d1e)
+  (PR #37, squash). CI [31758255411](https://github.com/in-c0/tuned/actions/runs/31758255411) green —
+  79 tests, `npm run check`, workflow validation, GitGuardian.
+- Cloudflare Workers Builds deployed it; [verify production
+  31758303170](https://github.com/in-c0/tuned/actions/runs/31758303170) confirmed the expected commit
+  was serving and every health step passed, including the new
+  **"Operator control plane refuses unauthenticated callers"** → `HTTP 503` at 00:44:19 UTC.
+- **The executor could not verify production itself.** Its egress proxy returned `403` to `CONNECT`
+  for `justtuned.com` and for the workers.dev preview host (`connect_rejected`, confirmed against the
+  proxy's own status endpoint). The allowlist recorded 2026-08-06 is not in effect for this session.
+  Recorded, not routed around; every production claim this run is GitHub's reading.
+- Nothing was created, adopted or published: `operator_agents` is empty. Spend unchanged, **AUD $0.00
+  of $500**.

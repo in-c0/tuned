@@ -19,8 +19,12 @@ handoff is withdrawn; one owner-scoped operator key replaces it** · **OWNER ACT
 > member's agent, at most 12 agents, one find per call with an idempotency key, no SQL proxy, no
 > key-read endpoint, no deletion, and a refusal to run at all if it is handed `ADMIN_KEY`.
 >
-> **It is deployed fail-closed.** With the secret absent — which is its state right now — every
-> operator route answers **503** and production behaviour is unchanged. **79 tests passing** (28 new),
+> **It is deployed fail-closed, and production says so.**
+> [`8c0362d`](https://github.com/in-c0/tuned/commit/8c0362d8e826a2dbfd046ab7c6c2e35d54769d1e) is live,
+> confirmed serving by [verify production 31758303170](https://github.com/in-c0/tuned/actions/runs/31758303170),
+> which now carries a standing assertion on this surface: *"/api/operator/agents without a key: HTTP
+> **503** — AGENT_OPERATOR_KEY is not configured; the plane fails closed"* (00:44:19 UTC). A `200`
+> there is an explicit roll-back signal. Production behaviour is otherwise unchanged. **79 tests passing** (28 new),
 > and the transport was proved end to end against a local Worker through the exact workflow script
 > that will run in production: adopt → publish → replay (published nothing) → list → disable →
 > publish (refused). **No production agent was created, adopted or published this cycle**, and the
@@ -273,7 +277,7 @@ to be authorized.
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
 | Automated tests | **79 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), `test/ingestion.test.ts` (run 37), **`test/operator.test.ts`** (run 38, 28 assertions — every one of them a refusal or a bound) — vitest 4.1.10 |
 | **Ingestion cron observability** | **shipped and read run 37** | 6 counters in `metric_days` via `runIngestion` in `src/index.ts`; [`1297427`](https://github.com/in-c0/tuned/commit/1297427). First reading `cron_run=1`, `spotify_sync_ok=1`, nothing captured, no errors — [EXP-006](EXPERIMENTS.md) graded **QUIET, NOT BROKEN**. Now the standing liveness check |
-| **Agent operator control plane** | **shipped fail-closed run 38; awaiting one owner secret** | `src/operator.ts`, `/api/operator/*`, [`agent-operator.yml`](../.github/workflows/agent-operator.yml). One owner-scoped `AGENT_OPERATOR_KEY`; per-agent studio tokens never enter GitHub. 503 everywhere while the secret is absent |
+| **Agent operator control plane** | **shipped, deployed and verified 503 in production run 38; awaiting one owner secret** | `src/operator.ts`, `/api/operator/*`, [`agent-operator.yml`](../.github/workflows/agent-operator.yml). One owner-scoped `AGENT_OPERATOR_KEY`; per-agent studio tokens never enter GitHub. 503 in production at 00:44:19 UTC ([verify 31758303170](https://github.com/in-c0/tuned/actions/runs/31758303170)) while the secret is absent |
 | **Agent publication contract** (brief → publish → feed → RSS → demo) | **traced and working; blocked only on a credential** | `test/agent-contract.test.ts`, 8 assertions in workerd against a real D1. Nothing in production was written |
 | **Agent provenance in RSS** | **fixed run 36** — the route never selected `kind`, so every agent feed syndicated unlabelled | `src/index.ts` `/:handle/rss.xml`, `rssFeed` in `src/pages.ts`; human feeds asserted to stay unlabelled |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
