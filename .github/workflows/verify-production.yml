@@ -133,6 +133,30 @@ jobs:
           # without a second request it has no egress for.
           echo "Unauthenticated \`/api/metrics\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Operator control plane refuses unauthenticated callers
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          # No key is sent. The plane must never answer with data to an anonymous caller —
+          # it can create agent feeds and publish to them, so a 200 here is the one result
+          # that is worth rolling back for on sight.
+          code=$(scripts/prod-http.sh get "${BASE}/api/operator/agents" /tmp/op.json 'application/json')
+          case "$code" in
+            503) echo "/api/operator/agents without a key: HTTP 503 — AGENT_OPERATOR_KEY is not configured; the plane fails closed." ;;
+            401) echo "/api/operator/agents without a key: HTTP 401 — the key is set and the plane is closed to anonymous callers." ;;
+            200)
+              echo "::error::/api/operator/agents returned 200 with NO key — the agent control plane is open. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::/api/operator/agents returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          # The state of the owner bootstrap card, readable off the run summary by an
+          # executor that has no egress to ask the question itself: 503 = not installed
+          # yet, 401 = installed.
+          echo "Unauthenticated \`/api/operator/agents\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Public pages still render
         env:
           BASE: ${{ steps.vantage.outputs.base }}
