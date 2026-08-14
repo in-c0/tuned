@@ -583,3 +583,96 @@ excluded.
 
 **n = 1 poll.** This is a present-tense fact about 22:30 UTC. It does not reach backwards: the three
 flat days before the counters existed remain uninterpretable and will not be reconstructed.
+
+> **It does not reach forwards either.** On 2026-08-14 the same pipeline captured **104 plays** and
+> `items_queued` rose 42 → 146. The reading above stands exactly as taken; the connection is no longer
+> quiet. See [Second reading](#second-reading--2026-08-15-0658-sydney-2026-08-14-205856-utc-run-41).
+
+---
+
+## Second reading — 2026-08-15 06:58 Sydney (2026-08-14 20:58:56 UTC), run 41
+
+**This reading falsifies a durable statement made in this file and in STATUS.** The sentence *"one
+live Spotify connection with nothing to carry"* was true of the 30-minute window it described and is
+**no longer true of the connection**. Supply resumed. The correction is recorded here rather than by
+editing the graded [EXP-006](EXPERIMENTS.md) result, which stands at its own timestamp.
+
+Source: [`ops/metrics/latest.json`](metrics/latest.json) at
+[`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3),
+`generated_at` **2026-08-14T20:58:56.369Z**. Written by the scheduled snapshot job, read through the
+public zone. The executor's own egress to `justtuned.com` remains blocked (30th consecutive run), so
+this is GitHub's reading of production, not the executor's.
+
+### Ingestion counters
+
+| Counter | 2026-08-13 (final) | 2026-08-14 (partial, to 20:58 UTC) |
+| --- | --- | --- |
+| `cron_run` | **3** | **30** |
+| `spotify_sync_ok` | **3** | **30** |
+| `spotify_items_captured` | *absent* | **104** |
+| `spotify_sync_auth_error` | *absent* | *absent* |
+| `spotify_sync_error` | *absent* | *absent* |
+| `cron_no_credentials` | *absent* | *absent* |
+
+**Ingestion is alive and supplying.** Thirty polls, thirty successes, no errors of any kind, and
+**104 plays captured** on 2026-08-14. The member's Spotify token authenticates, the cron fires, and
+the pipeline delivered real attention events end to end. 08-13's final count of 3 is consistent with
+the counters having started at the 22:30 UTC boundary — 22:30, 23:00, 23:30 — with nothing new to
+capture in that hour, which is exactly what the first reading recorded.
+
+### What the queue did with them
+
+| Total | Last reading (08-12) | This reading (08-14) | Δ |
+| --- | --- | --- | --- |
+| `items_queued` | 42 | **146** | **+104** |
+| `items_public` | 79 | **79** | **0** |
+| `stars` · `skips` | 8 · 33 | 8 · 33 | 0 |
+| `applications` | 0 | **0** | 0 |
+| `members` · `members_ever_active` | 1 · 0 | 1 · **0** | 0 |
+| `feeds_human` · `feeds_agent` | 1 · 4 | 1 · 4 | 0 |
+| `followers` · `connections` | 0 · 1 | 0 · 1 | 0 |
+
+**+104 queued equals 104 captured, exactly.** Every play the cron captured entered the private queue,
+and **not one left it**. `items_public` has now been **79 on every committed snapshot since
+instrumentation began**, and the newest public item still dates to 2026-08-02 — the public feeds are
+as stale as they were when [EXP-005](EXPERIMENTS.md) measured them.
+
+**The two halves of that sentence are the whole finding.** The machine half of Tuned works: it
+observed, it captured, it queued. The human half did not happen — publication requires a member to
+approve from the queue, and no member has. Tuned's doctrine is that humans contribute attention, not
+content; a 146-item private queue with 0 items published is that doctrine's bottleneck stated in
+numbers, not a defect to be engineered away.
+
+### What may not be read off this
+
+- **Not demand.** 104 captures is **one member listening to music for one day**. It is supply, and
+  supply from a single connection. No activation, retention, referral or revenue inference follows
+  from it in either direction.
+- **Not a queue to be worked.** The 146 items are member data and that member's attention. They were
+  not opened, inspected, counted individually, approved, summarised or published this run, and the
+  executor holds no warrant to do any of those things.
+- **Not a retroactive claim.** The three flat days before the counters existed (08-11, 08-12, 08-13)
+  stay uninterpretable. Nothing here reaches backwards, and there is no backfill.
+
+### One open question, recorded and not investigated
+
+`*/30 * * * *` implies **42** cron boundaries between 2026-08-14T00:00Z and the 20:58:56Z snapshot.
+`cron_run` — which increments unconditionally as the first statement of the scheduled handler —
+recorded **30**. Twelve boundaries are unaccounted for (~29%).
+
+This is stated as arithmetic, **not as a defect**: Cloudflare cron triggers are best-effort, the
+counter write could itself fail, and one partial day is a thin basis for either conclusion. It is not
+being investigated this run — the directive is an ops-only reconciliation and the authentication hold
+stands. It is logged here as the strongest engineering-shaped candidate currently visible, gradeable
+against a **full** UTC day: a complete day should show `cron_run = 48`.
+
+### Non-ingestion counters, for completeness
+
+Landing views, UA-flagged human / bot: **113 / 59** on 08-13 (the first full day above 100 human-
+flagged), **60 / 31** on 08-14 to 20:58 UTC. Feed views: **22 / 7** on 08-13, **11 / 1** on 08-14.
+`application_submit`, `member_login`, `desk_view`, `attention_star` and `attention_skip` have **still
+never fired**. Landing → application remains **0 / n**, and the UA split remains a heuristic, not
+verified human traffic.
+
+**Gross cash collected: AUD $0**, sourced from *no billing exists*. **Autonomous spend: AUD $0.00 of
+the AUD $500 cap.**

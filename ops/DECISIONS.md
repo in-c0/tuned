@@ -1430,3 +1430,53 @@ disguise, and the disguise is the finding: **the total matched, so the total was
   Recorded, not routed around; every production claim this run is GitHub's reading.
 - Nothing was created, adopted or published: `operator_agents` is empty. Spend unchanged, **AUD $0.00
   of $500**.
+
+---
+
+## 2026-08-15 (run 41) — the durable claim that ingestion had "nothing to carry" was false, and only ops changed
+
+**Directive** ([2026-08-14 21:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5298385915)):
+one ops-only evidence reconciliation. The scheduled snapshot falsified a statement this loop had been
+repeating; correct canonical state, preserve EXP-006's grade, keep the owner card unchanged, then
+return to the silent authentication hold.
+
+**Decision: do exactly that, and nothing adjacent to it.** No source file, schema, workflow, product,
+pricing, distribution, billing or milestone change. No manual `verify production` or `agent operator`
+dispatch — the naturally scheduled run at 20:45 UTC already read `HTTP 503`, and the standing review
+forbids re-confirming it. No queued item opened, inspected, individually counted, approved,
+summarised or published.
+
+**The fact that changed.** Snapshot
+[`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3),
+`generated_at` 2026-08-14T20:58:56.369Z: `cron_run = 30`, `spotify_sync_ok = 30`,
+`spotify_items_captured = 104`, no fault counter present. `items_queued` **42 → 146** (+104, matching
+the capture count exactly); `items_public` **79, unchanged**; newest public item still 2026-08-02.
+
+**Why this is worth a decision entry rather than a number edit.** The loop had converged on *"every
+producer Tuned has is idle at once"* and had begun reasoning from it. Half of that was an artefact of
+a three-day-old reading, and the reasoning built on top of it — that ingestion was one of the things
+needing attention — was wrong. The corrected picture is **sharper, not softer**: the machine half of
+Tuned observed, captured and queued 104 real attention events in a day, and **0** of them reached a
+public feed, because publication requires a human act of attention that nobody performed. *Humans
+contribute attention, not content* is not a slogan here; it is the measured bottleneck.
+
+**What was deliberately not concluded.** 104 captures is one member listening to music for one day —
+supply from a single connection. No demand, activation, retention, referral or revenue inference was
+drawn from it, in either direction. The three flat days before instrumentation stay uninterpretable;
+nothing was backfilled.
+
+**EXP-006 was not re-graded.** It stays **QUIET, NOT BROKEN** at 2026-08-13T22:32:24Z on n = 1 poll.
+The 08-14 reading is filed as a clearly separated later observation. Re-grading a pre-registered
+experiment against data it did not pre-register would destroy the only property that made it worth
+running.
+
+**One candidate logged and parked:** `cron_run = 30` against **42** expected `*/30` boundaries by the
+snapshot time (~29% unaccounted). Recorded as arithmetic, **not** as a claimed defect — Cloudflare
+crons are best-effort and one partial day is thin evidence — and gradeable against a complete UTC day,
+where a healthy cron reads `cron_run = 48`. Not investigated under the current hold.
+
+**Files touched:** `ops/STATUS.md`, `ops/DASHBOARD.md`, `ops/METRICS.md`, `ops/EXPERIMENTS.md`,
+`ops/DECISIONS.md`. The `AGENT_OPERATOR_KEY` owner card is byte-for-byte unchanged and remains the
+only thing asked of the owner.
+
+**No spend.** Running total unchanged: **AUD $0.00 of $500**.

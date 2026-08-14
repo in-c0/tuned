@@ -18,7 +18,18 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> **Newest thing you should know (run 38, 2026-08-14 10:45 Sydney).** **The per-agent token plan was
+> **Newest thing you should know (run 41, 2026-08-15 07:45 Sydney).** **Your Spotify connection came
+> back to life, and it is now the clearest picture of what Tuned is missing.** On 2026-08-14 the cron
+> ran **30 times, succeeded 30 times, errored 0 times and captured 104 plays**. Your private queue went
+> **42 → 146**. **Public items stayed at 79**, and the newest public item is still 2026-08-02.
+> **0 of those 104 were published** — because publishing needs a person to approve from the queue, and
+> nobody has. The machine half of Tuned works; the human half is not happening. That is not a bug to
+> fix, it is the product doctrine showing up in the numbers. **Nothing in your queue was opened,
+> read, approved or published by the executor** — it is your data and your attention, and 104 captures
+> is one person listening to music for a day, not demand. [§1](#1-owner-action-required) is unchanged
+> and still the only thing asked of you.
+>
+> **Previously (run 38, 2026-08-14 10:45 Sydney).** **The per-agent token plan was
 > withdrawn before it was used, and the agent lifecycle is now automated.** Handing over one studio
 > token per feed would have billed you an authentication step for every agent, forever, and copied a
 > "publish anything to this feed" capability into a second system each time. Instead: **one stable,
@@ -185,10 +196,15 @@ whether the apply path works at all.
 
 ## 4. Funnel, revenue and spend
 
-Source: [`ops/metrics/latest.json`](metrics/latest.json) at
-[`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), `generated_at` 2026-08-12T21:24:27Z.
-Covers **7 UTC days** (2026-08-06 → 08-12, the last partial). **Read through the public zone.** Full
-reading and caveats in [METRICS.md](METRICS.md).
+**Two sources, deliberately not merged.** The **stage table below is still the 08-12 reading** —
+[`567dad0`](https://github.com/in-c0/tuned/commit/567dad0), `generated_at` 2026-08-12T21:24:27Z,
+covering 7 UTC days (2026-08-06 → 08-12, last partial). The **content totals and ingestion figures in
+the bullets are the 08-14 reading** —
+[`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3),
+`generated_at` 2026-08-14T20:58:56Z. Both read through the public zone by the scheduled job. The
+stage table was not re-derived this run because the directive was a bounded supply-side
+reconciliation; it is **stale by two days and labelled so** rather than silently refreshed in part.
+Full reading and caveats in [METRICS.md](METRICS.md).
 
 | Stage | Observed | Note |
 | --- | --- | --- |
@@ -214,9 +230,15 @@ reading and caveats in [METRICS.md](METRICS.md).
 - **Autonomous spend: AUD $0.00 of the AUD $500 cap.** Running total in [DECISIONS.md](DECISIONS.md).
 - **No traction is claimed.** 431 UA-flagged views on a product with no distribution proves **the
   counters work**, not that demand exists.
-- All-time content totals **predate instrumentation and are inventory, not activity**: 79 public items,
-  42 queued, 5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection.
-  Unchanged from the last reading.
+- **Content totals moved for the first time since instrumentation, on the queued side only** (08-14
+  snapshot [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3),
+  `generated_at` 2026-08-14T20:58:56Z): **79 public items (unchanged), 146 queued (was 42, +104)**,
+  5 feeds (1 human / 4 agent), 8 stars, 33 skips, 1 member, 0 followers, 1 connection. The +104 is
+  Spotify ingestion — `spotify_items_captured = 104` on 08-14 across 30 successful polls with zero
+  errors — and it matches the queue delta exactly. **Public items have been 79 on every snapshot ever
+  committed.** Supply is not the constraint; publication is, and publication is a human act nobody has
+  performed. **This is supply from one member's listening, not demand** — no conversion inference
+  either way.
 - **On the AUD $1,000,000 / 60-day stretch target:** it is optimization pressure and direction. No
   number on this dashboard forecasts it and none should be read as predicting it.
 
@@ -230,6 +252,14 @@ reading and caveats in [METRICS.md](METRICS.md).
 | 4 | **Executor has no direct egress** — 403 CONNECT at the proxy, **29** consecutive runs, re-tested this run and now confirmed for `hacker-news.firebaseio.com` as well as `justtuned.com` and `*.workers.dev`. Every production and third-party reading in this loop comes from GitHub Actions. | Environment | — | Mitigated, not fixed: Actions is the read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
+
+- **EXP-006 — is the flat queue a quiet member or a broken sync? GRADED: QUIET, NOT BROKEN / CLOSED**
+  (run 37, 2026-08-13 22:32:24 UTC). Six mutually exclusive forks pre-registered before any counter
+  existed, each with its own next action; fork 1 fired on n = 1 poll. **Not re-graded since, and it
+  will not be** — but the same standing counters read very differently on **2026-08-14: 30 runs, 30
+  successes, 104 plays captured, queue 42 → 146**. That later observation is filed beside the grade in
+  [EXPERIMENTS.md](EXPERIMENTS.md), not merged into it. Its own pre-registered rule still binds: a high
+  capture count is **one member listening to music — supply, not traction.**
 
 - **EXP-005 — is the attention Tuned publishes actually recent? HYPOTHESIS SUPPORTED / CLOSED**
   (run 35). Pre-registered before any production read, threshold fixed first: the landing demo's
@@ -288,11 +318,11 @@ that turns an attestation into a check.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-14 08:20 Sydney (2026-08-13 22:20 UTC) |
-| **Run** | 37 — the ingestion cron, Tuned's only current producer of items, was made observable through the existing metrics path; [EXP-006](EXPERIMENTS.md) pre-registered before any reading. Graded the same run: **QUIET, NOT BROKEN** — the cron fires, the token still authenticates, and there was simply no new play to capture, so the flat `items_queued` is a true absence of supply rather than a defect (n = 1 poll; the three earlier flat days stay uninterpretable). Nothing was published, no owner card changed. Previously, run 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
-| **Repository commit at time of writing** | [`1297427`](https://github.com/in-c0/tuned/commit/1297427) |
-| **Data commit** | [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) — `generated_at` 2026-08-12T21:24:27Z, read through the public zone, covering 7 UTC days with 08-12 partial. **Unchanged this run: no new snapshot was taken and no metric moved.** |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1 is current as of run 36 and §7 as of run 37; §2, §3's 1-week row, §5 and §6 are current as of run 34; §4 and this section are current as of the 08-12 snapshot, and **no new snapshot was taken this run — no metric moved.** **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
+| **Last materially updated** | 2026-08-15 07:45 Sydney (2026-08-14 21:45 UTC) |
+| **Run** | 41 — **ops-only evidence reconciliation.** The durable claim that Tuned has "one live connection with nothing to carry" was falsified by the 08-14 snapshot: ingestion ran 30×, succeeded 30×, captured **104** plays, and the private queue went **42 → 146** while `items_public` stayed at **79**. Corrected here, in STATUS and in METRICS; [EXP-006](EXPERIMENTS.md)'s original grade and timestamp preserved with the later reading filed separately. No source, schema, workflow or product change; no queued item opened or approved; no manual dispatch; §1 unchanged. Previously, run 37 — the ingestion cron, Tuned's only current producer of items, was made observable through the existing metrics path; [EXP-006](EXPERIMENTS.md) pre-registered before any reading. Graded the same run: **QUIET, NOT BROKEN** — the cron fires, the token still authenticates, and there was simply no new play to capture, so the flat `items_queued` is a true absence of supply rather than a defect (n = 1 poll; the three earlier flat days stay uninterpretable). Nothing was published, no owner card changed. Previously, run 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
+| **Repository commit at time of writing** | [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3) |
+| **Data commit** | [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3) — `generated_at` 2026-08-14T20:58:56Z, read through the public zone by the scheduled snapshot job. **This is the reading that moved:** content totals and ingestion counters in §4 come from it. The **§4 stage table still comes from [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) (08-12)** and is labelled stale in place. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §4's content totals, §6's EXP-006 entry and this section are current as of the 08-14 snapshot; §1 is current as of run 36 (and unchanged since); §7 as of run 37; §4's **stage table** is two days stale at the 08-12 snapshot; §2, §3's 1-week row and §5 are current as of run 34. **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

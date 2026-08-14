@@ -1,9 +1,42 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-14 10:45 Sydney (2026-08-14 00:45 UTC), run 38 — **the per-agent token
-handoff is withdrawn; one owner-scoped operator key replaces it** · **OWNER ACTION REQUIRED: ONE —
-[install `AGENT_OPERATOR_KEY` twice](#owner-action-required)** · **Head:**
-[`master`](https://github.com/in-c0/tuned/commits/master)
+**Last updated:** 2026-08-15 07:45 Sydney (2026-08-14 21:45 UTC), run 41 — **ingestion is supplying
+again; the human half of the loop is where the finding is** · **OWNER ACTION REQUIRED: ONE —
+[install `AGENT_OPERATOR_KEY` twice](#owner-action-required)** (unchanged, still the only card) ·
+**Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> **"One live connection with nothing to carry" is no longer true, and this file said it for a day.**
+> On **2026-08-14** the Spotify cron ran **30 times, succeeded 30 times, threw no error of any kind,
+> and captured 104 plays**. `items_queued` went **42 → 146**; the delta matches the capture count
+> exactly. Source: [`ops/metrics/latest.json`](metrics/latest.json) at
+> [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3),
+> `generated_at` 20:58:56 UTC, read through the public zone by the scheduled job.
+>
+> **`items_public` is still 79, and the newest public item still dates to 2026-08-02.** That is the
+> whole finding, and it is not an engineering one. **The machine half of Tuned worked: it observed, it
+> captured, it queued. The human half did not happen.** Publication needs a member to approve from the
+> queue, and no member has — so **0 of 104** captured items reached a public feed, and the five feeds
+> are exactly as stale as [EXP-005](EXPERIMENTS.md) measured them. A 146-item private queue standing
+> against 0 published items is Tuned's doctrine stated in numbers: *humans contribute attention, not
+> content*, and no human is contributing any.
+>
+> **What this is not.** 104 captures is **one member listening to music for one day** — supply from a
+> single connection, not demand, not activation, not traction. No conversion inference is drawn from
+> it in either direction. **The 146 queued items were not opened, inspected, counted individually,
+> approved, summarised or published**; they are member data and member attention, not inventory the
+> executor may work. `applications` is still **0**, `members_ever_active` still **0**, gross cash still
+> **AUD $0** from *no billing exists*, spend still **AUD $0.00 of $500**.
+>
+> **[EXP-006](EXPERIMENTS.md) was not re-graded.** It stays **QUIET, NOT BROKEN** at its original
+> n = 1 window (2026-08-13 22:32:24 UTC); the 08-14 reading is filed beside it as a later observation.
+> One arithmetic gap is logged and deliberately **not** investigated under the current hold:
+> `cron_run = 30` against **42** expected `*/30` boundaries by the snapshot time. It is recorded as a
+> candidate, gradeable only against a full UTC day (`cron_run = 48`), not as a claimed defect.
+>
+> **The authentication hold is unchanged and resumes silently after this file.** The scheduled
+> `verify production` run at 20:45 UTC still read `/api/operator/agents` → **HTTP 503**: the Worker
+> half of `AGENT_OPERATOR_KEY` is absent, the plane is fail-closed, and nothing was dispatched by this
+> run to re-confirm it.
 
 > **Adding an agent was going to cost one owner interruption every time, forever.** The plan this run
 > inherited was a per-agent studio token in a GitHub secret: one credential per feed, each one an
@@ -55,10 +88,8 @@ handoff is withdrawn; one owner-scoped operator key replaces it** · **OWNER ACT
 > branch is excluded. **n = 1 poll**: it says nothing about the three flat days before the counters
 > existed, which stay uninterpretable. There is no backfill.
 >
-> **What that leaves is the uncomfortable part.** Every producer Tuned has is idle at once — four
-> agent feeds not running, a desk unattended, one live connection with nothing to carry. The
-> ingestion side now agrees with the distribution side: **the remaining bottleneck is not an
-> engineering one**, and more instrumentation will not move it.
+> **Superseded on 2026-08-14 — the connection is no longer quiet.** See the run 41 banner at the top
+> of this file. The grade above stands at its own timestamp and is not re-opened.
 
 > **The agent-activation question is now answered, and the answer is one secret.** Run 36 traced the
 > whole contract in workerd against a real D1 — an agent reads its brief, publishes what it selected,
@@ -385,12 +416,17 @@ green `list` is permission to proceed to that decision, not through it. Once one
 publish finds the agent genuinely encountered and selected, label them as the agent's, and
 pre-register what a working agent feed would have to show before reading any number off it.
 
-**Executor, while the secret does not exist:** nothing about agent activation. Do not create a
-creator, do not ask for `ADMIN_KEY`, do not invent an agent identity or a remit, do not publish under
-the owner, do not approve the member's 42 private queued items, and do not manufacture items. Do not
-ask for `AGENT_STUDIO_TOKEN` — that card is withdrawn. The credential is the work; there is no version
-of this that the executor can do alone, and pretending otherwise is how the last invalid experiment
-got built.
+**Executor, while the secret does not exist: hold silently.** Per the [2026-08-14 09:33 UTC
+review](https://github.com/in-c0/tuned/issues/1#issuecomment-5291773039) this means **no manual
+dispatch of `verify production` or `agent operator` to re-confirm the 503, no substitute task, no
+executor report** while the gate is unchanged. Resume only on (a) the owner reporting both copies
+installed, or (b) a **naturally scheduled** verification showing 503 → 401 — then one `action=list`
+run, recorded, and stop before any agent mutation. Nothing about agent activation in the meantime: do
+not create a creator, do not ask for `ADMIN_KEY`, do not invent an agent identity or a remit, do not
+publish under the owner, do not approve the member's **146** private queued items, and do not
+manufacture items. Do not ask for `AGENT_STUDIO_TOKEN` — that card is withdrawn. The credential is the
+work; there is no version of this the executor can do alone, and pretending otherwise is how the last
+invalid experiment got built.
 
 **Also standing: stop dispatching [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml)** —
 it is retired in place, its green condition is void, and no run should read item `49280269` again. The
@@ -405,10 +441,19 @@ Explicitly **not** a copy or positioning rewrite, **not** a CTA-reach counter, *
 resubmission, **not** a second Hacker News account or a second link to the same site, and **not** a
 replacement channel invented and executed this cycle. ~~The one engineering candidate that survives is
 the flat `items_public` / `items_queued` count, unexamined since run 31 recorded it.~~ **Taken up in
-run 37** — the count was flat because nobody in this loop could see the pipeline behind it. The
-instrument is shipped and [EXP-006](EXPERIMENTS.md) is pre-registered, so **the next run's first job is
-to read the counters and grade the fork**. That needs no owner, no authorization and no new work: the
-verdict table is already written, including the fork that says the cron has not been firing at all.
+run 37** — the count was flat because nobody in this loop could see the pipeline behind it. ~~The
+instrument is shipped and [EXP-006](EXPERIMENTS.md) is pre-registered, so the next run's first job is
+to read the counters and grade the fork.~~ **Done — graded run 37 (QUIET, NOT BROKEN), and read again
+run 41: the queue is no longer flat.** 08-14 captured **104** plays and `items_queued` went 42 → 146
+while `items_public` stayed at **79**. Ingestion is not the constraint; publication is, and
+publication is a human act.
+
+**The candidate that replaces it is small, engineering-shaped and deliberately parked:** `cron_run`
+recorded **30** on 08-14 against **42** expected `*/30` boundaries by the 20:58 UTC snapshot — about
+29% unaccounted for. Not a claimed defect (Cloudflare crons are best-effort, and one partial day is
+thin), not investigated under the current silent hold, and **gradeable only against a complete UTC
+day, where a healthy cron reads `cron_run = 48`**. Reading that costs nothing but waiting for the next
+scheduled snapshot; it needs no owner and no dispatch.
 
 ## Not doing (deliberate holds)
 

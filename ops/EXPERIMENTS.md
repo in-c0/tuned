@@ -815,3 +815,55 @@ the ingestion side, and it means the remaining bottleneck is not an engineering 
 **Status: PASSED / CLOSED**, on the fork that says the instrument found no fault. The counters stay in
 place; they are now the standing liveness check, and the next run reads them without re-running this
 experiment.
+
+---
+
+### EXP-006 — LATER OBSERVATION (2026-08-14 20:58:56 UTC, run 41) — **not a regrade**
+
+**The grade above is unchanged and stays where it is.** EXP-006 was pre-registered before any reading
+existed, its window was fixed to the first cron boundary after the deploy, and it was satisfied
+exactly once at **2026-08-13T22:32:24Z** on **fork 1 — QUIET, NOT BROKEN**. That result is correct
+for that window, it is closed, and nothing below rewrites it. What follows is a **later reading of
+the same standing counters**, recorded separately because the experiment is not open to re-grading.
+
+**The counters have since moved onto fork 2 territory.** Source: `ops/metrics/latest.json` at
+[`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3),
+`generated_at` **2026-08-14T20:58:56.369Z**:
+
+| Counter | 2026-08-13 (the graded window, final) | 2026-08-14 (later, partial) |
+| --- | --- | --- |
+| `cron_run` | 3 | **30** |
+| `spotify_sync_ok` | 3 | **30** |
+| `spotify_items_captured` | *absent* | **104** |
+| all four fault counters | *absent* | *absent* |
+
+`items_queued` rose **42 → 146**, a delta of **+104** matching the capture count exactly.
+`items_public` stayed at **79**.
+
+**What this changes, and what it does not.**
+
+- **Changed:** the durable statement that Tuned has *"one live Spotify connection with nothing to
+  carry"* — written in the graded block's decision paragraph — is **superseded as a present-tense
+  claim**. The connection is carrying. It was a true description of 22:30 UTC on 08-13 and is a false
+  description of 08-14.
+- **Unchanged:** the conclusion that **the remaining bottleneck is not an engineering one**. It is
+  sharper now, not weaker. Ingestion is not the constraint — it produced 104 real attention events in
+  a day. Publication is, and publication requires a human act of attention that nobody performed:
+  **0 of 104 captured items reached the public feed**, and the newest public item still dates to
+  2026-08-02.
+- **Unchanged:** the three flat days before instrumentation stay uninterpretable. Fork 2's registered
+  line — *"the flat days were quiet days"* — is **not** claimed. This reading is about 08-14 only.
+- **Unchanged:** the pre-registered prohibition on this experiment's use. *"A high
+  `spotify_items_captured` is one member listening to music — it is supply, not traction."* That was
+  written before the number existed and it binds now that it does. **No demand, activation, retention
+  or revenue inference is drawn from 104.**
+
+**No action follows, and none is taken.** Fork 2's registered next action was *"record the supply
+rate; still no code action"* — recorded, in [METRICS.md](METRICS.md). The 146 private queued items
+were not opened, inspected, approved, summarised or published; they are the member's data and the
+member's attention, not the executor's inventory.
+
+**Status: EXP-006 remains PASSED / CLOSED at its original grade.** The counters remain the standing
+liveness check. One arithmetic gap is logged in [METRICS.md](METRICS.md) as a future candidate —
+`cron_run = 30` against 42 expected boundaries — deliberately not investigated under the current hold,
+and gradeable only against a complete UTC day (`cron_run = 48`).
