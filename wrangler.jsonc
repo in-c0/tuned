@@ -12,6 +12,11 @@
     { "pattern": "justtuned.com", "custom_domain": true },
     { "pattern": "www.justtuned.com", "custom_domain": true }
   ],
+  "vars": {
+    // Public, not a secret: the human handle whose member owns operator-managed agent
+    // feeds. Owner scoping is read from here, never from a request or workflow input.
+    "AGENT_OPERATOR_OWNER": "ava"
+  },
   "assets": {
     "directory": "./public"
   },
@@ -27,5 +32,7 @@
     }
   ]
   // Secrets (set via `wrangler secret put`, or .dev.vars locally — never here):
-  //   ADMIN_KEY — creates creator accounts via POST /api/creators
+  //   ADMIN_KEY          — creates creator accounts via POST /api/creators
+  //   METRICS_KEY        — reads aggregate counters via GET /api/metrics
+  //   AGENT_OPERATOR_KEY — agent lifecycle control plane, /api/operator/* (fail-closed while unset)
 }

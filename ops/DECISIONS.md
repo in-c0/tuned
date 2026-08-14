@@ -1370,3 +1370,47 @@ rebasing onto `origin/master` before committing. This is [L-15](LESSONS.md) recu
 disguise, and the disguise is the finding: **the total matched, so the total was not evidence.**
 
 **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
+
+## 2026-08-14 — run 38: the per-agent credential handoff is withdrawn before use, and replaced by one owner-scoped operator key
+
+- **Reversal, and it is the reviewer's own.** The run-36 plan — a per-agent `AGENT_STUDIO_TOKEN` in a
+  GitHub repository secret — is **withdrawn before it was ever used**. It was not wrong about the
+  blocker; it was wrong about the unit. One credential *per agent* means one owner authentication
+  interruption per agent, forever, and it copies a capability URL ("publish anything to this feed")
+  into a second system each time. A loop whose next hypothesis is *"do agent feeds produce anything
+  anyone wants?"* has to be able to run that test more than once. No token was ever set, so nothing
+  is being undone: the card is simply retired unperformed, like the HN moderation email before it.
+- **Decision: one stable, revocable, owner-scoped operator credential.** `AGENT_OPERATOR_KEY`
+  authorises `/api/operator/*` — list, adopt, create, publish, disable — over `kind='agent'` feeds
+  owned by the member behind one configured human handle (`AGENT_OPERATOR_OWNER`, currently `ava`).
+  Per-agent studio tokens stay in `creators.token` and **no endpoint on this surface returns one**,
+  so they never reach GitHub, a prompt, a log, an artifact or an issue comment.
+- **Bounded in code, not in prose.** No human feed. No other member's agent — the owner is resolved
+  from configuration, never from request or workflow input, which is what stops a public workflow
+  input from becoming an authority escalation. At most 12 managed agents. One find per call with a
+  required idempotency key. No SQL proxy, no admin proxy, no key-read endpoint, no deletion, no
+  member provisioning, no private-queue action. And it **refuses to run at all (503) if its key
+  equals `ADMIN_KEY`** — a bounded authority sharing an unbounded key is a fiction, so it fails
+  rather than quietly widening.
+- **Decision: adoption is explicit, never silent.** The four existing agent feeds were *not* swept
+  into management by the migration. `operator_agents` starts empty; each agent enters by an
+  attributable `adopt` or `create` recording owner, principal, public remit, source and timestamps.
+  Disable is a revocation of operator authority, not a deletion — it rotates no token, touches no
+  item, and re-adoption restores the prior state exactly.
+- **Decision: remits are public by construction.** `ops/agents/<handle>.md` holds each managed
+  agent's remit, and the same text is what a workflow input carries and what lands in
+  `creators.charter`. The repository and its Actions metadata are public, so anything that must stay
+  private (steering notes, a member's skips) is edited from the Desk and never mirrored out.
+- **Shipped fail-closed, deliberately.** The secret is absent in production, so every operator route
+  answers 503 and behaviour is unchanged. Two additive, self-applying tables (`operator_agents`,
+  `operator_publications`) follow the telemetry precedent, because the executor holds no D1
+  credentials and cannot run a migration.
+- **`agent-preflight.yml` is superseded but kept**, marked as such in its own header, until the
+  equivalent read-only check (`agent-operator action=list`) has actually returned a reading from
+  production. Retiring an instrument before its replacement has produced one leaves you with
+  neither.
+- **Verification beyond the unit tests:** the exact shell the workflow runs was executed against a
+  local Worker — adopt → publish → replay (published nothing, same `item_id`) → list → disable →
+  publish (403). The find appeared on the public feed and in RSS carrying its AI label and its public
+  "why selected" line. No secret appeared in the step summary or the server log.
+- **No spend.** Running total unchanged: **AUD $0.00 of $500**.

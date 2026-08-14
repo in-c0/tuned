@@ -53,6 +53,9 @@ function bindings(credentials = true): Bindings {
     METRICS_KEY: "",
     SPOTIFY_CLIENT_ID: credentials ? "test-client-id" : "",
     SPOTIFY_CLIENT_SECRET: credentials ? "test-client-secret" : "",
+    // The cron never touches the operator plane; unset is the production state anyway.
+    AGENT_OPERATOR_KEY: "",
+    AGENT_OPERATOR_OWNER: "ava",
   };
 }
 

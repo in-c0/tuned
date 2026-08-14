@@ -1,0 +1,221 @@
+name: agent operator
+
+# The executor's hands on the agent lifecycle: list, adopt, create, publish, disable.
+#
+# Why this shape. `in-c0/tuned` is PUBLIC — this file, its inputs and its logs are world
+# readable. So exactly one secret exists here, `AGENT_OPERATOR_KEY`, and it is the only
+# thing that is not public: every input below is a handle, a public remit, a source URL or
+# a public "why selected" line. Per-agent studio tokens never enter GitHub at all; the
+# Worker keeps them in D1 and the operator API has no endpoint that returns one.
+#
+# The key is sent in a request HEADER, never in a URL, and no step here runs `set -x`,
+# `curl -v`, or uploads an artifact. Response bodies are parsed for named fields rather
+# than echoed, so a future endpoint that started returning something sensitive would not
+# be printed by this workflow.
+#
+# Inert until bootstrapped: with the secret absent, `list` reports NOT BOOTSTRAPPED and
+# exits green (it is the preflight), and every mutating action fails loudly rather than
+# reporting success for work that did not happen.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What the operator should do
+        required: true
+        type: choice
+        options: [list, adopt, create, publish, disable]
+        default: list
+      handle:
+        description: Agent handle (all actions except list)
+        required: false
+        type: string
+      name:
+        description: Display name (create only)
+        required: false
+        type: string
+      remit:
+        description: PUBLIC one-line remit (adopt/create). Never paste private steering text.
+        required: false
+        type: string
+      url:
+        description: Source URL of the find (publish only)
+        required: false
+        type: string
+      title:
+        description: Title of the find (publish only)
+        required: false
+        type: string
+      category:
+        description: Category of the find (publish only)
+        required: false
+        type: string
+        default: Misc
+      why:
+        description: PUBLIC one-line reason this was selected (publish only)
+        required: false
+        type: string
+      idempotency_key:
+        description: Replay guard (publish only). Defaults to a hash of handle+url, so the same find dispatched twice publishes once.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# One operator action at a time. Two concurrent adopts racing the agent ceiling is not a
+# situation worth having, and serialising costs nothing at this volume.
+concurrency:
+  group: agent-operator
+  cancel-in-progress: false
+
+jobs:
+  operate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Operate
+        env:
+          AGENT_OPERATOR_KEY: ${{ secrets.AGENT_OPERATOR_KEY }}
+          ACTION: ${{ inputs.action }}
+          HANDLE: ${{ inputs.handle }}
+          AGENT_NAME: ${{ inputs.name }}
+          REMIT: ${{ inputs.remit }}
+          URL: ${{ inputs.url }}
+          TITLE: ${{ inputs.title }}
+          CATEGORY: ${{ inputs.category }}
+          WHY: ${{ inputs.why }}
+          IDEM: ${{ inputs.idempotency_key }}
+          BASE: https://justtuned.com
+        run: |
+          set -uo pipefail
+
+          if [ -z "${AGENT_OPERATOR_KEY:-}" ]; then
+            {
+              echo "### Agent operator: NOT BOOTSTRAPPED"
+              echo ""
+              echo "No \`AGENT_OPERATOR_KEY\` repository secret. The same high-entropy value must be"
+              echo "installed once as a Cloudflare Worker secret and once here. See the owner card in"
+              echo "\`ops/STATUS.md\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            if [ "$ACTION" = "list" ]; then
+              echo "::notice::AGENT_OPERATOR_KEY is not set — this is the owner bootstrap card, not a failure."
+              exit 0
+            fi
+            echo "::error::AGENT_OPERATOR_KEY is not set, so '$ACTION' did nothing. Refusing to report success for work that did not happen."
+            exit 1
+          fi
+
+          # Non-list actions all name a feed. The handle is validated HERE as well as in the
+          # Worker, because it is interpolated into a request path: an input carrying `../`
+          # would otherwise aim the credentialed request at a different endpoint.
+          if [ "$ACTION" != "list" ]; then
+            if [ -z "${HANDLE:-}" ]; then
+              echo "::error::'$ACTION' requires a handle."
+              exit 1
+            fi
+            if ! printf '%s' "$HANDLE" | grep -Eq '^[a-z0-9][a-z0-9-]{1,30}$'; then
+              echo "::error::handle must be 2–31 lowercase alphanumerics or dashes."
+              exit 1
+            fi
+          fi
+
+          method=GET
+          path=/api/operator/agents
+          payload='{}'
+
+          case "$ACTION" in
+            list)
+              ;;
+            adopt)
+              method=POST; path=/api/operator/agents/adopt
+              payload=$(HANDLE="$HANDLE" REMIT="$REMIT" python3 -c 'import json,os;print(json.dumps({"handle":os.environ["HANDLE"],"remit":os.environ.get("REMIT","")}))')
+              ;;
+            create)
+              method=POST; path=/api/operator/agents
+              payload=$(HANDLE="$HANDLE" AGENT_NAME="$AGENT_NAME" REMIT="$REMIT" python3 -c 'import json,os;print(json.dumps({"handle":os.environ["HANDLE"],"name":os.environ.get("AGENT_NAME",""),"remit":os.environ.get("REMIT","")}))')
+              ;;
+            publish)
+              if [ -z "${URL:-}" ] || [ -z "${TITLE:-}" ]; then
+                echo "::error::publish requires url and title."
+                exit 1
+              fi
+              # Default replay guard: the find itself. Re-dispatching the same handle+url
+              # claims the same key and publishes nothing, which is the behaviour you want
+              # from a retried workflow run.
+              if [ -z "${IDEM:-}" ]; then
+                IDEM="auto-$(printf '%s|%s' "$HANDLE" "$URL" | sha256sum | cut -c1-32)"
+              fi
+              method=POST; path="/api/operator/agents/${HANDLE}/items"
+              payload=$(URL="$URL" TITLE="$TITLE" CATEGORY="$CATEGORY" WHY="$WHY" IDEM="$IDEM" python3 -c 'import json,os;print(json.dumps({"url":os.environ["URL"],"title":os.environ["TITLE"],"category":os.environ.get("CATEGORY","Misc"),"why":os.environ.get("WHY",""),"idempotency_key":os.environ["IDEM"]}))')
+              ;;
+            disable)
+              method=POST; path="/api/operator/agents/${HANDLE}/disable"
+              ;;
+            *)
+              echo "::error::unknown action '$ACTION'"; exit 1 ;;
+          esac
+
+          # The key rides in a header. Never -v, never in the URL, never echoed.
+          if [ "$method" = "GET" ]; then
+            code=$(curl -sS -o /tmp/op.json -w '%{http_code}' --max-time 25 \
+                     -H "x-operator-key: ${AGENT_OPERATOR_KEY}" \
+                     -H 'accept: application/json' \
+                     "${BASE}${path}" || echo 000)
+          else
+            code=$(curl -sS -o /tmp/op.json -w '%{http_code}' --max-time 25 \
+                     -X POST \
+                     -H "x-operator-key: ${AGENT_OPERATOR_KEY}" \
+                     -H 'content-type: application/json' \
+                     -H 'x-operator-principal: github-actions' \
+                     --data "$payload" \
+                     "${BASE}${path}" || echo 000)
+          fi
+
+          echo "HTTP $code from ${path}"
+
+          # Named fields only. Nothing here echoes the raw body, so an endpoint that ever
+          # started returning something private would not be printed by this workflow.
+          summary=$(python3 - "$ACTION" <<'PY'
+          import json, sys
+          action = sys.argv[1]
+          try:
+              d = json.load(open("/tmp/op.json"))
+          except Exception:
+              print("(no JSON body)"); raise SystemExit(0)
+          if not isinstance(d, dict):
+              print("(unexpected body shape)"); raise SystemExit(0)
+          if d.get("ok") is False or "error" in d:
+              # A refusal is the interesting case; render it as itself rather than as an
+              # empty version of whatever the action would have returned.
+              print(" · ".join(f"{k}={d[k]}" for k in ("error", "handle", "owner_handle") if k in d))
+          elif action == "list":
+              print(f"owner: @{d.get('owner_handle','?')} · active {d.get('active','?')}/{d.get('limit','?')}")
+              for m in d.get("managed", []):
+                  print(f"- @{m.get('handle')} [{m.get('status')}] source={m.get('source')} "
+                        f"public_items={m.get('items_public')} operator_publications={m.get('operator_publications')} "
+                        f"last_public_item_at={m.get('last_public_item_at') or 'never'}")
+              adoptable = d.get("adoptable", [])
+              print("adoptable (owned, unmanaged): " + (", ".join("@" + h for h in adoptable) if adoptable else "none"))
+          else:
+              keys = ("ok", "handle", "status", "adopted", "published", "duplicate", "item_id", "changed", "source", "public_url", "error", "note")
+              print(" · ".join(f"{k}={d[k]}" for k in keys if k in d))
+          PY
+          )
+          echo "$summary"
+
+          {
+            echo "### Agent operator: \`$ACTION\`"
+            echo ""
+            echo "HTTP **$code**"
+            echo ""
+            echo '```'
+            echo "$summary"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          case "$code" in
+            200|201) exit 0 ;;
+            503) echo "::error::The operator plane answered 503 — the Worker secret is missing, collides with ADMIN_KEY, or the configured owner handle resolves to no member."; exit 1 ;;
+            401) echo "::error::401 — the GitHub secret and the Worker secret are not the same value."; exit 1 ;;
+            000) echo "::error::No answer from ${BASE}."; exit 1 ;;
+            *)   echo "::error::Operator call failed with HTTP $code."; exit 1 ;;
+          esac

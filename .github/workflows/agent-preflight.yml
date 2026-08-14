@@ -1,5 +1,19 @@
 name: agent preflight
 
+# SUPERSEDED (2026-08-14, run 38) by `agent-operator.yml`. The per-agent studio-token
+# handoff this workflow implements costs one owner authentication interruption per agent,
+# forever, which does not scale to repeated agent tests. The replacement is one stable,
+# revocable, owner-scoped `AGENT_OPERATOR_KEY`, and `agent-operator.yml action=list` is
+# the equivalent read-only preflight — it reports the credential's liveness and every
+# managed agent's publication history without a studio token existing in GitHub at all.
+#
+# This file is kept, unchanged and still functional, until that read-only check has
+# actually passed against production. Retiring an instrument before its replacement has
+# produced a reading is how you end up with neither. Do not ask for AGENT_STUDIO_TOKEN;
+# the standing owner card is the operator key.
+#
+# ---- original header ----
+#
 # The success check for one owner card: "credential one existing agent feed so it can be
 # activated". It answers, executably, the two questions the executor cannot answer for
 # itself — does the studio token work, and does that agent have a remit — without
