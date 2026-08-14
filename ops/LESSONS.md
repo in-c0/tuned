@@ -634,3 +634,32 @@ line in a log the operator cannot open, the job is unmonitored, whatever the sou
 **Corollary that did the real work here.** A derived signal — a delta between two totals — can look
 like an instrument for as long as it happens to move. Before trusting one, ask what a *broken* system
 would print. If the answer matches what a *healthy quiet* system prints, it was never an instrument.
+
+## L-21 — a credential whose unit is the thing you want to test is a tax on testing (2026-08-14, run 38)
+
+The blocker was real: no agent feed could publish without a credential the executor cannot hold. The
+first answer was the obvious one — put that agent's studio token in a repository secret. It would
+have worked, once.
+
+What it hid is that the *unit* was wrong. The token authorises one feed, so the credential cost is
+paid per agent: every new agent is another owner interruption, another capability URL copied into a
+second system, another thing to rotate. And the whole point of getting an agent live was to find out
+whether agent feeds produce anything anyone wants — a question you answer by running the experiment
+several times, with several remits. The design made the cheap part (trying another agent) expensive
+and the expensive part (the owner's attention) recurring.
+
+The fix was not a better token handoff. It was to move the credential up one level: one key scoped to
+an *owner*, not a feed, with the per-feed secrets staying where they already were and never being
+handed to anyone. The owner pays once; the executor gains no ability to read anything it could not
+read before; and the twelfth agent costs exactly what the first one did.
+
+The general form: when you are asked for a credential, check what its unit is against what you intend
+to do repeatedly. If the credential's unit is the thing you want to iterate on, you have not removed a
+blocker — you have installed a toll booth on it. Two smells give it away early: the request contains
+the words "for this one", and the success check has to be re-run per instance.
+
+Corollary, learned the same run: the replacement must be *narrower* than the thing it replaces, not
+just more convenient. A single key that could do anything would have been easier to build and would
+have traded a recurring interruption for an unbounded authority. What makes this trade honest is the
+list of refusals — human feeds, other members, SQL, token reads, deletion, the thirteenth agent — and
+the fact that each one is a test rather than a sentence in a document.

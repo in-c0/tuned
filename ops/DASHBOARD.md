@@ -18,7 +18,18 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> **Newest thing you should know (run 36, 2026-08-14 07:50 Sydney).** **The agent-activation question
+> **Newest thing you should know (run 38, 2026-08-14 10:45 Sydney).** **The per-agent token plan was
+> withdrawn before it was used, and the agent lifecycle is now automated.** Handing over one studio
+> token per feed would have billed you an authentication step for every agent, forever, and copied a
+> "publish anything to this feed" capability into a second system each time. Instead: **one stable,
+> revocable, owner-scoped `AGENT_OPERATOR_KEY`** driving a narrow control plane — list, adopt, create,
+> publish, disable — over agent feeds owned by `@ava` only. **Per-agent studio tokens never enter
+> GitHub**; they stay in D1 and no endpoint returns one. Shipped **fail-closed**: with the secret
+> absent every operator route answers 503 and the site is unchanged. 79 tests passing (28 new), and
+> the whole path was proved locally through the real workflow script. **Nothing was created, adopted
+> or published in production.** [§1](#1-owner-action-required) is the one thing left.
+>
+> **Previously (run 36, 2026-08-14 07:50 Sydney).** **The agent-activation question
 > is answered: the contract works, and one secret is all that is missing.** Run 36 traced it end to end
 > in workerd against a real D1 — brief → publish → public feed → RSS → landing demo, 8 assertions
 > passing. Of the reviewer's four prerequisites, **identity exists** (4 agent feeds) and **credentials
@@ -42,17 +53,22 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **ONE — credential one agent feed. Two minutes.**
+### **ONE — install `AGENT_OPERATOR_KEY`. Same value, two places. Two minutes.**
 
 | | |
 | --- | --- |
-| **Severity** | **High** — it is the only thing between Tuned and a live feed. |
+| **Severity** | **High** — it is the only thing between Tuned and a live agent feed, and the **last** time an agent costs you an authentication step. |
 | **What is blocked** | Every public feed stays an archive. Four agent feeds are registered; none has ever published; the newest item on the site still dates from **2026-08-02**. |
-| **Why only you** | The studio token lives in D1. The executor holds no D1 access, no `ADMIN_KEY` and no token — by design. |
-| **Do this** | **(1)** Pick one of the four agent feeds. **(2)** GitHub → Settings → Secrets and variables → Actions → New repository secret, named exactly `AGENT_STUDIO_TOKEN`, value = that feed's studio token. **(3)** One line on [issue #1](https://github.com/in-c0/tuned/issues/1): the handle, and that the executor may publish to it under that agent's existing charter. |
-| **Never** | **Do not paste the token into the issue, a comment or a file.** This repo and issue are public; a studio token is a capability URL. If it is already public anywhere, say so and rotate. |
-| **Check it worked** | Dispatch **[agent preflight](../.github/workflows/agent-preflight.yml)**. Green = the token opens the brief and the feed has a remit. It reads only, publishes nothing, and never prints the token or the charter text. |
-| **Age** | Opened 2026-08-13 (run 36) — first ask. |
+| **Why only you** | A Worker secret needs Cloudflare credentials; a repository secret needs repo admin. The executor holds neither and never reads the value back — it can only cause it to be used inside a workflow. |
+| **Do this** | **(1)** `openssl rand -base64 32`. **(2)** Cloudflare → Workers & Pages → `attention-feed` → Settings → Variables and Secrets → secret `AGENT_OPERATOR_KEY`. **(3)** GitHub → Settings → Secrets and variables → Actions → repository secret `AGENT_OPERATOR_KEY`, **same value**. |
+| **Never** | Do not paste it into the issue, a comment or a file — this repo and issue are public. Do not reuse `ADMIN_KEY`: the plane **refuses to run** if the two match. |
+| **Check it worked** | Dispatch **[agent operator](../.github/workflows/agent-operator.yml)** with `action=list`. Green with `owner: @ava · active 0/12` = both halves match. Reads only; prints no secret, charter or member data. |
+| **Age** | Opened 2026-08-14 (run 38). **Replaces** the run-36 `AGENT_STUDIO_TOKEN` card, withdrawn before use — do not action that one. |
+
+**Setting it publishes nothing.** The control plane goes live; no agent is adopted, created or
+published until a review authorizes the first one. Disabling later is one dispatch and destroys
+nothing — it revokes the operator's authority and leaves the feed, its items and your own studio URL
+untouched.
 
 **The path behind the credential is already proven**, so this is not a request made on hope: run 36
 traced brief → publish → public feed → RSS → landing demo in workerd against a real D1, 8 assertions

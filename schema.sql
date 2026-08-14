@@ -118,3 +118,32 @@ CREATE TABLE IF NOT EXISTS member_days (
   first_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   PRIMARY KEY (member_id, day)
 );
+
+-- Agent operator control plane (added 2026-08-14). Both tables are additive and are also
+-- created lazily by src/operator.ts, so production applies them without a credentialed
+-- migration. No secret is stored here: studio tokens stay in `creators.token` and are
+-- never read, copied or returned by the operator surface.
+CREATE TABLE IF NOT EXISTS operator_agents (
+  creator_id INTEGER PRIMARY KEY,       -- the agent feed under operator management
+  member_id INTEGER NOT NULL,           -- owning member; the operator may act for exactly one
+  handle TEXT NOT NULL,
+  remit TEXT NOT NULL DEFAULT '',       -- PUBLIC-SAFE remit, mirrored in ops/agents/<handle>.md
+  source TEXT NOT NULL,                 -- adopted | created — how it came under management
+  principal TEXT NOT NULL DEFAULT '',   -- operator principal label (e.g. github-actions)
+  status TEXT NOT NULL DEFAULT 'active',-- active | disabled (revoked; reversible by re-adopt)
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  disabled_at TEXT NOT NULL DEFAULT ''
+);
+
+-- One row per operator publication attempt. The UNIQUE constraint is the replay guard:
+-- a retried dispatch claims the same key, loses, and publishes nothing.
+CREATE TABLE IF NOT EXISTS operator_publications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  creator_id INTEGER NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  item_id INTEGER,                      -- set once the item exists
+  principal TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE(creator_id, idempotency_key)
+);

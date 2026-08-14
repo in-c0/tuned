@@ -1,8 +1,30 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-14 08:20 Sydney (2026-08-13 22:20 UTC), run 37 — **the ingestion cron is now
-observable; its first reading is pending** · **OWNER ACTION REQUIRED: ONE — [credential one agent
-feed](#owner-action-required)** · **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+**Last updated:** 2026-08-14 10:45 Sydney (2026-08-14 00:45 UTC), run 38 — **the per-agent token
+handoff is withdrawn; one owner-scoped operator key replaces it** · **OWNER ACTION REQUIRED: ONE —
+[install `AGENT_OPERATOR_KEY` twice](#owner-action-required)** · **Head:**
+[`master`](https://github.com/in-c0/tuned/commits/master)
+
+> **Adding an agent was going to cost one owner interruption every time, forever.** The plan this run
+> inherited was a per-agent studio token in a GitHub secret: one credential per feed, each one an
+> authentication event only the owner can perform, each one a capability URL ("publish anything to
+> that feed") copied into a second system. It works exactly once and then bills the owner again for
+> every agent after it — which is the opposite of what a loop that wants to *test* agents needs. The
+> reviewer withdrew it before it was used, and asked for the lifecycle to be automated instead.
+>
+> **What shipped is one stable, revocable, owner-scoped operator credential.** `AGENT_OPERATOR_KEY`
+> authorises a narrow control plane — list, adopt, create, publish, disable — over agent feeds owned
+> by one configured member. **Per-agent studio tokens never enter GitHub at all**: they stay in D1,
+> and no endpoint on this surface returns one. Bounded by construction: no human feed, no other
+> member's agent, at most 12 agents, one find per call with an idempotency key, no SQL proxy, no
+> key-read endpoint, no deletion, and a refusal to run at all if it is handed `ADMIN_KEY`.
+>
+> **It is deployed fail-closed.** With the secret absent — which is its state right now — every
+> operator route answers **503** and production behaviour is unchanged. **79 tests passing** (28 new),
+> and the transport was proved end to end against a local Worker through the exact workflow script
+> that will run in production: adopt → publish → replay (published nothing) → list → disable →
+> publish (refused). **No production agent was created, adopted or published this cycle**, and the
+> owner card below is the only thing standing between here and the first live one.
 
 > **The only path that makes items had no output anyone in this loop could read.** Spotify ingestion
 > runs every 30 minutes and is currently the sole producer of items on Tuned; its entire outcome went
@@ -101,38 +123,38 @@ feed](#owner-action-required)** · **Head:** [`master`](https://github.com/in-c0
 
 ## OWNER ACTION REQUIRED
 
-### **ONE: credential one agent feed so it can start publishing.**
+### **ONE: install `AGENT_OPERATOR_KEY` — the same value, in two places, once.**
 
 | | |
 | --- | --- |
-| **Severity** | **High.** It is the only thing standing between Tuned and a live feed. |
-| **Blocked outcome** | Every public feed stays an archive. Four agent feeds are registered, none has ever published, and the newest item on the site still dates from **2026-08-02**. Until one agent runs, the landing demo shows a visitor an archive and *"last active 11d ago"* — which is honest, and is not a product. |
-| **Why only you** | The studio token lives in D1. The executor holds no D1 access, no `ADMIN_KEY` and no token, by design — the deploy pipeline exists precisely so it never holds Cloudflare credentials. There is no path from the executor to this credential that is not you handing it over. |
-| **Minimum action** | Three steps, ~2 minutes. **(1)** Pick one of the four agent feeds. **(2)** Put its studio token — the secret part of its `/studio/<token>` URL — in **GitHub → Settings → Secrets and variables → Actions → New repository secret**, named exactly `AGENT_STUDIO_TOKEN`. **(3)** Post one line on [issue #1](https://github.com/in-c0/tuned/issues/1) naming the handle and saying the executor may publish to it under that agent's existing charter. |
-| **Do NOT** | **Do not paste the token into issue #1, a comment, a commit or a file.** This repository and that issue are public, and a studio token is a capability URL: whoever reads it can publish to that feed. The secret box is the only correct place. If it has already been pasted anywhere public, say so and rotate instead. |
-| **Success check** | Executable, not an attestation: dispatch **[agent preflight](../.github/workflows/agent-preflight.yml)**. Green = the token opens `GET /studio/<token>/brief` and the feed has a charter. It reads only; it publishes nothing, and it prints the handle and the charter's *length*, never the token, the charter text or the feedback. Without the secret it exits green with a notice. |
-| **Age** | Opened 2026-08-13 (run 36). First time this has been asked. |
-| **Surfaced at** | Here, [DASHBOARD.md §1](DASHBOARD.md), and the run-36 report on [issue #1](https://github.com/in-c0/tuned/issues/1). |
+| **Severity** | **High.** It is the only thing standing between Tuned and a live agent feed — and unlike the card it replaces, this is the **last** time an agent costs you an authentication step. |
+| **Blocked outcome** | Every public feed stays an archive. Four agent feeds are registered, none has ever published, and the newest item on the site still dates from **2026-08-02**. The landing demo shows a visitor an archive and *"last active 11d ago"* — honest, and not a product. |
+| **Why only you** | A Worker secret can only be set by someone holding Cloudflare credentials, and a repository secret only by a repository admin. The executor holds neither, by design. It also never reads this value back: it can only cause it to be *used*, inside a workflow. |
+| **Minimum action** | Three steps, ~2 minutes. **(1)** Generate one high-entropy value — e.g. `openssl rand -base64 32`. **(2)** Cloudflare → Workers & Pages → `attention-feed` → Settings → Variables and Secrets → add secret `AGENT_OPERATOR_KEY` with that value. **(3)** GitHub → Settings → Secrets and variables → Actions → New repository secret, named exactly `AGENT_OPERATOR_KEY`, **same value**. |
+| **Do NOT** | Do not paste it into issue #1, a comment, a commit or a file — this repository and that issue are public. Do not reuse `ADMIN_KEY` or `METRICS_KEY`: the control plane **refuses to run** (503) if its key equals `ADMIN_KEY`, because a bounded authority sharing an unbounded key is a fiction. |
+| **Success check** | Executable, not an attestation: dispatch **[agent operator](../.github/workflows/agent-operator.yml)** with `action=list`. Green with `owner: @ava · active 0/12` means both halves match and the plane is live; it reads only, publishes nothing, and prints no secret, charter or member data. Without the secret it exits green with a NOT BOOTSTRAPPED notice. |
+| **Age** | Opened 2026-08-14 (run 38). Replaces the run-36 `AGENT_STUDIO_TOKEN` card, which is **withdrawn before use** — do not action it. |
+| **Surfaced at** | Here, [DASHBOARD.md §1](DASHBOARD.md), and the run-38 report on [issue #1](https://github.com/in-c0/tuned/issues/1). |
 
-**What run 36 established, so this card is a credential request and nothing more.** The rest of the
-agent contract was traced end to end in workerd against a real D1 and it works:
-[`test/agent-contract.test.ts`](../test/agent-contract.test.ts) walks brief → publish → public feed →
-RSS → landing demo, and eight assertions pass. One defect was found and fixed on the way (RSS carried
-no agent provenance at all — see below). So the credential is not being requested in the hope that the
-path behind it works; the path behind it is proven, and the token is the only missing piece.
+**What this key can do, exactly.** List managed agents and their public publication history; adopt one
+agent feed you already own; create a new agent feed from a **public** remit; publish one source-linked
+find with an idempotency key; disable an agent. That is the entire surface.
 
-**What the executor will and will not do with it.** It will honour that agent's existing charter, and
-publish links it genuinely encountered and selected — attention, not content. It will not invent an
-agent identity, rewrite a remit, publish under you, approve the member's 42 private queued items, or
-manufacture items to make the demo look fresh. **The executor also never reads the secret**: the token
-stays in GitHub's secret store and is used only inside a workflow, which is why it was asked for that
-way rather than as a message.
+**What it cannot do, enforced in code and covered by tests.** Touch a human feed. Touch an agent owned
+by anyone but the configured owner (`ava`) — no workflow input selects an owner. Read or return a
+studio token, a session token, a member email, private charter text, a skipped item or the 42 private
+queued items. Provision a member. Run SQL. Read any secret back. Delete anything. Manage a thirteenth
+agent. Publish twice for the same idempotency key.
+
+**Nothing happens the moment you set it.** The plane goes live; no agent is adopted, created or
+published until a review authorizes the first one and a remit for it exists in
+[`ops/agents/`](agents/). Disabling is one dispatch and destroys nothing — it revokes the operator's
+authority and leaves the feed, its items and your own studio URL exactly as they were.
 
 **One honest limit, stated before you spend the credential.** The executor's egress proxy blocks
-direct page fetches (`blog.cloudflare.com` → `EGRESS_BLOCKED` this run); web *search* works. So its
-encounters are real but shallow — it reads result-level material, not the page. That is a genuine
-constraint on how good the selections will be, and it is a fact you should have before deciding, not
-after.
+direct page fetches (`blog.cloudflare.com` → `EGRESS_BLOCKED`); web *search* works. So its encounters
+are real but shallow — it reads result-level material, not the page. That is a genuine constraint on
+how good the selections will be, and it is a fact you should have before deciding, not after.
 
 ---
 
@@ -249,8 +271,9 @@ to be authorized.
 | **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
 | **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
-| Automated tests | **51 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), **`test/ingestion.test.ts`** (run 37) — vitest 4.1.10 |
+| Automated tests | **79 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), `test/ingestion.test.ts` (run 37), **`test/operator.test.ts`** (run 38, 28 assertions — every one of them a refusal or a bound) — vitest 4.1.10 |
 | **Ingestion cron observability** | **shipped and read run 37** | 6 counters in `metric_days` via `runIngestion` in `src/index.ts`; [`1297427`](https://github.com/in-c0/tuned/commit/1297427). First reading `cron_run=1`, `spotify_sync_ok=1`, nothing captured, no errors — [EXP-006](EXPERIMENTS.md) graded **QUIET, NOT BROKEN**. Now the standing liveness check |
+| **Agent operator control plane** | **shipped fail-closed run 38; awaiting one owner secret** | `src/operator.ts`, `/api/operator/*`, [`agent-operator.yml`](../.github/workflows/agent-operator.yml). One owner-scoped `AGENT_OPERATOR_KEY`; per-agent studio tokens never enter GitHub. 503 everywhere while the secret is absent |
 | **Agent publication contract** (brief → publish → feed → RSS → demo) | **traced and working; blocked only on a credential** | `test/agent-contract.test.ts`, 8 assertions in workerd against a real D1. Nothing in production was written |
 | **Agent provenance in RSS** | **fixed run 36** — the route never selected `kind`, so every agent feed syndicated unlabelled | `src/index.ts` `/:handle/rss.xml`, `rssFeed` in `src/pages.ts`; human feeds asserted to stay unlabelled |
 | Production dependency advisories | none | `npm audit --omit=dev` clean; `hono ^4.12.34` |
@@ -346,20 +369,24 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**Owner:** **one card, at the top of this file — credential one agent feed.** Two minutes: a
-repository secret plus one line on issue #1. Still do not email HN moderation, and do not repost.
+**Owner:** **one card, at the top of this file — install `AGENT_OPERATOR_KEY` once as a Cloudflare
+Worker secret and once as a GitHub Actions repository secret, same value.** Two minutes, and it is the
+last time an agent costs you an authentication step. Still do not email HN moderation, and do not
+repost.
 
-**Executor, once the secret exists:** dispatch `agent preflight`. If green, activate that one feed —
-honour its charter, publish finds it genuinely encountered and selected, label them as the agent's,
-and pre-register what a working agent feed would have to show before reading any number off it. If
-red on an empty charter, that is a second, smaller owner card (set the remit from the Desk), not a
-reason for the executor to write one.
+**Executor, once the secret exists:** dispatch `agent operator` with `action=list` — the read-only
+preflight. Green means both halves match and the plane is live. Then **stop**: creating or adopting
+the first agent needs a review authorizing it and a public remit in [`ops/agents/`](agents/), and a
+green `list` is permission to proceed to that decision, not through it. Once one is authorized:
+publish finds the agent genuinely encountered and selected, label them as the agent's, and
+pre-register what a working agent feed would have to show before reading any number off it.
 
 **Executor, while the secret does not exist:** nothing about agent activation. Do not create a
-creator, do not ask for `ADMIN_KEY`, do not invent an agent identity, do not publish under the owner,
-do not approve the member's 42 private queued items, and do not manufacture items. The credential is
-the work; there is no version of this that the executor can do alone, and pretending otherwise is how
-the last invalid experiment got built.
+creator, do not ask for `ADMIN_KEY`, do not invent an agent identity or a remit, do not publish under
+the owner, do not approve the member's 42 private queued items, and do not manufacture items. Do not
+ask for `AGENT_STUDIO_TOKEN` — that card is withdrawn. The credential is the work; there is no version
+of this that the executor can do alone, and pretending otherwise is how the last invalid experiment
+got built.
 
 **Also standing: stop dispatching [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml)** —
 it is retired in place, its green condition is void, and no run should read item `49280269` again. The

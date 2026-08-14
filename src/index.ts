@@ -8,11 +8,29 @@ import { currentMember, grantSession, clearSession, newToken as newSessionToken,
 import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connection } from "./spotify";
 import { count, countBy, memberActive, isBot, snapshot } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
+import { keyMatches, keyConfigured } from "./keys";
+import { RESERVED_HANDLES } from "./handles";
+import operator from "./operator";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 
-export type Bindings = { DB: D1Database; ADMIN_KEY: string; METRICS_KEY: string; SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
+export type Bindings = {
+  DB: D1Database;
+  ADMIN_KEY: string;
+  METRICS_KEY: string;
+  SPOTIFY_CLIENT_ID: string;
+  SPOTIFY_CLIENT_SECRET: string;
+  /** Operator control plane (src/operator.ts). Absent in production until the owner
+   *  installs it, and every operator route fails closed with 503 while it is. */
+  AGENT_OPERATOR_KEY: string;
+  /** Public var, not a secret: the human handle whose member owns operator-managed agents. */
+  AGENT_OPERATOR_OWNER: string;
+};
 const app = new Hono<{ Bindings: Bindings }>();
+
+// Agent operator control plane — one owner-scoped credential, bounded authority, and
+// fail-closed (503) while AGENT_OPERATOR_KEY is unset. See src/operator.ts.
+app.route("/api/operator", operator);
 
 /** Fire-and-forget telemetry: never blocks the response, never fails a request. */
 function track(c: Context, work: Promise<unknown>): void {
@@ -24,46 +42,10 @@ function track(c: Context, work: Promise<unknown>): void {
   }
 }
 
-const RESERVED_HANDLES = new Set(["api", "studio", "favicon.ico", "robots.txt", "rss.xml", "terms", "privacy", "waitlist", "home", "login", "logout", "enter", "today", "read", "queue", "connect"]);
-
 function newToken(): string {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-async function timingSafeEq(a: string, b: string): Promise<boolean> {
-  const enc = new TextEncoder();
-  const [ha, hb] = await Promise.all([
-    crypto.subtle.digest("SHA-256", enc.encode(a)),
-    crypto.subtle.digest("SHA-256", enc.encode(b)),
-  ]);
-  return crypto.subtle.timingSafeEqual(ha, hb);
-}
-
-// Compare a key arriving in an HTTP header against one stored in a Worker secret.
-//
-// These two sides are not symmetric, which is the whole reason this helper exists.
-// HTTP strips leading and trailing whitespace from a field value in transit
-// (RFC 9110 §5.5), so `provided` can never carry surrounding whitespace no matter
-// what the client sends. A Worker secret can: `echo v | wrangler secret put` stores
-// a trailing newline, and a dashboard paste can carry either. When that happens the
-// stored value is unmatchable by *any* HTTP client — a permanent 401 that looks
-// exactly like a wrong key from the outside, and that re-pasting only fixes by luck.
-//
-// So trim both sides before comparing. Surrounding whitespace is not entropy anyone
-// provisions on purpose, and refusing to normalise it buys no security — it only
-// converts an invisible typo into an undiagnosable outage.
-async function keyMatches(provided: string, configured: string | undefined): Promise<boolean> {
-  const want = (configured ?? "").trim();
-  if (!want) return false; // unset or whitespace-only: never authenticate
-  return await timingSafeEq(provided.trim(), want);
-}
-
-// A secret that is present but whitespace-only is configured in name only; report it
-// as absent so the unauthenticated status stays honest (503 = no key, 401 = wrong key).
-function keyConfigured(configured: string | undefined): boolean {
-  return (configured ?? "").trim().length > 0;
 }
 
 async function creatorByToken(db: D1Database, token: string): Promise<Creator | null> {
