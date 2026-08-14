@@ -634,8 +634,8 @@ capture in that hour, which is exactly what the first reading recorded.
 
 **+104 queued equals 104 captured, exactly.** Every play the cron captured entered the private queue,
 and **not one left it**. `items_public` has now been **79 on every committed snapshot since
-instrumentation began**, and the newest public item still dates to 2026-08-02 — the public feeds are
-as stale as they were when [EXP-005](EXPERIMENTS.md) measured them.
+instrumentation began**, and the newest public item still dates to 2026-08-02 — the public feeds have
+only aged further since [EXP-005](EXPERIMENTS.md) measured them.
 
 **The two halves of that sentence are the whole finding.** The machine half of Tuned works: it
 observed, it captured, it queued. The human half did not happen — publication requires a member to

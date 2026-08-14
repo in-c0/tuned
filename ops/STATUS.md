@@ -16,7 +16,7 @@ again; the human half of the loop is where the finding is** · **OWNER ACTION RE
 > whole finding, and it is not an engineering one. **The machine half of Tuned worked: it observed, it
 > captured, it queued. The human half did not happen.** Publication needs a member to approve from the
 > queue, and no member has — so **0 of 104** captured items reached a public feed, and the five feeds
-> are exactly as stale as [EXP-005](EXPERIMENTS.md) measured them. A 146-item private queue standing
+> have only got older since [EXP-005](EXPERIMENTS.md) measured them. A 146-item private queue standing
 > against 0 published items is Tuned's doctrine stated in numbers: *humans contribute attention, not
 > content*, and no human is contributing any.
 >
