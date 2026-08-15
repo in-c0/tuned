@@ -112,9 +112,10 @@ a question that was never opened.
 
 *Why the second half — this is new, and it is the failure this register found rather than inherited:*
 `feed_view` is a **single site-wide counter**. It does not split by handle and carries no referral
-tag ([`src/index.ts:672`](../src/index.ts)). Its human-flagged daily readings over the last ten days
-run **2, 3, 5, 8, 11, 14, 15, 15, 21, 22** — a range of 2 to 22 against a bot-flagged counterpart
-that has run as high as 32. **A cohort of a dozen real arrivals would land inside that noise band and
+tag ([`src/index.ts:672`](../src/index.ts)). Its human-flagged daily readings over the last ten days,
+sorted, run **2, 3, 5, 8, 11, 14, 15, 15, 21, 22** — a range of 2 to 22 against a bot-flagged
+counterpart that has run as high as 32. (Two of the ten are partial days — the counter's deploy day
+and the day read at 20:53 UTC — and neither is the maximum, so the range is not inflated by them.) **A cohort of a dozen real arrivals would land inside that noise band and
 be indistinguishable from a quiet Tuesday.** So the loop could run an admissible attempt into a live
 channel, succeed modestly, and be unable to prove it — the same ungradeability as L-17, one layer
 further out.

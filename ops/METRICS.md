@@ -798,7 +798,10 @@ split by handle, and it carries **no referral tag** — so it cannot distinguish
 a visit to `/sportstech`, nor an arrival from a link posted somewhere from an arrival from a crawler
 sweep.
 
-Its human-flagged daily readings for the ten complete days 2026-08-06 → 2026-08-15, sorted:
+Its human-flagged daily readings for the ten days 2026-08-06 → 2026-08-15, sorted — as recorded in the
+[2026-08-15 snapshot](metrics/2026-08-15.json). **Two of the ten are partial and are included as-is:**
+08-06 is the day the counter deployed, and 08-15 was read at 20:53 UTC. Neither partial is the maximum,
+so the range below is not inflated by them.
 
 | | | | | | | | | | |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
