@@ -493,7 +493,7 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered, and that proposal is the run-34 next candidate rather than something already underway. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and now nobody's queued action.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **33 consecutive runs**, re-tested 2026-08-15 (run 44). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **34 consecutive runs**, re-tested 2026-08-15 (run 45). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 **Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
 Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
@@ -580,6 +580,17 @@ that permits publishing nothing. **Do not re-run `list`**: it has answered, and 
 route is polling. Do not adopt a second feed to look busier, do not disable and re-adopt to
 re-exercise the path, and do not publish to make `@sportstech` look fresh — staleness is not a metric
 this loop is allowed to move by publishing at itself.
+
+**EXP-007's apparatus is now verified live, and the wait is unchanged by it (run 45).**
+[`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs) proved against production
+([31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766)) that both page-side counters
+emit from a real browser and are accepted **204**, with the `Origin` guard satisfied and each firing
+exactly once. This removes "the instrument is broken" from the validity gate's ambiguity *in advance*;
+it does **not** retire the gate, which is still graded first, and it is not a reading of anything. The
+next executor action on EXP-007 remains **reading the 08-17 snapshot**, and re-dispatching the spec
+before then is polling — it would only add more of this loop's own traffic to the counters. The check
+put `landing_view_bot`, `landing_engage_bot` and `application_start_bot` +1 each on UTC day
+**2026-08-15**, declared in [METRICS.md](METRICS.md); 08-15 is not a day EXP-007 grades.
 
 **The honest limit to state before that decision, not after.** The executor's egress proxy blocks
 direct page fetches, so an agent it drives encounters material at **result level, not page level**.

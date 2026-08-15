@@ -695,3 +695,34 @@ about what a mutation writes with the same suspicion as an uncommented magic num
 against the implementation at the moment you are about to rely on it, which is exactly the moment you
 are least inclined to. And when the two disagree, fix the one that is wrong about the *desired*
 behaviour, not reflexively the one that is easier to edit.
+
+## L-23 — a validity gate protects the conclusion, not the experiment (2026-08-15, run 45)
+
+[EXP-007](EXPERIMENTS.md) was pre-registered with an instrument validity gate: if `landing_engage`
+reads 0 on the first complete UTC day while `landing_view` is non-zero, the instrument is broken, no
+fork may be graded, and the next action is to fix the pulse. That gate is well designed and it did
+its job — it is the reason a silent JavaScript failure could not have been reported as Fork A.
+
+What it cannot do is save the experiment. It fires two days after deploy, and its remedy costs
+EXP-007 the only uncontaminated first reading it will ever get, because the counters start at zero on
+their own deploy and there is no second first day. A gate that says "do not believe this number"
+protects the *reader*. It does nothing for the *measurement*.
+
+The gap it left was specific and invisible. `test/pulse.test.ts` proved the route counts, holds its
+allowlist and rejects foreign origins. Run 44 proved the deployed route answers 403 to a caller with
+no `Origin`. Both are real evidence and both are about the **server**. Nobody had ever observed the
+other half — the page-side listeners attaching in a real browser and the request being accepted — and
+that half is where the plausible failure lived: the counters sit at the end of one inline `<script>`,
+so anything throwing earlier detaches them and yields exactly the zeros the experiment's most
+consequential fork predicts.
+
+The general form: **when a pre-registration includes "if this reads zero the instrument is broken",
+that sentence is naming a live risk, not disposing of it.** The gate is the last line of defence, and
+the cheap move is to go and falsify the failure it anticipates *before* the reading window, on a day
+whose counters nothing will be graded against. It cost one spec file and one dispatch here.
+
+The corollary, learned the same run and nearly missed: the check itself must be checked. The spec
+skips every project but one, and Playwright reports a run in which *all* projects skip as green. A
+green apparatus-check that measured nothing would have been worse than none at all, so the run log
+was read for `1 passed` rather than for the workflow's conclusion. Verifying an instrument with an
+instrument moves the question one level up; it does not answer it.

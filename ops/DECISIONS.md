@@ -1753,3 +1753,58 @@ restores the prior row exactly.
 nothing. Site-wide `items_public` **79** (unchanged, as the directive required), `items_queued`
 **146**, `applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** from *no billing
 exists*. **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-15 — run 45: falsify the anticipated failure before the window, not after it
+
+**No directive.** Run 44 executed the 09:30 UTC review in full and posted at 09:42 UTC; this run
+fired at 10:04 UTC with no reviewer pass after it. The standing state was a *wait*: EXP-007 reads
+complete UTC day 2026-08-16 from the 08-17 snapshot, EXP-008's publication is gated behind that
+reading, `list` had already answered, and the landing surface was frozen for the duration.
+
+**Decision: spend the run on EXP-007's apparatus rather than on its subject.** The pre-registration
+contains the sentence *"if it is exactly 0 while `landing_view` is non-zero, the instrument is broken
+or blocked"*. That sentence names a live risk. It fires on 08-17, and its remedy — fix the pulse —
+spends the only clean first reading EXP-007 will ever get, because the counters started at zero on
+their own deploy and there is no second first day. Falsifying that failure **before** the window
+costs one spec file and one dispatch; discovering it after costs the experiment.
+
+What was genuinely unverified, stated precisely because two adjacent things were already proven:
+`test/pulse.test.ts` proves the **route** counts, holds its allowlist and rejects foreign origins
+against a real D1 in workerd; run 44 proved from GitHub's network that the deployed route answers
+**403** with no `Origin`. Both are about the server. Nobody had observed the page half — listeners
+attaching in a real browser against production, and the request being accepted. The counters sit at
+the end of one inline `<script>`, so anything throwing earlier detaches them and produces exactly the
+zeros Fork A predicts.
+
+**Shipped:** [`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs) via
+[PR #39](https://github.com/in-c0/tuned/pull/39). Test code only — no runtime surface, no schema, no
+workflow, no landing-page change, and **no EXP-007 threshold, fork, read time or claim altered**.
+`qa/` carries its own manifest and never enters the Worker's dependency tree.
+
+**Verified:** `npm run check` exit 0, `vitest run` 90/90; CI green on `7b7e645`
+([31878904569](https://github.com/in-c0/tuned/actions/runs/31878904569)); production dispatch
+[31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766) **success** with
+`/api/version` recording `ba7ae7d` as the build serving. Both counters emitted **204** from a real
+browser, `Origin` matched the page origin, both fired exactly once, no page errors, no name outside
+the allowlist, form never submitted.
+
+**Two things this run deliberately did not let itself get away with.** The spec was first run against
+a local `wrangler dev` with the real Worker and a real D1, and `metric_days` was queried afterwards to
+confirm `landing_engage_bot=1`, `application_start_bot=1`, `landing_view_bot=1` — so the assertions
+are load-bearing rather than vacuous, and the dispatch was not spent discovering a typo. And the
+production run's *log* was read for `1 passed`, not its conclusion: the spec skips every project but
+one, and Playwright reports an all-skipped run as green. A green apparatus-check measuring nothing
+would have been worse than no check at all. Recorded as [L-23](LESSONS.md).
+
+**Contamination, declared in advance and recorded in [METRICS.md](METRICS.md):** the check caused
+`landing_view_bot`, `landing_engage_bot` and `application_start_bot` +1 each on UTC day **2026-08-15**
+— bot-classified by the headless user-agent, on a day EXP-007 does not grade, in counters its forks
+do not read. `applications` untouched at 0.
+
+**Explicitly not claimed.** A working instrument is not a reading. This says nothing about whether
+anyone human has ever arrived — that is what 08-16 is for — and a headless browser touching a page is
+the opposite of evidence for it. It does not retire the validity gate, which is still graded first;
+it removes one explanation from that gate's ambiguity in advance. `applications` **0**,
+`members_ever_active` **0**, `items_public` **79**, `items_queued` **146**, gross cash **AUD $0** from
+*no billing exists*. **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500
+cap.**
