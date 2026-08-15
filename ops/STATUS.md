@@ -1,8 +1,48 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-15 14:35 Sydney (2026-08-15 04:35 UTC), run 43 — **the gap between 605
-landing views and 0 applications is instrumented for the first time** · **OWNER ACTION REQUIRED: NONE** ·
+**Last updated:** 2026-08-15 19:40 Sydney (2026-08-15 09:40 UTC), run 44 — **the operator control
+plane made its first production mutation: `@sportstech` is adopted, and nothing was published** ·
+**OWNER ACTION REQUIRED: NONE** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The control plane stopped being a capability and became a fact: `active 1/12`.
+>
+> The [09:30 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448)
+> authorized an **adoption-only** cycle, and adoption-only is what happened. Production answered
+> **HTTP 201** — `ok=True · handle=sportstech · status=active · adopted=True · source=adopted`
+> ([run 31877368130](https://github.com/in-c0/tuned/actions/runs/31877368130)) — and the read-only
+> `list` that followed
+> ([run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247)) returned:
+>
+> ```
+> owner: @ava · active 1/12
+> - @sportstech [active] source=adopted public_items=11 operator_publications=0 last_public_item_at=2026-07-30T22:48:09.614Z
+> adoptable (owned, unmanaged): @graphics, @wearables, @wellbeing
+> ```
+>
+> Every acceptance criterion the directive set is met, read back from production rather than asserted:
+> `active 1/12`, `source=adopted`, **`operator_publications=0`**, and `@sportstech` has left the
+> adoptable list. **Nothing was published.** No agent was created, no queued item was opened, and the
+> site-wide public-item total is untouched at **79**.
+>
+> **The publication is deliberately not part of this cycle.** [EXP-008](EXPERIMENTS.md) — what a first
+> publication must show — was written **before** the adoption, and it is gated: no operator publication
+> until [EXP-007](EXPERIMENTS.md)'s first complete-UTC-day reading (day **2026-08-16**, from the 08-17
+> scheduled snapshot) is committed and graded. Publishing inside that window would change the landing
+> demo during the only clean reading EXP-007 will ever get.
+>
+> **One thing this run found and corrected, because it would have mattered later.**
+> [`ops/agents/README.md`](agents/README.md) claimed a remit is written into `creators.charter`
+> *"at adoption or creation"*. That is wrong about adoption: `adopt` writes only
+> `operator_agents.remit` and leaves the charter alone — and the **code is right**. An adopted feed
+> keeps the private steering its owner gave it; overwriting a member's charter from a public workflow
+> input is exactly the mutation this control plane exists not to perform. The doc now says so.
+>
+> **Nothing here is traction, and this is the sentence to hold onto.** A control plane that works is a
+> **capability**. `@sportstech`'s newest public item is still **2026-07-30** — 16 days old — and
+> adoption did not change that, because adoption publishes nothing. `items_public` **79**,
+> `applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** from *no billing exists*,
+> spend **AUD $0.00 of $500**.
 
 > # Nine days of "0 applications" had three explanations and no way to tell them apart.
 >
@@ -453,7 +493,7 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered, and that proposal is the run-34 next candidate rather than something already underway. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and now nobody's queued action.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **32 consecutive runs**, re-tested 2026-08-15 (run 43). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **33 consecutive runs**, re-tested 2026-08-15 (run 44). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 **Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
 Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
@@ -465,6 +505,16 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Current experiment
 
+- **EXP-008 — can the operator control plane publish one real agent find? NOT STARTED / GATED
+  (run 44).** Pre-registered at adoption, before any operator publication exists. Baseline recorded
+  from production: `@sportstech` `source=adopted`, `public_items=11`, `operator_publications=0`,
+  newest public item **2026-07-30T22:48:09Z**; site-wide `items_public` **79**. Six thresholds — 201
+  with an `item_id`, exactly one new item, `operator_publications` 0 → 1, a replay that publishes
+  nothing, **provenance on both the HTML feed page and `/sportstech/rss.xml`** verified from a real
+  browser and a real fetch, and a find that was genuinely encountered. **Gated: no publication until
+  EXP-007's first complete-day reading is committed and graded.** The option of publishing *nothing*
+  is pre-registered as an acceptable outcome, so taking it later costs nothing. Capability evidence,
+  explicitly not demand.
 - **EXP-007 — is there a human on the other side of the landing page? PENDING (run 43).**
   Pre-registered 2026-08-15 ~04:20 UTC, **before the counters it reads existed**. Five exclusive forks
   — *the denominator is not human* / *the offer does not land* / *intent exists and is being lost* /
@@ -504,19 +554,32 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 **Owner: nothing.** The card is closed. Still do not email HN moderation, and do not repost.
 
-**Executor: the preflight is done and the next step is not yours to take alone.** `action=list` ran
-once, returned `owner: @ava · active 0/12`, and **stopped before any mutation** exactly as the
-[03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648) required. Do not
-adopt, create, publish or disable anything on the strength of a green preflight. **Do not re-run
-`list`** — it has answered, and re-reading an answered route is the polling the 09:33 review forbade.
+~~**Executor: the preflight is done and the next step is not yours to take alone.**~~ **Taken up in
+run 44 — the reviewer authorized it, and it is done.** The
+[09:30 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448) chose
+**adoption of `@sportstech`** from the four candidates below, supplied the exact public remit, and
+required the pre-registration first. All three happened, in that order:
+[`ops/agents/sportstech.md`](agents/sportstech.md) and [EXP-008](EXPERIMENTS.md) landed in
+[`9617bea`](https://github.com/in-c0/tuned/commit/9617bea) **before** the mutation; adoption returned
+**201** ([31877368130](https://github.com/in-c0/tuned/actions/runs/31877368130)); one read-only `list`
+confirmed `active 1/12` ([31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247)).
 
-**The decision now waiting on the reviewer** — one authorization, and it is genuinely a choice:
+~~**The decision now waiting on the reviewer**~~ — **decided.** Kept for the record of what was on
+the table, with the correction the run itself turned up:
 
 | | |
 | --- | --- |
-| **Adopt an existing feed** | `@graphics`, `@sportstech`, `@wearables` or `@wellbeing` already exist and are owned by `@ava`. Adoption is attributable and reversible, and re-adoption restores prior state exactly. |
-| **Or create a new one** | A fresh `kind='agent'` feed from a public remit, with no history to inherit. |
-| **Either way it needs** | A public remit committed to [`ops/agents/`](agents/) — the same text the workflow input carries and that lands in `creators.charter` — **and** a pre-registration of what a working agent feed would have to show, written before any number is read off it. |
+| **Adopt an existing feed** | ~~`@graphics`, `@sportstech`, `@wearables` or `@wellbeing`~~ **`@sportstech` adopted.** `@graphics`, `@wearables` and `@wellbeing` remain owned, unmanaged and untouched. Adoption is attributable and reversible: `disable` revokes operator authority and deletes nothing. |
+| **Or create a new one** | Not taken. No feed was created. |
+| **Either way it needs** | A public remit committed to [`ops/agents/`](agents/) — the same text the workflow input carries — **and** a pre-registration of what a working agent feed would have to show, written before any number is read off it. Both exist. ~~and that lands in `creators.charter`~~ — **wrong, and corrected in run 44:** `adopt` writes only `operator_agents.remit`; the charter is left alone. Only `create` writes the charter. |
+
+**Executor: the next step is a publication, and it is gated — do not take it yet.** No `publish`
+dispatch until the scheduled snapshot covering complete UTC day **2026-08-16** is committed and
+EXP-007 is graded against it. Then, and only then, EXP-008's six thresholds apply — including the one
+that permits publishing nothing. **Do not re-run `list`**: it has answered, and re-reading an answered
+route is polling. Do not adopt a second feed to look busier, do not disable and re-adopt to
+re-exercise the path, and do not publish to make `@sportstech` look fresh — staleness is not a metric
+this loop is allowed to move by publishing at itself.
 
 **The honest limit to state before that decision, not after.** The executor's egress proxy blocks
 direct page fetches, so an agent it drives encounters material at **result level, not page level**.

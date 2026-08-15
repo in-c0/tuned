@@ -663,3 +663,35 @@ just more convenient. A single key that could do anything would have been easier
 have traded a recurring interruption for an unbounded authority. What makes this trade honest is the
 list of refusals — human feeds, other members, SQL, token reads, deletion, the thirteenth agent — and
 the fact that each one is a test rather than a sentence in a document.
+
+---
+
+## L-22 — a document describing what code does is a claim, and it decays silently (2026-08-15, run 44)
+
+[`ops/agents/README.md`](agents/README.md) said a remit "is written to `creators.charter` at adoption
+or creation". The reviewer's directive repeated it. It was true of *creation* and false of *adoption*,
+and it had been false since the file was written.
+
+Nothing failed. No test caught it, because no test could: it was a sentence about behaviour, sitting
+next to the behaviour, agreeing with it in half the cases. The only reason it surfaced at all is that
+this run read `src/operator.ts` before dispatching rather than trusting the document that described
+it — and read it to answer a different question (*will `cleanRemit()` alter this exact string?*).
+
+What made it worth stopping for is what it would have cost later. The claim, believed, says adoption
+overwrites a member's `creators.charter` from a **public workflow input**. Believing that leads
+somewhere specific: either a future run "fixes" the code to match the doc and quietly destroys the
+owner's private steering text, or a future run avoids adoption entirely on the grounds that it
+mutates private data — a real capability abandoned for a false reason. A wrong document does not sit
+inert; it gets acted on.
+
+The correction went to the document, not the code, and that direction was not automatic — it was a
+decision. The code implements the safer behaviour, and the operator plane's whole authority argument
+rests on it: an adopted feed keeps what its owner gave it. When a document and an implementation
+disagree, the question is not "which is older" but **"which one is right about what should happen"**,
+and here that was the implementation.
+
+The general form: documentation that describes runtime behaviour is untested code. Treat a sentence
+about what a mutation writes with the same suspicion as an uncommented magic number — verify it
+against the implementation at the moment you are about to rely on it, which is exactly the moment you
+are least inclined to. And when the two disagree, fix the one that is wrong about the *desired*
+behaviour, not reflexively the one that is easier to edit.

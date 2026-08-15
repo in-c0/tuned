@@ -1684,3 +1684,72 @@ claim. First reading: the scheduled snapshot covering the complete UTC day **202
 **AUD $0** from *no billing exists*. **No agent was adopted, created, published or disabled**;
 `active` remains **0/12**. No queued item was opened, inspected, counted, approved or published.
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+---
+
+## 2026-08-15 (run 44) — the first production mutation, and the one line of documentation it falsified
+
+**Directive.** The [09:30 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448)
+accepted run 43 and authorized one **adoption-only** cycle: adopt the existing `@sportstech` feed
+under an exact public remit, pre-register the first-publication contract **before** the mutation, run
+one read-only `list`, and **stop before publishing** so EXP-007's first complete-day window stays
+clean. Implementation was left to the executor; the acceptance evidence was not.
+
+**Decision: execute it as written, in the order written, and publish nothing.** The ordering is the
+substance of this directive rather than ceremony — a publication contract written after the first
+publication is not a pre-registration, and a landing surface changed inside EXP-007's first reading
+window destroys the only uncontaminated reading that experiment will get. Both constraints were
+cheap to honour and expensive to undo.
+
+**What shipped, in sequence.**
+
+1. [`9617bea`](https://github.com/in-c0/tuned/commit/9617bea) — [`ops/agents/sportstech.md`](agents/sportstech.md)
+   carrying the authorized remit **verbatim** (304 characters, no control characters, no repeated
+   whitespace, so `cleanRemit()` stores it byte-identically rather than normalising it into text the
+   repo file no longer matches — checked against the implementation before dispatch, not after), plus
+   [EXP-008](EXPERIMENTS.md). Docs only: no runtime surface, no schema, no landing page.
+2. `agent-operator.yml action=adopt` → **HTTP 201**,
+   `ok=True · handle=sportstech · status=active · adopted=True · source=adopted`
+   ([31877368130](https://github.com/in-c0/tuned/actions/runs/31877368130)).
+3. One read-only `list` ([31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247)):
+   `owner: @ava · active 1/12`, `@sportstech [active] source=adopted public_items=11
+   operator_publications=0 last_public_item_at=2026-07-30T22:48:09.614Z`, and the adoptable list is
+   now `@graphics, @wearables, @wellbeing` — `@sportstech` has left it. Then stop.
+
+**The documentation defect this run found.** [`ops/agents/README.md`](agents/README.md) stated that a
+remit "is written to `creators.charter` at adoption or creation". The directive repeated the claim.
+**It is false for adoption**, and the code is the part that is right: `POST /agents/adopt` writes
+`operator_agents.remit` only; **only** `POST /agents` (create) writes `creators.charter`, because a
+newly created feed has no prior charter to destroy. The distinction is not pedantic — if adoption did
+write the charter, then adopting a feed would silently overwrite the owner's private steering text
+from a **public workflow input**, which is precisely the class of mutation the operator plane's
+bounded authority exists to prevent. The doc was corrected to match the code; the code was left
+alone. Recorded as [L-22](LESSONS.md).
+
+**What was deliberately not done.** No publication — EXP-008 is gated on EXP-007's first
+complete-UTC-day reading (day 2026-08-16, from the 08-17 scheduled snapshot). No second adoption. No
+disable-and-re-adopt to re-exercise the path. No agent created. No queued item opened, inspected,
+counted, approved or published. No landing-page change of any kind inside EXP-007's window. And
+explicitly: **no publication to make a 16-day-stale feed look fresh** — staleness is not a metric this
+loop may move by publishing at itself, and EXP-008 pre-registers "publish nothing" as an acceptable
+outcome so that choosing it later costs nothing.
+
+**Verification.** `npm run check` exit **0**, `vitest run` **90/90** locally; CI green on `9617bea`
+([31877364348](https://github.com/in-c0/tuned/actions/runs/31877364348)); `verify production`
+([31877364330](https://github.com/in-c0/tuned/actions/runs/31877364330)) confirmed **`9617bea` is the
+commit actually serving** — identity, not timing — then site 200, `/api/metrics` 401,
+`/api/operator/agents` 401 unauthenticated, `POST /api/pulse/landing_engage` with no Origin **403**
+(EXP-007's instrument still deployed and still refusing foreign callers), `/terms` and `/privacy` 200
+with the role contact address. `Public availability` skipped, which is the healthy path: it fires only
+when the public zone is blocked.
+
+**Rollback.** Nothing to roll back, and two independent paths exist if that changes. The code change
+was documentation. The production change is one row in `operator_agents`, reversible by
+`action=disable`, which revokes operator authority and deletes no feed, item or token; re-adoption
+restores the prior row exactly.
+
+**Explicitly not claimed.** A control plane that works is a **capability**, not traction.
+`@sportstech`'s newest public item is still **2026-07-30**, 16 days old, because adoption publishes
+nothing. Site-wide `items_public` **79** (unchanged, as the directive required), `items_queued`
+**146**, `applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** from *no billing
+exists*. **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
