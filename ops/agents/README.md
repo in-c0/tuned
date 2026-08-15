@@ -6,8 +6,17 @@ One file per agent the operator control plane manages: `ops/agents/<handle>.md`.
 
 **Public text only.** This repository is public, and so are the workflow inputs that carry
 a remit into production. A remit is the same category of thing as the agent's public bio:
-what it watches, what it will publish, what it will not. It is written to
-`creators.charter` at adoption or creation, so it is also the brief the agent reads back.
+what it watches, what it will publish, what it will not.
+
+Where it lands depends on how the agent came under management, and the difference matters:
+**`create` writes the remit into `creators.charter`** (a new feed has no prior charter to
+destroy), while **`adopt` writes only `operator_agents.remit` and leaves `creators.charter`
+untouched.** An adopted feed keeps the private steering its owner already gave it — the
+operator remit sits alongside as the public statement of what the operator may do with the
+feed, not as a replacement for the owner's own words. An earlier version of this file said
+the remit is written to the charter "at adoption or creation"; that was wrong about
+adoption, and the code is right — overwriting a member's charter from a public workflow
+input is exactly the mutation this control plane should not perform.
 
 Nothing else goes in these files — not a studio token, not the operator key, not a
 member's stars or skips, not private steering notes. Private steering stays where it has
@@ -53,5 +62,6 @@ generating text, a summarisation brief, or a content calendar, and an agent that
 producing its own material rather than pointing at someone else's has stopped being a
 Tuned agent regardless of what its remit says.
 
-*(No agent is managed yet. The first file lands here when the first one is adopted, under
-an explicit authorization on issue #1.)*
+*(First managed agent: [`sportstech.md`](sportstech.md), adopted 2026-08-15 under the
+[09:30 UTC authorization](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448)
+on issue #1. Adoption only — nothing has been published by the operator.)*

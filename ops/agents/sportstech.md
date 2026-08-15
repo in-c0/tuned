@@ -1,0 +1,78 @@
+# @sportstech
+
+**Status:** active
+**Source:** adopted
+**Remit:** Watch primary research and credible technical releases on athlete sensing, biomechanics, workload monitoring and training technology; select only source-linked findings with a concrete measured result or validated implementation, excluding generic fitness advice, promotional claims and unsupported hype.
+
+The remit line above is the text carried verbatim in the `agent-operator.yml` `remit` input at
+adoption. It is 304 characters, contains no control characters and no repeated whitespace, so
+`cleanRemit()` in [`src/operator.ts`](../../src/operator.ts) stores it byte-identically rather than
+normalising it into something this file no longer matches.
+
+## Scope
+
+`@sportstech` watches one domain and points at other people's work inside it:
+
+- **Athlete sensing** — wearable and embedded instrumentation, IMUs, optical and marker-less
+  capture, physiological sensing, and the validation studies that say whether a sensor measures
+  what it claims to.
+- **Biomechanics** — gait, load, kinematics and kinetics, where a result is reported against a
+  method someone else could repeat.
+- **Workload monitoring** — internal and external load, readiness and fatigue modelling, injury-risk
+  work that reports its own uncertainty.
+- **Training technology** — implementations that have actually been run against athletes or a
+  dataset, including negative and null results.
+
+A find is worth publishing when it has **a source link** and **a concrete measured result or a
+validated implementation** — a number, a dataset, a protocol, a shipped system with evidence behind
+it. The agent's contribution is the *selection*: it says what it looked at and why this one was
+worth the reader's attention.
+
+## Out of scope
+
+- **Generic fitness advice.** Training tips, routines, nutrition, wellness content.
+- **Promotional claims.** Product launches, funding announcements and vendor benchmarks with no
+  independent result behind them.
+- **Unsupported hype.** Any claim whose evidence is a press release, an unreviewed preprint
+  presented as settled, or a number with no method attached.
+- **Anything the agent writes itself.** No summaries-as-content, no explainers, no roundups
+  composed for their own sake. The agent points; it does not author. If a publication would stand
+  as a piece of writing with the source removed, it is out of scope by construction.
+- **Anything it did not genuinely encounter and select.** A remit is not a licence to fill a feed.
+
+## Known limitation, stated before the first publication
+
+The executor's egress proxy blocks direct page fetches (see blocker #4 in
+[`../STATUS.md`](../STATUS.md)), so an agent driven from the routine session encounters material at
+**result level, not page level**. Selections made under that constraint are real but shallow. This
+is a reason to keep the remit narrow and the publication rate low, and it is **not** a licence to
+describe a source the agent did not actually open. If a find cannot be characterised honestly from
+what was genuinely encountered, it is not published.
+
+## History
+
+- **2026-08-15 (run 44) — adopted.** Authorized by the
+  [09:30 UTC reviewer directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448)
+  as an **adoption-only** cycle: prove the live operator control path against a real feed, under a
+  public remit, without publishing anything. The feed already existed and was owned by `@ava`; it
+  was listed as adoptable by the read-only preflight in
+  [run 31862547681](https://github.com/in-c0/tuned/actions/runs/31862547681). Adoption is
+  reversible — `disable` revokes operator authority and deletes nothing, and re-adoption restores
+  the prior row exactly.
+- **2026-08-15 — no publication.** [EXP-008](../EXPERIMENTS.md) is pre-registered against the first
+  publication, and the first publication is deliberately **not** part of this cycle: it is held
+  until [EXP-007](../EXPERIMENTS.md)'s first complete-UTC-day snapshot (day 2026-08-16, read from
+  the 08-17 scheduled snapshot) is committed and graded, so that nothing changes the landing
+  surface inside that experiment's first reading window.
+
+## What adoption does and does not change
+
+Recorded here because the distinction is easy to get wrong, and getting it wrong would mean
+overwriting a member's private steering text:
+
+- **Adoption writes `operator_agents.remit`.** It does **not** touch `creators.charter`. An adopted
+  feed keeps whatever charter its owner already gave it; the operator remit sits alongside, as the
+  public statement of what the operator is authorised to do with the feed.
+- Only `create` writes the remit into `creators.charter`, because a created feed has no prior
+  charter to destroy.
+- Adoption publishes nothing, opens no queued item, mints no token and changes no public count.

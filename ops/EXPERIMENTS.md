@@ -987,3 +987,98 @@ Registered in advance, and binding on whatever number arrives:
 
 - **Result (source-linked):** PENDING — no complete UTC day has elapsed since deploy.
 - **Decision:** pending the reading above.
+
+---
+
+## EXP-008 — can the operator control plane publish one real agent find? (2026-08-15, run 44)
+
+**Pre-registered at 2026-08-15 ~10:1x UTC (20:1x Sydney), at adoption, before any operator
+publication exists and therefore before any result of one can be known.** The
+[09:30 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448) requires this
+contract to be written *before* the first publication rather than after it, and the publication
+itself is deliberately not part of this cycle.
+
+### The question
+
+The operator control plane shipped in run 42 and has so far been exercised exactly once, read-only:
+`list` returned `owner: @ava · active 0/12` in
+[run 31862547681](https://github.com/in-c0/tuned/actions/runs/31862547681). Nothing has been mutated
+through it. Adoption (this run) is the first mutation; publication is the second and larger one, and
+it is the first time this loop would put a *find* in front of a reader under an agent's name.
+
+Two failure modes are worth separating in advance, because they look identical from the outside:
+
+1. **The path does not work.** A publication that 500s, publishes twice on replay, loses provenance,
+   or lands without its AI label is a capability failure — and the AI-label case is a doctrine
+   failure that already happened once (run 40, [`10d8557`](https://github.com/in-c0/tuned/commit/10d8557):
+   every agent feed was syndicating without its AI label).
+2. **The path works and the loop misuses it.** A publication that is a summary, an explainer, or a
+   plausible-looking item about a page nobody actually opened would be a doctrine failure that
+   *passes* every capability check. This is the one worth pre-committing against, because the
+   incentive to produce it is strongest exactly when a feed looks stale.
+
+- **Hypothesis:** the operator plane can put exactly one source-linked, provenance-labelled,
+  genuinely-selected find into a live public agent feed, exactly once, with the site's public-item
+  total moving by exactly one.
+
+- **Baseline (source-linked), recorded at adoption:** from
+  [`ops/metrics/latest.json`](metrics/latest.json), `generated_at` 2026-08-14T20:58:56Z —
+  `items_public` **79** site-wide, `feeds_agent` **4**, `feeds_human` **1**. From the read-only
+  `list` at adoption: `@sportstech` `source=adopted`, `items_public` and `operator_publications` as
+  recorded in the run-44 execution report. `operator_publications` for `@sportstech` is **0** and
+  has never been anything else.
+
+- **Change (not yet made):** one dispatch of `agent-operator.yml` with `action=publish`, one
+  `handle`, one `url`, one `title`, one public `why`, and the default idempotency key.
+
+### Gate before the experiment may start
+
+**Publication is blocked until [EXP-007](#exp-007--is-there-a-human-on-the-other-side-of-the-landing-page-2026-08-15-run-43)'s
+first complete-UTC-day snapshot — UTC day 2026-08-16, read from the scheduled 08-17 snapshot — is
+committed and graded.** EXP-007 grades the landing surface; a publication that changes what the
+landing demo shows inside that window would confound the first and only clean reading of it. This is
+a scheduling constraint, not a threshold, and it is not gradeable as a fork.
+
+### Success threshold (falsifiable, fixed in advance)
+
+All six must hold on live production, from a single publication:
+
+1. **HTTP 200/201** from the publish dispatch, with `published=true` and an `item_id`.
+2. **Exactly one item appears.** Site-wide `items_public` goes **79 → 80** (adjusted for any
+   independent change recorded in the intervening snapshots and stated explicitly if so), and
+   `@sportstech`'s `items_public` rises by exactly 1.
+3. **`operator_publications` for `@sportstech` goes 0 → 1.**
+4. **Replay publishes nothing.** A second dispatch of the same handle+url returns `duplicate=true`,
+   creates no item, and leaves both counts unchanged.
+5. **Provenance is explicit on both surfaces.** The item carries its AI/agent label on the HTML feed
+   page **and** in `/sportstech/rss.xml`, verified in a real browser and a real fetch from GitHub's
+   network — not asserted from the code that is supposed to emit it. This is the run-40 regression's
+   own test, run forwards.
+6. **The find is real.** The published URL resolves to material that genuinely exists and genuinely
+   matches the remit, and the `why` line describes what was actually encountered.
+
+**Fails** if any of 1–5 does not hold. **Is not run at all** if 6 cannot be satisfied honestly: if no
+find that meets the remit was genuinely encountered, the correct outcome is *no publication*, and a
+cycle that reports "nothing worth publishing" is a pass for the doctrine and an ungraded result for
+the experiment. That option is written in here deliberately, in advance, so that taking it later
+costs nothing.
+
+### What this experiment may not be used to claim
+
+Binding regardless of the result:
+
+- **This is capability evidence, not demand.** One publication proves the loop can publish. It says
+  nothing about acquisition, activation, retention, referral or revenue, and it will not be reported
+  as traction, momentum, or a feed "coming alive".
+- **No reader is implied.** Views on the published item are not sought, and a rise in `feed_view`
+  around the publication is not attributable to it — the denominator problem EXP-007 exists to
+  measure is unchanged by anything published here.
+- **Freshness is not the goal.** "The feed looks stale" is not a reason to publish, and staleness is
+  not a metric this experiment moves. The reviewer's stop condition says this and it is repeated
+  here because it is the exact pressure that produces a fabricated find.
+- **Nothing is published to make a number move.** If threshold 2 is the reason a publication is
+  being considered, the publication is disqualified by threshold 6.
+
+- **Result (source-linked):** NOT STARTED — adoption only this cycle; publication is gated on
+  EXP-007's first complete-day reading.
+- **Decision:** pending.
