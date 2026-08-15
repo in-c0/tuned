@@ -1,41 +1,43 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-15 13:45 Sydney (2026-08-15 03:45 UTC), run 42 — **the blocker narrowed by
-half: GitHub is confirmed configured, only the Cloudflare Worker secret is missing** · **OWNER ACTION
-REQUIRED: ONE — [add `AGENT_OPERATOR_KEY` to the Worker](#owner-action-required)** (one place now, not
-two) · **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+**Last updated:** 2026-08-15 13:50 Sydney (2026-08-15 03:50 UTC), run 42 — **the operator credential is
+installed and the control plane is LIVE** · **OWNER ACTION REQUIRED: NONE** ·
+**Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
 
-> **The owner's own `action=list` dispatch cut the blocker in half, and it is worth reading precisely.**
-> At **2026-08-14 22:24:37 UTC** the owner dispatched [agent operator 31846493477](https://github.com/in-c0/tuned/actions/runs/31846493477)
-> with `action=list`. Two facts fall straight out of its log, neither inferred:
+> # The gate is open. `owner: @ava · active 0/12`.
 >
-> 1. **The GitHub Actions repository secret exists.** The job passed the workflow's own
->    `[ -z "${AGENT_OPERATOR_KEY:-}" ]` guard — which would otherwise have exited with *"NOT
->    BOOTSTRAPPED"* and never made a request — and its env block shows `AGENT_OPERATOR_KEY: ***`,
->    GitHub's masking of a present, non-empty value. It then actually called production.
-> 2. **The Cloudflare Worker binding does not.** Production answered `HTTP 503` with the body field
->    **`error=operator key not configured`**. In [`src/operator.ts`](../src/operator.ts) that exact
->    string is the **first** guard in the middleware — it returns before the `ADMIN_KEY` collision
->    check, before the key comparison, and before owner resolution. So this response rules out, by
->    construction, a collision with `ADMIN_KEY` (which says `operator key must differ from admin key`),
->    a value mismatch between the two halves (`401 unauthorized`), and an unresolvable owner
->    (`operator owner not resolvable`). `keyConfigured` is `(value ?? "").trim().length > 0`, so the
->    binding is absent, empty, or whitespace — nothing else reaches that line.
+> **The blocker that stood for eight runs closed during this one.** The owner installed the Cloudflare
+> Worker secret sometime between 22:24 UTC and 03:42 UTC, and the first evidence of it was a side
+> effect of shipping this run's ops commit — not a dispatch sent to look for it.
 >
-> **The workflow's own red annotation is broader than the evidence and should not be read as the
-> diagnosis.** It names three possible causes for any 503; the response body names one. The body wins.
+> | # | Reading | Time (UTC) | Result |
+> | --- | --- | --- | --- |
+> | 1 | Owner's dispatch [31846493477](https://github.com/in-c0/tuned/actions/runs/31846493477) | 08-14 22:24:37 | `HTTP 503` · `error=operator key not configured` — **Worker had no bound value** |
+> | 2 | Push-triggered [verify production 31862472255](https://github.com/in-c0/tuned/actions/runs/31862472255) | 08-15 03:42:09 | `/api/operator/agents` without a key: **`HTTP 401`** — *the key is set and the plane is closed to anonymous callers* |
+> | 3 | One `action=list` — [agent operator 31862547681](https://github.com/in-c0/tuned/actions/runs/31862547681) | 08-15 03:43:10 | **`HTTP 200`** · **`owner: @ava · active 0/12`** · adoptable: `@graphics`, `@sportstech`, `@wearables`, `@wellbeing` |
 >
-> **What this changes for the owner: step 3 of the old card is already done.** The remaining action is
-> the Cloudflare half alone, and the GitHub secret should **not** be rotated — see
-> [OWNER ACTION REQUIRED](#owner-action-required). **The intermediate success signal is now sharp and
-> free:** unauthenticated `/api/operator/agents` returning **401** instead of 503 means the Worker has
-> a usable binding. `verify production` already probes that route on every push and on its daily
-> schedule, so the transition will be observed without anyone dispatching anything.
+> **Reading 2 is the pre-registered resumption signal and it arrived naturally.** The
+> [03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648) authorised
+> exactly one `action=list` on *"a naturally occurring production verification"* moving 503 → 401.
+> That step runs on every push to `master`; it was not dispatched to poll the gate.
 >
-> **Nothing else was done this run.** No source, schema, workflow, product, pricing, distribution,
-> billing or experiment change. No manual dispatch — the reading above is the owner's own run, and the
-> executor re-confirmed nothing. No agent adopted, created or published; `operator_agents` still empty.
-> No queued item opened, inspected, counted, approved or published. **AUD $0.00 of $500.**
+> **Reading 3 is the acceptance criterion, met verbatim.** `owner: @ava · active 0/12` — both halves of
+> the key match, the owner handle resolves to a real member, and `AGENT_OPERATOR_KEY` does not collide
+> with `ADMIN_KEY` (a collision returns 503 before authentication, and a mismatch returns 401). **No
+> secret, charter, token or member data was printed**; the workflow renders named fields only.
+>
+> **And then it stopped, deliberately.** The same review says *"stop before any agent mutation"*.
+> **Nothing was adopted, created, published or disabled** — `operator_agents` is empty and `active` is
+> **0/12**. The four feeds listed are `adoptable`, which is a statement about what the owner already
+> owns, not an action taken on them. Adopting the first one needs a review authorizing it and a public
+> remit in [`ops/agents/`](agents/); a green `list` is permission to reach that decision, not through
+> it.
+>
+> **What has *not* changed.** `items_public` **79**, newest public item still **2026-08-02**,
+> `items_queued` **146**, `applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** from
+> *no billing exists*, spend **AUD $0.00 of $500**. An open control plane is a capability, not traction,
+> and no demand inference is drawn from it. No queued item was opened, inspected, counted, approved or
+> published.
 
 > **"One live connection with nothing to carry" is no longer true, and this file said it for a day.**
 > On **2026-08-14** the Spotify cron ran **30 times, succeeded 30 times, threw no error of any kind,
@@ -190,26 +192,32 @@ two) · **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
 
 ## OWNER ACTION REQUIRED
 
-### **ONE: add `AGENT_OPERATOR_KEY` to the Cloudflare Worker. GitHub is already done.**
+### **NONE.**
+
+**Nothing is being asked of the owner.** The `AGENT_OPERATOR_KEY` card is **closed — success check
+passed** at 2026-08-15 03:43:10 UTC, on its own stated terms rather than on an executor's judgement:
+`action=list` returned `HTTP 200` with **`owner: @ava · active 0/12`**
+([agent operator 31862547681](https://github.com/in-c0/tuned/actions/runs/31862547681)). It is removed
+here the moment it passed, not when it was noticed.
 
 | | |
 | --- | --- |
-| **Severity** | **High.** It is the only thing standing between Tuned and a live agent feed — and unlike the card it replaces, this is the **last** time an agent costs you an authentication step. |
-| **Blocked outcome** | Every public feed stays an archive. Four agent feeds are registered, none has ever published, and the newest item on the site still dates from **2026-08-02**. The landing demo shows a visitor an archive and *"last active 11d ago"* — honest, and not a product. |
-| **Why only you** | A Worker secret can only be set by someone holding Cloudflare credentials. The executor holds none, by design, and never reads this value back: it can only cause it to be *used*, inside a workflow. |
-| **Minimum action** | **One step now — the GitHub half is confirmed installed and must be left alone.** Cloudflare → Workers & Pages → `attention-feed` → Settings → **Variables and Secrets** → add a **Secret** (encrypted type, *not* a plaintext variable) named exactly `AGENT_OPERATOR_KEY`, whose value is **the same value you already put in the GitHub repository secret** → save, and **deploy that version** so the binding is actually bound. A secret added but not deployed does not reach the running Worker. |
-| **If you no longer have the value** | GitHub secrets cannot be read back, so if the value is lost, that is the **one** case where you set both again: generate a new `openssl rand -base64 32`, put it in Cloudflare *and* replace the GitHub repository secret with the same new value. Otherwise do not touch GitHub — rotating a half that already works can only turn a solvable 503 into a 401. |
-| **Do NOT** | Do not paste it into issue #1, a comment, a commit or a file — this repository and that issue are public. Do not reuse `ADMIN_KEY` or `METRICS_KEY`: the control plane **refuses to run** (503) if its key equals `ADMIN_KEY`, because a bounded authority sharing an unbounded key is a fiction. Do not add it as a plaintext **Variable**, and do not place it only in Secrets Store without binding it to this Worker — neither reaches `c.env.AGENT_OPERATOR_KEY`, and both would leave the same 503. |
-| **Success check** | Two rungs, both executable. **Intermediate, and free:** unauthenticated `GET /api/operator/agents` returns **401** instead of **503**. That single transition is exactly what proves the Worker now holds a usable binding, and `verify production` already probes that route on every push and daily on schedule — nobody needs to dispatch anything to see it. **Final:** dispatch **[agent operator](../.github/workflows/agent-operator.yml)** with `action=list`; green with `owner: @ava · active 0/12` means both halves match and the plane is live. It reads only, publishes nothing, and prints no secret, charter or member data. A **401** on that dispatch means the two values differ — only then rotate both. |
-| **Age** | Opened 2026-08-14 (run 38), **narrowed to the Cloudflare half on 2026-08-15 (run 42)** by the owner's own `action=list` dispatch. Replaces the run-36 `AGENT_STUDIO_TOKEN` card, which is **withdrawn before use** — do not action it. |
-| **Surfaced at** | Here, [DASHBOARD.md §1](DASHBOARD.md), and the run-38 and run-42 reports on [issue #1](https://github.com/in-c0/tuned/issues/1). |
+| **Opened** | 2026-08-14 (run 38), replacing the run-36 `AGENT_STUDIO_TOKEN` card, which was withdrawn before use. |
+| **Narrowed** | 2026-08-15 (run 42) to the Cloudflare half alone, on the owner's own 503 reading. |
+| **Closed** | 2026-08-15 03:43:10 UTC (run 42), ~8 hours later, by the owner installing the Worker secret. Total age: **~29 hours**. |
+| **Verified by** | 503 → **401** on a push-triggered [verify production](https://github.com/in-c0/tuned/actions/runs/31862472255), then **200** on one read-only `list`. |
+| **Cost** | AUD $0. No spend, no credential ever read by the executor. |
 
-**How we know the GitHub half is already done**, so you do not have to take it on trust:
-[run 31846493477](https://github.com/in-c0/tuned/actions/runs/31846493477) passed the workflow's own
-"repository secret absent" guard, logged `AGENT_OPERATOR_KEY: ***`, reached production, and was
-refused there with `error=operator key not configured` — the first guard in
-[`src/operator.ts`](../src/operator.ts), which returns before the collision, authentication and owner
-checks. Full reasoning in the banner at the top of this file.
+**The next decision is the reviewer's, not the owner's.** Adopting or creating the first managed agent
+needs a review authorizing it and a public remit in [`ops/agents/`](agents/), and then finds the agent
+genuinely encountered and selected, with what a working agent feed must show **pre-registered before
+any number is read off it**. Four feeds the owner already owns are adoptable — `@graphics`,
+`@sportstech`, `@wearables`, `@wellbeing` — and none has been touched.
+
+**The standing rollback signal on this surface is unchanged and now matters more, not less:**
+`/api/operator/agents` answering **200 without a key** means the control plane is open to anonymous
+callers and is grounds for immediate rollback on sight. `verify production` asserts this on every push
+and daily; it read **401** at 03:42:09 UTC, which is the correct closed state for a live plane.
 
 **What this key can do, exactly.** List managed agents and their public publication history; adopt one
 agent feed you already own; create a new agent feed from a **public** remit; publish one source-linked
@@ -444,26 +452,26 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**Owner:** **one card, at the top of this file — add `AGENT_OPERATOR_KEY` as a Cloudflare Worker
-secret on `attention-feed` and deploy that version.** The GitHub half is confirmed installed; leave it
-alone. One place, not two. Still do not email HN moderation, and do not repost.
+**Owner: nothing.** The card is closed. Still do not email HN moderation, and do not repost.
 
-**Executor, once the secret exists:** dispatch `agent operator` with `action=list` — the read-only
-preflight. Green means both halves match and the plane is live. Then **stop**: creating or adopting
-the first agent needs a review authorizing it and a public remit in [`ops/agents/`](agents/), and a
-green `list` is permission to proceed to that decision, not through it. Once one is authorized:
-publish finds the agent genuinely encountered and selected, label them as the agent's, and
-pre-register what a working agent feed would have to show before reading any number off it.
+**Executor: the preflight is done and the next step is not yours to take alone.** `action=list` ran
+once, returned `owner: @ava · active 0/12`, and **stopped before any mutation** exactly as the
+[03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648) required. Do not
+adopt, create, publish or disable anything on the strength of a green preflight. **Do not re-run
+`list`** — it has answered, and re-reading an answered route is the polling the 09:33 review forbade.
 
-**Executor, while the route still answers 503: hold silently.** Per the [2026-08-14 09:33 UTC
-review](https://github.com/in-c0/tuned/issues/1#issuecomment-5291773039), reaffirmed by the
-[2026-08-15 03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648), this
-means **no manual dispatch of `verify production` or `agent operator` to re-confirm the 503, no
-substitute task, no repeated executor report** while the observed state is unchanged. Resume only on
-(a) the owner reporting the Cloudflare secret deployed, or (b) a **naturally occurring** verification
-showing 503 → 401 — then one `action=list` run, recorded, and stop before any agent mutation. Note
-what the narrowed diagnosis does *not* license: it is a sharper description of the same gate, not a
-change in it, and it is not grounds for another reading of a route that has already answered. Nothing about agent activation in the meantime: do
+**The decision now waiting on the reviewer** — one authorization, and it is genuinely a choice:
+
+| | |
+| --- | --- |
+| **Adopt an existing feed** | `@graphics`, `@sportstech`, `@wearables` or `@wellbeing` already exist and are owned by `@ava`. Adoption is attributable and reversible, and re-adoption restores prior state exactly. |
+| **Or create a new one** | A fresh `kind='agent'` feed from a public remit, with no history to inherit. |
+| **Either way it needs** | A public remit committed to [`ops/agents/`](agents/) — the same text the workflow input carries and that lands in `creators.charter` — **and** a pre-registration of what a working agent feed would have to show, written before any number is read off it. |
+
+**The honest limit to state before that decision, not after.** The executor's egress proxy blocks
+direct page fetches, so an agent it drives encounters material at **result level, not page level**.
+Its selections will be real but shallow, and that is a constraint on how good the first agent feed can
+be — see blocker #4. It is a reason to scope the first remit narrowly, not a reason to fake depth. Nothing about agent activation in the meantime: do
 not create a creator, do not ask for `ADMIN_KEY`, do not invent an agent identity or a remit, do not
 publish under the owner, do not approve the member's **146** private queued items, and do not
 manufacture items. Do not ask for `AGENT_STUDIO_TOKEN` — that card is withdrawn. The credential is the

@@ -1555,3 +1555,63 @@ echoed. Returning to the silent hold; the next executor action is gated on the o
 Cloudflare deploy, or a naturally occurring verification reading 401.
 
 **No spend.** Running total unchanged: **AUD $0.00 of $500**.
+
+### 2026-08-15 (run 42, continued) — the gate opened mid-run, and the card written an hour earlier was already wrong
+
+**This is the same run, and the entry above it is superseded in its conclusion but not in its
+reasoning.** Both are kept deliberately: the diagnosis was correct when written, and the record of a
+loop discovering its own card had gone stale is worth more than a tidy single version.
+
+**Sequence, with times.**
+
+1. **03:41:19 UTC** — the reconciliation commit
+   [`5296c37`](https://github.com/in-c0/tuned/commit/5296c37e88c621e6bf9e40f9b465ba2efeaee396) pushed.
+   [check 31862472254](https://github.com/in-c0/tuned/actions/runs/31862472254) **success**.
+2. **03:42:09 UTC** — [verify production 31862472255](https://github.com/in-c0/tuned/actions/runs/31862472255),
+   **push-triggered**, every step green, expected commit confirmed serving. Its standing operator
+   assertion printed: *"/api/operator/agents without a key: **HTTP 401** — the key is set and the plane
+   is closed to anonymous callers."* **The owner had installed the Cloudflare secret at some point
+   between 22:24 and 03:42.**
+3. **03:43:10 UTC** — one `action=list`
+   ([agent operator 31862547681](https://github.com/in-c0/tuned/actions/runs/31862547681)):
+   **`HTTP 200`**, **`owner: @ava · active 0/12`**, `adoptable (owned, unmanaged): @graphics,
+   @sportstech, @wearables, @wellbeing`.
+
+**Why dispatching `list` was authorized rather than a hold violation.** The
+[03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648) pre-registered the
+resumption condition as *"a naturally occurring production verification changes the unauthenticated
+route from 503 to 401 — then run `agent-operator.yml` once with `action=list`, record the result, and
+stop before any agent mutation."* Reading 2 satisfies it precisely: that step runs on **every push to
+`master`**, it was not dispatched to poll the gate, and it was a byproduct of shipping the directive's
+own change — the same category as run 41's 21:41 reading. One `list` followed, and one only.
+
+**What the 200 proves, by control flow rather than inference.** Reaching a 200 means the key is
+configured (else 503), does **not** equal `ADMIN_KEY` (else 503), the presented value **matches** the
+Worker's (else 401), and `AGENT_OPERATOR_OWNER` resolves to a real member (else 503). The three
+diagnoses excluded an hour earlier stayed excluded; the one remaining cause was fixed by the owner.
+
+**Where it stopped, and why that is the whole point.** `active 0/12`. **Nothing was adopted, created,
+published or disabled.** The four `adoptable` handles are a statement about feeds the owner already
+owns, not an action on them. A green preflight is permission to *reach* the first-agent decision, not
+through it — that decision needs a review authorizing it and a public remit in
+[`ops/agents/`](agents/), plus a pre-registration of what a working agent feed must show before any
+number is read off it. Adopting on the strength of a green `list` would have been exactly the
+authority creep the operator plane was bounded to prevent.
+
+**No secret was exposed.** The workflow prints named fields only and never echoes a raw body; the log
+shows `AGENT_OPERATOR_KEY: ***`. The executor did not read, hash, compare or store the value, and still
+cannot.
+
+**The owner card is closed on its own success check**, at the moment it passed rather than when it was
+noticed — `ops/STATUS.md` and `ops/DASHBOARD.md` §1 now read **NONE**, the first time since
+2026-08-14. Age from open to close: **~29 hours**.
+
+**Explicitly not claimed.** A working control plane is a **capability**, not demand, activation,
+retention or revenue. `items_public` **79**, newest public item **2026-08-02**, `items_queued` **146**,
+`applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** from *no billing exists*. No
+queued item was opened, inspected, counted, approved or published. **AUD $0.00 of $500.**
+
+**Next candidate, for the reviewer to authorize rather than the executor to start:** the first managed
+agent — adopt one of the four existing feeds or create one — with its public remit and its
+pre-registered reading written **before** it publishes anything. The honest constraint to size that
+remit against is blocker #4: the executor's encounters are result-level, not page-level.
