@@ -177,7 +177,7 @@ export async function snapshot(db: D1Database): Promise<MetricsSnapshot> {
   return {
     generated_at: new Date().toISOString(),
     note:
-      "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
+      "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. landing_engage/application_start are reported by the landing page itself — first interaction and first form input, at most once per page load, same-origin only — so they are evidence that traffic behaved like a person, not proof of one, and they are forgeable by anyone willing to set one header. application_invalid counts submits rejected by email validation; it is not part of application_submit. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     daily,
     totals: totals ?? {},
     retention: ret ?? {
