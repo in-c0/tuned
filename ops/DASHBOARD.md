@@ -18,7 +18,19 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> **Newest thing you should know (run 41, 2026-08-15 07:45 Sydney).** **Your Spotify connection came
+> **Newest thing you should know (run 42, 2026-08-15 13:45 Sydney).** **Your `action=list` dispatch
+> last night halved the one thing being asked of you: the GitHub secret is confirmed in place, and only
+> the Cloudflare Worker secret is still missing.** The run failed, but it failed informatively — it got
+> past the "no repository secret" guard and reached production, which proves the GitHub half; and
+> production refused it with `error=operator key not configured`, which is the Worker's *first* check
+> and therefore rules out a value mismatch, a clash with `ADMIN_KEY`, and an owner-resolution problem.
+> **[§1](#1-owner-action-required) is now one step, not three, and you should not touch GitHub.** There
+> is also a free way to see it land: the unauthenticated route flips from **503** to **401**, and the
+> scheduled production check reads that route already. **Nothing else happened this run** — no code,
+> no schema, no workflow, no product change, no dispatch, no agent, nothing touched in your queue,
+> **AUD $0.00 of $500**.
+>
+> **Previously (run 41, 2026-08-15 07:45 Sydney).** **Your Spotify connection came
 > back to life, and it is now the clearest picture of what Tuned is missing.** On 2026-08-14 the cron
 > ran **30 times, succeeded 30 times, errored 0 times and captured 104 plays**. Your private queue went
 > **42 → 146**. **Public items stayed at 79**, and the newest public item is still 2026-08-02.
@@ -64,17 +76,27 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **ONE — install `AGENT_OPERATOR_KEY`. Same value, two places. Two minutes.**
+### **ONE — add `AGENT_OPERATOR_KEY` to the Cloudflare Worker. GitHub is already done.**
 
 | | |
 | --- | --- |
 | **Severity** | **High** — it is the only thing between Tuned and a live agent feed, and the **last** time an agent costs you an authentication step. |
 | **What is blocked** | Every public feed stays an archive. Four agent feeds are registered; none has ever published; the newest item on the site still dates from **2026-08-02**. |
-| **Why only you** | A Worker secret needs Cloudflare credentials; a repository secret needs repo admin. The executor holds neither and never reads the value back — it can only cause it to be used inside a workflow. |
-| **Do this** | **(1)** `openssl rand -base64 32`. **(2)** Cloudflare → Workers & Pages → `attention-feed` → Settings → Variables and Secrets → secret `AGENT_OPERATOR_KEY`. **(3)** GitHub → Settings → Secrets and variables → Actions → repository secret `AGENT_OPERATOR_KEY`, **same value**. |
-| **Never** | Do not paste it into the issue, a comment or a file — this repo and issue are public. Do not reuse `ADMIN_KEY`: the plane **refuses to run** if the two match. |
-| **Check it worked** | Dispatch **[agent operator](../.github/workflows/agent-operator.yml)** with `action=list`. Green with `owner: @ava · active 0/12` = both halves match. Reads only; prints no secret, charter or member data. |
-| **Age** | Opened 2026-08-14 (run 38). **Replaces** the run-36 `AGENT_STUDIO_TOKEN` card, withdrawn before use — do not action that one. |
+| **Why only you** | A Worker secret needs Cloudflare credentials. The executor holds none and never reads the value back — it can only cause it to be used inside a workflow. |
+| **Do this** | **One step.** Cloudflare → Workers & Pages → `attention-feed` → Settings → **Variables and Secrets** → add a **Secret** (encrypted, not a plaintext variable) named exactly `AGENT_OPERATOR_KEY`, value = **the same value already in your GitHub repository secret** → save and **deploy that version**. A secret that is saved but not deployed never reaches the running Worker. |
+| **Leave GitHub alone** | The repository secret is confirmed present and working — see below. Rotating it now could only turn a solvable 503 into a 401. **Exception:** GitHub secrets cannot be read back, so if you no longer have the value, generate a new one and set **both** sides to it. |
+| **Never** | Do not paste it into the issue, a comment or a file — this repo and issue are public. Do not reuse `ADMIN_KEY` or `METRICS_KEY`: the plane **refuses to run** if the two match. Do not add it as a plaintext Variable, or leave it in Secrets Store unbound — neither reaches the Worker. |
+| **Check it worked** | **Free, no action:** unauthenticated `/api/operator/agents` flips from **503** to **401**. `verify production` probes it on every push and daily, so the transition shows up on its own. **Then:** dispatch **[agent operator](../.github/workflows/agent-operator.yml)** with `action=list` — green with `owner: @ava · active 0/12` = both halves match. Reads only; prints no secret, charter or member data. |
+| **Age** | Opened 2026-08-14 (run 38); **narrowed to Cloudflare-only 2026-08-15 (run 42)**. **Replaces** the run-36 `AGENT_STUDIO_TOKEN` card, withdrawn before use — do not action that one. |
+
+**Why we can say GitHub is already done.** You dispatched
+[agent operator 31846493477](https://github.com/in-c0/tuned/actions/runs/31846493477) on 2026-08-14 at
+22:24 UTC. It got past the workflow's own "no repository secret" guard, which would have stopped it
+dead, and reached production — so the GitHub secret is there. Production then refused it with
+`error=operator key not configured`, which in the Worker's code is the **first** check, before it ever
+compares keys or looks at `ADMIN_KEY`. That single sentence rules out a mismatch, a collision and an
+owner problem, and leaves exactly one cause: the Worker has no value bound. The red banner on that run
+lists three possible causes; the response body names the one that actually happened.
 
 **Setting it publishes nothing.** The control plane goes live; no agent is adopted, created or
 published until a review authorizes the first one. Disabling later is one dispatch and destroys
@@ -249,7 +271,7 @@ Full reading and caveats in [METRICS.md](METRICS.md).
 | 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. **The channel meant to fix this was withdrawn as inadmissible on 2026-08-13** (see #3), so there is now no prepared channel and no owner step: the next move is an executor proposal for a *different* one, with admissibility pre-registered. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and nobody's queued action.** See §1. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
 | 3 | **EXP-002 authored, authorized, submitted, killed — and then withdrawn as inadmissible.** Run 34 found it unpublishable on HN's own rules whatever moderation said: AI-written body to be posted as the owner's own comment, application-gated landing page as the URL. Eleven runs verified its *claims* and none asked whether the venue permits that form by that author. | Closed — no owner action | AUD $0 | **Closed unperformed.** Packet fenced WITHDRAWN; EXP-002 `INVALIDATED / NOT STARTED`; checker retired. [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress** — 403 CONNECT at the proxy, **29** consecutive runs, re-tested this run and now confirmed for `hacker-news.firebaseio.com` as well as `justtuned.com` and `*.workers.dev`. Every production and third-party reading in this loop comes from GitHub Actions. | Environment | — | Mitigated, not fixed: Actions is the read path and it works. Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress** — 403 CONNECT at the proxy, **31** consecutive runs, re-tested 2026-08-15 (run 42) against `justtuned.com/api/operator/agents` and confirmed for `hacker-news.firebaseio.com` and `*.workers.dev` as well. Every production and third-party reading in this loop comes from GitHub Actions. | Environment | — | Mitigated, not fixed: Actions is the read path and it works. Standing limitation, not a stop condition. |
 
 ## 6. Current experiment
 
@@ -318,11 +340,11 @@ that turns an attestation into a check.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-15 07:45 Sydney (2026-08-14 21:45 UTC) |
-| **Run** | 41 — **ops-only evidence reconciliation.** The durable claim that Tuned has "one live connection with nothing to carry" was falsified by the 08-14 snapshot: ingestion ran 30×, succeeded 30×, captured **104** plays, and the private queue went **42 → 146** while `items_public` stayed at **79**. Corrected here, in STATUS and in METRICS; [EXP-006](EXPERIMENTS.md)'s original grade and timestamp preserved with the later reading filed separately. No source, schema, workflow or product change; no queued item opened or approved; no manual dispatch; §1 unchanged. Previously, run 37 — the ingestion cron, Tuned's only current producer of items, was made observable through the existing metrics path; [EXP-006](EXPERIMENTS.md) pre-registered before any reading. Graded the same run: **QUIET, NOT BROKEN** — the cron fires, the token still authenticates, and there was simply no new play to capture, so the flat `items_queued` is a true absence of supply rather than a defect (n = 1 poll; the three earlier flat days stay uninterpretable). Nothing was published, no owner card changed. Previously, run 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
+| **Last materially updated** | 2026-08-15 13:45 Sydney (2026-08-15 03:45 UTC) |
+| **Run** | 42 — **ops-only blocker reconciliation.** The owner's `action=list` dispatch ([31846493477](https://github.com/in-c0/tuned/actions/runs/31846493477), 08-14 22:24 UTC) narrowed §1 from "install twice" to **Cloudflare only**: the run cleared the workflow's repository-secret guard (GitHub half present) and was refused by production with `error=operator key not configured`, the first guard in `src/operator.ts`, which excludes mismatch, `ADMIN_KEY` collision and owner resolution. §1 here and in STATUS now name one step, tell the owner **not** to rotate GitHub, and add the free intermediate signal 503 → 401. Blocker #4's egress count corrected to **31** in both files (they disagreed at 29/27). No source, schema, workflow, product, pricing, distribution, billing or experiment change; no dispatch; no agent action; no queued item touched. Previously, run 41 — **ops-only evidence reconciliation.** The durable claim that Tuned has "one live connection with nothing to carry" was falsified by the 08-14 snapshot: ingestion ran 30×, succeeded 30×, captured **104** plays, and the private queue went **42 → 146** while `items_public` stayed at **79**. Corrected here, in STATUS and in METRICS; [EXP-006](EXPERIMENTS.md)'s original grade and timestamp preserved with the later reading filed separately. No source, schema, workflow or product change; no queued item opened or approved; no manual dispatch; §1 unchanged. Previously, run 37 — the ingestion cron, Tuned's only current producer of items, was made observable through the existing metrics path; [EXP-006](EXPERIMENTS.md) pre-registered before any reading. Graded the same run: **QUIET, NOT BROKEN** — the cron fires, the token still authenticates, and there was simply no new play to capture, so the flat `items_queued` is a true absence of supply rather than a defect (n = 1 poll; the three earlier flat days stay uninterpretable). Nothing was published, no owner card changed. Previously, run 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
 | **Repository commit at time of writing** | [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3) |
 | **Data commit** | [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3) — `generated_at` 2026-08-14T20:58:56Z, read through the public zone by the scheduled snapshot job. **This is the reading that moved:** content totals and ingestion counters in §4 come from it. The **§4 stage table still comes from [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) (08-12)** and is labelled stale in place. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §4's content totals, §6's EXP-006 entry and this section are current as of the 08-14 snapshot; §1 is current as of run 36 (and unchanged since); §7 as of run 37; §4's **stage table** is two days stale at the 08-12 snapshot; §2, §3's 1-week row and §5 are current as of run 34. **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §4's content totals, §6's EXP-006 entry and this section are current as of the 08-14 snapshot; **§1 is current as of run 42**, and §5's blocker #4 was corrected the same run; §7 as of run 37; §4's **stage table** is two days stale at the 08-12 snapshot; §2, §3's 1-week row and §5 are current as of run 34. **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

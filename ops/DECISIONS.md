@@ -1480,3 +1480,78 @@ where a healthy cron reads `cron_run = 48`. Not investigated under the current h
 only thing asked of the owner.
 
 **No spend.** Running total unchanged: **AUD $0.00 of $500**.
+
+---
+
+## 2026-08-15 (run 42) — the blocker was half-solved already, and the loop was still asking for both halves
+
+**Directive** ([2026-08-15 03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648)):
+one ops-only blocker reconciliation. Rewrite the `AGENT_OPERATOR_KEY` owner card from *install twice*
+to **Cloudflare half only**, state that GitHub is confirmed configured, change nothing else, and
+return to the silent hold.
+
+**The evidence, verified independently before acting on it.** The reviewer's diagnosis rests on one
+run, so it was re-read from source rather than accepted:
+
+- [agent operator 31846493477](https://github.com/in-c0/tuned/actions/runs/31846493477), dispatched
+  **by the owner** (`workflow_dispatch`, actor `in-c0`) at **2026-08-14 22:24:37 UTC**, `action=list`,
+  conclusion **failure**. Not an executor dispatch — the silent hold was not broken to obtain it.
+- Its log shows `AGENT_OPERATOR_KEY: ***` in the step env and the job proceeding past the workflow's
+  own `[ -z "${AGENT_OPERATOR_KEY:-}" ]` guard at
+  [`agent-operator.yml:91`](../.github/workflows/agent-operator.yml). That guard exits with a
+  NOT BOOTSTRAPPED notice and never issues a request, so reaching the `curl` **is** the proof that the
+  GitHub repository secret exists and is non-empty.
+- Production answered `HTTP 503 from /api/operator/agents` with `error=operator key not configured`.
+  In [`src/operator.ts:140`](../src/operator.ts) that is the **first** statement of the gate
+  middleware, returning before the `ADMIN_KEY` collision check (`:145`), the key comparison (`:149`)
+  and owner resolution (`:162`). `keyConfigured` is `(value ?? "").trim().length > 0`
+  ([`src/keys.ts:36`](../src/keys.ts)).
+
+**Decision: adopt the narrowed diagnosis, and say what it excludes.** The response body rules out — by
+control flow, not inference — a value mismatch between the halves, a collision with `ADMIN_KEY`, and an
+unresolvable owner handle. The Worker has no bound value. **The workflow's own red annotation names
+three possible causes for any 503 and is therefore wider than this evidence**; recorded explicitly so a
+future run does not read the annotation as the finding. The annotation is not wrong, it is generic.
+
+**One point of implementation agency, and it cuts against the directive's literal wording.** The review
+says not to ask the owner to rotate GitHub. Correct as a default — but GitHub secrets **cannot be read
+back**, so an owner who no longer holds the generated value has no way to copy it into Cloudflare. The
+card therefore states the default (*leave GitHub alone*) and one narrow exception (*if the value is
+lost, set both sides to a new one*), rather than issuing an instruction that is impossible to follow in
+a case nobody had checked for. Stating a precondition the directive assumed is not widening it.
+
+**Also added, because it costs the owner nothing:** the intermediate success signal. Unauthenticated
+`/api/operator/agents` returning **401** instead of **503** is sufficient to prove a usable binding, and
+`verify production` already probes that route on every push and on its daily schedule. The transition
+will be observed without any dispatch by anyone — which is what lets the hold stay silent rather than
+polled.
+
+**Two card defects fixed while rewriting it**, both of which would have produced a 503 that looked
+identical to the current one: the secret must be an encrypted **Secret** rather than a plaintext
+Variable, and **the version must be deployed** — a saved-but-undeployed secret never reaches
+`c.env.AGENT_OPERATOR_KEY`.
+
+**One correction outside the card, inside the same reconciliation.** Blocker #4's egress count read
+**27** in STATUS and **29** in DASHBOARD — a mirror disagreeing with its source about a number both
+claimed to have re-tested. Direct egress was re-tested this run (`403 CONNECT`, `justtuned.com` still
+denied) and both were set to **31**, the count carried forward from run 41's record plus this run.
+
+**A near-miss worth recording, and it is [L-15](LESSONS.md) for the third time.** The edits were first
+written on a **detached HEAD** at `fe2448e`, and an attempt to move onto `master` was chained as
+`git checkout master && git reset --hard origin/master`. The checkout aborted on the dirty tree; the
+`reset --hard` then ran anyway and **destroyed every edit**. Recovered by redoing them — but the
+second lesson is the one that matters: local `refs/heads/master` was **11 commits stale** at `39e82b6`,
+exactly the run-37 disguise, so committing from it would have silently reverted four merged runs.
+Fixed by `merge --ff-only origin/master` before re-editing. **`&&` is not a safety mechanism, and a
+`reset --hard` in a chain is an unguarded destructive step.** No published state was affected: the loss
+was local, uncommitted and entirely recoverable.
+
+**What was deliberately not done.** No source, schema, workflow, product, pricing, distribution,
+billing, milestone or experiment change. **No manual dispatch of `verify production` or
+`agent operator`** — the 503 has already been read and re-reading it is the noise the 09:33 review
+forbade. No agent adopted, created or published; `operator_agents` remains empty. No queued item
+opened, inspected, counted, approved, summarised or published. No secret read, hashed, compared or
+echoed. Returning to the silent hold; the next executor action is gated on the owner reporting the
+Cloudflare deploy, or a naturally occurring verification reading 401.
+
+**No spend.** Running total unchanged: **AUD $0.00 of $500**.
