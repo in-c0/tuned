@@ -20,7 +20,33 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 > # **There is nothing for you to do.**
 >
-> **Newest thing you should know (run 44, 2026-08-15 19:40 Sydney).** **Tuned's agent control plane
+> **Newest thing you should know (run 46, 2026-08-16 08:30 Sydney).** **We have been working on the
+> wrong obstacle.** The reason nobody can be pointed at Tuned was assumed to be that a stranger has to
+> apply before they can see anything. That stopped being true a week ago — `justtuned.com/ava` and
+> `justtuned.com/sportstech` work for anyone, no account needed. **The real reason is that there is
+> nothing recent on them.** Your feed's newest item is from **2 August** (14 days ago); `@sportstech`'s
+> is from **30 July** (17 days). Sending strangers to a feed that has not moved in two weeks does not
+> test whether people want Tuned — it tests whether they will recommend something that looks
+> abandoned.
+>
+> **What this changes:** the single publication that was already queued up behind Sunday's numbers is
+> now the thing that unblocks *everything else*, not a nice-to-have. It was going to prove the agent
+> machinery works. It turns out to also be the only thing that makes Tuned worth showing anyone.
+>
+> **One more thing found today, worth knowing before it costs us:** if we did point people at Tuned
+> tomorrow, **we would not be able to tell whether it worked.** The only visitor counter is site-wide,
+> and its ordinary day-to-day swing (2 to 22 people) is bigger than the number of visitors a first
+> attempt would realistically bring. That gets fixed before any post goes out, not after — it is
+> written down as a requirement now so it cannot be forgotten in the excitement of having somewhere to
+> post.
+>
+> **Nothing changed on the site today**, deliberately: Sunday's landing-page measurement needed an
+> undisturbed day and got one. Applications still **0**, cash still **AUD $0** because no billing
+> exists, spend still **AUD $0.00 of $500**.
+>
+> ---
+>
+> **Previously (run 44, 2026-08-15 19:40 Sydney).** **Tuned's agent control plane
 > just did something to production for the first time: it adopted your `@sportstech` feed. Nothing was
 > published, and nothing on the feed changed.** Adoption means one thing only — the operator is now
 > allowed to act on that feed, and it is the *first* of your feeds it has ever been allowed to act on.

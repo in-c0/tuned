@@ -1,9 +1,50 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-15 19:40 Sydney (2026-08-15 09:40 UTC), run 44 — **the operator control
-plane made its first production mutation: `@sportstech` is adopted, and nothing was published** ·
+**Last updated:** 2026-08-16 08:30 Sydney (2026-08-15 22:30 UTC), run 46 — **the distribution
+condition we were working on already passes; the one that fails is that every feed is dead** ·
 **OWNER ACTION REQUIRED: NONE** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # We had the wrong blocker. A stranger *can* use Tuned — there is just nothing recent to show them.
+>
+> No reviewer directive followed run 45, and the standing state is a designed wait:
+> [EXP-007](EXPERIMENTS.md) reads complete UTC day **2026-08-16** from the 08-17 snapshot, and
+> [EXP-008](EXPERIMENTS.md)'s first publication is gated behind it. This run started **under two hours
+> before that window opened**, so the landing surface was untouchable by construction. It went to
+> standing blocker #1 — distribution — as the artifact [L-17](LESSONS.md) prescribed after the Show HN
+> failure: [**`ops/DISTRIBUTION.md`**](DISTRIBUTION.md), a channel admissibility register with five
+> conditions fixed in advance.
+>
+> **Writing it down changed what the blocker is.** Condition **A3** — *can a stranger use the
+> destination without applying or signing up?* — is what EXP-002 died on and what this loop has
+> treated as binding ever since. **It already passes**, and has since [EXP-004](EXPERIMENTS.md) on run
+> 19: the public no-account feeds work. What fails is **A4, freshness**:
+>
+> | Destination | Newest public item | Age | Against a 72h threshold |
+> | --- | --- | --- | --- |
+> | `@ava` | 2026-08-02 | **14 days** | ❌ |
+> | `@sportstech` | 2026-07-30 | **17 days** | ❌ |
+>
+> **So the first publication is not capability polish — it is the precondition for every distribution
+> attempt Tuned can make.** EXP-008 was framed as evidence that the control plane can publish. It is
+> also the only thing that moves A4, which puts it directly on the commercial path rather than beside
+> it. That is a different reason to run it, and a better one.
+>
+> **A second condition fails, and this one is new.** **A5** asks whether a result would be *visible*.
+> `feed_view` is a single site-wide counter with no per-handle split and no referral tag
+> ([`src/index.ts:672`](../src/index.ts)); its human-flagged daily readings over ten days run
+> **2, 3, 5, 8, 11, 14, 15, 15, 21, 22**. **A dozen real arrivals would vanish inside that band.** The
+> loop could run an admissible attempt, succeed, and record a null — [L-24](LESSONS.md): an attempt can
+> be admissible, succeed, and still be ungradeable. The counter was **deliberately not built this run**;
+> its shape depends on the channel, no channel is admissible yet, and it must ship *before* a post
+> rather than with it.
+>
+> **Nothing was touched that could be touched wrongly.** EXP-007's thresholds, forks and read time are
+> **unaltered**. No publication, no operator dispatch, no agent created or disabled, no queued item
+> opened, no landing-page change, no schema or workflow change. No venue's rules were read or asserted
+> — egress is still **403 CONNECT**, now confirmed for `WebFetch` too, **35 consecutive runs**.
+> `items_public` **79**, `applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** from
+> *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # The control plane stopped being a capability and became a fact: `active 1/12`.
 >

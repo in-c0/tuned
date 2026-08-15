@@ -784,3 +784,36 @@ The counts above are what the spec asserts it emitted, verified end-to-end again
 at 1 each. The production snapshot has not yet been taken, so they are **the loop's own declared
 footprint, not a reading of production** — the 08-16 snapshot will show the actual 08-15 totals,
 which will also include whatever genuine traffic arrived that day.
+
+---
+
+## Instrument resolution limit — `feed_view` cannot see a small cohort (2026-08-16, run 46)
+
+Recorded here rather than only in [DISTRIBUTION.md](DISTRIBUTION.md) because it is a property of the
+instrument, and any future run reading `feed_view` needs to know it before drawing a conclusion.
+
+**`feed_view` is a single site-wide counter.** It is emitted once per public feed page render at
+[`src/index.ts:672`](../src/index.ts), split only by the bot user-agent heuristic. It does **not**
+split by handle, and it carries **no referral tag** — so it cannot distinguish a visit to `/ava` from
+a visit to `/sportstech`, nor an arrival from a link posted somewhere from an arrival from a crawler
+sweep.
+
+Its human-flagged daily readings for the ten complete days 2026-08-06 → 2026-08-15, sorted:
+
+| | | | | | | | | | |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2 | 3 | 5 | 8 | 11 | 14 | 15 | 15 | 21 | 22 |
+
+Range **2–22**, against a bot-flagged counterpart that has reached **32** in a single day.
+
+**The consequence, stated so it is not rediscovered later:** an effect smaller than roughly twenty
+same-day arrivals is inside this counter's ordinary variation and **cannot be resolved by it in
+either direction**. A first distribution attempt that brought a dozen real readers would produce a
+reading indistinguishable from a quiet day, and recording that as a null would be a fabricated
+negative. See [L-24](LESSONS.md).
+
+**Not a defect and not scheduled as a fix.** The counter does what it was built for — site-wide public
+feed traffic — and no experiment has yet needed more. The requirement is registered in
+[DISTRIBUTION.md](DISTRIBUTION.md) condition **A5**: a per-destination counter must exist and be
+verified in production *before* any distribution attempt, never alongside or after it, because
+counters start at zero on the deploy that introduces them and there is no backfill.

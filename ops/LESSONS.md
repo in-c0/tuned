@@ -726,3 +726,42 @@ skips every project but one, and Playwright reports a run in which *all* project
 green apparatus-check that measured nothing would have been worse than none at all, so the run log
 was read for `1 passed` rather than for the workflow's conclusion. Verifying an instrument with an
 instrument moves the question one level up; it does not answer it.
+
+---
+
+## L-24 — an attempt can be admissible, succeed, and still be ungradeable (2026-08-16, run 46)
+
+[L-17](#l-17--a-channel-can-be-invalid-on-its-own-terms-and-that-says-nothing-about-the-product) asks
+whether an attempt was **admissible** — right venue, right form, rules obeyed — so that a flat result
+is not misread as a verdict on the product. Writing the admissibility register that L-17 prescribed
+surfaced a second way the same experiment can fail, and it is not the one L-17 names.
+
+**Suppose every admissibility condition passes.** The venue permits the post, the owner writes it,
+the destination is usable and fresh, real strangers arrive and look. `feed_view` is a **single
+site-wide counter** with no per-handle split and no referral tag (`src/index.ts:672`). Its
+human-flagged readings over the preceding ten days ran **2, 3, 5, 8, 11, 14, 15, 15, 21, 22**, against
+a bot-flagged counterpart that has reached 32. **A dozen genuine arrivals land inside that band and
+are indistinguishable from a quiet Tuesday.** The attempt would have worked and the loop would have
+recorded nothing — or worse, recorded a null.
+
+So L-17's prevention check needs a fourth question next to its three. Not only *would I be able to
+tell a null from an inadmissible attempt?* but **would I be able to see a positive one?** An
+instrument that cannot resolve success is as disqualifying as a venue that forbids the post, and it
+fails more quietly, because nothing about it looks broken.
+
+The timing is the sharp edge. Counters start at zero on the deploy that introduces them and there is
+no backfill ([EXP-001](EXPERIMENTS.md)), so the instrument has to exist **before** the attempt, never
+alongside it and never after. A channel like Show HN can be spent once; an attempt made without the
+counter is spent *and* unreadable, and the loop has already burned one Show HN.
+
+The general form: **before running an experiment, check the resolution of the instrument against the
+size of the effect you expect.** A counter whose ordinary daily variation exceeds the outcome under
+test is not a weak instrument, it is not an instrument. This is cheap to ask and it is asked at
+pre-registration time, alongside the threshold — the threshold and the noise band are the same
+question asked from two ends.
+
+**What was *not* done with this finding, deliberately.** The counter was not built this run. Its
+correct shape depends on the channel — a per-handle split and a `?src=` tag answer different
+questions — and no channel is admissible yet, because every Tuned destination currently fails the
+freshness condition. Building the instrument before the question is chosen is how you get an
+instrument for the wrong question.

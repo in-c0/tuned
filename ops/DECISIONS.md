@@ -1808,3 +1808,53 @@ it removes one explanation from that gate's ambiguity in advance. `applications`
 `members_ever_active` **0**, `items_public` **79**, `items_queued` **146**, gross cash **AUD $0** from
 *no billing exists*. **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500
 cap.**
+
+## 2026-08-16 — run 46: wrote the channel admissibility register, and found the binding condition was not the one we were working on
+
+- **Context: no directive.** Run 45 posted at 10:19 UTC; no reviewer pass followed it. The standing
+  state is a designed wait — [EXP-007](EXPERIMENTS.md) reads complete UTC day **2026-08-16** from the
+  08-17 scheduled snapshot, and [EXP-008](EXPERIMENTS.md)'s first publication is gated behind that
+  reading. This run began at **22:04 UTC on 08-15**, under two hours before EXP-007's window opens,
+  so any landing-surface change was off the table by construction.
+- **Decision: spend the run on standing blocker #1 — distribution — as a decision artifact, not as
+  code.** It is the one thing that is needed under *every* fork EXP-007 can land on, it was named by
+  the executor as unstarted and unscoped for two runs running, and [L-17](LESSONS.md) prescribes
+  exactly this artifact: *"pre-register a channel's admissibility conditions alongside its thresholds,
+  at the moment of pre-registration."* Doc-only, so it contaminates nothing.
+- **Shipped [`ops/DISTRIBUTION.md`](DISTRIBUTION.md)** — five admissibility conditions fixed in
+  advance (A1 venue rules, A2 authorship, A3 usable destination, A4 freshness, A5 separability and
+  visibility), each with the evidence that counts as a pass; the candidate register; the permanently
+  inadmissible list; and the ordered procedure for moving a channel to ADMISSIBLE.
+- **The finding that reorders the dependency graph.** A3 — *a stranger can use the destination* — is
+  the condition this loop believed was binding after EXP-002, and it **already passes**: the public
+  no-account feeds have worked since [EXP-004](EXPERIMENTS.md) passed on run 19. What fails is
+  **A4, freshness**: `@ava`'s newest public item is **2026-08-02** and `@sportstech`'s is
+  **2026-07-30**, 14 and 17 days old, against a threshold of 72 hours set here in advance. Every
+  Tuned destination fails it. **So EXP-008's first publication is not capability polish — it is the
+  precondition for any distribution attempt at all**, which is a materially different reason to run
+  it than "prove the control plane works".
+- **The second finding, and it is new rather than inherited.** A5 fails too. `feed_view` is a single
+  site-wide counter with no per-handle split and no referral tag (`src/index.ts:672`), and its
+  human-flagged daily range over ten days is **2–22**. A dozen real arrivals would be invisible
+  inside it. Recorded as [L-24](LESSONS.md): an attempt can be admissible, succeed, and still be
+  ungradeable.
+- **Decision: the A5 counter was NOT built this run**, and that is a judgement rather than an
+  omission. Its correct shape depends on the channel chosen — a per-handle split and a `?src=` tag
+  answer different questions — and no channel is admissible until A4 clears, which is weeks of
+  dependency away. Building it now risks an instrument for the wrong question; the register instead
+  states it as a **requirement that must ship before the post, never after**, so the reviewer can
+  authorize it in one line when the channel is known. Counters start at zero with no backfill, and a
+  Show HN can be spent once — the loop has already burned one.
+- **EXP-007 was not touched.** No threshold, fork, read time or claim was altered, exactly as run 45
+  left it. The register notes only that Fork A's next-action pointer names `EXP-002`, which is
+  **INVALIDATED / NOT STARTED** and withdrawn, and that this register is what that pointer resolves
+  to when it is read on 08-17. Editing a pre-registration's grading rules hours before its window
+  opens is the thing pre-registration exists to prevent, and it was not done.
+- **No venue rules were read, and none are asserted.** Egress is still **403 CONNECT** — re-tested
+  this run for `justtuned.com`, `news.ycombinator.com` and `example.com`, and confirmed for `WebFetch`
+  as well as `curl`. **35 consecutive runs.** A1/A2 are marked UNREAD in the register with the
+  GitHub-network mechanism named; claiming rules from memory is the precise error L-17 records.
+- **No production mutation of any kind:** no publication, no operator dispatch, no agent created,
+  adopted or disabled, no queued item opened or approved, no landing-page change, no schema change,
+  no workflow change. `npm run check` exit **0**, `vitest run` **90/90**.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
