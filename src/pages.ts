@@ -771,6 +771,25 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     if (h < 24) { t.textContent = "active " + rel(p.dataset.latest); }
     else { p.classList.add("idle"); t.textContent = "last active " + rel(p.dataset.latest); }
   }
+  // Funnel pulse — see the /api/pulse route in src/index.ts and EXP-007. Two one-shot
+  // signals, fired at most once per page load: did anything on this page get touched by
+  // something behaving like a person, and did that reach the application form. No cookie,
+  // no identifier, nothing stored in the browser.
+  const pulse = (n) => { fetch("/api/pulse/" + n, { method: "POST", keepalive: true }).catch(() => {}); };
+  let engaged = false, started = false;
+  const engage = () => {
+    if (engaged) return;
+    engaged = true;
+    ["pointerdown", "keydown", "scroll"].forEach(ev => removeEventListener(ev, engage));
+    pulse("landing_engage");
+  };
+  ["pointerdown", "keydown", "scroll"].forEach(ev => addEventListener(ev, engage, { passive: true }));
+  document.getElementById("waitlist").addEventListener("input", () => {
+    engage();
+    if (started) return;
+    started = true;
+    pulse("application_start");
+  });
   document.getElementById("waitlist").addEventListener("submit", async (e) => {
     e.preventDefault();
     const out = document.getElementById("wl-out");

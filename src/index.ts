@@ -93,13 +93,49 @@ app.get("/", async (c) => {
 
 app.post("/waitlist", async (c) => {
   const { email, role, note } = await c.req.json<{ email?: string; role?: string; note?: string }>();
-  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) return c.json({ error: "invalid email" }, 400);
+  // A rejected submit is someone who tried to join and did not. It has been invisible:
+  // `application_submit` only counts the ones that worked, so a broken validator and an
+  // empty funnel look identical in the snapshot.
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) {
+    track(c, count(c.env.DB, "application_invalid"));
+    return c.json({ error: "invalid email" }, 400);
+  }
   const safeRole = ["fan", "creator", "agent", "both"].includes(role ?? "") ? role : "fan";
   await c.env.DB.prepare("INSERT OR IGNORE INTO waitlist (email, role, note) VALUES (?, ?, ?)")
     .bind(email.toLowerCase(), safeRole, (note ?? "").slice(0, 280))
     .run();
   track(c, count(c.env.DB, "application_submit"));
   return c.json({ ok: true });
+});
+
+// ---------- funnel pulse ----------
+//
+// Between `landing_view` and `application_submit` there is nothing at all, and the gap has
+// been answering **0 applications** for nine days against 56–113 UA-flagged human-shaped
+// landing views a day. Three unrelated explanations produce that identical zero:
+//
+//   1. the traffic is not human (the UA heuristic over-counts, and nobody real is arriving);
+//   2. real people arrive, read the page, and the offer does not move them;
+//   3. people want in and the form loses them before it is submitted.
+//
+// No counter on either side of the gap can tell those apart, so nothing anyone changes on
+// this page is measurable. These two counters — plus `application_invalid` below — separate
+// them. See EXP-007 in ops/EXPERIMENTS.md for the pre-registered reading.
+//
+// Deliberately bounded: an allowlist of exactly two names, no request body, no response
+// body, no cookie, no identifier of any kind, no per-visitor state. Same-origin only, which
+// stops casual inflation but is forgeable by anyone willing to set one header — these are
+// page-reported counters, and the snapshot's own note says so rather than implying proof.
+// Nothing here changes what the privacy policy already describes: no new data category is
+// collected and nothing is stored in the visitor's browser.
+const PULSE_COUNTERS = new Set(["landing_engage", "application_start"]);
+app.post("/api/pulse/:name", (c) => {
+  const name = c.req.param("name");
+  if (!PULSE_COUNTERS.has(name)) return c.body(null, 404);
+  // Browsers send Origin on every same-origin POST; curl and friends send none.
+  if (c.req.header("origin") !== new URL(c.req.url).origin) return c.body(null, 403);
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? `${name}_bot` : name));
+  return c.body(null, 204);
 });
 
 app.get("/terms", (c) => c.html(termsPage()));

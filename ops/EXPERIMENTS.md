@@ -867,3 +867,123 @@ member's attention, not the executor's inventory.
 liveness check. One arithmetic gap is logged in [METRICS.md](METRICS.md) as a future candidate —
 `cron_run = 30` against 42 expected boundaries — deliberately not investigated under the current hold,
 and gradeable only against a complete UTC day (`cron_run = 48`).
+
+## EXP-007 — is there a human on the other side of the landing page? (2026-08-15, run 43)
+
+**Pre-registered at 2026-08-15 ~04:20 UTC (14:20 Sydney), before the counters it reads existed and
+therefore before any value of them could be known.** Written first on purpose. The forks below each
+carry a different next action, and three of them redirect the loop away from what it is currently
+doing — which is exactly the property that is lost if the reading is taken first and the rule written
+after it.
+
+### The question
+
+Nine UTC days of production traffic, and the two ends of the acquisition funnel read:
+
+| | 08-06 | 08-07 | 08-08 | 08-09 | 08-10 | 08-11 | 08-12 | 08-13 | 08-14 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `landing_view` (UA-flagged human-shaped) | 29 | 69 | 56 | 56 | 84 | 71 | 67 | 113 | 60 |
+| `application_submit` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+Source: [`ops/metrics/latest.json`](metrics/latest.json), `generated_at` 2026-08-14T20:58:56Z. **605
+human-shaped landing views, zero applications, and nothing recorded in between.**
+
+[EXP-003](#exp-003--application-mechanism-test-can-a-visitor-actually-apply-2026-08-08-run-18)
+already killed one explanation: the apply path is **mechanically sound** in a real browser at both
+widths, so this is not a broken form. Three explanations survive, they produce **identical** numbers
+in the table above, and no counter Tuned currently has can separate them:
+
+1. **The denominator is not human.** The UA heuristic over-counts; ~600 "human-shaped" views are
+   crawlers that dodged the regex. Nobody real has arrived, so nothing about the page is failing.
+2. **The offer does not land.** Real people arrive, read, and leave without reaching for the form.
+3. **The form loses people who wanted in.** Intent exists and is destroyed between the first
+   keystroke and a successful submit.
+
+- **Hypothesis:** these three are distinguishable with counters that require no cookie, no visitor
+  identifier and no new data category — because they behave differently *before* the submit, and
+  Tuned currently observes nothing before the submit.
+
+- **Baseline (source-linked):** the table above. `landing_engage`, `application_start` and
+  `application_invalid` do not exist and read nothing on any day up to and including 2026-08-14.
+
+- **Change (commit/deploy):** three counters, one bounded route.
+  - `landing_engage` — fired once per page load on the first `pointerdown`, `keydown` or `scroll`.
+  - `application_start` — fired once per page load on the first `input` into the application form.
+  - `application_invalid` — server-side, on a `POST /waitlist` rejected by email validation. This one
+    closes a real blind spot: `application_submit` counts only the submits that *worked*, so a
+    validator defect and an empty funnel have been indistinguishable for nine days.
+
+  Both page-side counters post to `POST /api/pulse/:name`: an allowlist of exactly two names, no
+  request body, no response body, same-origin only, 204. Bot-shaped user agents are split into
+  `*_bot` rather than filtered, following the rule `landing_view` already follows.
+
+### Why this reverses a prior deferral, deliberately
+
+EXP-003's decision (2026-08-08) says, verbatim: *"A CTA-reach counter is still worth adding, but
+second, and only against known-human arrivals; added now it would measure crawler behaviour at some
+cost in noise."* That reasoning was correct on its own terms and is **overturned here on two
+grounds**, recorded so the reversal is visible rather than quietly forgotten:
+
+1. **It assumed the counter would measure crawler behaviour. It is being run to *test* that
+   assumption.** EXP-003 named "the denominator is not known to contain humans" as the thing blocking
+   every downstream experiment. `landing_engage` is the cheapest available measurement of exactly
+   that, and reading ~0 against ~600 views is not noise — it is fork 1 confirmed, in numbers, for the
+   first time.
+2. **The gate EXP-003 deferred to has not moved in eight days.** Known-human traffic was to come from
+   [EXP-002](#exp-002--first-distribution-smoke-test-show-hn-to-agent-operators-2026-08-07-run-9),
+   which has been **NOT STARTED — awaiting owner authorization** since 2026-08-07. Deferring
+   measurement until after a channel that is owner-gated means the channel arrives ungradeable, with
+   no before-reading to compare against.
+
+### Success threshold (falsifiable, fixed in advance)
+
+**Instrument validity gate, graded first.** On the first complete UTC day after deploy, the sum of
+`landing_engage` + `landing_engage_bot` must be **≥ 1**. If it is exactly 0 while `landing_view` is
+non-zero, the instrument is **broken or blocked**, no fork below may be graded, and the next action
+is to fix the pulse — not to conclude anything about humans. (A JS error that produces silent zeros
+would otherwise be indistinguishable from fork 1, which is the failure this gate exists to prevent.)
+
+**Read at:** the first scheduled `ops/metrics/` snapshot covering a **complete** UTC day after the
+deploy. Not before, and not from a dispatched snapshot.
+
+Forks are exclusive and each carries its next action:
+
+- **Fork A — THE DENOMINATOR IS NOT HUMAN.** `landing_view` ≥ 40 and `landing_engage` ≤ 2.
+  *Reading:* the ~600-view figure does not describe people. Conversion is not the problem and the
+  landing page is not the problem. *Next action:* stop all landing-page optimisation; the binding
+  constraint is distribution, and it is owner-gated (EXP-002). Report it as such and do not
+  substitute page work for it.
+- **Fork B — THE OFFER DOES NOT LAND.** `landing_engage` ≥ 10 and `application_start` ≤ 1.
+  *Reading:* real people arrive from somewhere and never reach for the form. *Next action:* the
+  proposition is now the highest-value bounded test, and for the first time it is gradeable —
+  `application_start / landing_engage` is the metric it moves.
+- **Fork C — INTENT EXISTS AND IS BEING LOST.** `application_start` ≥ 3 and `application_submit` = 0.
+  *Reading:* people want in and the form destroys it. *Next action:* cut the form to email-only and
+  measure `application_submit / application_start`. This would be the most commercially valuable
+  fork, and it is the one currently invisible.
+- **Fork D — VALIDATION IS EATING APPLICATIONS.** `application_invalid` ≥ 1, on any day.
+  *Reading:* somebody tried to join and was refused. *Next action:* immediate — this is a defect, not
+  an experiment, and it outranks the fork it co-occurs with. Reported alongside A/B/C rather than
+  instead of them.
+- **Fork E — UNDER-POWERED.** Anything else. *Reading:* the day does not carry enough signal to
+  separate the forks. *Next action:* state the shortfall, wait for a second complete day, and grade
+  nothing. Explicitly permitted: a fork may go ungraded.
+
+### What this experiment may not be used to claim
+
+Registered in advance, and binding on whatever number arrives:
+
+- **`landing_engage` is evidence, not proof.** It is reported by the page, same-origin only, and
+  forgeable by anyone who sets one header. A headless browser running a stock Chrome UA counts as
+  human here; the local browser QA for this change was itself bucketed to `landing_engage_bot`
+  because Playwright's UA contains `HeadlessChrome`, which is the split working, not a guarantee.
+- **No engagement number is demand, activation, retention, referral or revenue.** A page being
+  touched is a page being touched.
+- **No conversion rate may be computed against `landing_view`** as though it were a human
+  denominator. That is the assumption under test; using it would beg the question.
+- **Nothing here is graded against the 605 historical views.** The counters start at zero on the
+  deploy that introduces them, and the nine days before it stay uninterpretable, exactly as the three
+  flat pre-instrumentation ingestion days did in EXP-006.
+
+- **Result (source-linked):** PENDING — no complete UTC day has elapsed since deploy.
+- **Decision:** pending the reading above.

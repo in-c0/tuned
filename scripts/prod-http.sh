@@ -76,6 +76,22 @@ cmd_get() {
   printf '%s\n' "$code"
 }
 
+# post <url>
+#
+# A bodyless POST under the same contract, for asserting that a write route is deployed and
+# refuses the caller. Deliberately narrower than `get`: no body is sent, no body is read,
+# and **no Origin header is ever set**. /api/pulse/:name writes a counter only for a
+# same-origin caller, so a verifier that could satisfy that guard would be manufacturing
+# the traffic it exists to measure. Refusal is the assertion.
+cmd_post() {
+  local url="$1"
+  local -a hdr=()
+  while IFS= read -r -d '' arg; do hdr+=("$arg"); done < <(_headers 'application/json' 0)
+  local code
+  code=$(curl -sS --max-time "${TIMEOUT:-30}" -X POST "${hdr[@]}" -o /dev/null -w '%{http_code}' "$url") || code="000"
+  printf '%s\n' "$code"
+}
+
 # probe <url> [label] [accept] [authed]
 #
 # Safe diagnostics. Requests the URL twice — once as a bare curl exactly like the callers
@@ -152,8 +168,9 @@ cmd_vantage() {
 
 case "${1:-}" in
   get)     shift; cmd_get "$@" ;;
+  post)    shift; cmd_post "$@" ;;
   probe)   shift; cmd_probe "$@" ;;
   vantage) shift; cmd_vantage "$@" ;;
   origin)  printf '%s\n' "$ORIGIN_BASE" ;;
-  *) echo "usage: prod-http.sh get <url> <outfile> [accept] [authed] | probe <url> [label] [accept] [authed] | vantage | origin" >&2; exit 2 ;;
+  *) echo "usage: prod-http.sh get <url> <outfile> [accept] [authed] | post <url> | probe <url> [label] [accept] [authed] | vantage | origin" >&2; exit 2 ;;
 esac
