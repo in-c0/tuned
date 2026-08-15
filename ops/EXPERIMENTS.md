@@ -985,7 +985,54 @@ Registered in advance, and binding on whatever number arrives:
   deploy that introduces them, and the nine days before it stay uninterpretable, exactly as the three
   flat pre-instrumentation ingestion days did in EXP-006.
 
-- **Result (source-linked):** PENDING — no complete UTC day has elapsed since deploy.
+### Apparatus validated in production before the gate reads it (2026-08-15, run 45)
+
+**No threshold, fork, read time or claim above is changed by this section.** It records a check on
+the *instrument*, run deliberately on UTC day **2026-08-15** so that nothing it caused lands in the
+2026-08-16 window this experiment reads.
+
+The validity gate is correct and it is also load-bearing in a way worth naming: it is the only thing
+separating a silent JavaScript failure from a confident, wrong Fork A. It fires on the 08-17
+snapshot, and its remedy — "fix the pulse" — costs this experiment the only clean first reading it
+will ever get. Two facts existed before this run and neither closed that gap: `test/pulse.test.ts`
+proves the **route** counts, holds its allowlist and rejects foreign origins against a real D1 in
+workerd; run 44 proved from GitHub's network that the deployed route answers **403** to a caller with
+no `Origin`. The untested half was the page: whether the listeners attach in a real browser against
+production and whether the request they send is accepted. The counters sit at the end of one inline
+`<script>`, and anything throwing earlier detaches them and produces exactly the zeros Fork A
+predicts.
+
+[`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs), dispatched against
+`https://justtuned.com` — [run 31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766),
+**success**, with `/api/version` recording `ba7ae7d` as the build actually serving. The desktop test
+**passed** rather than skipped (`1 passed`, `1 skipped` being the deliberate mobile skip), which is
+checked here because two skipped projects would have reported green while measuring nothing:
+
+| Asserted against live production | Observed |
+| --- | --- |
+| No page error before any interaction | none |
+| No pulse fires on bare page load | none |
+| A real `keydown` emits `landing_engage` | **204** |
+| The browser's `Origin` equals the page origin | holds — the same-origin half run 44's 403 could not reach |
+| One-shot: further keystrokes and a scroll do not re-fire | exactly 1 |
+| Typing into the form emits `application_start` | **204**, exactly 1 |
+| No pulse name outside the server-side allowlist; no non-204 | holds |
+| The application form is never submitted | not submitted |
+
+**What this does and does not do to the reading.** It removes "the instrument is broken" as an
+explanation *in advance*, so a 0 on 08-16 is evidence about arrivals rather than an ambiguity. It
+does **not** retire the gate: the gate is still graded first, and a 0 reading would still mean the
+instrument was blocked or detached at some point in the intervening two days, which this check cannot
+foresee. It also says nothing about humans — a headless browser touching a page is not a person, and
+this run's own increments are the proof of that.
+
+**Contamination, stated rather than assumed.** The check caused, on UTC day 2026-08-15 only,
+`landing_view_bot`, `landing_engage_bot` and `application_start_bot` — bot-classified because the
+harness announces itself as `HeadlessChrome`, so they never enter the human-flagged counters the
+forks read, nor the day they read them. `applications` is untouched and stays at 0.
+
+- **Result (source-linked):** PENDING — no complete UTC day has elapsed since deploy. The apparatus
+  is verified live as of 2026-08-15 10:11 UTC; the reading itself is still the 08-17 snapshot.
 - **Decision:** pending the reading above.
 
 ---

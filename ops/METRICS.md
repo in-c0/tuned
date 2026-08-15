@@ -757,3 +757,30 @@ measure.
 **No metric moved this run, and none is claimed.** `items_public` **79**, `items_queued` **146**,
 `applications` **0**, `members_ever_active` **0**. **Gross cash collected: AUD $0**, sourced from *no
 billing exists*. **Autonomous spend: AUD $0.00 of the AUD $500 cap.**
+
+## Self-inflicted counters on UTC day 2026-08-15 (run 45) — declared before they are read
+
+Run 45 dispatched [`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs) against
+production ([run 31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766)) to prove
+EXP-007's page-side counters actually emit. That browser session **caused counter increments**, and
+this section exists so no later run reads them as arrivals.
+
+On **UTC day 2026-08-15 only**, one page load and one interacted session, attributable entirely to
+this loop:
+
+| Counter | Increments caused | Why it is in the bot bucket |
+| --- | --- | --- |
+| `landing_view_bot` | 1 | the harness user-agent contains `HeadlessChrome` |
+| `landing_engage_bot` | 1 | same |
+| `application_start_bot` | 1 | same |
+
+None of the three human-flagged names — `landing_view`, `landing_engage`, `application_start` — was
+touched, and `applications` was not touched at all: the form was typed into and **never submitted**.
+Day 2026-08-15 is not a day EXP-007 grades; its reading is complete UTC day **2026-08-16**, from the
+scheduled 08-17 snapshot.
+
+The counts above are what the spec asserts it emitted, verified end-to-end against a local
+`wrangler dev` before the production dispatch, where `metric_days` showed exactly those three names
+at 1 each. The production snapshot has not yet been taken, so they are **the loop's own declared
+footprint, not a reading of production** — the 08-16 snapshot will show the actual 08-15 totals,
+which will also include whatever genuine traffic arrived that day.
