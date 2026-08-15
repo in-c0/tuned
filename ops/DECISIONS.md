@@ -1615,3 +1615,72 @@ queued item was opened, inspected, counted, approved or published. **AUD $0.00 o
 agent — adopt one of the four existing feeds or create one — with its public remit and its
 pre-registered reading written **before** it publishes anything. The honest constraint to size that
 remit against is blocker #4: the executor's encounters are result-level, not page-level.
+
+## 2026-08-15 (run 43) — the funnel's middle was dark, and a standing hold was keeping it that way
+
+**Decision: instrument the gap between `landing_view` and `application_submit`, and reverse the hold
+that had prevented it since run 18.** One PR, [#38](https://github.com/in-c0/tuned/pull/38), merged as
+[`3213ebf`](https://github.com/in-c0/tuned/commit/3213ebf01d463aeadbbd699bfaae138599200d27).
+
+**The state that forced it.** The live directive — the
+[03:33 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5300331648) — was fully
+executed by run 42 and terminated in *"stop before any agent mutation"*. The next agent step is the
+reviewer's to authorize and has not been. So the question this run had to answer was: what is the
+highest-value bounded action that respects that stop?
+
+By the numbers it was not close. **605 UA-flagged human-shaped landing views over nine UTC days, and
+0 applications, with nothing recorded in between.** [EXP-003](EXPERIMENTS.md) had already removed the
+mechanism explanation by driving a real browser through the apply path in production. The three
+remaining explanations — *the denominator is not human*, *the offer does not land*, *the form loses
+people who wanted in* — produce **identical** numbers, and Tuned observed nothing between the two ends
+of the funnel. Every possible change to that page was therefore unmeasurable, and the loop had been
+reasoning about the page for nine days without an instrument on it.
+
+**What shipped.** `landing_engage` and `application_start` (page-reported, one-shot per page load,
+through `POST /api/pulse/:name` — an allowlist of exactly two names, no request body, no response
+body, no cookie, no identifier, no per-visitor state, same-origin only, 204, bot-shaped agents split
+into `*_bot` rather than filtered) and `application_invalid` (server-side, on a `POST /waitlist`
+rejected by email validation). Rows in the existing `metric_days` table, read through the existing
+key-gated `/api/metrics`. **No schema change, no new table, no new read endpoint. No new data category
+is collected, so the privacy policy needed no amendment and got none** — that would have been a
+material-terms change and a stop condition.
+
+### The reversal, recorded because it is one
+
+EXP-003's decision paragraph, 2026-08-08, verbatim: *"A CTA-reach counter is still worth adding, but
+second, and only against known-human arrivals; added now it would measure crawler behaviour at some
+cost in noise."* That sentence has stood in `ops/STATUS.md`'s *Next action* as **"not a CTA-reach
+counter"** ever since. It is struck there, not deleted, and overturned on two grounds:
+
+1. **It assumed the answer.** EXP-003 named "the denominator is not known to contain humans" as the
+   thing blocking every downstream experiment, then declined to measure it on the assumption that the
+   measurement would only show crawlers. `landing_engage` is run precisely to **test** that
+   assumption; ~0 engagement against ~600 views is fork A confirmed in numbers for the first time,
+   which is a finding rather than noise.
+2. **The gate it deferred to has not moved in eight days.** Known-human traffic was to arrive via
+   [EXP-002](EXPERIMENTS.md), **NOT STARTED — awaiting owner authorization** since 2026-08-07.
+   Instrumenting only after the channel means the channel arrives with no before-reading.
+
+**What remains held, and was not touched:** no copy rewrite, no positioning change, no pricing work,
+and no conversion rate computed against `landing_view` as though it were a human denominator — that is
+the assumption under test, and using it would beg the question.
+
+### The instrument is asserted, not assumed
+
+A JS error, a stripped route or an edge rule would make all three counters read zero, which is
+**identical** to fork A. That is the one reading this loop must not get wrong by accident, so
+`verify production` now POSTs to `/api/pulse/landing_engage` **with no Origin header** on every push
+and schedule: **403** passes, **404** fails as *the instrument is not deployed*, **204** fails as *the
+counters are writable by anyone*. Both failures are roll-back signals. The verifier cannot satisfy the
+guard it tests — `scripts/prod-http.sh post` sends no Origin by construction, because a monitor able
+to increment the counter would be manufacturing the traffic it exists to measure.
+
+[EXP-007](EXPERIMENTS.md) was pre-registered **before the counters existed**, with five exclusive
+forks, an instrument validity gate ahead of them, and an explicit list of what no number may be used to
+claim. First reading: the scheduled snapshot covering the complete UTC day **2026-08-16**.
+
+**Explicitly not claimed.** An instrument is not traction. `items_public` **79**, newest public item
+**2026-08-02**, `items_queued` **146**, `applications` **0**, `members_ever_active` **0**, gross cash
+**AUD $0** from *no billing exists*. **No agent was adopted, created, published or disabled**;
+`active` remains **0/12**. No queued item was opened, inspected, counted, approved or published.
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

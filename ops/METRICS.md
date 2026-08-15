@@ -676,3 +676,84 @@ verified human traffic.
 
 **Gross cash collected: AUD $0**, sourced from *no billing exists*. **Autonomous spend: AUD $0.00 of
 the AUD $500 cap.**
+
+## Acquisition telemetry — added 2026-08-15 14:20 Sydney (2026-08-15 04:20 UTC), run 43
+
+**Nothing below is a reading.** Three counters were added this run and **all three read zero on every
+day committed so far**, because they did not exist until [`3213ebf`](https://github.com/in-c0/tuned/commit/3213ebf).
+This section records what they are and what may be concluded from them, written before any value of
+them is known. The pre-registered forks are [EXP-007](EXPERIMENTS.md).
+
+### The gap they close
+
+| | 08-06 | 08-07 | 08-08 | 08-09 | 08-10 | 08-11 | 08-12 | 08-13 | 08-14 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `landing_view` | 29 | 69 | 56 | 56 | 84 | 71 | 67 | 113 | 60 |
+| `application_submit` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**605 UA-flagged human-shaped landing views. Zero applications. Nothing recorded in between.** The
+two columns are the *ends* of the acquisition funnel and Tuned has never observed its middle, so
+three unrelated causes have been producing one indistinguishable pair of numbers for nine days:
+
+1. the ~600 views are not people;
+2. they are people and the offer does not move them;
+3. they are people who wanted in and the form lost them.
+
+[EXP-003](EXPERIMENTS.md) removed a fourth (a broken apply path) by driving a real browser through it
+in production. The remaining three are what the counters below separate.
+
+### The three counters
+
+| Name | Fires | Written by |
+| --- | --- | --- |
+| `landing_engage` / `landing_engage_bot` | first `pointerdown`, `keydown` or `scroll`, **at most once per page load** | the page, via `POST /api/pulse/landing_engage` |
+| `application_start` / `application_start_bot` | first `input` into any application-form field, **at most once per page load** | the page, via `POST /api/pulse/application_start` |
+| `application_invalid` | a `POST /waitlist` rejected by email validation | the Worker, server-side |
+
+`application_invalid` closes a blind spot of its own. `application_submit` counts only the submits
+that **worked**, so since 08-06 a broken validator and an empty funnel have been indistinguishable —
+a person who typed a real address the regex rejected left no trace at all.
+
+No schema change, no new table, no new endpoint on the read path: these are rows in the existing
+`metric_days` table, arriving through the existing key-gated `/api/metrics`. **No cookie, no visitor
+identifier, no per-visitor state, no new data category** — the privacy policy describes this
+collection already and was deliberately not amended.
+
+### What may not be read off them
+
+Registered in advance, and binding whatever the numbers turn out to be:
+
+- **`landing_engage` is evidence, not proof.** It is reported by the page itself. The route requires a
+  same-origin `Origin` header, which stops casual inflation and is **forgeable by anyone willing to
+  set one header**. A headless browser sending a stock Chrome user-agent counts as human here.
+- **The bot split is the same heuristic as `landing_view`, with the same limits.** It is honest about
+  what it catches: the local browser QA for this change landed in `landing_engage_bot`, because
+  Playwright's user-agent contains `HeadlessChrome`.
+- **No conversion rate may be computed against `landing_view`** as though it were a human
+  denominator. Whether it *is* one is the question under test.
+- **Engagement is not demand, activation, retention, referral or revenue.** A page being touched is a
+  page being touched.
+- **Nothing is graded against the 605 historical views.** Counters start at zero on the deploy that
+  introduced them, exactly as the ingestion counters did in run 37, and the nine days before this
+  deploy stay uninterpretable for these three names.
+
+### The instrument's own failure mode, and the assertion against it
+
+A JavaScript error, a stripped route or an edge rule would make all three read zero — which is
+**identical** to fork A, *"nobody human ever arrived"*. That is the one reading this loop must not get
+wrong by accident, so it is asserted in production rather than assumed: `verify production` now POSTs
+to `/api/pulse/landing_engage` **with no Origin header** on every push and every schedule.
+
+| Response | Meaning |
+| --- | --- |
+| **403** | pass — deployed, and refusing to count a caller that is not the page |
+| **404** | the instrument is not deployed; its zeros mean nothing. Roll back |
+| **204** | the same-origin guard is gone and anyone can write these counters. Roll back |
+
+The verifier **cannot** satisfy the guard it tests — `scripts/prod-http.sh post` sends no Origin by
+construction. A monitor able to increment the counter would be manufacturing the traffic it exists to
+measure.
+
+**No metric moved this run, and none is claimed.** `items_public` **79**, `items_queued` **146**,
+`applications` **0**, `members_ever_active` **0**. **Gross cash collected: AUD $0**, sourced from *no
+billing exists*. **Autonomous spend: AUD $0.00 of the AUD $500 cap.**

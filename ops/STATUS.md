@@ -1,8 +1,50 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-15 13:50 Sydney (2026-08-15 03:50 UTC), run 42 — **the operator credential is
-installed and the control plane is LIVE** · **OWNER ACTION REQUIRED: NONE** ·
+**Last updated:** 2026-08-15 14:35 Sydney (2026-08-15 04:35 UTC), run 43 — **the gap between 605
+landing views and 0 applications is instrumented for the first time** · **OWNER ACTION REQUIRED: NONE** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # Nine days of "0 applications" had three explanations and no way to tell them apart.
+>
+> | | 08-06 | 08-07 | 08-08 | 08-09 | 08-10 | 08-11 | 08-12 | 08-13 | 08-14 |
+> | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+> | `landing_view` | 29 | 69 | 56 | 56 | 84 | 71 | 67 | 113 | 60 |
+> | `application_submit` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+>
+> **605 human-shaped landing views, zero applications, and nothing recorded in between.**
+> [EXP-003](EXPERIMENTS.md) already killed the mechanism explanation — the apply path works in a real
+> browser at both widths. Three survive, they produce *identical* numbers above, and until this run no
+> counter Tuned had could separate them: **the denominator is not human**, **the offer does not land**,
+> or **the form loses people who wanted in**. Every possible change to that page was unmeasurable.
+>
+> **Three counters now separate them.** `landing_engage` (first pointerdown/keydown/scroll, once per
+> page load), `application_start` (first input into the form, once per load), and `application_invalid`
+> (a `POST /waitlist` rejected by email validation — a submit that *tried* and failed, invisible until
+> now because `application_submit` only counts the ones that worked). They ride the `metric_days` table
+> and `/api/metrics` read path that already exist: no schema change, no new table, no cookie, no
+> visitor identifier, no new data category — **so the privacy policy needs no amendment and gets none**.
+>
+> **[EXP-007](EXPERIMENTS.md) is pre-registered with five exclusive forks**, each carrying a different
+> next action, and an **instrument validity gate** ahead of them: if `landing_engage + landing_engage_bot`
+> is exactly 0 while `landing_view` is non-zero, the instrument is broken and **no fork may be graded**.
+> A JS error producing silent zeros would otherwise be indistinguishable from fork A — the very reading
+> it exists to detect. Production asserts the same thing on every push: `POST /api/pulse/landing_engage`
+> with no Origin must answer **403**; a 404 means the instrument is absent and a 204 means the counters
+> are writable by anyone. Both are roll-back signals.
+>
+> **This reverses a hold this file carried, and the reversal is deliberate.** *"Not a CTA-reach
+> counter"* has been in the *Next action* section since run 18, on EXP-003's reasoning that such a
+> counter should wait for known-human arrivals. That reasoning assumed the counter would only measure
+> crawlers — and this one is run precisely to **test** that assumption, which EXP-003 itself named as
+> the thing blocking every downstream experiment. The traffic it deferred to was to come from
+> [EXP-002](EXPERIMENTS.md), **owner-gated and NOT STARTED for eight days**. Waiting for a channel that
+> has not arrived would mean it arrives with no before-reading to compare against.
+>
+> **Nothing here is traction, and no number has moved.** `items_public` **79**, newest public item
+> still **2026-08-02**, `items_queued` **146**, `applications` **0**, `members_ever_active` **0**, gross
+> cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**. **No agent was adopted,
+> created, published or disabled**, and no queued item was opened, inspected, counted, approved or
+> published. The first reading of EXP-007 cannot exist before a complete UTC day has passed.
 
 > # The gate is open. `owner: @ava · active 0/12`.
 >
@@ -408,10 +450,10 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered, and that proposal is the run-34 next candidate rather than something already underway. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and now nobody's queued action.** |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered, and that proposal is the run-34 next candidate rather than something already underway. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and now nobody's queued action.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **31 consecutive runs**, re-tested 2026-08-15 (run 42). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **32 consecutive runs**, re-tested 2026-08-15 (run 43). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 **Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
 Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
@@ -423,6 +465,14 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Current experiment
 
+- **EXP-007 — is there a human on the other side of the landing page? PENDING (run 43).**
+  Pre-registered 2026-08-15 ~04:20 UTC, **before the counters it reads existed**. Five exclusive forks
+  — *the denominator is not human* / *the offer does not land* / *intent exists and is being lost* /
+  *validation is eating applications* / *under-powered* — each with its own next action, and an
+  instrument validity gate ahead of all of them. **Read at the first scheduled `ops/metrics/` snapshot
+  covering a complete UTC day after deploy**, which is the 08-17 snapshot for UTC day 08-16. Not
+  before, and not from a dispatched snapshot. Nothing is graded against the 605 historical views: the
+  counters start at zero on the deploy that introduced them.
 - **EXP-001 — funnel telemetry baseline: PASSED / CLOSED.** Threshold was a non-zero `landing_view`
   or `landing_view_bot` on ≥1 day; observed non-zero on **all three** days. The instrumentation is
   confirmed working end to end in production, and the pre-registered "zero means no traffic" fork
@@ -487,7 +537,7 @@ owner to authorize, not something to start unasked — and the honest preconditi
 Tuned currently has **no directly usable destination** for a stranger, which is itself a candidate
 piece of work rather than a copy change.
 
-Explicitly **not** a copy or positioning rewrite, **not** a CTA-reach counter, **not** a reworded
+Explicitly **not** a copy or positioning rewrite, ~~**not** a CTA-reach counter,~~ **not** a reworded
 resubmission, **not** a second Hacker News account or a second link to the same site, and **not** a
 replacement channel invented and executed this cycle. ~~The one engineering candidate that survives is
 the flat `items_public` / `items_queued` count, unexamined since run 31 recorded it.~~ **Taken up in
@@ -497,6 +547,16 @@ to read the counters and grade the fork.~~ **Done — graded run 37 (QUIET, NOT 
 run 41: the queue is no longer flat.** 08-14 captured **104** plays and `items_queued` went 42 → 146
 while `items_public` stayed at **79**. Ingestion is not the constraint; publication is, and
 publication is a human act.
+
+**The CTA-reach hold was lifted in run 43, and struck above rather than deleted.** It stood on
+EXP-003's reasoning that such a counter should wait for known-human arrivals, which assumed the
+counter would only measure crawlers. [EXP-007](EXPERIMENTS.md) is run to **test** that assumption —
+EXP-003 named the unknown denominator as the thing blocking every downstream experiment, and
+`landing_engage` is the cheapest measurement of it. The traffic the hold deferred to was to come from
+EXP-002, owner-gated and NOT STARTED for eight days. **What remains held is everything the hold was
+really protecting:** no copy rewrite, no positioning change, no pricing work, and no conversion rate
+computed against `landing_view` as though it were a human denominator — that is the assumption under
+test, and using it would beg the question.
 
 **The candidate that replaces it is small, engineering-shaped and deliberately parked:** `cron_run`
 recorded **30** on 08-14 against **42** expected `*/30` boundaries by the 20:58 UTC snapshot — about
