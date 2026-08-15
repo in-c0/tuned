@@ -157,6 +157,34 @@ jobs:
           # yet, 401 = installed.
           echo "Unauthenticated \`/api/operator/agents\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Funnel pulse is deployed and refuses a foreign caller
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          # EXP-007's instrument. Two things have to be true of it in production and neither
+          # can be read from here any other way: the route exists, and it will not write a
+          # counter for a caller that is not the page.
+          #
+          # No Origin header is sent, so this request can never increment anything — the
+          # refusal IS the assertion. 404 would mean the route is not deployed and EXP-007 is
+          # reading zeros from an absence; 204 would mean the same-origin guard is gone and
+          # anyone can write into the numbers this loop reasons from. Both are rollbacks.
+          code=$(scripts/prod-http.sh post "${BASE}/api/pulse/landing_engage")
+          case "$code" in
+            403) echo "/api/pulse/landing_engage with no Origin: HTTP 403 — deployed, and it refuses to count a caller that is not the page." ;;
+            204)
+              echo "::error::/api/pulse/landing_engage accepted a POST with NO Origin — the counters are writable by anyone. Roll back."
+              exit 1 ;;
+            404)
+              echo "::error::/api/pulse/landing_engage returned 404 — the EXP-007 instrument is not deployed; its zeros would mean nothing."
+              exit 1 ;;
+            *)
+              echo "::error::/api/pulse/landing_engage returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          echo "Unauthenticated \`POST /api/pulse/landing_engage\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Public pages still render
         env:
           BASE: ${{ steps.vantage.outputs.base }}
