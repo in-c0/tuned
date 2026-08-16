@@ -76,10 +76,24 @@ function refuse(raw) {
   return null;
 }
 
+// Every locator call in this file carries an explicit timeout, and that is not defensive style — it
+// is the fix for run 47's second dispatch. The shared playwright.config.mjs sets no `actionTimeout`,
+// so an unbounded locator inherits the *test* timeout: on a page whose body never settles,
+// `body.innerText()` waited out the entire 180s envelope, returned "" through its own .catch(), and
+// left nothing for the screenshot. The reading came back `visible_text_chars: 0` and looked exactly
+// like "the site served a blank page" when what happened was "this spec never asked with a deadline".
+// A wrong reading that looks like a finding is worse than a failure.
+const LOCATOR_MS = 5_000;
+const BODY_TEXT_MS = 20_000;
+
 /** First non-empty value among a list of meta selectors, or null. */
 async function firstMeta(page, selectors) {
   for (const sel of selectors) {
-    const v = await page.locator(sel).first().getAttribute("content").catch(() => null);
+    const v = await page
+      .locator(sel)
+      .first()
+      .getAttribute("content", { timeout: LOCATOR_MS })
+      .catch(() => null);
     if (v && v.trim()) return v.trim();
   }
   return null;
@@ -102,14 +116,18 @@ async function publishedAt(page) {
 
   const ld = await page
     .locator('script[type="application/ld+json"]')
-    .allTextContents()
+    .allTextContents({ timeout: LOCATOR_MS })
     .catch(() => []);
   for (const block of ld) {
     const m = block.match(/"datePublished"\s*:\s*"([^"]+)"/);
     if (m) return { value: m[1], source: "json-ld" };
   }
 
-  const t = await page.locator("time[datetime]").first().getAttribute("datetime").catch(() => null);
+  const t = await page
+    .locator("time[datetime]")
+    .first()
+    .getAttribute("datetime", { timeout: LOCATOR_MS })
+    .catch(() => null);
   if (t && t.trim()) return { value: t.trim(), source: "time[datetime]" };
 
   return null;
@@ -153,8 +171,19 @@ test.describe("source read — open one candidate page and report what is actual
     ]);
     const published = await publishedAt(page);
 
-    const bodyText = await page.locator("body").innerText().catch(() => "");
+    // Two very different outcomes used to collapse into the same empty string: the body genuinely
+    // contained no text, and this call never finished. They must stay distinguishable — "the
+    // publisher served a blank page" is a finding about the source, "the reader gave up" is a finding
+    // about the reader, and reporting the second as the first is how an instrument starts lying.
+    let bodyText = "";
+    let textStatus = "read";
+    try {
+      bodyText = await page.locator("body").innerText({ timeout: BODY_TEXT_MS });
+    } catch {
+      textStatus = "extraction-timed-out";
+    }
     const normalized = bodyText.replace(/\s+/g, " ").trim();
+    if (textStatus === "read" && normalized.length === 0) textStatus = "empty-body";
 
     // Reported, never asserted. A consent or paywall interstitial still "loads" with HTTP 200, and
     // the difference between reading an article and reading its gate is the whole question here.
@@ -172,6 +201,7 @@ test.describe("source read — open one candidate page and report what is actual
       published_at: published?.value ?? null,
       published_at_source: published?.source ?? null,
       visible_text_chars: normalized.length,
+      visible_text_status: textStatus,
       excerpt: normalized.slice(0, EXCERPT_CHARS),
       excerpt_truncated: normalized.length > EXCERPT_CHARS,
       possible_gate_markers: gates,
@@ -215,6 +245,6 @@ test.describe("source read — open one candidate page and report what is actual
     // it says this candidate cannot be encountered — so it is recorded above and then failed here,
     // loudly, rather than passing quietly as though the page had been read.
     expect(status, `page returned HTTP ${status}`).toBeLessThan(400);
-    expect(normalized.length, "page served no visible text").toBeGreaterThan(0);
+    expect(normalized.length, `page yielded no visible text (${textStatus})`).toBeGreaterThan(0);
   });
 });

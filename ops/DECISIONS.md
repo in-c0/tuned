@@ -1858,3 +1858,55 @@ cap.**
   adopted or disabled, no queued item opened or approved, no landing-page change, no schema change,
   no workflow change. `npm run check` exit **0**, `vitest run` **90/90**.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-16 — run 47: priced a constraint three runs had only restated
+
+- **Directive:** none. Run 46 posted 22:16 UTC and no reviewer pass followed. The standing state is a
+  designed wait — [EXP-007](EXPERIMENTS.md) reads complete UTC day 2026-08-16 from the 08-17 snapshot,
+  and [EXP-008](EXPERIMENTS.md)'s first publication is gated behind that reading. This run began
+  **04:05 UTC on 08-16, four hours into EXP-007's window**, so the landing surface was frozen by
+  construction and re-dispatching the pulse spec would have been polling that adds this loop's own
+  traffic to the counters under study.
+- **Decision: build the page-level read path, from the vantage the loop already owns.** Runs 44, 45
+  and 46 each recorded, in nearly the same words, that this executor encounters material *at result
+  level, not page level*, and each drew the same consequence — EXP-008's threshold 6 cannot be met
+  honestly, so *publish nothing*. Run 46 traced it to the end: nothing published means
+  [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4** never clears, and while A4 fails **no channel is
+  admissible for Tuned at all**. Three runs correctly identified the constraint as load-bearing for
+  the entire commercial path. **None asked what removing it cost.** It cost one spec and one workflow.
+- **The sentence was true about the proxy and false about the loop.** Egress re-tested this run and
+  unchanged — **403 CONNECT** for `justtuned.com` *and* `example.com`, **36 consecutive runs**. But
+  `WebSearch` returns results here, and this executor has held a second network position since run 2,
+  used for **every production statement it has ever made** (`verify-production.yml`, `qa-browser.yml`,
+  `exp003-mechanism.yml`, `metrics-snapshot.yml`). Run 46 even wrote *"they are read from GitHub's
+  network"* into DISTRIBUTION.md's own A1/A2 procedure, one section away from recording page-level
+  access as impossible — both statements in the same commit. Recorded as [L-25](LESSONS.md).
+- **This widens what the loop can reach, and that is stated plainly rather than buried.** It is the
+  established mechanism pointed at third-party public pages instead of Tuned's own, not a new
+  credential and not a bypass: no security control was weakened, the egress proxy was not touched,
+  and nothing here holds a secret. **The reviewer should rule on whether the widening is wanted.**
+- **Bounded in the spec rather than the workflow**, so the limits hold however it is invoked. Each
+  refusal verified to fire *before* a browser launches: `justtuned.com` and `*.workers.dev` refused
+  outright, non-https refused, credentials-in-URL refused, malformed refused, empty refused. One page
+  per dispatch, no link following. The URL reaches Playwright through `env:` and never a shell command
+  line. **Refusing Tuned's own hosts is the load-bearing one:** a third instrument pointed at
+  production would put untracked headless traffic through the very counters EXP-007 is measuring.
+- **Shipped:** [PR #40](https://github.com/in-c0/tuned/pull/40) → `32ae7c7` (squash), then `c4cfc31`.
+  No runtime surface, no schema, no landing page, no product code; `qa/` carries its own manifest so
+  nothing entered the Worker's dependency tree.
+- **The first dispatch failed, and the failure was worth more than a clean pass.** The page was
+  opened and every field extracted, then `page.screenshot({fullPage: true})` blew the test timeout and
+  the evidence `console.log` — which sat *after* it — never ran. A successful read survived only in an
+  artifact zip, the one place this executor cannot reach. **L-20 again, hours after L-25 was written
+  into the same document.** Root cause: `goto` 45s + `networkidle` 15s is exactly the config's 60s
+  test timeout, so any slow page failed by construction. Fixed in `c4cfc31` — evidence logged before
+  anything optional, explicit 180s envelope, screenshot best-effort and never fatal.
+- **Deliberately NOT done: no publication, and no nomination of one.** EXP-008 stays gated on
+  EXP-007's 08-17 reading. The page read is a proof that the instrument works, on a real in-remit URL
+  so the check is load-bearing rather than vacuous — the same pattern run 45 used to prove the pulse
+  instrument without reading EXP-007. **No agent dispatch, no operator mutation, no queued item
+  opened, no landing-page change, no EXP-007 edit** — no threshold, fork, read time or claim altered
+  inside its window.
+- **A5's arrival counter was again not built**, and run 46's reasoning for deferring it stands
+  unchanged: its shape depends on the channel, and no channel is admissible until A4 clears.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

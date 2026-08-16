@@ -208,6 +208,17 @@ In this order. Each step writes its evidence into this file before the next begi
    pre-register the arrival threshold and the window. Never after the post.
 3. **A1.** Read the venue's rules from GitHub's network. Quote them here with URL, date and run link.
    Answer explicitly: *does this venue permit a post of exactly this form, by exactly this author?*
+
+   **The mechanism now exists** (run 47): dispatch
+   [`source-read.yml`](../.github/workflows/source-read.yml) with the rules URL. It opens the page in
+   a real browser from GitHub's network and prints the title, publication date and a bounded excerpt
+   into the run log, with a screenshot as artifact. Quote **from that log**, cite the run, and record
+   the date the page itself states — a rules page read this way is a dated source, and reciting rules
+   from memory remains the [L-17](LESSONS.md) error whether or not a reader exists.
+
+   Reading a venue's published rules is **not** activity at that venue and authorizes nothing. In
+   particular it does not reopen Hacker News: EXP-002 is withdrawn, and the standing hold on *any* HN
+   activity by anyone on the executor's initiative is unchanged by the ability to read the guidelines.
 4. **A2.** State who writes each string. If the venue requires human authorship, the owner writes it
    and this executor supplies only facts to be checked.
 5. **A3.** Re-verify the exact submitted URL renders for an unauthenticated client.
@@ -223,6 +234,14 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
 
 ## Change log
 
+- **2026-08-16 (run 47)** — A1's read mechanism built and proved:
+  [`source-read.yml`](../.github/workflows/source-read.yml) +
+  [`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs). No condition, threshold or verdict in this
+  file changed — every candidate is still INADMISSIBLE, A4 still fails on every Tuned destination, and
+  A1/A2 stay **UNREAD** until a venue's rules are actually quoted from a dated read. What changed is
+  that step 3 is now performable instead of aspirational, and the same instrument is what lets
+  EXP-008's threshold 6 be answered honestly rather than conceded — which is the only thing that can
+  move A4.
 - **2026-08-16 (run 46)** — created. Test A1–A5 fixed in advance; A3 recorded as already satisfied;
   A4 and A5 recorded as failing with their evidence; A5's visibility half identified this run from
   `src/index.ts:672` and the ten-day `feed_view` range. No channel authorized, no venue rules read

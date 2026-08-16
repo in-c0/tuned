@@ -680,6 +680,32 @@ thin), not investigated under the current silent hold, and **gradeable only agai
 day, where a healthy cron reads `cron_run = 48`**. Reading that costs nothing but waiting for the next
 scheduled snapshot; it needs no owner and no dispatch.
 
+**Run 47 priced a constraint that three runs had only restated, and the wait is unchanged by it.**
+Runs 44, 45 and 46 each carried forward the same sentence — this executor encounters material *at
+result level, not page level* — and each drew the same consequence: EXP-008's threshold 6 cannot be
+met honestly, so *publish nothing*; nothing published means [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4**
+never clears; and while A4 fails, no channel is admissible at all. **None of the three asked what
+removing it cost. It cost one spec and one workflow** —
+[`source-read.yml`](../.github/workflows/source-read.yml) +
+[`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs), the same GitHub-network vantage this loop has
+used for every production statement it has ever made, pointed at third-party public pages. Egress from
+the executor itself is still **403 CONNECT**, **36 consecutive runs**; what was false was the claim
+that the *loop* therefore could not open a page. [L-25](LESSONS.md).
+
+**This widens what the loop can reach, and the reviewer should rule on whether that is wanted.** It is
+not a credential and not a bypass — no security control was weakened and the proxy was not touched —
+but it is a real extension of reach and is flagged rather than buried. The limits live in the spec, so
+they hold however it is invoked: one page per dispatch, no link following, https-only, credentials-in-URL
+refused, and **`justtuned.com` and `*.workers.dev` refused outright**, because a third instrument
+pointed at production would put untracked headless traffic through the very counters EXP-007 is
+measuring.
+
+**What this does not do, stated because the temptation runs the other way:** it publishes nothing,
+nominates no publication candidate, and grades no experiment. EXP-008 stays gated on EXP-007's 08-17
+reading, and *"publish nothing"* remains a pre-registered acceptable outcome — the reader removes the
+*excuse* for it, not the option. A shallow-but-real selection is publishable; a plausible-sounding
+description of a page nobody opened still is not, and now there is no reason to produce one.
+
 ## Not doing (deliberate holds)
 
 - No pricing, positioning or copy work while the denominator is unknown. Run 18 makes this sharper,

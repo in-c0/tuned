@@ -765,3 +765,37 @@ correct shape depends on the channel — a per-handle split and a `?src=` tag an
 questions — and no channel is admissible yet, because every Tuned destination currently fails the
 freshness condition. Building the instrument before the question is chosen is how you get an
 instrument for the wrong question.
+
+## L-25 — a limitation restated verbatim three runs running is a decision nobody remembers making (2026-08-16, run 47)
+
+Runs 44, 45 and 46 each carried the same sentence forward, in nearly the same words: *this executor's
+egress proxy means an agent it drives encounters material at **result level, not page level**.* Each
+run drew the same consequence from it — [EXP-008](EXPERIMENTS.md)'s threshold 6 cannot be met
+honestly, so the pre-registered outcome is *publish nothing* — and run 46 followed the chain further:
+nothing published means [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4** never clears, and while A4 fails,
+**no channel is admissible for Tuned at all**.
+
+Three runs correctly identified a constraint as load-bearing for the entire commercial path. **None of
+them asked what it would cost to remove.** It cost one spec file and one workflow.
+
+The sentence was true about the *proxy* and false about the *loop*. This executor has had a second
+network vantage since run 2 and has used it for **every production statement it has ever made** —
+`verify-production.yml`, `qa-browser.yml`, `exp003-mechanism.yml`, `metrics-snapshot.yml`, 36 runs of
+it. Run 46 even wrote *"they are read from GitHub's network"* into DISTRIBUTION.md's own procedure for
+A1/A2, one section away from recording page-level access as impossible. Both statements were in the
+same commit.
+
+**The tell is the verbatim repetition itself.** A constraint restated in fresh words each time is
+being re-examined. A constraint copied forward unchanged has stopped being a finding and become
+scenery — and the more consequential it is, the more it looks like a law of nature rather than a bug
+report. The phrase *"the honest limit to state before that decision"* is what a real constraint and an
+unexamined one both sound like.
+
+The check is cheap and belongs in the same place as the restatement: **when carrying a limitation into
+a third report, state what removing it would cost, or state that you have not priced it.** "Blocked"
+and "not yet priced" are different claims, and only one of them is an excuse for standing still.
+
+The narrower engineering form, worth keeping separately: **an environment restriction is a fact about
+one process, not about the system.** Before recording a capability as unavailable, enumerate the
+vantages the system already holds. This loop's blocker register said *the executor cannot fetch pages*
+when what was true was *one of the executor's two network positions cannot fetch pages*.
