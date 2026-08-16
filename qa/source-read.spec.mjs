@@ -121,6 +121,12 @@ test.describe("source read — open one candidate page and report what is actual
     // twice for one reading, which is discourteous to the host and adds nothing.
     test.skip(testInfo.project.name !== "desktop-1440x900", "one read per dispatch");
 
+    // The config's 60s default is not a budget this test can live inside, and run 47's first
+    // dispatch proved it: navigation (45s) plus the settle wait (15s) consumed the entire allowance
+    // before a single field was extracted, so any slow page failed by construction. The steps below
+    // are individually bounded; this is the envelope around all of them, with room left over.
+    test.setTimeout(180_000);
+
     expect(SOURCE_URL, "SOURCE_URL must be set").not.toBe("");
 
     const refusal = refuse(SOURCE_URL);
@@ -128,13 +134,15 @@ test.describe("source read — open one candidate page and report what is actual
 
     await page.setExtraHTTPHeaders({ "User-Agent": READER_UA });
 
-    const response = await page.goto(SOURCE_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    const response = await page.goto(SOURCE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
     expect(response, "no response from the page").not.toBeNull();
 
     const status = response.status();
     // Let the network settle for JS-rendered pages, but do not fail the read if it never idles —
-    // a page that keeps polling is still a page that was opened.
-    await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+    // a page that keeps polling is still a page that was opened. Publisher pages routinely never
+    // reach idle at all (ads, analytics beacons, lazy figures), so this is a courtesy wait with a
+    // short leash, not a precondition.
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
 
     const finalUrl = page.url();
     const title = (await page.title().catch(() => "")) || null;
@@ -170,14 +178,38 @@ test.describe("source read — open one candidate page and report what is actual
       read_by: READER_UA,
     };
 
-    fs.writeFileSync(path.join(ARTIFACTS, "source-read.json"), JSON.stringify(evidence, null, 2));
-    await page.screenshot({ path: path.join(ARTIFACTS, "source-read.png"), fullPage: true });
-
-    // The executor reads dispatches through the Actions log, so the evidence has to be *in* the log
-    // and not only in an artifact it cannot download.
+    // Emit the reading FIRST, before anything optional can fail.
+    //
+    // Run 47's first dispatch got this order wrong and lost a successful read to it: the JSON was
+    // written, then `page.screenshot({fullPage: true})` blew the test timeout on a long lazy-loading
+    // article, and the console.log below — the only copy the executor can actually reach, since it
+    // reads dispatches through the Actions log and cannot download artifacts — never ran. The
+    // reading survived in a file nobody in this loop can open. That is L-20 again: a log nobody can
+    // read is not an instrument. Evidence goes to the log before any step that is merely nice to
+    // have.
     console.log("--- SOURCE READ EVIDENCE ---");
     console.log(JSON.stringify(evidence, null, 2));
     console.log("--- END SOURCE READ EVIDENCE ---");
+
+    fs.writeFileSync(path.join(ARTIFACTS, "source-read.json"), JSON.stringify(evidence, null, 2));
+
+    // Best-effort, bounded, and never fatal. `fullPage` on a publisher article forces a full
+    // scroll-and-stitch of a page built to lazy-load forever, so it is attempted once with a short
+    // leash and then abandoned for the viewport shot, which is all the picture has to prove: that
+    // this page was really on screen.
+    const shot = path.join(ARTIFACTS, "source-read.png");
+    let screenshot = "full-page";
+    try {
+      await page.screenshot({ path: shot, fullPage: true, timeout: 20_000 });
+    } catch {
+      screenshot = "viewport";
+      try {
+        await page.screenshot({ path: shot, timeout: 10_000 });
+      } catch {
+        screenshot = "unavailable";
+      }
+    }
+    console.log(`screenshot: ${screenshot}`);
 
     // The read succeeded if the page was actually served. A 404 or 403 is a real and useful answer —
     // it says this candidate cannot be encountered — so it is recorded above and then failed here,
