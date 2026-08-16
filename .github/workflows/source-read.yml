@@ -1,0 +1,79 @@
+name: source read
+
+# A page-level vantage on candidate source material, from GitHub's network.
+#
+# The executor environment returns 403 CONNECT at its egress proxy for every host — justtuned.com,
+# news.ycombinator.com and example.com alike — and has for 36 consecutive runs. Search results are
+# available to it; the pages behind them are not. Runs 44, 45 and 46 each recorded that asymmetry as
+# the reason EXP-008's threshold 6 ("the find is real ... describes what was actually encountered")
+# would have to be answered with *publish nothing*, and run 46 traced the consequence: no
+# publication means ops/DISTRIBUTION.md's A4 freshness condition never clears, and while A4 fails no
+# distribution channel is admissible for Tuned at all.
+#
+# This is the same mechanism the loop already uses for every production statement it makes
+# (verify-production.yml, qa-browser.yml, exp003-mechanism.yml, metrics-snapshot.yml), pointed at
+# third-party public pages instead of Tuned's own. ops/DISTRIBUTION.md already names the
+# GitHub-network vantage as how A1/A2 venue rules are to be read; this is that vantage, built.
+#
+# It is deliberately NOT qa-browser.yml. That workflow curls `${target_url}/api/version` under
+# `set -euo pipefail` before running its spec, which is correct for a production prober and fatal
+# for anything else. Keeping them separate also keeps the two questions separate: qa-browser asks
+# "what is Tuned doing", this asks "what does this page say".
+#
+# Bounded by construction: dispatch-only, read-only permissions, no secrets in scope, exactly one
+# page per run, no link following, https-only, credentials in a URL refused, and Tuned's own hosts
+# refused outright so this can never become untracked headless traffic through the funnel counters
+# EXP-007 is measuring. The refusals live in qa/source-read.spec.mjs, not here, so they hold however
+# the spec is invoked.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Absolute https:// URL of ONE candidate source page to open and report"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-read
+  cancel-in-progress: false
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # qa/ carries its own manifest on purpose: the Cloudflare build runs `npm ci` at the
+      # repository root, and a browser toolchain must never enter the Worker's dependency tree.
+      - name: Install QA harness
+        working-directory: qa
+        run: npm install
+
+      - name: Install Chromium
+        working-directory: qa
+        run: npx playwright install --with-deps chromium
+
+      - name: Read the page
+        working-directory: qa
+        env:
+          SOURCE_URL: ${{ inputs.url }}
+        # Named explicitly rather than left to the config's testDir glob, so adding another spec to
+        # qa/ can never silently change what this dispatch runs.
+        run: npx playwright test source-read.spec.mjs
+
+      # The screenshot is the part a human can check without trusting the JSON: it shows the page
+      # that was actually on screen. `always()` because a refused or gated read is the reading that
+      # matters most.
+      - name: Upload read evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-read-evidence
+          path: qa/artifacts
+          if-no-files-found: error
+          retention-days: 30
