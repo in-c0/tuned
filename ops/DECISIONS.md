@@ -1910,3 +1910,32 @@ cap.**
 - **A5's arrival counter was again not built**, and run 46's reasoning for deferring it stands
   unchanged: its shape depends on the channel, and no channel is admissible until A4 clears.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+### Run 47 addendum — the instrument works, and it took three dispatches to make it true
+
+Recorded separately from the decision above because the outcome is evidence, and because two of the
+three dispatches produced *wrong readings rather than clean failures* — which is the part worth
+keeping.
+
+| # | Run | Commit | Result |
+| --- | --- | --- | --- |
+| 1 | [31926077932](https://github.com/in-c0/tuned/actions/runs/31926077932) | `32ae7c7` | **Read succeeded, evidence lost.** `fullPage` screenshot blew the 60s test timeout; the evidence `console.log` sat after it and never ran. Survived only in an artifact zip this executor cannot open — [L-20](LESSONS.md) again. Root cause: `goto` 45s + `networkidle` 15s **is** the 60s budget. |
+| 2 | [31926490842](https://github.com/in-c0/tuned/actions/runs/31926490842) | `c4cfc31` | **Evidence reached the log, and it was wrong.** `http_status: 200`, real title, full abstract from `<head>` — beside `visible_text_chars: 0`. That reads as *nature.com serves headless callers a blank body*, a finding about the publisher, and it would have been written down as one. It was a finding about the spec: `playwright.config.mjs` sets no `actionTimeout`, so `body.innerText()` inherited the *test* timeout, waited out all 180s, and returned `""` through its own `.catch()`. |
+| 3 | [31926727657](https://github.com/in-c0/tuned/actions/runs/31926727657) | `5cdc2f9` | **Success, 22s.** `visible_text_chars` **131,079**, `visible_text_status: read`, `published_at` **2026-01-10** from meta (was `null`), `screenshot: full-page`. The excerpt carries authors, *Scientific Reports* vol 16 art. 4436, access and citation counts, the abstract and the opening of the Introduction. **Page-level encounter, demonstrated.** |
+
+**The URL read is not a publication candidate and is not nominated as one.** It was chosen so the
+check would be load-bearing rather than vacuous — run 45's precedent, which proved the pulse
+instrument without reading EXP-007. EXP-008 remains gated on EXP-007's 08-17 reading, and its
+*"publish nothing"* outcome remains pre-registered and available. **What changed is that choosing it
+would now be a judgement about the material rather than a concession about the reader.**
+
+**Known limitation, recorded rather than fixed.** `possible_gate_markers` returned `[]` on a page
+whose own text reads *"Accept all cookies"* — the hint list matches `"accept cookies"` and missed it.
+The field is reported-never-asserted and the banner is plainly visible in the excerpt, so the reading
+is not wrong, but the heuristic is weaker than it looks. Left for a future run deliberately: a fourth
+dispatch to tune a cosmetic heuristic is not worth the cycle, and writing it down costs nothing.
+
+**The shape all three defects shared, which is the real finding:** the *reading* was correct every
+time and the *apparatus around it* destroyed it, then disguised it, then finally reported it.
+[L-23](LESSONS.md) said verifying an instrument with an instrument moves the question one level up
+rather than answering it. It did not say how many levels there were.
