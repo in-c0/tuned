@@ -121,12 +121,41 @@ channel, succeed modestly, and be unable to prove it — the same ungradeability
 further out.
 
 *Evidence required, before any post:* a counter that moves **only** for arrivals from that attempt,
-and a pre-registered arrival threshold read against it. **This does not exist yet.** It is not built
-here, because its correct shape depends on the channel chosen — a per-handle split and a `?src=` tag
-answer different questions — and building the wrong one costs more than waiting. It is one bounded
-change to a **non-landing** surface, and it must ship **before** the post, never after: counters
-start at zero on the deploy that introduces them and there is no backfill, so a first attempt made
-without it is spent and ungradeable. Channels like Show HN can only be spent once.
+and a pre-registered arrival threshold read against it. It must ship **before** the post, never
+after: counters start at zero on the deploy that introduces them and there is no backfill, so a
+first attempt made without it is spent and ungradeable. Channels like Show HN can only be spent once.
+
+*State — the instrument exists as of run 48; the threshold does not.* Two counters ship on the feed
+route ([`src/index.ts`](../src/index.ts),
+[`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR
+[#41](https://github.com/in-c0/tuned/pull/41)):
+
+| Counter | Answers |
+| --- | --- |
+| `feed_view:<handle>` | which destination was arrived at |
+| `arrival:<tag>` | which attempt sent them |
+
+`feed_view` itself is untouched, so the ten-day series this condition was written against stays
+comparable across the deploy; the split is additive and the two are **not** additive with each other.
+The handle comes from the creator row rather than the request, so one destination cannot accumulate
+under as many names as it has spellings. Only allowlisted `?src=` tags are ever written — an
+unrecognised tag counts under **no name at all**, never an "other" bucket, because a tag reading zero
+for want of registration must not be mistakable for a tag reading zero for want of demand. Both keep
+the bot/human split: a posted link is crawled within seconds, and a counter that could not separate
+the sweep from the readers would overstate the first hour of any attempt graded against it.
+
+*What run 46 got wrong here, recorded because it cost two runs.* This section previously read *"it is
+not built here, because its correct shape depends on the channel chosen — a per-handle split and a
+`?src=` tag answer different questions — and building the wrong one costs more than waiting."* They do
+answer different questions, and that is the reason to build **both**: they are two dimensions of one
+event, not two candidate designs to choose between. The tag *value* differs by channel; the mechanism
+does not. See [L-26](LESSONS.md).
+
+*Still outstanding, and it is the half that needs a channel:* **the arrival threshold and its window
+are not pre-registered**, because a threshold is a claim about how many people a specific venue should
+send and there is no venue yet. A5 therefore still **FAILS** — on the threshold, no longer on the
+instrument. Registering the channel's tag in `ARRIVAL_TAGS` is a one-line code change and belongs in
+the same cycle as pre-registering its threshold.
 
 ---
 
@@ -138,7 +167,7 @@ A3, A4 and A5 are properties of Tuned, not of any venue, so they gate **every** 
 | --- | --- | --- | --- |
 | **A3** | A stranger can use the destination | **SATISFIED** | `/ava`, `/sportstech` and the other public feeds render with no account and no application; [EXP-004](EXPERIMENTS.md) PASSED (run 19), and `/:handle` + `/:handle/rss.xml` are unauthenticated routes |
 | **A4** | Destination fresh, ≤ 72h | **FAILS — every feed** | `@ava` newest public item **2026-08-02** (14 days); `@sportstech` **2026-07-30T22:48:09.614Z** (17 days), read from production by [run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247); `items_public` **79** and unmoved since 08-02 |
-| **A5** | A result would be visible | **FAILS — no instrument** | `feed_view` is site-wide and untagged; its human-flagged range is 2–22/day. No per-destination counter exists |
+| **A5** | A result would be visible | **FAILS — threshold unregistered.** The instrument half is **SHIPPED** | `feed_view:<handle>` and `arrival:<tag>` deployed run 48 ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR [#41](https://github.com/in-c0/tuned/pull/41)); production served a tagged URL and the query string survived the edge. No arrival threshold or window is pre-registered, and none can be until a channel is chosen |
 
 **A3 was the condition this loop believed was binding, and it is the one that already passes.** The
 public, no-account surfaces have worked since run 19. What EXP-002 lacked was not a usable
@@ -155,8 +184,12 @@ destination — it was pointing at the wrong one.
    publish. It is also the only thing that can move A4 from FAILS to SATISFIED, which makes it the
    gate on every distribution attempt. That reorders the dependency graph and is the most useful
    thing in this file.
-3. **A5's instrument must ship before the post, not with it.** One bounded change, non-landing, whose
-   shape is decided when the channel is.
+3. ~~**A5's instrument must ship before the post, not with it.** One bounded change, non-landing, whose
+   shape is decided when the channel is.~~ **Instrument shipped run 48** — `feed_view:<handle>` and
+   `arrival:<tag>`, non-landing, deployed and verified in production before any channel exists. What
+   remains of A5 is the **arrival threshold**, which genuinely cannot be written without a venue: it
+   is a claim about how many people that venue should send. Register the channel's tag in
+   `ARRIVAL_TAGS` in the same cycle as its threshold, and both still precede the post.
 4. **Only then** are A1 and A2 worth the read for a specific venue — and they are read from GitHub's
    network and quoted here, not recalled.
 
@@ -234,6 +267,16 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
 
 ## Change log
 
+- **2026-08-16 (run 48)** — **A5's instrument shipped and verified in production**
+  ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR
+  [#41](https://github.com/in-c0/tuned/pull/41)): `feed_view:<handle>` splits the destination,
+  `arrival:<tag>` identifies the attempt, both bot/human split, only allowlisted tags written,
+  `feed_view` untouched. A5's verdict moves from *no instrument* to *threshold unregistered* — it
+  still **FAILS**, and every candidate is still **INADMISSIBLE**, because A4 also still fails on every
+  Tuned destination and A1/A2 stay **UNREAD**. What changed is that the half which could only be built
+  *before* a post now exists, so choosing a channel no longer costs a spent-and-ungradeable attempt.
+  Run 46's reason for deferring it is recorded above as wrong rather than quietly dropped
+  ([L-26](LESSONS.md)). No landing surface touched, no product copy, no schema, no spend.
 - **2026-08-16 (run 47)** — A1's read mechanism built and proved:
   [`source-read.yml`](../.github/workflows/source-read.yml) +
   [`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs). No condition, threshold or verdict in this

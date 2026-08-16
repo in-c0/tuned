@@ -820,3 +820,58 @@ feed traffic — and no experiment has yet needed more. The requirement is regis
 [DISTRIBUTION.md](DISTRIBUTION.md) condition **A5**: a per-destination counter must exist and be
 verified in production *before* any distribution attempt, never alongside or after it, because
 counters start at zero on the deploy that introduces them and there is no backfill.
+
+**Resolved for future days, and only for future days (2026-08-16, run 48).** The counters below
+shipped in [`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd). **Nothing above changes:** the
+2–22 range is a fact about `feed_view` and stays the correct caution for every reading of it,
+including readings taken after this deploy, and the ten days already recorded gain no resolution
+retroactively. There is no backfill and none will be invented.
+
+## Arrival attribution counters — added 2026-08-16 (run 48)
+
+Deployed [`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) (PR
+[#41](https://github.com/in-c0/tuned/pull/41)), on the public feed route only. **Zero on every day
+before 2026-08-16**, which is the deploy day and therefore itself partial.
+
+| Counter | Definition | Source |
+| --- | --- | --- |
+| `feed_view:<handle>` / `feed_view_bot:<handle>` | the same event `feed_view` counts, split by which feed was viewed. The handle is read from the creator row, never the request URL | `/api/metrics` daily |
+| `arrival:<tag>` / `arrival_bot:<tag>` | a feed view whose URL carried an **allowlisted** `?src=` tag. Unrecognised tags are counted under no name at all | `/api/metrics` daily |
+
+**Reading rules, binding on whoever reads these first:**
+
+- **`feed_view` and `feed_view:<handle>` are not additive.** `feed_view` remains the site-wide total
+  and is unchanged by this deploy; the per-handle names are a decomposition of it, and summing all of
+  them alongside it double-counts every view.
+- **An absent `arrival:<tag>` row is ambiguous and must not be read as demand.** It means either
+  nobody arrived with that tag *or* the tag was never added to `ARRIVAL_TAGS`. Check the allowlist in
+  [`src/index.ts`](../src/index.ts) before writing down a zero.
+- **`arrival:<tag>` counts page views, not people.** One reader who opens the link twice counts twice;
+  the counter carries no visitor identifier and one is not going to be added.
+- **Neither counter is demand, activation, retention, referral or revenue.** A destination being
+  opened is a destination being opened — the same limit `landing_engage` carries.
+- **No per-visitor data.** No cookie, no identifier, no per-visitor state. A `?src=` tag is a campaign
+  label on a URL we publish ourselves, aggregated into the daily counts that already existed. The
+  published privacy policy is unchanged by it.
+
+### Self-inflicted counters on UTC day 2026-08-16 (run 48) — declared before they are read
+
+The production check ([`qa/arrival-instrument.spec.mjs`](../qa/arrival-instrument.spec.mjs), run
+[31941200421](https://github.com/in-c0/tuned/actions/runs/31941200421), against serving commit
+`86cabddd`) opened one public feed twice. Declared here so no later run reads its own traffic as an
+arrival:
+
+| Counter | Increments caused | Why it is in the bot bucket |
+| --- | --- | --- |
+| `feed_view_bot` | 2 | the harness user-agent contains `HeadlessChrome` |
+| `feed_view_bot:sportstech` | 2 | same |
+| `arrival_bot:qa` | 1 | same — one of the two visits carried `?src=qa`, the other an unregistered tag that by design counts nothing |
+
+No human-flagged counter was touched. **No landing-page request was made**, so `landing_view`,
+`landing_engage` and `application_start` are untouched on **2026-08-16** — the complete UTC day
+[EXP-007](EXPERIMENTS.md) grades from the 08-17 scheduled snapshot. No POST, no form, no follow.
+
+These are the loop's declared footprint, **not a reading of production**. The first actual reading of
+these counters is the **scheduled 08-17 snapshot**, and it is load-bearing rather than decorative: if
+`feed_view_bot` moved on 08-16 while `arrival_bot:qa` is absent, the tag path is broken and shipped
+dead — which is exactly the failure a counter with no observable response would otherwise hide.

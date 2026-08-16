@@ -105,6 +105,13 @@ test.describe("A5 arrival instrument — a tagged feed URL is served, and an unk
       note:
         "Production check on the A5 arrival instrument. Counter values are not observable from a browser; they are read from the next scheduled ops/metrics snapshot, where this run's own hits appear.",
     };
+    // Into the run log first, and before anything optional can fail. L-20: the executor cannot
+    // open an artifact zip, so evidence that reaches only `artifacts/` has not reached anyone who
+    // needs it. Run 47 lost a good reading to exactly this and the lesson did not survive into the
+    // next spec written — including this one, whose first production dispatch
+    // (31941200421) proved its assertions and printed none of its values.
+    console.log("arrival-instrument evidence:", JSON.stringify(evidence, null, 2));
+
     fs.writeFileSync(path.join(ARTIFACTS, "arrival-instrument.json"), JSON.stringify(evidence, null, 2));
     await testInfo.attach("arrival-instrument.json", {
       body: JSON.stringify(evidence, null, 2),

@@ -1939,3 +1939,72 @@ dispatch to tune a cosmetic heuristic is not worth the cycle, and writing it dow
 time and the *apparatus around it* destroyed it, then disguised it, then finally reported it.
 [L-23](LESSONS.md) said verifying an instrument with an instrument moves the question one level up
 rather than answering it. It did not say how many levels there were.
+
+---
+
+## Run 48 (2026-08-16 20:20 Sydney / 10:20 UTC) — build the half of A5 that could only be built early
+
+**Directive:** none. No reviewer pass followed run 47. The standing state is a designed wait —
+[EXP-007](EXPERIMENTS.md) reads complete UTC day **2026-08-16** from the 08-17 scheduled snapshot, and
+[EXP-008](EXPERIMENTS.md)'s first publication is gated behind that reading. This run began at **10:05
+UTC on 08-16, ten hours into EXP-007's window**, so any landing-surface change was off the table by
+construction.
+
+**Decision: ship A5's arrival instrument.** [DISTRIBUTION.md](DISTRIBUTION.md) condition **A5** read
+*FAILS — no instrument*, deferred by runs 46 and 47 in identical words: *its shape depends on the
+channel chosen*. That reasoning is wrong, and the file said so itself — *"a per-handle split and a
+`?src=` tag answer different questions"* is the reason to build **both**, not a reason to choose. They
+are two dimensions of one event. The tag value is channel-specific; the mechanism is not.
+
+**Why it could not wait, unlike the rest of A5.** A5 was one condition holding two separable halves.
+The **threshold** genuinely needs a venue — it is a claim about how many people a specific channel
+should send. The **instrument** needs no venue and can *only* be built in advance: counters start at
+zero on the deploy that introduces them, there is no backfill, and a channel like Show HN is spent
+once. Deferring the compound deferred the half with no reason to wait. [L-26](LESSONS.md).
+
+**Shipped:** PR [#41](https://github.com/in-c0/tuned/pull/41) → [`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) (squash).
+
+- `feed_view:<handle>` / `feed_view_bot:<handle>` — the destination, named from the **creator row**
+  rather than the request, so one feed cannot accumulate under as many names as it has spellings.
+- `arrival:<tag>` / `arrival_bot:<tag>` — the attempt. **Allowlist-only**; an unrecognised `?src=`
+  counts under *no name at all*, never an "other" bucket, so a forgotten allowlist entry can never be
+  mistaken for a finding about demand. Registering a tag is a code change, which bounds `metric_days`
+  cardinality by review rather than by the URL bar.
+- `feed_view` itself **untouched** — same name, same event — so the ten-day 2–22 series the condition
+  was written against stays comparable across the deploy. The names are a decomposition of it and are
+  **not additive with it**.
+- `countEach` writes both names in one D1 round trip, same fail-quiet contract as `count`.
+
+**Two doc-comments corrected rather than left standing:** `/api/metrics` claimed to carry *"no
+handles"*, which stops being true the moment a feed is viewed. [L-22](LESSONS.md) — a document
+describing what code does is a claim, and this change falsified one.
+
+**Verification.** `npm run check` **0**; `vitest run` **103/103** (was 90 — 13 new in
+[`test/arrival.test.ts`](../test/arrival.test.ts), real Worker against real D1 in workerd, including a
+cardinality guard: five hostile `?src=` values produce only the two names the route writes
+unconditionally). `validate-workflows.py` clean. CI [31941106003](https://github.com/in-c0/tuned/actions/runs/31941106003)
+green. `verify production` [31941148230](https://github.com/in-c0/tuned/actions/runs/31941148230)
+**success** on `86cabdd`, passing the exact-`/api/version`-match gate — identity, not timing. Browser
+check [31941200421](https://github.com/in-c0/tuned/actions/runs/31941200421) **passed** against
+serving commit `86cabddd`: the tagged URL renders, the `src` query string **survives the edge**, and
+an unregistered tag changes neither status nor render.
+
+**Boundaries held.** No landing-surface request and no landing-page change **inside EXP-007's
+window**; no threshold, fork, read time or claim in EXP-007 altered; no schema change, no migration,
+no new route, no product copy, no operator dispatch, no publication, no agent created or adopted, no
+queued item touched. No cookie, no visitor identifier, no per-visitor state, no new data category —
+the published privacy policy is unchanged.
+
+**What did not move, stated plainly.** A5 still **FAILS**, on the threshold rather than the
+instrument. **A4 still fails on every destination**, so **no channel is admissible** and nothing about
+today's inadmissibility changed. `applications` **0**, `members_ever_active` **0**, followers **0**,
+gross cash **AUD $0** from *no billing exists*.
+
+**A defect in this run's own instrument, recorded not hidden.** The spec's evidence object reached the
+artifact zip and **not the run log** — [L-20](LESSONS.md), the same failure run 47 lost a reading to,
+repeated in the next spec written. The assertions carry the verification, so the check is sound, but
+the values are unreadable by this executor. Fixed in place (`console.log` before anything optional can
+fail) rather than re-dispatched: a second dispatch to pretty-print numbers whose assertions already
+passed would add production traffic for no evidence.
+
+Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

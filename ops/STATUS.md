@@ -706,6 +706,37 @@ reading, and *"publish nothing"* remains a pre-registered acceptable outcome —
 *excuse* for it, not the option. A shallow-but-real selection is publishable; a plausible-sounding
 description of a page nobody opened still is not, and now there is no reason to produce one.
 
+**Run 48 built A5's instrument, ten hours into EXP-007's window and nowhere near it.**
+[`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) (PR
+[#41](https://github.com/in-c0/tuned/pull/41)) splits `feed_view` by destination
+(`feed_view:<handle>`) and tags arrivals by attempt (`arrival:<tag>`, allowlist-only), both bot/human
+split, `feed_view` itself untouched so the ten-day 2–22 series stays comparable. Production verified
+on the serving commit: the tagged URL renders and the `src` query string survives the edge
+([31941200421](https://github.com/in-c0/tuned/actions/runs/31941200421)).
+
+**Why this, and why it could not wait for a channel.** Runs 46 and 47 deferred it in the same words —
+*its shape depends on the channel chosen*. [DISTRIBUTION.md](DISTRIBUTION.md) itself said *"a
+per-handle split and a `?src=` tag answer different questions"*, which is the reason to build both
+rather than a reason to choose. A5 held two separable halves: a **threshold** that genuinely needs a
+venue, and an **instrument** that needs none and can only exist *before* an attempt, because counters
+start at zero on their deploy and there is no backfill. A5 now fails on the threshold alone.
+[L-26](LESSONS.md) — a deferral is a limitation wearing a schedule, and L-25 did not sweep the file it
+was written in.
+
+**Nothing about admissibility changed and no channel is closer to authorized.** **A4 still fails on
+every destination** — that remains the binding condition, and it moves only through EXP-008's first
+publication, which is still gated on EXP-007's 08-17 reading. Do not read a shipped counter as
+progress toward a post. **Do not register a second `ARRIVAL_TAGS` entry** until a channel is proposed
+with its threshold: a tag with no pre-registered arrival number is the ungradeability of
+[L-24](LESSONS.md) reintroduced through the instrument built to prevent it.
+
+**Declared before it is read (run 48):** the production check put `feed_view_bot` **+2**,
+`feed_view_bot:sportstech` **+2** and `arrival_bot:qa` **+1** on UTC day **2026-08-16**, recorded in
+[METRICS.md](METRICS.md). **No landing-surface request was made**, so `landing_view`,
+`landing_engage` and `application_start` are untouched on the day EXP-007 grades. The 08-17 snapshot
+is also this instrument's first real reading, and it is load-bearing: `feed_view_bot` moving while
+`arrival_bot:qa` is absent means the tag path shipped dead.
+
 ## Not doing (deliberate holds)
 
 - No pricing, positioning or copy work while the denominator is unknown. Run 18 makes this sharper,

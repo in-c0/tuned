@@ -799,3 +799,59 @@ The narrower engineering form, worth keeping separately: **an environment restri
 one process, not about the system.** Before recording a capability as unavailable, enumerate the
 vantages the system already holds. This loop's blocker register said *the executor cannot fetch pages*
 when what was true was *one of the executor's two network positions cannot fetch pages*.
+
+---
+
+## L-26 — a deferral is a limitation wearing a schedule, and L-25 did not sweep the file it was written in (2026-08-16, run 48)
+
+**Known problem.** [DISTRIBUTION.md](DISTRIBUTION.md)'s condition **A5** — *if the attempt works,
+would we see it?* — read **FAILS — no instrument** for two runs. `feed_view` is one site-wide counter
+with no handle and no referral tag, and a distribution attempt made without a per-destination counter
+is spent and ungradeable, because counters start at zero on the deploy that introduces them.
+
+**Attempted approach.** Runs 46 and 47 both deferred building it, in the same words: *"its correct
+shape depends on the channel chosen — a per-handle split and a `?src=` tag answer different questions
+— and building the wrong one costs more than waiting."*
+
+**Mistake.** The sentence contains its own refutation. **They answer different questions, and that is
+the reason to build both** — they are two dimensions of one event, not two candidate designs to pick
+between. A distribution link points at *some destination* from *some attempt*, whichever venue is
+eventually chosen. The tag *value* is channel-specific; the mechanism is not. There was never a wrong
+one to build.
+
+**Why it happened, and this is the part worth keeping.** Run 47 wrote [L-25](#l-25--a-limitation-restated-verbatim-three-runs-running-is-a-decision-nobody-remembers-making-2026-08-16-run-47)
+— *a limitation restated verbatim across runs is a decision nobody remembers making; price it or say
+you have not* — and applied it, correctly and at some length, to the page-level-read constraint. **In
+the same file, two sections down, an unpriced deferral sat untouched.** Applying a lesson to the
+instance that provoked it feels like discharging it. It is not: the instance is a sample, and the
+lesson is about a class.
+
+The disguise is different from L-25's and worth naming separately. A *limitation* says "cannot", which
+at least invites the question. A **deferral says "not yet", which sounds like a plan** — it carries an
+implied ordering, an implied trigger, and the reassuring shape of a decision already made. Nobody
+audits a queue. So the deferral survives re-reading better than the limitation does, and it survives
+best when its stated trigger is an event nobody controls: *when a channel is chosen*, here, while every
+channel was simultaneously blocked on the very condition the deferral was holding open.
+
+**Evidence and cost.** Two runs. It cost one route change, one helper, one spec and thirteen tests —
+`npm run check` 0, 103/103, deployed [`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) and
+verified in production the same cycle. A4 still fails and no channel is admissible, so nothing was lost
+in the market; what was at risk was arriving at an authorized channel with the one instrument that
+cannot be added afterwards still missing.
+
+**Lesson.** **A deferral with an external trigger is an unpriced limitation, and it must be re-derived
+rather than re-read.** When carrying one into a second run, restate what it is waiting for and ask
+whether that thing is genuinely a *precondition* or merely *later in the story*. And when a lesson is
+written, sweep the document it was written in — the instance that provoked it is a sample, not the
+population.
+
+**More elegant next attempt.** Split the deferral before deferring it. A5 was one condition holding two
+separable halves: an *instrument* (buildable with no venue, and only buildable in advance) and a
+*threshold* (a claim about how many people a specific venue should send, genuinely unwritable without
+one). Deferring the compound deferred the half that had no reason to wait. The register now records
+them separately, and A5 fails on the threshold alone.
+
+**Prevention check, asked out loud when a run re-reads a deferral it did not write:** *what is this
+waiting for; is that a precondition or a sequence; and does any part of it become impossible, rather
+than merely harder, if it waits?* An instrument that cannot be backfilled always answers the last one
+"yes".

@@ -46,6 +46,28 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 >
 > ---
 >
+> **Update (run 48, 2026-08-16 20:20 Sydney).** **That counting problem is fixed, and it had to be
+> fixed today rather than later.** Tuned can now tell *which* feed a visitor arrived at, and whether
+> they came from a link we posted somewhere — neither of which it could do this morning. Live and
+> checked on the real site.
+>
+> **Why not wait until we actually have somewhere to post?** Because these counters only start
+> counting from the moment they exist, and there is no way to fill in the past. If we had posted first
+> and counted second, the first attempt would have produced no usable answer — and something like a
+> Show HN can only be spent once. Two earlier runs put this off waiting for a channel to be picked;
+> that was the wrong call, and it is written up so it does not recur.
+>
+> **What has *not* changed: we still have nowhere to point anyone.** The feeds are still stale — that
+> is unchanged and it is still the thing that matters. Knowing how to count visitors does not give us
+> a reason for them to come. **Nothing was posted anywhere, and no channel is any closer to being
+> authorized.**
+>
+> **Nothing you need to do, and nothing on the landing page moved** — Sunday's measurement is still
+> running undisturbed and reads tomorrow. Applications still **0**, cash still **AUD $0** because no
+> billing exists, spend still **AUD $0.00 of $500**.
+>
+> ---
+>
 > **Previously (run 44, 2026-08-15 19:40 Sydney).** **Tuned's agent control plane
 > just did something to production for the first time: it adopted your `@sportstech` feed. Nothing was
 > published, and nothing on the feed changed.** Adoption means one thing only — the operator is now
