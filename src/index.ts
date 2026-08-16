@@ -6,7 +6,7 @@ import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connection } from "./spotify";
-import { count, countBy, memberActive, isBot, snapshot } from "./metrics";
+import { count, countBy, countEach, memberActive, isBot, snapshot } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
 import { keyMatches, keyConfigured } from "./keys";
 import { RESERVED_HANDLES } from "./handles";
@@ -152,7 +152,9 @@ app.get("/api/version", (c) =>
 );
 
 // Aggregate funnel counts for the operating loop. Key-gated and fails closed, so it is
-// not a public surface; returns counts only — no emails, ids, handles or item content.
+// not a public surface; returns counts only — no emails, ids, URLs or item content. Counter
+// names carry public labels (a feed handle, a campaign tag) and nothing per-visitor; see the
+// docstring on `snapshot`, which this line used to contradict.
 app.get("/api/metrics", async (c) => {
   const key = c.req.header("x-metrics-key") ?? "";
   if (!keyConfigured(c.env.METRICS_KEY)) return c.json({ error: "metrics key not configured" }, 503);
@@ -661,6 +663,41 @@ app.get("/studio/:token/setup", async (c) => {
   return c.html(setupPage(creator, creator.token!, new URL(c.req.url).origin));
 });
 
+// ---------- arrival attribution ----------
+//
+// `feed_view` is one site-wide counter carrying no handle and no referral tag. Its
+// human-flagged daily readings over the ten days to 2026-08-15 run 2, 3, 5, 8, 11, 14, 15,
+// 15, 21, 22 — so a dozen real arrivals from a distribution attempt would land inside that
+// noise band and be indistinguishable from a quiet Tuesday. An attempt could succeed
+// modestly and be unprovable, which is condition **A5** in ops/DISTRIBUTION.md. A5 also
+// fixes when this may be built: **before** the post, never after, because counters start at
+// zero on the deploy that introduces them and nothing is backfilled. A channel like Show HN
+// is spent once.
+//
+// Two dimensions, deliberately not a cross product:
+//
+//   feed_view:<handle>   which destination was arrived at. The handle is read from the
+//                        creator row, never from the request, so the name space is the
+//                        creators table rather than whatever a stranger types.
+//   arrival:<tag>        which attempt sent them. `?src=` is attacker-controlled, so only
+//                        tags on the allowlist below are ever written; an unknown tag counts
+//                        nothing and errors nothing. Adding an attempt's tag here is part of
+//                        pre-registering that attempt, which keeps metric cardinality bounded
+//                        by code review instead of by the internet.
+//
+// Both keep the bot/human split the rest of the funnel uses. A posted link is crawled within
+// seconds of appearing, and an arrival counter that could not separate the crawler sweep from
+// the readers would overstate the first hour of any attempt it was used to grade.
+//
+// No visitor identifier, no cookie, no per-visitor state, no new data category: `?src=` is a
+// campaign label on the URL, aggregated into the same daily counts everything else uses. The
+// published privacy policy is unchanged by it.
+//
+// `qa` is the only tag today, and it is not a placeholder — it is this loop's own
+// verification traffic, self-labelled so it stays separable from any real campaign, and it is
+// what proves the path writes in production before an attempt depends on it.
+const ARRIVAL_TAGS = new Set(["qa"]);
+
 // ---------- public feed ----------
 app.get("/:handle", async (c) => {
   const handle = c.req.param("handle").toLowerCase();
@@ -669,7 +706,18 @@ app.get("/:handle", async (c) => {
     .bind(handle)
     .first<Creator>();
   if (!creator) return c.text("No such feed", 404);
-  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "feed_view_bot" : "feed_view"));
+  // `feed_view` itself is untouched — same name, same event, so the ten-day series stays
+  // comparable across this deploy and the split is additive rather than a replacement.
+  const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
+  const src = c.req.query("src") ?? "";
+  track(
+    c,
+    countEach(c.env.DB, [
+      `feed_view${suffix}`,
+      `feed_view${suffix}:${creator.handle}`,
+      ARRIVAL_TAGS.has(src) ? `arrival${suffix}:${src}` : "",
+    ])
+  );
   const items = await itemsFor(c.env.DB, creator.id, true);
   return c.html(publicPage(creator, items));
 });

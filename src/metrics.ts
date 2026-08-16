@@ -92,6 +92,33 @@ export async function countBy(db: D1Database, name: string, by: number, day = ut
   }
 }
 
+/** Increment several daily counters in one round trip. One request that is worth counting
+ *  along two dimensions is still one event; issuing a sequential INSERT per name triples
+ *  the D1 calls on a public route for no extra information. Duplicate and empty names are
+ *  dropped, so a caller can build the list conditionally without guarding it. Same
+ *  fail-quiet contract as `count` — telemetry must not break a page. */
+export async function countEach(db: D1Database, names: string[], day = utcDay()): Promise<void> {
+  const unique = [...new Set(names.filter((name) => name !== ""))];
+  if (unique.length === 0) return;
+  try {
+    await ensureTables(db);
+    await db.batch(
+      unique.map((name) =>
+        db
+          .prepare(
+            `INSERT INTO metric_days (day, name, count) VALUES (?, ?, 1)
+             ON CONFLICT(day, name) DO UPDATE SET count = count + 1`
+          )
+          .bind(day, name)
+      )
+    );
+  } catch (err) {
+    console.log(
+      JSON.stringify({ level: "error", message: "metric countEach failed", names: unique.join(","), detail: String(err) })
+    );
+  }
+}
+
 /** Record that a member was active today, and what kind of activity it was. */
 export async function memberActive(
   db: D1Database,
@@ -129,7 +156,13 @@ export interface MetricsSnapshot {
   };
 }
 
-/** Aggregate counts only. No emails, member ids, handles, URLs or item content. */
+/** Aggregate counts only. No emails, member ids, URLs or item content.
+ *
+ *  Counter *names* now carry two public labels — the handle in `feed_view:<handle>` and the
+ *  campaign tag in `arrival:<tag>`. Both are already public by construction: a handle is the
+ *  site's own URL slug and a tag is a string we put in a link ourselves. This docstring used
+ *  to say "no handles", and that sentence stops being true the moment a feed is viewed, so it
+ *  is corrected here rather than left to read as a guarantee. Nothing per-visitor is added. */
 export async function snapshot(db: D1Database): Promise<MetricsSnapshot> {
   await ensureTables(db);
   const since = new Date(Date.now() - 60 * 86400_000).toISOString().slice(0, 10);
@@ -177,7 +210,7 @@ export async function snapshot(db: D1Database): Promise<MetricsSnapshot> {
   return {
     generated_at: new Date().toISOString(),
     note:
-      "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. landing_engage/application_start are reported by the landing page itself — first interaction and first form input, at most once per page load, same-origin only — so they are evidence that traffic behaved like a person, not proof of one, and they are forgeable by anyone willing to set one header. application_invalid counts submits rejected by email validation; it is not part of application_submit. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
+      "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. landing_engage/application_start are reported by the landing page itself — first interaction and first form input, at most once per page load, same-origin only — so they are evidence that traffic behaved like a person, not proof of one, and they are forgeable by anyone willing to set one header. application_invalid counts submits rejected by email validation; it is not part of application_submit. feed_view remains one site-wide count of every public feed view; feed_view:<handle> splits that same event by destination and does not replace it, so the two are not additive. arrival:<tag> counts feed views whose URL carried an allowlisted ?src= tag — a campaign label on the link, aggregated daily, with no cookie, no visitor identifier and no per-visitor state; an unrecognised tag is counted under no name at all, so absence of a tag means it was never allowlisted. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     daily,
     totals: totals ?? {},
     retention: ret ?? {
