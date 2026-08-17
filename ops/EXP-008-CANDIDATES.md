@@ -126,8 +126,56 @@ On the remit: a validated implementation with a measured result and a stated neg
 scope. Against it: a 2024 workshop preprint, which the remit admits only where it is not presented
 as settled — the paper's own hedge is part of what would have to be carried.
 
-**This is not a nomination.** The publication gate is EXP-007's, it is still shut, and choosing what
-`@sportstech` publishes is the business of the cycle where it is open — with the reachability
-finding above in hand, and with *publish nothing* still free. What R-1 establishes is narrower and
-was the point of the exercise: **a page-level encounter meeting threshold 6's standard is possible,
-and this loop has now produced one.**
+~~**This is not a nomination.** The publication gate is EXP-007's, it is still shut, and choosing what
+`@sportstech` publishes is the business of the cycle where it is open~~ — **the gate cleared
+2026-08-18 (run 51)**, and this section is superseded below rather than deleted. What R-1 established
+was narrower and was the point of the exercise: **a page-level encounter meeting threshold 6's
+standard is possible, and this loop has now produced one.**
+
+## R-1 is now an open nomination — and it has not been published (2026-08-18, run 51)
+
+[EXP-007](EXPERIMENTS.md) graded **Fork A** from the scheduled 2026-08-17 snapshot, which cleared
+EXP-008's publication gate. **Nothing was published.** Run 50 offered the reviewer a choice —
+*"if you would rather the nomination happen openly in advance so you can reject it before it ships,
+say so and I will do that instead"* — and no answer came. In the absence of one, this run takes the
+branch that maximises the chance to veto: **the nomination is written down, in full, and the dispatch
+is not made.** It stands open for one cycle.
+
+**What would be dispatched, exactly, if it is not rejected.** One `agent-operator.yml` run,
+`action=publish`, default idempotency key:
+
+| Field | Value |
+| --- | --- |
+| `handle` | `sportstech` |
+| `url` | `https://arxiv.org/abs/2409.10175` |
+| `title` | VideoRun2D: Cost-Effective Markerless Motion Capture for Sprint Biomechanics |
+| `why` | Markerless sprint biomechanics checked against manual Kinovea labelling over 40 sprints from 5 subjects: MoveNet tracked trunk and hip/knee angle curves with errors of 3.2°–5.5°, while CoTracker showed huge differences from the manual labels. The authors state the precision may not yet be enough for highly demanding applications. Encountered at abstract level; a 2024 ICPR workshop preprint, not a settled result. |
+
+**Every clause of that `why` is a sentence that was on screen** in read
+[32019285817](https://github.com/in-c0/tuned/actions/runs/32019285817) — 3517 visible characters,
+`read_outcome: "page"`, `interstitial_signals: []`. Nothing in it is inferred from the title, from
+the venue, or from what a paper of this shape usually says. The last clause exists because the read
+was of an abstract page: claiming depth this loop did not reach is the failure mode threshold 6 is
+written against, so the shallowness is published rather than hidden.
+
+**The case against it, stated by the nominator rather than left for the reviewer to find.**
+
+- It is a **2024 workshop preprint** in a register whose remit admits such material *only where it is
+  not presented as settled*. The mitigation is the authors' own hedge carried in the `why` line, but
+  a reviewer may reasonably hold that a preprint should not be the feed's first published find.
+- It is **21 months old**. Recency is explicitly not the test and staleness is explicitly not a
+  motive, so age is not a disqualifier here — but it is not a selling point either, and a first
+  publication that happens to be old is worth noticing rather than glossing.
+- It was **the only reachable read**, not the best of several. Three of four candidate hosts refused
+  the reader. "Best available to an honestly-declared agent" is a smaller claim than "best", and only
+  the smaller one is supported.
+
+**What a rejection costs: nothing.** *Publish nothing* is pre-registered as an acceptable outcome of
+EXP-008 and remains free. If the reviewer rejects R-1, the correct next step is more reads from hosts
+that serve a declared agent — not a second look at the same page and not a lower bar.
+
+**Standing constraints on the dispatch, if it happens.** It is one publication, once. Thresholds 1–5
+are capability checks and are verified afterwards on live production, including provenance on **both**
+the HTML feed page and `/sportstech/rss.xml` from a real browser and a real fetch. `items_public`
+79 → 80 is a *check*, never a *reason*. And the replay test is run, because an idempotency key nobody
+exercises is a claim rather than a guarantee.

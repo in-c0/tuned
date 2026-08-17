@@ -1139,11 +1139,130 @@ Contamination from that bracket, declared before it is read: on UTC day **2026-0
 `HeadlessChrome` user-agent, so they enter neither the human-flagged counters the forks read nor the
 day (08-16) they read. `applications` untouched, still 0.
 
-- **Result (source-linked):** PENDING — the complete UTC day 2026-08-16 is not yet readable from a
-  scheduled snapshot; the 08-17 scheduled snapshot (20:40 UTC) is the read. The apparatus is verified
-  live on **both** sides of the window — 2026-08-15 10:11 UTC and 2026-08-17 04:14 UTC — and
-  byte-identical throughout it, so the gate's zero is now interpretable either way it falls.
-- **Decision:** pending the reading above.
+### The reading — graded 2026-08-18 (run 51)
+
+**Source, and that it is the pre-registered one.** `ops/metrics/latest.json` and
+`ops/metrics/2026-08-17.json`, `generated_at` **2026-08-17T20:57:27.306Z**, committed as
+[`4527018`](https://github.com/in-c0/tuned/commit/4527018). The producing run is
+[32068544835](https://github.com/in-c0/tuned/actions/runs/32068544835), **`event: schedule`**,
+success — checked rather than assumed, because the spec says *"not from a dispatched snapshot"* and
+the same workflow accepts `workflow_dispatch`. UTC day 2026-08-16 is closed in it.
+
+| Counter, UTC day **2026-08-16** | Value |
+| --- | --- |
+| `landing_view` (UA-flagged human-shaped) | **50** |
+| `landing_view_bot` | 31 |
+| `landing_engage` | **absent → 0** |
+| `landing_engage_bot` | **absent → 0** |
+| `application_start` | absent → 0 |
+| `application_start_bot` | absent → 0 |
+| `application_invalid` | absent → 0 |
+| `application_submit` | absent → 0 |
+
+An absent row means no requests were counted that day — the snapshot's own note says so, and it is
+the only reading available since these counters have no zero rows.
+
+#### Validity gate — resolved, and not by waiving it
+
+`landing_engage + landing_engage_bot` = **0** while `landing_view` = **50**. That is exactly the
+literal branch the gate routes to *"the instrument is broken or blocked … fix the pulse."* The run-49
+discriminator is what decides between the two causes of that zero, and all three of its parts hold:
+
+1. **Emitter byte-identity across the window.** `git log ba7ae7d..233c1fe -- src/pages.ts` returns
+   **no commits**, and `git diff ba7ae7d 233c1fe -- src/index.ts` changes **no line containing
+   `pulse` or `landing`**. Re-run this cycle rather than inherited from run 49's report.
+2. **Near-side bracket, 2026-08-15** — [31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766),
+   build `ba7ae7d`, `landing_engage` **204**, one-shot, same-origin.
+3. **Far-side bracket, 2026-08-17** — [31993707292](https://github.com/in-c0/tuned/actions/runs/31993707292),
+   build `6d63bd3`, `landing_engage` **204** and `application_start` **204**, no page errors.
+
+**A gap in part (1) as run 49 wrote it, found and closed this run rather than passed over.** Run 49
+enumerated the emitter as *two* files. A **third** file in the same dependency path —
+[`src/metrics.ts`](../src/metrics.ts) — **did** change inside the graded day, deployed in
+[`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) at 2026-08-16 **10:14 UTC**, and was not
+in the list. Checked directly: the diff adds `countEach` (called only from the feed route), corrects
+one docstring and extends the snapshot `note` string. **`count()` — the function the pulse route
+actually calls — is untouched**, as is `ensureTables`. The pulse write path
+(`app.post("/api/pulse/:name")` → `count(...)` → `metric_days`) was byte-identical for the whole
+window. Part (1) holds, and now holds on the write path rather than on a file list. See
+[L-29](LESSONS.md).
+
+**Therefore: the first branch of the rule applies. The zero is a fact about arrivals, not an
+instrument failure.** *"Fix the pulse"* is not the next action, because nothing is broken. The forks
+are graded as written.
+
+#### Fork arithmetic — one matched, stated in full so the exclusivity is checkable
+
+| Fork | Condition | Observed | |
+| --- | --- | --- | --- |
+| **A** | `landing_view` ≥ 40 **and** `landing_engage` ≤ 2 | 50 ✓ and 0 ✓ | **MATCHED** |
+| B | `landing_engage` ≥ 10 **and** `application_start` ≤ 1 | 0 ✗ | no |
+| C | `application_start` ≥ 3 **and** `application_submit` = 0 | 0 ✗ | no |
+| D | `application_invalid` ≥ 1, **on any day** | absent from every snapshot 08-08 … 08-17 ✗ | no |
+| E | anything else | A matched | n/a |
+
+**Fork D checked across the whole series, not just the graded day**, because its condition says *on
+any day*: `application_invalid` appears in the snapshot files only inside the explanatory `note`
+string and never as a daily row. **Nobody has been refused by the validator.** That is a real
+negative and it removes a defect hypothesis rather than confirming one.
+
+#### FORK A — THE DENOMINATOR IS NOT HUMAN
+
+**Reading, in the spec's own words:** the ~600-view figure does not describe people. Conversion is
+not the problem and the landing page is not the problem.
+
+**Next action, as pre-registered:** *stop all landing-page optimisation; the binding constraint is
+distribution.* The spec adds *"and it is owner-gated (EXP-002)"* — that half is **superseded by
+events, not by this grading**: EXP-002 was withdrawn on run 34 as inadmissible, and the constraint's
+current form is [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4**, which fails on every destination. The
+substance is unchanged and is now evidenced instead of assumed: **distribution is the binding
+constraint, and page work is not a substitute for it.**
+
+#### The next day already disagrees in one respect, and it is recorded before anyone can be surprised by it
+
+The same snapshot carries UTC day **2026-08-17** — **partial**, cut at 20:57 UTC — reading
+`landing_view` **93**, `landing_engage` **3**, `landing_engage_bot` **1**, `application_start`
+**absent**. The bot figure is this loop's own far-side bracket, declared in advance in
+[METRICS.md](METRICS.md). **The `landing_engage` 3 is not.** It is the first non-bot engagement
+pulse in the series, and no declared footprint of this loop accounts for it.
+
+Three things are true about it at once, and none may be dropped:
+
+- **It does not overturn Fork A.** 3 is far below Fork B's threshold of 10, the day is partial, and
+  08-17 is not a day this experiment was pre-registered to grade. Grading a fork off it would be
+  choosing the day after seeing the number.
+- **It does not confirm a human either.** `landing_engage` is page-reported and forgeable, and a
+  JS-executing crawler with a stock UA lands in exactly this bucket. The experiment's own binding
+  clause says so.
+- **Fork A's next action survives both readings.** Three touches and **zero** form-starts across 143
+  UA-flagged views over two days is not a landing-page conversion problem under any interpretation;
+  it is an absence of traffic. The redirect does not depend on which explanation is right.
+
+**Pre-registered second reading, written now so the number cannot shape the rule.** Complete UTC day
+**2026-08-17**, read from the **scheduled** 2026-08-18 20:40 UTC snapshot. **This is a partial
+blind and it is a thinner one than run 49's** — ~87% of the day is already visible above. Disclosed
+so the reviewer can discount it:
+
+- `landing_engage` ≥ 10 on the complete day → the two-day picture is mixed, **Fork A is marked
+  QUALIFIED rather than overturned**, and the qualification is recorded on EXP-007 rather than a new
+  experiment being invented to hold it.
+- `landing_engage` between 1 and 9 → **Fork A stands**, with the standing note that the denominator
+  is *overwhelmingly*, not *entirely*, non-human. No conversion rate is computed from it.
+- `landing_engage` = 0 → Fork A stands and the 08-17 partial was noise. No action.
+- **In no branch does this reopen landing-page optimisation**, because in no branch does
+  `application_start` moving from 0 become evidence about the page rather than about traffic volume.
+
+- **Result (source-linked): FORK A — THE DENOMINATOR IS NOT HUMAN. GRADED / CLOSED.**
+  `landing_view` **50**, `landing_engage` **0** on complete UTC day 2026-08-16, from the scheduled
+  snapshot `generated_at` 2026-08-17T20:57:27Z ([`4527018`](https://github.com/in-c0/tuned/commit/4527018),
+  run [32068544835](https://github.com/in-c0/tuned/actions/runs/32068544835)). Validity gate passed
+  via the run-49 discriminator, all three parts re-verified this cycle. Forks B, C, D, E did not
+  match. Fork D checked across every snapshot day and is a clean negative.
+- **Decision:** landing-page, copy, positioning and pricing-surface work stays closed — now on
+  evidence rather than on precaution. **Distribution is the binding constraint**, in its current form
+  as [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4**. The second reading above is scheduled and its rule
+  is fixed. **Nothing in this grading is demand, activation, retention, referral or revenue**, and no
+  conversion rate is computed against `landing_view`.
 
 ---
 
@@ -1190,11 +1309,21 @@ Two failure modes are worth separating in advance, because they look identical f
 
 ### Gate before the experiment may start
 
-**Publication is blocked until [EXP-007](#exp-007--is-there-a-human-on-the-other-side-of-the-landing-page-2026-08-15-run-43)'s
+~~**Publication is blocked until [EXP-007](#exp-007--is-there-a-human-on-the-other-side-of-the-landing-page-2026-08-15-run-43)'s
 first complete-UTC-day snapshot — UTC day 2026-08-16, read from the scheduled 08-17 snapshot — is
-committed and graded.** EXP-007 grades the landing surface; a publication that changes what the
-landing demo shows inside that window would confound the first and only clean reading of it. This is
-a scheduling constraint, not a threshold, and it is not gradeable as a fork.
+committed and graded.**~~ **CLEARED 2026-08-18 (run 51)** — the snapshot is committed
+([`4527018`](https://github.com/in-c0/tuned/commit/4527018)) and EXP-007 is graded **Fork A** against
+it. EXP-007 grades the landing surface; a publication that changes what the landing demo shows inside
+that window would confound the first and only clean reading of it. This was a scheduling constraint,
+not a threshold, and it was never gradeable as a fork.
+
+**The gate cleared on the same commit that grades it, so publication is the *next* cycle's business,
+not this one's.** Shipping a publication in the run that writes the grading would mean the gate was
+opened and used by one commit, which is the ordering discipline run 49 established for exactly this
+reason. What run 51 does instead is put its candidate on the record as an **open nomination** in
+[EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) — which is the option run 50 offered the reviewer
+*"if you would rather the nomination happen openly in advance so you can reject it before it ships"*,
+taken in the absence of an answer because it is the branch that maximises the chance to veto.
 
 ### Success threshold (falsifiable, fixed in advance)
 
@@ -1236,6 +1365,10 @@ Binding regardless of the result:
 - **Nothing is published to make a number move.** If threshold 2 is the reason a publication is
   being considered, the publication is disqualified by threshold 6.
 
-- **Result (source-linked):** NOT STARTED — adoption only this cycle; publication is gated on
-  EXP-007's first complete-day reading.
-- **Decision:** pending.
+- **Result (source-linked):** NOT STARTED — adoption only. ~~Publication is gated on EXP-007's first
+  complete-day reading.~~ **That gate cleared 2026-08-18 (run 51).** One candidate, **R-1**, is
+  openly nominated in [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) and has **not** been published.
+  No dispatch has been made; no threshold has been tested.
+- **Decision:** pending — the nomination stands open for one cycle so the reviewer can reject it
+  before anything ships. *Publish nothing* remains a pre-registered acceptable outcome and still
+  costs nothing.

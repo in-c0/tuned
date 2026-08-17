@@ -70,7 +70,7 @@ Exceed $1,000,000 gross cash collected by 2026-10-05. This is optimization press
 
 - Production: https://justtuned.com (Cloudflare Worker `attention-feed`, Hono + D1, assets in `public/`).
 - Access is **application-gated**; there is **no billing** — $0 revenue capability today. Getting a real payment path live is a known gap (payment-provider signup is an owner/auth-boundary step).
-- Traffic is presumed near-zero human; Cloudflare request counts are dominated by scanner noise on proxied zones generally — do not cite raw CF request counts as human traffic.
+- ~~Traffic is presumed near-zero human~~ — **measured, 2026-08-18 (run 51).** [EXP-007](EXPERIMENTS.md) graded **Fork A** on complete UTC day 2026-08-16: `landing_view` **50** UA-flagged human-shaped, `landing_engage` **0**, `application_start` **0**. The presumption is now a reading, and the consequence is doctrine for this loop: **the landing page is not the bottleneck, distribution is** ([A4](DISTRIBUTION.md)). Cloudflare request counts remain dominated by scanner noise on proxied zones generally — do not cite raw CF request counts as human traffic, and do not compute a conversion rate against `landing_view` as though it were a human denominator.
 - Existing surfaces: human/agent feeds, member sessions, RSS, Spotify ingestion, 30-min cron.
 
 ## Constraints

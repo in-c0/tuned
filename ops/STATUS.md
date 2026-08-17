@@ -1,9 +1,66 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-17 14:40 Sydney (2026-08-17 04:40 UTC), run 49 — **the gate that guards
-tomorrow's reading prescribed a cure for one of the two things that reading could mean** ·
+**Last updated:** 2026-08-18 08:20 Sydney (2026-08-17 22:20 UTC), run 51 — **EXP-007 is graded:
+Fork A, the denominator is not human** ·
 **OWNER ACTION REQUIRED: NONE** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The wait is over. Fifty landing views, zero touches — the traffic was never people.
+>
+> Four runs were gated behind one number. It arrived on schedule: the **scheduled** snapshot
+> `generated_at` **2026-08-17T20:57:27Z**, [`4527018`](https://github.com/in-c0/tuned/commit/4527018),
+> [run 32068544835](https://github.com/in-c0/tuned/actions/runs/32068544835), `event: schedule` —
+> checked, because [EXP-007](EXPERIMENTS.md) says *not from a dispatched snapshot* and the workflow
+> accepts dispatch.
+>
+> **Complete UTC day 2026-08-16: `landing_view` 50, `landing_engage` 0, `application_start` 0,
+> `application_invalid` 0.**
+>
+> That zero is the gate's literal *"fix the pulse"* branch, and run 49 built the discriminator that
+> tells its two causes apart. All three parts hold — emitter byte-identity across the window, plus
+> production brackets on **both** sides of it ([08-15](https://github.com/in-c0/tuned/actions/runs/31878890766),
+> [08-17](https://github.com/in-c0/tuned/actions/runs/31993707292)), each `landing_engage` **204**.
+> **Nothing is broken. The zero is a fact about arrivals.**
+>
+> **FORK A — THE DENOMINATOR IS NOT HUMAN.** `landing_view` ≥ 40 ✓ (50), `landing_engage` ≤ 2 ✓ (0).
+> B, C and E did not match. **D was checked across every snapshot day, 08-08 to 08-17** — its
+> condition says *on any day* — and `application_invalid` has never once appeared: **nobody has been
+> refused by the validator.** A clean negative, and the fork arithmetic is written out in full so the
+> exclusivity is checkable rather than asserted.
+>
+> **What it changes is why, not what.** Landing-page, copy, positioning and pricing work has been held
+> since run 18 as a *precaution* against an unknown denominator. It is now held on a measurement. A
+> hold justified by uncertainty can be argued away by any run that wants the work; a hold justified by
+> a graded reading cannot. **Distribution is the binding constraint** — in its current form
+> [A4](DISTRIBUTION.md), since EXP-002 (the gate EXP-007's own text names) was withdrawn on run 34.
+>
+> **One number in the same snapshot nobody's footprint accounts for, recorded before it can surprise
+> anyone:** partial 08-17 reads `landing_engage` **3** — the first non-bot engagement pulse in the
+> series. It does **not** overturn Fork A (3 is far below Fork B's 10, the day is partial, and 08-17
+> is not the pre-registered day), and it does **not** prove a person (page-reported, forgeable, and a
+> JS-executing crawler lands in the same bucket). A second reading of complete 08-17 is pre-registered
+> with its branches fixed in advance. **In none of them does landing-page optimisation reopen** —
+> three touches and zero form-starts across 143 views is an absence of traffic under every reading.
+>
+> **A gap in run 49's discriminator, found and closed rather than inherited.** It enumerated the
+> emitter as two files; a third in the same path — [`src/metrics.ts`](../src/metrics.ts) — changed
+> **inside** the graded day at 10:14 UTC and was not on the list. Checked directly: purely additive,
+> `count()` untouched, write path byte-identical. The conclusion survives; the reasoning was thinner
+> than stated. [L-29](LESSONS.md) — a discriminator that lists files inherits the lister's model of
+> the system.
+>
+> **EXP-008's gate is now clear and nothing was published.** The gate cleared on the same commit that
+> grades it, so publication is the next cycle's business. **R-1** (`arxiv.org/abs/2409.10175`) is
+> written up as an **open nomination** — the exact dispatch, every clause of its `why` traceable to a
+> sentence on screen in the recorded read, and the case *against* it argued by the nominator. That is
+> the branch run 50 offered the reviewer and got no answer to, taken because it maximises the chance
+> to veto. *Publish nothing* stays free.
+>
+> No production mutation beyond the deploy: no publication, no operator dispatch, no agent touched,
+> no schema, no migration, no route, no product copy, no browser QA dispatch, no source read. Egress
+> still **403 CONNECT** for `justtuned.com` *and* `example.com` — **39 consecutive runs**.
+> `items_public` **79**, `applications` **0**, `members_ever_active` **0**, followers **0**, gross
+> cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # A validity gate's second sentence was a diagnosis wearing the clothes of an instruction.
 >
@@ -595,24 +652,34 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Current experiment
 
-- **EXP-008 — can the operator control plane publish one real agent find? NOT STARTED / GATED
-  (run 44).** Pre-registered at adoption, before any operator publication exists. Baseline recorded
+- **EXP-007 — is there a human on the other side of the landing page? GRADED / CLOSED — FORK A
+  (run 51).** Complete UTC day **2026-08-16**: `landing_view` **50**, `landing_engage` **0**,
+  `application_start` **0**, `application_invalid` **0**, from the scheduled snapshot `generated_at`
+  2026-08-17T20:57:27Z ([`4527018`](https://github.com/in-c0/tuned/commit/4527018), run
+  [32068544835](https://github.com/in-c0/tuned/actions/runs/32068544835), `event: schedule`).
+  Validity gate resolved via run 49's discriminator — emitter byte-identity across the window plus
+  production brackets on both sides, all three parts re-verified this cycle, so the zero is a fact
+  about arrivals rather than a broken instrument. **Fork A: the denominator is not human.** B, C, E
+  did not match; **D checked across every snapshot day and is a clean negative** — no application has
+  ever been refused by the email validator. *Next action, as pre-registered:* stop all landing-page
+  optimisation, the binding constraint is distribution. A **second reading** of complete UTC day
+  2026-08-17 is pre-registered against the 08-18 scheduled snapshot, because partial 08-17 shows
+  `landing_engage` **3** — unaccounted for by any declared footprint, not proof of a person, and not
+  a reopening of page work under any branch.
+- **EXP-008 — can the operator control plane publish one real agent find? NOT STARTED / GATE CLEARED,
+  ONE OPEN NOMINATION (run 44, gate cleared run 51).** Pre-registered at adoption, before any operator publication exists. Baseline recorded
   from production: `@sportstech` `source=adopted`, `public_items=11`, `operator_publications=0`,
   newest public item **2026-07-30T22:48:09Z**; site-wide `items_public` **79**. Six thresholds — 201
   with an `item_id`, exactly one new item, `operator_publications` 0 → 1, a replay that publishes
   nothing, **provenance on both the HTML feed page and `/sportstech/rss.xml`** verified from a real
-  browser and a real fetch, and a find that was genuinely encountered. **Gated: no publication until
-  EXP-007's first complete-day reading is committed and graded.** The option of publishing *nothing*
-  is pre-registered as an acceptable outcome, so taking it later costs nothing. Capability evidence,
-  explicitly not demand.
-- **EXP-007 — is there a human on the other side of the landing page? PENDING (run 43).**
-  Pre-registered 2026-08-15 ~04:20 UTC, **before the counters it reads existed**. Five exclusive forks
-  — *the denominator is not human* / *the offer does not land* / *intent exists and is being lost* /
-  *validation is eating applications* / *under-powered* — each with its own next action, and an
-  instrument validity gate ahead of all of them. **Read at the first scheduled `ops/metrics/` snapshot
-  covering a complete UTC day after deploy**, which is the 08-17 snapshot for UTC day 08-16. Not
-  before, and not from a dispatched snapshot. Nothing is graded against the 605 historical views: the
-  counters start at zero on the deploy that introduced them.
+  browser and a real fetch, and a find that was genuinely encountered. ~~**Gated: no publication until
+  EXP-007's first complete-day reading is committed and graded.**~~ **Gate cleared run 51** — and
+  nothing was published, because the gate cleared on the same commit that grades it. **R-1**
+  (`arxiv.org/abs/2409.10175`) stands as an **open nomination** in
+  [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md), with the exact dispatch written out and the case
+  against it stated, so the reviewer can reject it before anything ships. The option of publishing
+  *nothing* is pre-registered as an acceptable outcome, so taking it later costs nothing. Capability
+  evidence, explicitly not demand.
 - **EXP-001 — funnel telemetry baseline: PASSED / CLOSED.** Threshold was a non-zero `landing_view`
   or `landing_view_bot` on ≥1 day; observed non-zero on **all three** days. The instrumentation is
   confirmed working end to end in production, and the pre-registered "zero means no traffic" fork
@@ -643,6 +710,29 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 ## Next action
 
 **Owner: nothing.** The card is closed. Still do not email HN moderation, and do not repost.
+
+**Run 51 ended the wait, and the queue that was gated behind it is now ordered as follows.**
+
+1. **Decide R-1.** The nomination in [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) stands open for
+   one cycle so the reviewer can reject it before it ships. If it is not rejected, the next run may
+   dispatch **one** `agent-operator.yml` `publish` with exactly the fields written there, then verify
+   EXP-008's thresholds 1–5 on live production — including provenance on **both** the HTML feed page
+   and `/sportstech/rss.xml`, and the replay test, because an idempotency key nobody exercises is a
+   claim rather than a guarantee. `items_public` 79 → 80 is a check, never a reason. If it is
+   rejected: more reads from hosts that serve an honestly-declared agent, and **not** a lower bar.
+2. **Read complete UTC day 2026-08-17** from the **scheduled** 08-18 20:40 UTC snapshot, against
+   EXP-007's pre-registered second-reading branches. This costs nothing but waiting and needs no
+   owner. It cannot reopen landing-page work in any branch.
+3. **A4 still fails on every destination**, and only a publication moves it. That is the whole reason
+   item 1 is first.
+4. Free and unclaimed: the unattributed console 404 from run 49, if it is worth a cycle at all.
+   `cron_run` is now **answered** — 49 on complete 08-16 against 48 boundaries, healthy, and 08-14's
+   36 was the partial-day artefact it looked like.
+
+**Closed by measurement rather than by preference (run 51):** landing-page, copy, positioning and
+pricing-surface work. Fork A is the evidence, and *"the page needs work"* is no longer an argument
+anyone in this loop can make from the numbers — 50 UA-flagged views produced **zero** touches on the
+graded day. If a future run wants that work, it needs a *new* reading, not a new opinion.
 
 ~~**Executor: the preflight is done and the next step is not yours to take alone.**~~ **Taken up in
 run 44 — the reviewer authorized it, and it is done.** The
@@ -788,10 +878,16 @@ is also this instrument's first real reading, and it is load-bearing: `feed_view
 
 ## Not doing (deliberate holds)
 
-- No pricing, positioning or copy work while the denominator is unknown. Run 18 makes this sharper,
-  not weaker: the apply path is proven, so a failed copy test could no longer even be blamed on a
-  broken form — it would simply be ungradeable against crawler traffic.
-- No CTA-reach counter yet. It is the right instrument against the wrong traffic.
+- ~~No pricing, positioning or copy work while the denominator is unknown.~~ **The denominator is no
+  longer unknown, and the hold hardens rather than lifts (run 51).** [EXP-007](EXPERIMENTS.md) Fork A
+  is graded: 50 UA-flagged views, **0** engagements on complete UTC day 2026-08-16. The hold now rests
+  on a measurement instead of a precaution. Run 18 already proved the apply path works, so a failed
+  copy test could not be blamed on a broken form; run 51 adds that it could not be *graded* either,
+  because there is no human denominator to grade it against. **Reopening this needs a new reading, not
+  a new argument.**
+- ~~No CTA-reach counter yet. It is the right instrument against the wrong traffic.~~ **Lifted run 43,
+  built, and it has now answered.** `landing_engage` was shipped precisely to test the "wrong traffic"
+  assumption rather than assume it, and the assumption held on the graded day.
 - **No Hacker News activity of any kind, by anyone, on the executor's initiative.** EXP-002 is
   withdrawn. No repost, no second account, no reworded resubmission, no alternate link to the same
   site, no vote or comment solicitation, and **no contact with moderation** — the email the loop was
