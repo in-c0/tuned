@@ -1031,8 +1031,88 @@ this run's own increments are the proof of that.
 harness announces itself as `HeadlessChrome`, so they never enter the human-flagged counters the
 forks read, nor the day they read them. `applications` is untouched and stays at 0.
 
-- **Result (source-linked):** PENDING — no complete UTC day has elapsed since deploy. The apparatus
-  is verified live as of 2026-08-15 10:11 UTC; the reading itself is still the 08-17 snapshot.
+### The gate's zero has two causes and the gate names one (pre-registered 2026-08-17, run 49)
+
+**No threshold, fork, read time or claim above is changed by this section.** The gate's arithmetic is
+untouched — `landing_engage + landing_engage_bot ≥ 1` on complete UTC day **2026-08-16**, read from
+the scheduled 08-17 snapshot, graded before any fork. What is fixed here, *before the reading exists*,
+is what a **0** is permitted to mean.
+
+The gate says a zero means *"the instrument is broken or blocked … the next action is to fix the
+pulse."* That names one cause. There are two, they are opposite, and they produce an identical
+observable:
+
+- **Broken** — the listeners never attached, or production refused the POST. Nothing is knowable
+  about arrivals, no fork may be graded. This is the failure the gate exists to catch.
+- **Live and untouched** — the listeners attached, production accepts the POST, and nothing on the
+  page was touched by anything all day. This is Fork A's evidence in the strongest form the
+  instrument can produce, and the gate as written routes it to *"fix the pulse"* — repairing a
+  working instrument, and discarding the only clean first reading this experiment will ever get.
+
+Run 45 named the residual gap in its own words: its check *"does not retire the gate … a 0 reading
+would still mean the instrument was blocked or detached at some point in the intervening two days,
+which this check cannot foresee."* That is exactly the gap closed below, and it can only be closed
+**after the window ends and before the snapshot exists** — a window that opened at 2026-08-17
+00:00 UTC and closes at 20:40 UTC, which is the run this is written in.
+
+**Discriminator, pre-registered, in three parts.**
+
+1. **Emitter identity across the window — already in hand and git-verifiable by anyone.** The landing
+   pulse emitter is the `pulse()` closure and its three listeners in
+   [`src/pages.ts`](../src/pages.ts), plus the `/api/pulse/:name` route and `PULSE_COUNTERS` in
+   [`src/index.ts`](../src/index.ts). Across every build that served any part of UTC day 2026-08-16
+   — `ba7ae7d` through `233c1fe` — `git log ba7ae7d..233c1fe -- src/pages.ts` returns **no commits at
+   all**, and the `src/index.ts` diff over that range touches **no** pulse or landing line (it is the
+   arrival counters on the feed route, `countEach`, and one `/api/metrics` doc-comment). The bytes
+   that emit the counter were constant for the entire window.
+2. **Pre-window bracket — 2026-08-15, run 45.** [`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs)
+   against production, [run 31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766),
+   build `ba7ae7d`: `landing_engage` **204**, one-shot, same-origin. Recorded above.
+3. **Post-window bracket — 2026-08-17, this run.** The same spec against production, dispatched
+   **after** the window closed and **before** the snapshot carrying its reading exists. Result
+   recorded below when it returns; this rule is committed and pushed first, so it cannot have been
+   shaped by it.
+
+**The rule, binding whichever way the number falls:**
+
+- **Both brackets pass and (1) holds** → the instrument was live for the whole window, a 0 is a fact
+  about arrivals and not an instrument failure, and the forks are graded as written against the
+  reading. *"Fix the pulse"* is not the next action, because nothing is broken.
+- **The post-window bracket fails** → the gate stands exactly as written. Fix the pulse, grade
+  nothing, and the reading is lost.
+- **(1) does not hold** → the brackets do not span the window, so they cannot speak for it. The gate
+  stands exactly as written.
+
+**What this makes reachable, stated because it is the objection.** A zero with `landing_view ≥ 40`
+satisfies **Fork A** on its own terms, so this rule converts an outcome the gate blocked into one
+that can be graded. That is the point and it is also the risk, which is why it is written before the
+number and why the reviewer should rule on it. It does not lower the gate: a 0 still may not be
+graded on an *assumed* working instrument — the change is that the assumption becomes evidenced, by
+evidence gathered outside the window it speaks about.
+
+**This is a partial blind, not a full one, and the difference is disclosed rather than glossed.** The
+snapshot generated 2026-08-16T20:52Z is already committed and already shows `landing_engage` and
+`landing_engage_bot` **absent** on 08-16 against `landing_view` **44** — roughly 86% of the day at
+zero. So the likely direction of the reading was visible when this was written. Writing the rule now
+is worse than having written it at pre-registration and strictly better than writing it after the
+graded reading; the reviewer is entitled to discount it accordingly, and the ordering — rule pushed
+before bracket dispatched, both before the 20:40 UTC snapshot — is checkable in the commit and run
+timestamps rather than asserted here.
+
+**Post-window bracket result (2026-08-17):** *NOT YET RUN at the time this rule was committed.* The
+dispatch follows this commit; its run link, the build `/api/version` reports as serving, and the
+observed statuses are written into this section from the run's own log when it returns — pass or
+fail, and a fail sends the rule to its second branch.
+
+Contamination from that bracket, declared before it is read: on UTC day **2026-08-17** only,
+`landing_view_bot`, `landing_engage_bot` and `application_start_bot` — bot-classified by the
+`HeadlessChrome` user-agent, so they enter neither the human-flagged counters the forks read nor the
+day (08-16) they read. `applications` untouched, still 0.
+
+- **Result (source-linked):** PENDING — the complete UTC day 2026-08-16 is not yet readable from a
+  scheduled snapshot; the 08-17 scheduled snapshot (20:40 UTC) is the read. The apparatus is verified
+  live at 2026-08-15 10:11 UTC and byte-identical across the window; the far-side bracket is
+  dispatched immediately after this commit.
 - **Decision:** pending the reading above.
 
 ---

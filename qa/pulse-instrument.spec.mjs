@@ -1,8 +1,21 @@
 // EXP-007 instrument validity — does the deployed landing page actually emit its counters?
 //
 // This is not a new experiment and it does not change EXP-007's pre-registration. It is a
-// pre-gate check on EXP-007's *apparatus*, run deliberately on UTC day 2026-08-15 so that it
-// lands outside the complete-UTC-day window (2026-08-16) that EXP-007 reads.
+// check on EXP-007's *apparatus*, run deliberately on UTC days that fall **outside** the
+// complete-UTC-day window (2026-08-16) that EXP-007 reads, so that nothing it causes lands in
+// the day under measurement.
+//
+// Run twice, on purpose, and the second run is what makes the first one load-bearing:
+//   2026-08-15 (run 45, build ba7ae7d) — near-side bracket, before the window opened.
+//   2026-08-17 (run 49)               — far-side bracket, after the window closed and before
+//                                       the scheduled snapshot carrying its reading exists.
+// Run 45 recorded the gap this closes: a single pre-window check "does not retire the gate …
+// a 0 reading would still mean the instrument was blocked or detached at some point in the
+// intervening two days, which this check cannot foresee." Two brackets plus the fact that
+// `git log ba7ae7d..233c1fe -- src/pages.ts` is empty — the emitter's bytes never changed
+// across any build that served the window — is what lets a 0 be read as a fact about arrivals
+// rather than an ambiguity. See EXP-007's pre-registered disambiguation rule in
+// ops/EXPERIMENTS.md, which was committed before this spec was dispatched the second time.
 //
 // Why it exists. EXP-007's whole value is that it separates three explanations of "605 landing
 // views, 0 applications" that no existing counter can tell apart. Its instrument validity gate
@@ -21,11 +34,11 @@
 // and produces exactly the zeros Fork A predicts.
 //
 // Footprint. GETs plus the two pulse POSTs the page itself sends. The application form is typed
-// into and **never submitted** — `applications` has read 0 for nine days and that number stays
-// clean. The headless user-agent means src/metrics.ts classifies everything this suite causes as
-// bot traffic, so the increments land in `landing_engage_bot` / `application_start_bot` on
-// 2026-08-15 and never enter either the human-flagged counters EXP-007's forks read or the day
-// they read them.
+// into and **never submitted** — `applications` has read 0 since the counter existed and that
+// number stays clean. The headless user-agent means src/metrics.ts classifies everything this
+// suite causes as bot traffic, so the increments land in `landing_engage_bot` /
+// `application_start_bot` on whichever UTC day it is dispatched, and never enter either the
+// human-flagged counters EXP-007's forks read or the day they read them.
 
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
@@ -149,8 +162,14 @@ test.describe("EXP-007 instrument validity — does the page emit what the exper
       page_errors: pageErrors,
       console_errors: consoleErrors,
       application_submitted: false,
-      note: "Instrument validity pre-check for EXP-007, run on UTC day 2026-08-15 — outside the complete UTC day 2026-08-16 that EXP-007 reads. The increments this caused are bot-classified by src/metrics.ts because of the headless user-agent.",
+      utc_day: new Date().toISOString().slice(0, 10),
+      note: "Instrument validity bracket for EXP-007. Dispatched only on UTC days outside the complete UTC day 2026-08-16 that EXP-007 reads — 08-15 near-side, 08-17 far-side. The increments this caused are bot-classified by src/metrics.ts because of the headless user-agent.",
     };
+    // Before anything optional can fail. L-20, three times over: run 47 lost a reading to a
+    // screenshot timeout and run 48 shipped a spec whose evidence reached only the artifact
+    // zip — the one place this executor cannot open. The assertions above carry the check; this
+    // is what makes its values readable by the run that has to record them.
+    console.log("EVIDENCE " + JSON.stringify(evidence));
     fs.writeFileSync(
       path.join(ARTIFACTS, "pulse-instrument.json"),
       JSON.stringify(evidence, null, 2),

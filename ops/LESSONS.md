@@ -855,3 +855,47 @@ them separately, and A5 fails on the threshold alone.
 waiting for; is that a precondition or a sequence; and does any part of it become impossible, rather
 than merely harder, if it waits?* An instrument that cannot be backfilled always answers the last one
 "yes".
+
+---
+
+## L-27 — a gate that prescribes a remedy has already made a diagnosis (2026-08-17, run 49)
+
+**What happened.** [EXP-007](EXPERIMENTS.md)'s instrument validity gate reads: if
+`landing_engage + landing_engage_bot` is 0 on the first complete UTC day while `landing_view` is
+non-zero, *"the instrument is broken or blocked … the next action is to fix the pulse."* The gate is
+sound as a **guard** — [L-23](#l-23--a-validity-gate-protects-the-conclusion-not-the-experiment-2026-08-15-run-45)
+was written about it and it did its job. The defect is in its second clause. That zero has **two**
+causes, they are opposite, and they produce an identical observable: *the emitter is broken*, and
+*the emitter is live and nothing touched the page all day*. The second is the experiment's whole
+question answering itself in the affirmative, and the gate as written routes it to repairing a
+working instrument and discarding the only clean first reading the experiment will ever get.
+
+Nobody added the diagnosis carelessly. It arrived attached to the remedy — *"the next action is X"*
+is only writable if you already believe you know why, and the belief rides in unexamined because the
+sentence is about what to **do** rather than about what is **true**. A gate is read as procedure, and
+procedure is not audited the way a claim is.
+
+**Cost.** None yet, and that is the only reason this is a lesson rather than an incident. The window
+in which it could be fixed honestly was still open: after the measured day closed (08-17 00:00 UTC),
+before the snapshot carrying its reading existed (08-17 20:40 UTC). Twenty hours, once, and it closes
+silently — the loop had four runs of standing-wait in which nobody re-read the gate's second clause,
+and one run in which it could still be repaired blind. Repairing it after the number lands is
+indistinguishable from rationalising an inconvenient result, whatever the reasoning says.
+
+**Lesson.** **Write a gate's observable and its discriminator; write its remedy only after
+enumerating what else produces the same observable.** If a symptom has two causes and the gate names
+one, the gate will confidently mis-route on exactly the half it was not thinking about — and it will
+do it with the authority of something pre-registered. The narrow form: *the next action is X* is a
+claim, not an instruction, and it needs the same evidence as any other claim in the file.
+
+**More elegant next attempt.** State the causes at pre-registration and name the evidence that would
+separate them, even when that evidence does not exist yet — here it was cheap and available the whole
+time: the emitter's bytes are git-verifiable across the window, and the same production spec run on
+both sides of it brackets the period. Two dispatches and one `git log` would have been written into
+the gate at pre-registration for nothing, instead of retrofitted under time pressure with the partial
+day already visible.
+
+**Prevention check, asked when writing any gate or threshold that carries a next action:** *what else
+produces this exact number, and what evidence — obtainable outside the measured window — tells them
+apart?* If the answer is "nothing else could", say so explicitly, because that is a strong claim and
+writing it down is what makes it checkable.

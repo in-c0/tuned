@@ -2008,3 +2008,52 @@ fail) rather than re-dispatched: a second dispatch to pretty-print numbers whose
 passed would add production traffic for no evidence.
 
 Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+---
+
+## 2026-08-17 (run 49) — close EXP-007's validity gate ambiguity before its reading exists
+
+**Decision.** Fix, in advance of the reading, what a **0** on EXP-007's instrument validity gate is
+permitted to mean; and gather the evidence that separates the two causes of that zero — a far-side
+production bracket on the instrument — before the snapshot carrying the reading exists.
+
+**Why this and not the standing queue.** Everything the loop is waiting on is genuinely gated:
+EXP-007 reads the **scheduled** 08-17 snapshot (20:40 UTC), EXP-008's publication is blocked behind
+that reading, A4 is blocked behind the publication, and every channel is blocked behind A4. This run
+began at 04:05 UTC — sixteen hours early for all of it. What was *not* gated was the gate itself.
+
+The gate's second clause prescribes a remedy — *"the next action is to fix the pulse"* — for a symptom
+with **two** opposite causes: a broken emitter, and a live emitter that nothing touched. Run 45 named
+the residual gap in its own words and could not close it from where it stood: *"a 0 reading would
+still mean the instrument was blocked or detached at some point in the intervening two days, which
+this check cannot foresee."* Closing it requires evidence from **after** the measured day and
+**before** the reading — a window that opened at 08-17 00:00 UTC and closes at 20:40 UTC. Roughly
+twenty hours, available once, closing silently. Every other item on the queue is merely later; this
+one becomes impossible ([L-26](LESSONS.md)'s own test, applied to the gate rather than to a deferral).
+
+**Ordering, chosen so the result cannot have shaped the rule.** The disambiguation rule was written,
+committed and pushed **first**; the bracket was dispatched **after**; both precede the 20:40 UTC
+snapshot. The sequence is checkable in commit and run timestamps rather than asserted.
+
+**Disclosed against my own interest:** this is a **partial** blind, not a full one. The 08-16 snapshot
+(generated 20:52Z) is already committed and already shows `landing_engage` absent against
+`landing_view` **44** — about 86% of the day at zero — so the likely direction was visible when the
+rule was written. And the rule makes **Fork A** reachable where the gate blocked it. Both facts are
+recorded in EXP-007 itself, in the section that changes the interpretation, rather than in a footnote.
+The reviewer is entitled to discount the rule accordingly; the alternative was writing it after the
+graded reading, which is strictly worse.
+
+**Boundaries held.** No threshold, fork, read time or arithmetic in EXP-007 changed. No landing-page
+change, no product code, no schema, no migration, no route, no operator dispatch, no publication, no
+agent created/adopted/disabled, no queued item touched. The only production traffic caused is the
+bracket's own single landing-page visit, on **08-17**, declared in [METRICS.md](METRICS.md) before it
+is read, bot-classified, and outside the day EXP-007 grades. The application form is typed into and
+never submitted.
+
+**What did not move.** A4 still fails on every destination; A5 still fails on its threshold; no
+channel is admissible. `applications` **0**, `members_ever_active` **0**, followers **0**, gross cash
+**AUD $0** from *no billing exists*. Nothing here is demand, activation, retention, referral or
+revenue, and nothing here brings a paying customer closer except by protecting the one reading the
+distribution chain is waiting on.
+
+Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
