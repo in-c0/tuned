@@ -1099,10 +1099,40 @@ graded reading; the reviewer is entitled to discount it accordingly, and the ord
 before bracket dispatched, both before the 20:40 UTC snapshot — is checkable in the commit and run
 timestamps rather than asserted here.
 
-**Post-window bracket result (2026-08-17):** *NOT YET RUN at the time this rule was committed.* The
-dispatch follows this commit; its run link, the build `/api/version` reports as serving, and the
-observed statuses are written into this section from the run's own log when it returns — pass or
-fail, and a fail sends the rule to its second branch.
+**Post-window bracket result (2026-08-17) — PASS.** Dispatched after the rule above was merged to
+`master` as [`6d63bd3`](https://github.com/in-c0/tuned/commit/6d63bd3), against production serving
+that same commit: `qa-browser`
+[run 31993707292](https://github.com/in-c0/tuned/actions/runs/31993707292), **success**,
+`/api/version` → `{"commit":"6d63bd3c07a7589797b89b273f0e0259eaf386d4"}`. Read from the run's own log
+rather than an artifact zip ([L-20](LESSONS.md)):
+
+```
+EVIDENCE measured_at 2026-08-17T04:14:12.834Z   page_origin https://justtuned.com
+         pulses      [{landing_engage, 204}, {application_start, 204}]
+         page_errors []            application_submitted false      utc_day 2026-08-17
+1 passed (desktop), 1 skipped (the deliberate mobile skip)
+```
+
+`1 passed` rather than two skips is checked because two skipped projects report green while measuring
+nothing. Every assertion in the spec held: no pulse on bare page load, `landing_engage` **204** with
+`Origin` equal to the page origin, one-shot under further keystrokes and a scroll, `application_start`
+**204** exactly once, no name outside the server-side allowlist, and the application form typed into
+but **not submitted**.
+
+**Therefore the first branch of the rule applies.** With (1) emitter byte-identity across the window,
+(2) the near-side bracket on 08-15 and (3) this far-side bracket on 08-17, the instrument is
+demonstrated live on both sides of UTC day 2026-08-16 and unchanged throughout it. **A 0 on 08-16 is
+a fact about arrivals, not an instrument failure**, and the forks are graded as written from the
+20:40 UTC snapshot. *"Fix the pulse"* is not the next action.
+
+*One observation the bracket surfaced and did not resolve, recorded rather than dropped:* a single
+console **404** on the landing page, message `Failed to load resource: the server responded with a
+status of 404 ()` — no URL in the message. `page_errors` is empty and both pulses returned 204, so
+the emitter is unaffected and nothing about this reading is in doubt. The likely source is the
+browser's automatic `/favicon.ico` request — `public/` carries `icon-192.png` and `icon-512.png` but
+no `favicon.ico`, and `favicon.ico` is in `RESERVED_HANDLES` so `/:handle` will not serve it — but
+that is inference from the repository, **not** from the log, and it stands as a candidate rather than
+a diagnosis until something reads the actual request.
 
 Contamination from that bracket, declared before it is read: on UTC day **2026-08-17** only,
 `landing_view_bot`, `landing_engage_bot` and `application_start_bot` — bot-classified by the
@@ -1111,8 +1141,8 @@ day (08-16) they read. `applications` untouched, still 0.
 
 - **Result (source-linked):** PENDING — the complete UTC day 2026-08-16 is not yet readable from a
   scheduled snapshot; the 08-17 scheduled snapshot (20:40 UTC) is the read. The apparatus is verified
-  live at 2026-08-15 10:11 UTC and byte-identical across the window; the far-side bracket is
-  dispatched immediately after this commit.
+  live on **both** sides of the window — 2026-08-15 10:11 UTC and 2026-08-17 04:14 UTC — and
+  byte-identical throughout it, so the gate's zero is now interpretable either way it falls.
 - **Decision:** pending the reading above.
 
 ---

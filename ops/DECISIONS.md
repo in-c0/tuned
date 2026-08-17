@@ -2057,3 +2057,10 @@ revenue, and nothing here brings a paying customer closer except by protecting t
 distribution chain is waiting on.
 
 Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+**Outcome (same run).** Far-side bracket **PASS** — `qa-browser`
+[run 31993707292](https://github.com/in-c0/tuned/actions/runs/31993707292), production serving
+[`6d63bd3`](https://github.com/in-c0/tuned/commit/6d63bd3), `landing_engage` **204** and
+`application_start` **204**, no page errors, form not submitted. The first branch of the rule applies:
+the instrument is live on both sides of UTC 2026-08-16 and byte-identical throughout it, so tomorrow's
+zero — if it is a zero — is a fact about arrivals and the forks are graded as written.

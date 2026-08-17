@@ -1,9 +1,58 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-16 08:30 Sydney (2026-08-15 22:30 UTC), run 46 — **the distribution
-condition we were working on already passes; the one that fails is that every feed is dead** ·
+**Last updated:** 2026-08-17 14:40 Sydney (2026-08-17 04:40 UTC), run 49 — **the gate that guards
+tomorrow's reading prescribed a cure for one of the two things that reading could mean** ·
 **OWNER ACTION REQUIRED: NONE** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # A validity gate's second sentence was a diagnosis wearing the clothes of an instruction.
+>
+> No reviewer directive followed runs 47 or 48. The standing state is a designed wait and this run
+> started **sixteen hours early for all of it**: [EXP-007](EXPERIMENTS.md) reads complete UTC day
+> **2026-08-16** from the **scheduled** 08-17 snapshot at **20:40 UTC**, EXP-008's publication is
+> gated behind that reading, [A4](DISTRIBUTION.md) is gated behind the publication, and every channel
+> is gated behind A4.
+>
+> **What was not gated was the gate itself.** EXP-007's instrument validity gate says a reading of
+> `landing_engage + landing_engage_bot` **= 0** means *"the instrument is broken or blocked … the next
+> action is to fix the pulse."* That zero has **two** causes, they are opposite, and they produce an
+> identical observable:
+>
+> | Cause | What it means | What the gate does with it |
+> | --- | --- | --- |
+> | The emitter is **broken** | nothing is knowable about arrivals | correct — fix the pulse, grade nothing |
+> | The emitter is **live and nothing touched the page** | Fork A's evidence, in the strongest form the instrument can produce | **repairs a working instrument and discards the reading** |
+>
+> Run 45 named the gap and could not close it from where it stood: *"a 0 reading would still mean the
+> instrument was blocked or detached at some point in the intervening two days, which this check
+> cannot foresee."* Closing it needs evidence from **after** the measured day and **before** the
+> reading — a window that opened at 08-17 00:00 UTC and shuts at 20:40 UTC. **Twenty hours, once,
+> closing silently.** Everything else on the queue is merely later; this was the only item that
+> becomes *impossible*.
+>
+> **Both brackets passed.** The far-side check is `qa-browser`
+> [run 31993707292](https://github.com/in-c0/tuned/actions/runs/31993707292) against production
+> serving `6d63bd3`: `landing_engage` **204**, `application_start` **204**, no page errors, form not
+> submitted. **So tomorrow's number is interpretable either way it falls** — which is the whole
+> deliverable of this run, and it expires tonight.
+>
+> **The discriminator, pre-registered before the reading exists:** the emitter's bytes never changed
+> across any build that served the window (`git log ba7ae7d..233c1fe -- src/pages.ts` is empty, and the
+> `src/index.ts` diff touches no pulse or landing line), plus the same production spec run on **both**
+> sides of it — 08-15 (run 45) and 08-17 (this run). Both brackets pass and a 0 is a fact about
+> arrivals; the far-side bracket fails and the gate stands exactly as written.
+>
+> **Disclosed against my own interest, in EXP-007 itself rather than a footnote:** this is a
+> **partial** blind — the 08-16 snapshot is already committed and already shows `landing_engage`
+> absent against `landing_view` **44**, ~86% of the day at zero — and the rule makes **Fork A**
+> reachable where the gate blocked it. The ordering is checkable rather than asserted: rule committed
+> and pushed first, bracket dispatched after, both before 20:40 UTC.
+>
+> **No threshold, fork, read time or arithmetic in EXP-007 changed.** No landing-page change, no
+> product code, no schema, no migration, no route, no operator dispatch, no publication, no agent
+> touched. Egress still **403 CONNECT** for `justtuned.com` *and* `example.com` — **37 consecutive
+> runs**. `items_public` **79**, `applications` **0**, `members_ever_active` **0**, followers **0**,
+> gross cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # We had the wrong blocker. A stranger *can* use Tuned — there is just nothing recent to show them.
 >

@@ -888,6 +888,10 @@ own traffic as a person:
 | `landing_engage_bot` | 1 | same — one `Tab` keypress, one-shot per page load |
 | `application_start_bot` | 1 | same — typing into the note field, form **never submitted** |
 
+Observed rather than predicted: `qa-browser` [run 31993707292](https://github.com/in-c0/tuned/actions/runs/31993707292)
+at **2026-08-17T04:14:12.834Z**, against production serving `6d63bd3`, emitted exactly
+`landing_engage` **204** and `application_start` **204** — the two pulses above and nothing else.
+
 No human-flagged counter was touched, and every increment lands on **2026-08-17** — not on
 **2026-08-16**, the complete UTC day [EXP-007](EXPERIMENTS.md) grades from the 20:40 UTC scheduled
 snapshot. `applications` untouched, still **0**.

@@ -20,7 +20,32 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 > # **There is nothing for you to do.**
 >
-> **Newest thing you should know (run 46, 2026-08-16 08:30 Sydney).** **We have been working on the
+> **Newest thing you should know (run 49, 2026-08-17 14:40 Sydney).** **Tomorrow morning's number
+> arrives, and this afternoon we caught a rule that would have thrown it away.**
+>
+> Since Saturday the loop has been waiting on one measurement: of the ~44 apparent visitors a day to
+> the landing page, is *anybody* actually a person? A counter went in that fires the moment a real
+> hand touches the page. It reads for the first time tonight at **06:40 Sydney tomorrow**.
+>
+> The rule guarding it said: *if that counter reads zero, the counter is broken — go fix it.* That is
+> right half the time. A zero has **two** meanings, and they are opposites: *the counter is broken*,
+> or **the counter works fine and not one visitor was a person all day**. The second one is the
+> answer we have been waiting a week for — and the rule as written would have sent us off to repair a
+> working counter and bin the result.
+>
+> **It is fixed, and the timing is the whole point.** The honest window to fix it was after the day
+> being measured ended (10:00 Sydney this morning) and before the number lands (06:40 tomorrow) —
+> about twenty hours, once. The fix is written down *before* the number exists, along with the
+> evidence that tells the two meanings apart: the counter's code has not changed a byte all week, and
+> the same live browser test that passed before the measured day was run again after it. Both sides
+> check out.
+>
+> **Said plainly, against our own interest:** we can already see most of yesterday — the counter read
+> zero for about 86% of the day — so this was not written completely blind, and it is recorded that
+> way rather than dressed up. It also makes "nobody real is arriving" a conclusion we are now allowed
+> to reach. That is not a conclusion yet. It is a number due tomorrow morning.
+>
+> **Previously (run 46, 2026-08-16 08:30 Sydney).** **We have been working on the
 > wrong obstacle.** The reason nobody can be pointed at Tuned was assumed to be that a stranger has to
 > apply before they can see anything. That stopped being true a week ago — `justtuned.com/ava` and
 > `justtuned.com/sportstech` work for anyone, no account needed. **The real reason is that there is
