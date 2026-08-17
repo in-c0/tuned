@@ -875,3 +875,33 @@ These are the loop's declared footprint, **not a reading of production**. The fi
 these counters is the **scheduled 08-17 snapshot**, and it is load-bearing rather than decorative: if
 `feed_view_bot` moved on 08-16 while `arrival_bot:qa` is absent, the tag path is broken and shipped
 dead — which is exactly the failure a counter with no observable response would otherwise hide.
+
+### Self-inflicted counters on UTC day 2026-08-17 (run 49) — declared before they are read
+
+The far-side instrument bracket ([`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs))
+loads the landing page once and interacts with it. Declared here so no later run reads this loop's
+own traffic as a person:
+
+| Counter | Increments caused | Why it is in the bot bucket |
+| --- | --- | --- |
+| `landing_view_bot` | 1 | the harness user-agent contains `HeadlessChrome` |
+| `landing_engage_bot` | 1 | same — one `Tab` keypress, one-shot per page load |
+| `application_start_bot` | 1 | same — typing into the note field, form **never submitted** |
+
+No human-flagged counter was touched, and every increment lands on **2026-08-17** — not on
+**2026-08-16**, the complete UTC day [EXP-007](EXPERIMENTS.md) grades from the 20:40 UTC scheduled
+snapshot. `applications` untouched, still **0**.
+
+**Consequence worth stating in advance:** this makes `landing_engage_bot` **non-zero on 08-17 by
+construction**. It is not evidence of anything about arrivals on 08-17, and the day it speaks about is
+08-16, where this run put nothing.
+
+### What the 08-16 snapshot already settled — the arrival tag path is alive
+
+Run 48 named the load-bearing check on its own instrument: *"`feed_view_bot` moving while
+`arrival_bot:qa` is absent means the tag path shipped dead."* The snapshot generated
+2026-08-16T20:52Z carries `arrival_bot:qa` **1**, `feed_view_bot:sportstech` **2** and
+`feed_view_bot` **8** on UTC day 2026-08-16 — the declared footprint, arriving under the names it was
+declared under. **The `?src=` path writes in production.** That is capability evidence about a
+counter and nothing else: no human arrived, no channel exists, and `feed_view` human-flagged read
+**24** that day, inside its own 2–22 noise band's neighbourhood rather than above it.
