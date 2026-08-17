@@ -20,6 +20,16 @@
 // EXP-008's thresholds, not to this file.
 //
 // GETs only. No credentials are available to it and none are accepted in the URL.
+//
+// What a green run means, since run 50 found it meaning less than it looked like: the source page
+// itself was on screen. Not "an HTTP 200 came back" — a bot-check interstitial is served at 200 and
+// used to pass here. See classifyRead() below.
+//
+// What it will NOT do to get past one. The reader declares itself headless and declares itself as
+// Tuned; a site that refuses it is giving a real answer, and "this candidate cannot be encountered"
+// is a reading this loop is willing to record. Spoofing the user agent, solving a challenge, or
+// routing around a bot check to reach material the host is deliberately withholding is off the
+// table — it is the same defect as a fabricated find, arriving one step earlier.
 
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
@@ -133,6 +143,56 @@ async function publishedAt(page) {
   return null;
 }
 
+/**
+ * Signatures of a bot-check interstitial — a page that is not the source and never was.
+ *
+ * Why these are asserted rather than merely reported. Run 47 wrote `possible_gate_markers` as
+ * "reported, never asserted", on the reasoning that "a consent or paywall interstitial still
+ * 'loads' with HTTP 200, and the difference between reading an article and reading its gate is
+ * the whole question here." It named the exact defect and then left the instrument unable to act
+ * on it. Run 50 walked into it: pmc.ncbi.nlm.nih.gov returned **HTTP 200**, title
+ * "Checking your browser - reCAPTCHA", 131 characters of body, `possible_gate_markers: []` — and
+ * this spec reported **`1 passed`**. A green tick that means "a bot check was on screen" is the
+ * instrument lying in the direction that costs most, because EXP-008's threshold 6 is the one
+ * condition standing between this loop and its first publication, and a find "characterised" from
+ * a reCAPTCHA page is a fabricated find arriving through a passing test.
+ *
+ * The two categories are kept apart on purpose. A soft gate (cookie banner, paywall, sign-in wall)
+ * means the page was served and part of it is visible — a real, if shallow, encounter. An
+ * interstitial means nothing of the source was reached. Only the second is fatal.
+ *
+ * Signatures observed live on 2026-08-17, one per host, recorded in ops/EXP-008-CANDIDATES.md.
+ */
+const INTERSTITIAL_TITLE =
+  /just a moment|checking your browser|attention required|security check|are you a robot|recaptcha|access denied/i;
+const INTERSTITIAL_BODY =
+  /checking your browser before accessing|performing security verification|verifies you are not a bot|verify you are human|enable javascript and cookies to continue|ray id:/i;
+
+/**
+ * A floor on how much text a page must carry before this reader will call it a page.
+ *
+ * This is fail-closed by design and the number is a judgement, stated rather than buried: the
+ * remit @sportstech publishes under requires "a concrete measured result or a validated
+ * implementation", and no page carrying one is 1000 characters long. Its job is the interstitial
+ * this loop has NOT seen yet — a bot check whose wording matches neither regex above still cannot
+ * fake a thousand characters of article. A legitimately terse page that trips this fails loudly
+ * with its text in the log, so a human can overrule it on the evidence; the opposite error passes
+ * silently and cannot be caught at all.
+ */
+const MIN_PAGE_CHARS = 1000;
+
+/** Classify what was actually on screen: the source, or something standing in front of it. */
+function classifyRead(title, normalized) {
+  const signals = [];
+  if (title && INTERSTITIAL_TITLE.test(title)) signals.push(`title matches bot-check pattern: ${JSON.stringify(title)}`);
+  const bodyHit = normalized.match(INTERSTITIAL_BODY);
+  if (bodyHit) signals.push(`body matches bot-check pattern: ${JSON.stringify(bodyHit[0])}`);
+  if (normalized.length < MIN_PAGE_CHARS) {
+    signals.push(`only ${normalized.length} visible characters, below the ${MIN_PAGE_CHARS} floor`);
+  }
+  return { outcome: signals.length ? "interstitial" : "page", signals };
+}
+
 test.describe("source read — open one candidate page and report what is actually on it", () => {
   test("reads the page and records the evidence", async ({ page }, testInfo) => {
     // One fetch per dispatch. Running this at both viewports would open the same third-party page
@@ -185,11 +245,16 @@ test.describe("source read — open one candidate page and report what is actual
     const normalized = bodyText.replace(/\s+/g, " ").trim();
     if (textStatus === "read" && normalized.length === 0) textStatus = "empty-body";
 
-    // Reported, never asserted. A consent or paywall interstitial still "loads" with HTTP 200, and
-    // the difference between reading an article and reading its gate is the whole question here.
-    const gateHints = ["accept cookies", "subscribe to continue", "sign in to read", "paywall", "verify you are human"];
+    // Soft gates: the page WAS served, with something in front of part of it. Reported, never
+    // asserted — an abstract behind a paywall is still a real encounter with a real abstract, and
+    // whether that is enough to characterise a find is a judgement, not a test.
+    const gateHints = ["accept cookies", "subscribe to continue", "sign in to read", "paywall"];
     const lower = normalized.toLowerCase();
     const gates = gateHints.filter((h) => lower.includes(h));
+
+    // Interstitials: the page was NOT served at all. This is a different category from a soft gate
+    // and it is asserted, because run 50 found it passing green. See classifyRead() above.
+    const classification = classifyRead(title, normalized);
 
     const evidence = {
       requested_url: SOURCE_URL,
@@ -205,6 +270,8 @@ test.describe("source read — open one candidate page and report what is actual
       excerpt: normalized.slice(0, EXCERPT_CHARS),
       excerpt_truncated: normalized.length > EXCERPT_CHARS,
       possible_gate_markers: gates,
+      read_outcome: classification.outcome,
+      interstitial_signals: classification.signals,
       read_by: READER_UA,
     };
 
@@ -246,5 +313,13 @@ test.describe("source read — open one candidate page and report what is actual
     // loudly, rather than passing quietly as though the page had been read.
     expect(status, `page returned HTTP ${status}`).toBeLessThan(400);
     expect(normalized.length, `page yielded no visible text (${textStatus})`).toBeGreaterThan(0);
+
+    // And a 200 is not a read. Everything above this line is recorded either way, so an
+    // interstitial remains a useful reading — "this candidate cannot be encountered from here" —
+    // it just stops being reported as a successful one.
+    expect(
+      classification.outcome,
+      `HTTP ${status} but the source was not on screen — ${classification.signals.join("; ")}`,
+    ).toBe("page");
   });
 });
