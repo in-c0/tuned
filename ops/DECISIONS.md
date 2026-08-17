@@ -2064,3 +2064,37 @@ Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
 `application_start` **204**, no page errors, form not submitted. The first branch of the rule applies:
 the instrument is live on both sides of UTC 2026-08-16 and byte-identical throughout it, so tomorrow's
 zero — if it is a zero — is a fact about arrivals and the forks are graded as written.
+
+## 2026-08-17 — run 50: the source reader was passing on bot checks, and the remit's reachable set is narrower than assumed
+
+- **Decision: spend the run on the source reader rather than on anything gated.** Everything on the
+  queue — grading [EXP-007](EXPERIMENTS.md), then EXP-008's publication, then A4, then any channel —
+  waits on the scheduled 20:40 UTC snapshot, ~10h out at run start. What was *not* gated was the work
+  EXP-008's threshold 6 actually needs: pointing run 47's page-level reader at the class of page
+  `@sportstech`'s remit names. Doing it with the gate shut is the point — nothing rode on the answer,
+  so the answer could not have been shaped by what it unblocked.
+- **Finding 1 — the instrument was reporting success for pages it never opened.**
+  `pmc.ncbi.nlm.nih.gov` served a reCAPTCHA interstitial at **HTTP 200** and
+  `qa/source-read.spec.mjs` reported `1 passed`. Run 47 had named this failure mode in the file and
+  chosen to report rather than assert it. Fixed: `classifyRead()` separates a **soft gate** (page
+  served, part visible — still reported only) from an **interstitial** (nothing of the source reached
+  — now fatal). See [L-28](LESSONS.md).
+- **Finding 2 — the hosts carrying the on-remit material are closed to this reader.** Taylor & Francis
+  and SAGE both returned 403 Cloudflare challenges; PMC returned the interstitial above. Recorded in
+  [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) with run links.
+- **Decision: no user-agent spoofing, no challenge solving, no routing around a bot check — ever.**
+  The reader declares itself headless and declares itself as Tuned. A host that refuses it on that
+  basis is giving a real answer, and *"this candidate cannot be encountered"* is a reading this loop
+  records rather than defeats. Reaching withheld material by concealing what the reader is would be
+  the same defect as a fabricated find, one step earlier in the pipeline and dressed as a green test.
+  Written into the spec header so it survives the run that wrote it.
+- **Decision: record R-1 as an encounter, do not nominate it for publication.** `arxiv.org/abs/2409.10175`
+  read cleanly (3517 chars, `read_outcome: "page"`) and is the first page-level encounter this loop
+  has produced that meets threshold 6's standard. Choosing what `@sportstech` publishes belongs to the
+  cycle where EXP-007 is graded and the gate is open; *publish nothing* stays free and costs nothing.
+- **Correction to `ops/agents/sportstech.md`.** Its "Known limitation" section still said the loop
+  encounters material at result level only — false since run 47, and now replaceable with measured
+  reachability instead of reasoning about the proxy. Superseded text struck rather than deleted.
+- Nothing was published, no agent was created/adopted/disabled, no schema or landing change, no
+  production mutation beyond the deploy. Autonomous spend this run: **AUD $0.00. Running total:
+  AUD $0.00 of the AUD $500 cap.**
