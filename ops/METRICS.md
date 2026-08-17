@@ -909,3 +909,73 @@ Run 48 named the load-bearing check on its own instrument: *"`feed_view_bot` mov
 declared under. **The `?src=` path writes in production.** That is capability evidence about a
 counter and nothing else: no human arrived, no channel exists, and `feed_view` human-flagged read
 **24** that day, inside its own 2–22 noise band's neighbourhood rather than above it.
+
+## The graded reading — complete UTC day 2026-08-16 (2026-08-18, run 51)
+
+**Source:** [`ops/metrics/latest.json`](metrics/latest.json) and
+[`ops/metrics/2026-08-17.json`](metrics/2026-08-17.json), `generated_at`
+**2026-08-17T20:57:27.306Z**, committed as [`4527018`](https://github.com/in-c0/tuned/commit/4527018)
+by [run 32068544835](https://github.com/in-c0/tuned/actions/runs/32068544835), **`event: schedule`**.
+
+The trigger is checked rather than assumed. [EXP-007](EXPERIMENTS.md) says the read comes from a
+scheduled snapshot and *"not from a dispatched snapshot"*, and `metrics-snapshot.yml` accepts
+`workflow_dispatch` as well as its `40 20 * * *` cron — so *which* run produced the file is part of
+the reading, not metadata about it.
+
+| Counter | 2026-08-16 (complete) | 2026-08-17 (**partial**, cut 20:57 UTC) |
+| --- | --- | --- |
+| `landing_view` | **50** | 93 |
+| `landing_view_bot` | 31 | 24 |
+| `landing_engage` | **absent → 0** | **3** |
+| `landing_engage_bot` | **absent → 0** | 1 — this loop's own bracket, declared in advance |
+| `application_start` | absent → 0 | absent → 0 |
+| `application_start_bot` | absent → 0 | 1 — same bracket |
+| `application_invalid` | absent → 0 | absent → 0 |
+| `application_submit` | absent → 0 | absent → 0 |
+| `feed_view` / `feed_view_bot` | 24 / 8 | 6 / 2 |
+| `cron_run` | **49** | 42 (partial day) |
+
+An **absent row means no requests were counted that day** — the snapshot note says so, and these
+counters write no zero rows. It is not a missing reading.
+
+**`application_invalid` has never appeared as a daily row on any day, 08-08 through 08-17.** It is
+present in the snapshot files only inside the explanatory `note` string. Nobody has been refused by
+the email validator. That is a clean negative and it is what closed EXP-007's Fork D.
+
+**`cron_run` = 49 on a complete UTC day against 48 `*/30` boundaries.** Run 49's open item — 08-14
+read 36, 08-15 read 48 — is answered for a second complete day: the cron is healthy, and 49 rather
+than 48 is one boundary landing either side of the day cut, not an anomaly worth a cycle.
+
+### The one number in this snapshot nobody's footprint accounts for
+
+**`landing_engage` = 3 on UTC day 2026-08-17**, non-bot bucket. Every declared self-inflicted counter
+above lands in the `_bot` names, because the harness announces `HeadlessChrome`; the `verify
+production` curl checks emit `landing_view_bot` and never reach the page-side emitter at all. **No
+loop activity on record produces a non-bot `landing_engage`.**
+
+Binding limits on reading it, which are EXP-007's own and are repeated here because this is the row
+someone will quote:
+
+- **It is not proof of a person.** `landing_engage` is page-reported, same-origin only, and forgeable
+  by anyone who sets one header. A JS-executing crawler with a stock user agent lands in exactly this
+  bucket.
+- **It is not demand, activation, retention, referral or revenue.** A page being touched is a page
+  being touched. `application_start` stayed at **0** the same day.
+- **No conversion rate may be computed from it.** 3/93 is arithmetic, not a funnel metric, and the
+  denominator is the assumption EXP-007 exists to test.
+
+It is recorded because it is the first non-bot engagement pulse in the series and because leaving it
+out of the file would make the next run's discovery of it look like news.
+
+### Self-inflicted counters on UTC day 2026-08-18 (run 51) — declared before they are read
+
+This run dispatches **no browser QA** and **no source read**. The only production contact is the
+post-push `verify production` check, which is `curl` and executes no page script:
+
+| Counter | Increments caused |
+| --- | --- |
+| `landing_view_bot` | 1 per verify run |
+| every page-side counter (`landing_engage`, `application_start`, and their `_bot` forms) | **0 — curl runs no JavaScript** |
+
+**Nothing this run does touches UTC day 2026-08-16 or 2026-08-17**, the days graded above, and nothing
+touches a human-flagged counter on any day. `applications` untouched, still **0**.

@@ -2098,3 +2098,53 @@ zero — if it is a zero — is a fact about arrivals and the forks are graded a
 - Nothing was published, no agent was created/adopted/disabled, no schema or landing change, no
   production mutation beyond the deploy. Autonomous spend this run: **AUD $0.00. Running total:
   AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-18 — run 51: EXP-007 graded, Fork A confirmed, and landing-page work closes on evidence
+
+- **Decision: grade [EXP-007](EXPERIMENTS.md) and nothing else.** This was the pre-registered job of
+  this cycle and four runs had been gated behind it. The reading exists exactly once — the scheduled
+  2026-08-17T20:57:27Z snapshot, [`4527018`](https://github.com/in-c0/tuned/commit/4527018), run
+  [32068544835](https://github.com/in-c0/tuned/actions/runs/32068544835), **`event: schedule`** — and
+  every run that does not read it wastes the cycle. Trigger checked, not assumed: the spec says *not
+  from a dispatched snapshot*, and the workflow accepts dispatch.
+- **The validity gate resolved without waiving it.** `landing_engage + landing_engage_bot` = **0**
+  against `landing_view` **50**, which is the gate's literal *"fix the pulse"* branch. Run 49's
+  discriminator decides between the two causes of that zero and all three parts hold — emitter
+  byte-identity across the window, plus the 08-15 and 08-17 production brackets, both PASS. The zero
+  is a fact about arrivals.
+- **A gap in the discriminator, found and closed this run rather than inherited.** Run 49 enumerated
+  the emitter as two files. A third in the same path — [`src/metrics.ts`](../src/metrics.ts) —
+  changed **inside** the graded day ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd),
+  2026-08-16 10:14 UTC) and was not on the list. Checked directly: purely additive (`countEach`, feed
+  route only), `count()` untouched, so the pulse write path was byte-identical across the window. The
+  conclusion survives; the reasoning behind it was thinner than stated. [L-29](LESSONS.md).
+- **FORK A — THE DENOMINATOR IS NOT HUMAN. Graded, closed.** `landing_view` **50**, `landing_engage`
+  **0** on complete UTC day 2026-08-16. Forks B, C and E did not match; **Fork D was checked across
+  every snapshot day** — `application_invalid` has never appeared as a daily row — and is a clean
+  negative: nobody has been refused by the email validator.
+- **Decision: landing-page, copy, positioning and pricing-surface work stays closed, and the reason
+  changes.** It has been held since run 18 as a *precaution* against an unknown denominator. It is now
+  held on a graded reading. That is not a change of behaviour and it is the point: a hold justified by
+  uncertainty can be argued away by any run that wants the work; a hold justified by a measurement
+  cannot. **Distribution is the binding constraint**, in its current form as
+  [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4**. EXP-007's own text names EXP-002 as the gate there —
+  superseded by events, since EXP-002 was withdrawn on run 34.
+- **Decision: a second reading is pre-registered, and its rule is fixed before the number.** The same
+  snapshot shows `landing_engage` **3** on partial 08-17 — the first non-bot engagement pulse in the
+  series and unaccounted for by any declared footprint of this loop. It does not overturn Fork A (3 is
+  far below Fork B's 10, the day is partial, and 08-17 is not the pre-registered day) and it does not
+  prove a person (page-reported, forgeable, and a JS-executing crawler lands in the same bucket).
+  Complete UTC day 2026-08-17 is read from the scheduled 08-18 20:40 UTC snapshot, with branches
+  written in advance. **In no branch does landing-page optimisation reopen.**
+- **Decision: EXP-008's gate is cleared but no publication ships this run.** The gate cleared on the
+  same commit that grades it; a publication in the same run would have one commit open a gate and use
+  it. Instead **R-1** (`arxiv.org/abs/2409.10175`) is written up as an **open nomination** in
+  [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) — exact `handle`/`url`/`title`/`why` that would be
+  dispatched, every clause of the `why` traceable to a sentence on screen in the recorded read, and
+  the case *against* it stated by the nominator. This takes the branch run 50 offered the reviewer
+  and got no answer to, because it is the branch that maximises the chance to veto. *Publish nothing*
+  stays free.
+- No publication, no operator dispatch, no agent created/adopted/disabled, no queued item opened or
+  approved, no landing-page change, no schema change, no migration, no new route, no product copy, no
+  browser QA dispatch, no source read. Autonomous spend this run: **AUD $0.00. Running total:
+  AUD $0.00 of the AUD $500 cap.**

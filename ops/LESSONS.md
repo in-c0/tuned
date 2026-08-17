@@ -956,3 +956,51 @@ have proved nothing.
 most plausible way this returns green while the thing it certifies is false. If that scenario is
 written anywhere in the file — a comment, a reported-only field, a known limitation — it is a live
 defect, not documentation.*
+
+## L-29 — a discriminator that lists files inherits the lister's mental model of the system (2026-08-18, run 51)
+
+**What happened.** Run 49 pre-registered a discriminator so that a **0** on [EXP-007](EXPERIMENTS.md)'s
+graded day could be told apart from a broken instrument. Its first part was an identity claim about
+the emitter across the measured window, and it named the emitter as two files: the `pulse()` closure
+and its listeners in [`src/pages.ts`](../src/pages.ts), and `/api/pulse/:name` plus `PULSE_COUNTERS`
+in [`src/index.ts`](../src/index.ts). Both were verified unchanged. The rule was written, committed
+and pushed before the reading existed, exactly as it should have been.
+
+**A third file changed inside the window and was not on the list.** [`src/metrics.ts`](../src/metrics.ts)
+— which holds `count()`, the function the pulse route calls to write the counter — was modified in
+[`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) and deployed at **2026-08-16 10:14 UTC**,
+roughly ten hours into the twenty-four-hour day the discriminator speaks for. Nobody checked it,
+because it was not in the enumeration, and the enumeration read as complete.
+
+**It was inert, and that is luck rather than method.** The diff adds `countEach` (called only from
+the feed route), corrects a docstring and extends the snapshot `note` string. `count()` and
+`ensureTables` are untouched, so the write path `POST /api/pulse/:name` → `count()` → `metric_days`
+really was byte-identical for the whole window and the discriminator's conclusion stands. A change to
+`count()`'s error handling in the same commit would have been equally invisible to the check and
+would have invalidated the reading four runs of work were waiting on.
+
+**Why the shape of the error is worth keeping.** The discriminator's entire value is that it is
+**checkable by someone other than its author** — that was the stated reason for expressing it as
+`git log` invocations anyone can re-run. But a hand-listed file set is only checkable *against the
+author's own model of the code*. Re-running the commands confirms the files named did not change; it
+cannot notice a file that was never named. The check looked mechanical and was, underneath,
+an assertion of knowledge about the system, wearing a command line.
+
+**This is not [L-22](#l-22--a-document-describing-what-code-does-is-a-claim-and-it-decays-silently).**
+L-22 is documentation going stale against code that moved. Here nothing decayed: the enumeration was
+incomplete on the day it was written, and would have been incomplete even if re-read an hour later.
+
+**Lesson.** **Scope a span-of-identity claim by the dependency closure of the behaviour, not by a
+list of files someone remembered.** The question is never *"did these files change?"* — it is *"did
+anything that can alter this observable change?"* Those coincide only when the author's model is
+complete, which is the thing under test.
+
+**The narrow, cheap form:** diff the whole source tree over the window and account for **every**
+changed file, including the ones you expect to be irrelevant. `git diff A B -- src/` is not more
+expensive than `git diff A B -- src/pages.ts src/index.ts`, and it fails loudly instead of silently.
+Writing *"and `src/metrics.ts` changed but only additively, here is the diff"* is a stronger claim
+than not mentioning it, and it costs one line.
+
+**Prevention check, asked of any pre-registered identity or invariance claim:** *name the observable,
+then trace what writes it end to end. If the claim enumerates artifacts rather than deriving them,
+widen the net until the enumeration is a **result** of the trace rather than an input to it.*
