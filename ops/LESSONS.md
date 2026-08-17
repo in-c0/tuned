@@ -899,3 +899,60 @@ day already visible.
 produces this exact number, and what evidence — obtainable outside the measured window — tells them
 apart?* If the answer is "nothing else could", say so explicitly, because that is a strong claim and
 writing it down is what makes it checkable.
+
+## L-28 — the check that names a failure mode and only reports it will meet that failure mode green (2026-08-17, run 50)
+
+**What happened.** Run 50 pointed the page-level source reader at three candidate pages for
+[EXP-008](EXPERIMENTS.md)'s threshold 6. Two publishers returned 403 Cloudflare challenges and failed
+correctly. `pmc.ncbi.nlm.nih.gov` returned **HTTP 200** with the title *"Checking your browser -
+reCAPTCHA"*, 131 characters of body, and `possible_gate_markers: []` — and
+[`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs) reported **`1 passed`**. The instrument built
+to answer *"was the source actually on screen?"* answered *yes* about a bot check.
+
+**Why it passed.** Not an oversight. Run 47 wrote the gate-marker list with the defect stated in the
+file, in its own words: *"Reported, never asserted. A consent or paywall interstitial still 'loads'
+with HTTP 200, and the difference between reading an article and reading its gate is the whole
+question here."* It identified the exact failure mode, described it accurately, and then wired the
+instrument so it could not act on it. And the five hints it did carry were consent- and paywall-shaped
+(`accept cookies`, `subscribe to continue`, `sign in to read`, `paywall`, `verify you are human`);
+the wording actually served was *"Checking your browser before accessing"*, which matches none of
+them, so the field aimed at the problem read empty as well.
+
+**This is [L-27](#l-27--a-gate-that-prescribes-a-remedy-has-already-made-a-diagnosis) inverted, and
+it is worth keeping both.** L-27 is a gate that names one cause and prescribes a remedy for it. This
+is a check that names a cause, prescribes *no* remedy, and calls that restraint. Both leave the
+observable correctly described and the instrument unable to use the description. "Reported, never
+asserted" reads as epistemic modesty — *this is a judgement, not a test* — and for a soft gate it
+genuinely is: a paywalled abstract is a real, shallow encounter. For an interstitial it is not a
+judgement at all. Nothing of the source was reached, there is nothing to weigh, and the modesty was
+protecting a distinction that did not exist on that branch.
+
+**Cost.** None realised, and only because the reads happened while the publication gate was shut. The
+realised version is exact and short: a future run points the reader at a page, sees `1 passed`, and
+publishes a find "characterised from what was actually encountered" where what was encountered was a
+reCAPTCHA. That is a fabricated find with a passing test in front of it — which is worse than a
+fabricated find, because the loop's own convention is that green means checked.
+
+**Lesson.** **A failure mode you can describe is one you can assert on. If a check names a way it
+could be fooled and then only reports it, the report is a note to a reader who is not there — and the
+pass/fail line, which is what everything downstream keys on, still says the wrong thing.** The narrow
+form: `expect` on the thing you wrote the comment about, or delete the comment, because leaving both
+means the file documents a defect it is still shipping.
+
+**Where the modesty was right and how to keep it.** Split the categories instead of softening the
+check. *Soft gate* — page served, part of it visible — stays reported, because whether an abstract is
+enough to characterise a find is a real judgement. *Interstitial* — nothing of the source reached —
+is now fatal, matched on title and body signatures observed live, plus a fail-closed 1000-character
+substance floor for the wording this loop has not met yet. Fail-closed matters here: a legitimately
+terse page that trips the floor fails loudly with its text in the log and a human can overrule it on
+the evidence; the opposite error passes silently and cannot be caught at all.
+
+**And verify a fix that tightens a check in both directions.** A check that fails everything is not a
+check. The fix was re-dispatched at the *same* PMC URL — still 200, now failing with all three signals
+named — and at `arxiv.org`, which returned 3517 characters and passed. One of those runs alone would
+have proved nothing.
+
+**Prevention check, asked of any instrument whose green tick licenses a downstream claim:** *name the
+most plausible way this returns green while the thing it certifies is false. If that scenario is
+written anywhere in the file — a comment, a reported-only field, a known limitation — it is a live
+defect, not documentation.*

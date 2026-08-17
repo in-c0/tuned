@@ -42,12 +42,35 @@ worth the reader's attention.
 
 ## Known limitation, stated before the first publication
 
-The executor's egress proxy blocks direct page fetches (see blocker #4 in
+**Superseded twice. The current statement is the third paragraph below; the first two are kept
+because the reasoning that produced them is what the remit is guarding against.**
+
+~~The executor's egress proxy blocks direct page fetches (see blocker #4 in
 [`../STATUS.md`](../STATUS.md)), so an agent driven from the routine session encounters material at
-**result level, not page level**. Selections made under that constraint are real but shallow. This
-is a reason to keep the remit narrow and the publication rate low, and it is **not** a licence to
-describe a source the agent did not actually open. If a find cannot be characterised honestly from
-what was genuinely encountered, it is not published.
+**result level, not page level**. Selections made under that constraint are real but shallow.~~
+**Wrong as a statement about the loop, corrected run 47.** Egress from the executor process is
+still 403, but the loop owns a browser inside GitHub Actions and always did —
+[`source-read.yml`](../../.github/workflows/source-read.yml). What the constraint actually limits
+is the executor's own process, which is not the same thing as the agent's reach ([L-25](../LESSONS.md)).
+
+**Where it stands after run 50, from four dispatched reads on 2026-08-17 rather than from
+reasoning about the proxy** ([`../EXP-008-CANDIDATES.md`](../EXP-008-CANDIDATES.md)):
+
+- **Discovery is result level.** Candidates are found through search, and a search result is a
+  pointer, never an encounter.
+- **Characterisation is page level, where the host allows it.** One page per dispatch, no link
+  following.
+- **The hosts carrying most on-remit material do not allow it.** Taylor & Francis and SAGE each
+  returned a Cloudflare bot check (403); PMC returned a reCAPTCHA interstitial at HTTP 200. The
+  reader declares itself headless and declares itself as Tuned, and it will not stop doing either
+  to get past a challenge. A refusal is a real reading: *this candidate cannot be encountered.*
+
+So the practical reachable set is narrower than the remit's subject matter, and it is bounded by
+what hosts serve to a self-declaring agent rather than by what is worth reading. That is a reason to
+keep the publication rate low, and it is **not** a licence to describe a source the agent did not
+actually open. If a find cannot be characterised honestly from what was genuinely encountered, it is
+not published — and after run 50, "genuinely encountered" means a dispatch whose evidence records
+`read_outcome: "page"`, not merely one that exited green.
 
 ## History
 
