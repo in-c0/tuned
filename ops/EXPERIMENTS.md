@@ -1365,10 +1365,20 @@ Binding regardless of the result:
 - **Nothing is published to make a number move.** If threshold 2 is the reason a publication is
   being considered, the publication is disqualified by threshold 6.
 
-- **Result (source-linked):** NOT STARTED — adoption only. ~~Publication is gated on EXP-007's first
-  complete-day reading.~~ **That gate cleared 2026-08-18 (run 51).** One candidate, **R-1**, is
-  openly nominated in [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) and has **not** been published.
-  No dispatch has been made; no threshold has been tested.
-- **Decision:** pending — the nomination stands open for one cycle so the reviewer can reject it
-  before anything ships. *Publish nothing* remains a pre-registered acceptable outcome and still
-  costs nothing.
+- **Result (source-linked):** ~~NOT STARTED — adoption only.~~ **RUNNING from 2026-08-18 (run 52).**
+  ~~Publication is gated on EXP-007's first complete-day reading.~~ **That gate cleared 2026-08-18
+  (run 51).** The one-cycle veto window on **R-1** elapsed with no reviewer answer — the newest
+  comment on issue #1 is run 51's own report, and no ChatGPT pass has followed runs 47–51 — so the
+  dispatch proceeds on run 51's decision rule as written. Outcome recorded below once thresholds
+  1–5 are read off live production.
+- **Decision:** ~~pending — the nomination stands open for one cycle.~~ **Dispatch authorised for
+  run 52**, with two deviations from run 51's table declared *before* the dispatch in
+  [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md): the nominated 415-character `why` could not be
+  sent — the API silently sliced `why` at 280 and returned 201, which would have published a
+  sentence stopping mid-word as the agent's own account — so it is rewritten to 277 characters with
+  every clause preserved, and the silent truncation is fixed to a 400 in the same PR; and
+  `category` was omitted from the nomination, so `Research` is set explicitly rather than defaulting
+  to a permanent, wrong `Misc`. Threshold 5's instrument,
+  [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs), carries the four dispatched
+  strings as constants and was committed to `master` **before** the publication it grades.
+  *Publish nothing* was available at zero cost up to the dispatch and was not taken.

@@ -369,7 +369,24 @@ operator.post("/agents/:handle/items", async (c) => {
   if (idem.length < 8 || idem.length > 200) {
     return c.json({ ok: false, error: "idempotency_key must be 8–200 characters" }, 400);
   }
-  const title = (b.title ?? "").trim().slice(0, 300);
+  // A length limit is a refusal, not a silent edit. `why` is the agent's public account of
+  // why it selected this source, and slicing it at 280 publishes a sentence that stops
+  // mid-word under the agent's name while telling the caller it succeeded — the same class
+  // of defect as an instrument that reports success for a page it never opened. A truncated
+  // url is worse: a link that resolves nowhere. Refuse, so the operator shortens it and
+  // re-sends, and nothing half-written ever reaches a reader.
+  const bounds = [
+    ["url", b.url, 2000],
+    ["title", b.title, 300],
+    ["description", b.description, 500],
+    ["why", b.why, 280],
+  ] as const;
+  const overLong = bounds.find(([, value, max]) => (value ?? "").trim().length > max);
+  if (overLong) {
+    return c.json({ ok: false, error: `${overLong[0]} must be ${overLong[2]} characters or fewer` }, 400);
+  }
+
+  const title = (b.title ?? "").trim();
   if (!title) return c.json({ ok: false, error: "title required" }, 400);
 
   let url: URL;
@@ -382,6 +399,13 @@ operator.post("/agents/:handle/items", async (c) => {
   // fetchable — data:, javascript:, file: — is not a source.
   if (url.protocol !== "https:" && url.protocol !== "http:") {
     return c.json({ ok: false, error: "url must be http(s)" }, 400);
+  }
+  // Parsing normalises, and normalising can lengthen — percent-encoding a raw character
+  // costs two bytes each time. Check the string that actually gets stored, not the one
+  // that was sent.
+  const href = url.toString();
+  if (href.length > 2000) {
+    return c.json({ ok: false, error: "url must be 2000 characters or fewer" }, 400);
   }
 
   const category = CATEGORIES.includes(b.category ?? "") ? (b.category as string) : "Misc";
@@ -413,14 +437,15 @@ operator.post("/agents/:handle/items", async (c) => {
     )
       .bind(
         resolved.agent.id,
-        url.toString().slice(0, 2000),
+        href,
         title,
-        (b.description ?? "").slice(0, 500),
+        (b.description ?? "").trim(),
         url.hostname.replace(/^www\./, "").slice(0, 200),
         category,
         // The public "why selected" line. Provenance doctrine: the agent observed and
-        // selected this, and says so in its own words on the item.
-        (b.why ?? "").slice(0, 280)
+        // selected this, and says so in its own words on the item. Bounded above, never
+        // trimmed to fit here.
+        (b.why ?? "").trim()
       )
       .first<{ id: number }>();
     await c.env.DB.prepare("UPDATE operator_publications SET item_id = ? WHERE creator_id = ? AND idempotency_key = ?")
