@@ -147,3 +147,16 @@ CREATE TABLE IF NOT EXISTS operator_publications (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   UNIQUE(creator_id, idempotency_key)
 );
+
+-- One row per retract/restore the operator performs on an item it published (added
+-- 2026-08-18). It is the audit trail for the plane's only reversible-in-place action, and
+-- it is also load-bearing: `restore` refuses unless the last action here is `retract`, so
+-- an item the OWNER hid from their studio cannot be un-hidden by the operator.
+CREATE TABLE IF NOT EXISTS operator_item_actions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  creator_id INTEGER NOT NULL,
+  item_id INTEGER NOT NULL,
+  action TEXT NOT NULL,                 -- retract | restore
+  principal TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);

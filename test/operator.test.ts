@@ -67,6 +67,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await DB.batch([
+    DB.prepare("DELETE FROM operator_item_actions"),
     DB.prepare("DELETE FROM operator_publications"),
     DB.prepare("DELETE FROM operator_agents"),
     DB.prepare("DELETE FROM items"),
@@ -437,6 +438,151 @@ describe("revocation", () => {
 
     const missing = await op("/api/operator/agents/foreign/disable", {});
     expect(missing.status).toBe(404);
+  });
+});
+
+describe("retraction", () => {
+  /** Publish one find through the plane and hand back its item id. */
+  async function publish(idempotency_key: string, url = "https://example.test/find"): Promise<number> {
+    const res = await op("/api/operator/agents/scout/items", {
+      url,
+      title: "A find",
+      why: "Selected because the source says something an operator would act on.",
+      idempotency_key,
+    });
+    expect(res.status).toBe(201);
+    return (await res.json<{ item_id: number }>()).item_id;
+  }
+
+  beforeEach(async () => {
+    await op("/api/operator/agents/adopt", { handle: "scout", remit: REMIT });
+  });
+
+  it("takes a published item off the public feed and puts it back unchanged", async () => {
+    const id = await publish("retract-round-trip");
+    const before = await DB.prepare("SELECT created_at, title, note FROM items WHERE id = ?")
+      .bind(id)
+      .first<Record<string, unknown>>();
+
+    const feedBefore = await call("/scout");
+    expect(await feedBefore.text()).toContain("A find");
+
+    const off = await op(`/api/operator/agents/scout/items/${id}/retract`, {});
+    expect(off.status).toBe(200);
+    expect(await off.json()).toMatchObject({ ok: true, action: "retract", changed: true, visibility: "hidden", item_id: id });
+
+    // The reader-facing surfaces are the assertion that matters. A retract that only moved
+    // a column while the feed and its RSS still served the item would be an undo in name.
+    expect(await (await call("/scout")).text()).not.toContain("A find");
+    expect(await (await call("/scout/rss.xml")).text()).not.toContain("A find");
+
+    const back = await op(`/api/operator/agents/scout/items/${id}/restore`, {});
+    expect(back.status).toBe(200);
+    expect(await back.json()).toMatchObject({ action: "restore", changed: true, visibility: "public" });
+    expect(await (await call("/scout")).text()).toContain("A find");
+
+    // Nothing else about the item moved, so the round trip is a genuine no-op: a restored
+    // item returns to its own place in the feed rather than to the top of it.
+    const after = await DB.prepare("SELECT created_at, title, note FROM items WHERE id = ?")
+      .bind(id)
+      .first<Record<string, unknown>>();
+    expect(after).toEqual(before);
+
+    const actions = await DB.prepare("SELECT action, principal FROM operator_item_actions ORDER BY id").all<{
+      action: string;
+      principal: string;
+    }>();
+    expect(actions.results.map((a) => a.action)).toEqual(["retract", "restore"]);
+  });
+
+  it("refuses to touch an item this operator did not publish", async () => {
+    // The agent's own history, put there by its studio rather than by this plane. A
+    // credential that could veto these would be an editor of the feed, not a publisher
+    // into it.
+    const agent = await DB.prepare("SELECT id FROM creators WHERE handle = 'scout'").first<{ id: number }>();
+    const own = await DB.prepare(
+      "INSERT INTO items (creator_id, url, title, domain, kind, visibility) VALUES (?, 'https://example.test/own', 'The agent own find', 'example.test', 'link', 'public') RETURNING id"
+    )
+      .bind(agent!.id)
+      .first<{ id: number }>();
+
+    const res = await op(`/api/operator/agents/scout/items/${own!.id}/retract`, {});
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: "no such item, or it was not published by this operator" });
+    const still = await DB.prepare("SELECT visibility FROM items WHERE id = ?").bind(own!.id).first<{ visibility: string }>();
+    expect(still!.visibility).toBe("public");
+  });
+
+  it("will not reverse a veto the owner made", async () => {
+    const id = await publish("owner-hid-this");
+    // The owner's studio hide, as `src/index.ts` performs it.
+    await DB.prepare("UPDATE items SET visibility = 'hidden' WHERE id = ?").bind(id).run();
+
+    const res = await op(`/api/operator/agents/scout/items/${id}/restore`, {});
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({
+      error: "item was not hidden by this operator — a human veto is not the operator's to reverse",
+    });
+    const still = await DB.prepare("SELECT visibility FROM items WHERE id = ?").bind(id).first<{ visibility: string }>();
+    expect(still!.visibility).toBe("hidden");
+  });
+
+  it("is idempotent in both directions", async () => {
+    const id = await publish("retract-twice");
+    const first = await op(`/api/operator/agents/scout/items/${id}/retract`, {});
+    expect(await first.json()).toMatchObject({ changed: true });
+    const again = await op(`/api/operator/agents/scout/items/${id}/retract`, {});
+    expect(again.status).toBe(200);
+    expect(await again.json()).toMatchObject({ changed: false, visibility: "hidden" });
+
+    await op(`/api/operator/agents/scout/items/${id}/restore`, {});
+    const restoredAgain = await op(`/api/operator/agents/scout/items/${id}/restore`, {});
+    expect(restoredAgain.status).toBe(200);
+    expect(await restoredAgain.json()).toMatchObject({ changed: false, visibility: "public" });
+
+    // A no-op writes no audit row, so the trail records what happened rather than what
+    // was asked for.
+    const n = await DB.prepare("SELECT COUNT(*) AS n FROM operator_item_actions").first<{ n: number }>();
+    expect(n!.n).toBe(2);
+  });
+
+  it("keeps the same boundaries every other mutation has", async () => {
+    const id = await publish("boundary-check");
+
+    // A human feed, a foreign member's agent, and an unparseable item id.
+    for (const path of [
+      `/api/operator/agents/ava/items/${id}/retract`,
+      `/api/operator/agents/foreign/items/${id}/retract`,
+    ]) {
+      const res = await op(path, {});
+      expect(res.status).toBe(403);
+    }
+    const bad = await op(`/api/operator/agents/scout/items/not-a-number/retract`, {});
+    expect(bad.status).toBe(400);
+
+    // Unauthenticated, and with the wrong key.
+    expect((await call(`/api/operator/agents/scout/items/${id}/retract`, { method: "POST" })).status).toBe(401);
+    expect((await op(`/api/operator/agents/scout/items/${id}/retract`, {}, "not-the-key")).status).toBe(401);
+
+    const untouched = await DB.prepare("SELECT visibility FROM items WHERE id = ?").bind(id).first<{ visibility: string }>();
+    expect(untouched!.visibility).toBe("public");
+  });
+
+  it("reports the retraction in the operator's own listing", async () => {
+    const id = await publish("listed-retraction");
+    await op(`/api/operator/agents/scout/items/${id}/retract`, {});
+
+    const listed = await op("/api/operator/agents");
+    const body = await listed.json<{ managed: Array<Record<string, unknown>> }>();
+    const scout = body.managed.find((m) => m.handle === "scout");
+    expect(scout).toMatchObject({ items_public: 0, operator_publications: 1, operator_publications_hidden: 1 });
+    // The publication row survives, so a retracted find cannot be republished under the
+    // same idempotency key and quietly counted twice.
+    expect((await op("/api/operator/agents/scout/items", {
+      url: "https://example.test/find",
+      title: "A find",
+      idempotency_key: "listed-retraction",
+    })).status).toBe(200);
   });
 });
 
