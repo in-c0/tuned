@@ -1,41 +1,86 @@
 {
-    "generated_at": "2026-08-18T04:19:43.828Z",
+    "generated_at": "2026-08-18T20:54:10.331Z",
     "note": "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. landing_engage/application_start are reported by the landing page itself \u2014 first interaction and first form input, at most once per page load, same-origin only \u2014 so they are evidence that traffic behaved like a person, not proof of one, and they are forgeable by anyone willing to set one header. application_invalid counts submits rejected by email validation; it is not part of application_submit. feed_view remains one site-wide count of every public feed view; feed_view:<handle> splits that same event by destination and does not replace it, so the two are not additive. arrival:<tag> counts feed views whose URL carried an allowlisted ?src= tag \u2014 a campaign label on the link, aggregated daily, with no cookie, no visitor identifier and no per-visitor state; an unrecognised tag is counted under no name at all, so absence of a tag means it was never allowlisted. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     "daily": [
         {
             "day": "2026-08-18",
             "name": "cron_run",
-            "count": 9
+            "count": 42
         },
         {
             "day": "2026-08-18",
-            "name": "feed_view_bot",
+            "name": "feed_view",
+            "count": 18
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view:ava",
             "count": 4
         },
         {
             "day": "2026-08-18",
+            "name": "feed_view:graphics",
+            "count": 3
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view:sportstech",
+            "count": 4
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view:wearables",
+            "count": 4
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view:wellbeing",
+            "count": 3
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view_bot",
+            "count": 16
+        },
+        {
+            "day": "2026-08-18",
             "name": "feed_view_bot:ava",
+            "count": 2
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view_bot:graphics",
             "count": 1
         },
         {
             "day": "2026-08-18",
             "name": "feed_view_bot:sportstech",
-            "count": 3
+            "count": 11
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view_bot:wearables",
+            "count": 1
+        },
+        {
+            "day": "2026-08-18",
+            "name": "feed_view_bot:wellbeing",
+            "count": 1
         },
         {
             "day": "2026-08-18",
             "name": "landing_view",
-            "count": 9
+            "count": 47
         },
         {
             "day": "2026-08-18",
             "name": "landing_view_bot",
-            "count": 9
+            "count": 29
         },
         {
             "day": "2026-08-18",
             "name": "spotify_sync_ok",
-            "count": 9
+            "count": 42
         },
         {
             "day": "2026-08-17",
