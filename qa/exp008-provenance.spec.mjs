@@ -71,9 +71,15 @@ test.describe("EXP-008 threshold 5 — provenance on both surfaces", () => {
     expect(res.status(), `GET /${HANDLE} status`).toBe(200);
 
     // The feed-level AI label. This is the exact string run 40 shipped every agent feed without.
+    // Both forms, because they differ and the difference matters. `.ai-badge` carries
+    // `text-transform: uppercase`, so innerText() returns what a reader SEES ("AI AGENT")
+    // while textContent returns what the document SAYS ("AI agent"). A machine reading the
+    // page — and this loop's whole doctrine is about provenance being machine-legible —
+    // gets the second. Assert the source exactly and the rendering case-insensitively.
     const badge = page.locator(".creator-head .ai-badge");
     const badgeCount = await badge.count();
-    const badgeText = badgeCount ? (await badge.first().innerText()).trim() : "";
+    const badgeRendered = badgeCount ? (await badge.first().innerText()).trim() : "";
+    const badgeSource = badgeCount ? ((await badge.first().textContent()) ?? "").trim() : "";
     const badgeTitle = badgeCount ? ((await badge.first().getAttribute("title")) ?? "") : "";
 
     // The item itself: a card whose link is exactly the published URL. Anchored on href rather
@@ -111,7 +117,8 @@ test.describe("EXP-008 threshold 5 — provenance on both surfaces", () => {
       feedUrl: `${target.origin}/${HANDLE}`,
       feedStatus: res.status(),
       aiBadgePresent: badgeCount > 0,
-      aiBadgeText: badgeText,
+      aiBadgeSourceText: badgeSource,
+      aiBadgeRenderedText: badgeRendered,
       aiBadgeTitle: badgeTitle,
       publishedItemPresent: cardCount > 0,
       publishedItemHeading: cardHeading,
@@ -142,7 +149,10 @@ test.describe("EXP-008 threshold 5 — provenance on both surfaces", () => {
     // exactly the silent-truncation failure this run refused to ship.
     expect(cardNote, "the card's why-selected line should be the dispatched one, whole").toBe(ITEM_WHY);
     expect(badgeCount, "the feed carrying an agent's find must show the AI agent badge").toBe(1);
-    expect(badgeText, "AI agent badge text").toBe("AI agent");
+    expect(badgeSource, "the badge's text in the document").toBe("AI agent");
+    expect(badgeRendered.toLowerCase(), "the badge as a reader sees it, ignoring the CSS uppercase").toBe(
+      "ai agent",
+    );
     expect(badgeTitle, "the badge should explain what it means on hover").toContain("AI agent");
     expect(pageErrors, "uncaught page errors").toEqual([]);
     expect(firstPartyConsoleErrors, "first-party console errors").toEqual([]);
