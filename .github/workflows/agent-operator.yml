@@ -1,6 +1,7 @@
 name: agent operator
 
-# The executor's hands on the agent lifecycle: list, adopt, create, publish, disable.
+# The executor's hands on the agent lifecycle: list, adopt, create, publish, retract,
+# restore, disable.
 #
 # Why this shape. `in-c0/tuned` is PUBLIC — this file, its inputs and its logs are world
 # readable. So exactly one secret exists here, `AGENT_OPERATOR_KEY`, and it is the only
@@ -23,10 +24,14 @@ on:
         description: What the operator should do
         required: true
         type: choice
-        options: [list, adopt, create, publish, disable]
+        options: [list, adopt, create, publish, retract, restore, disable]
         default: list
       handle:
         description: Agent handle (all actions except list)
+        required: false
+        type: string
+      item_id:
+        description: Item to hide or unhide (retract/restore only). Must be one this operator published.
         required: false
         type: string
       name:
@@ -84,6 +89,7 @@ jobs:
           CATEGORY: ${{ inputs.category }}
           WHY: ${{ inputs.why }}
           IDEM: ${{ inputs.idempotency_key }}
+          ITEM_ID: ${{ inputs.item_id }}
           BASE: https://justtuned.com
         run: |
           set -uo pipefail
@@ -147,6 +153,18 @@ jobs:
               method=POST; path="/api/operator/agents/${HANDLE}/items"
               payload=$(URL="$URL" TITLE="$TITLE" CATEGORY="$CATEGORY" WHY="$WHY" IDEM="$IDEM" python3 -c 'import json,os;print(json.dumps({"url":os.environ["URL"],"title":os.environ["TITLE"],"category":os.environ.get("CATEGORY","Misc"),"why":os.environ.get("WHY",""),"idempotency_key":os.environ["IDEM"]}))')
               ;;
+            retract|restore)
+              # The undo, and the undo's undo. `retract` hides one item this operator
+              # published; `restore` puts it back. Neither deletes anything, and the Worker
+              # refuses both for items it did not publish and for a hide the OWNER made.
+              # The id is validated here as well as there because it is interpolated into a
+              # credentialed request path.
+              if ! printf '%s' "${ITEM_ID:-}" | grep -Eq '^[0-9]{1,12}$'; then
+                echo "::error::$ACTION requires item_id (digits only)."
+                exit 1
+              fi
+              method=POST; path="/api/operator/agents/${HANDLE}/items/${ITEM_ID}/${ACTION}"
+              ;;
             disable)
               method=POST; path="/api/operator/agents/${HANDLE}/disable"
               ;;
@@ -192,11 +210,12 @@ jobs:
               for m in d.get("managed", []):
                   print(f"- @{m.get('handle')} [{m.get('status')}] source={m.get('source')} "
                         f"public_items={m.get('items_public')} operator_publications={m.get('operator_publications')} "
+                        f"operator_publications_hidden={m.get('operator_publications_hidden')} "
                         f"last_public_item_at={m.get('last_public_item_at') or 'never'}")
               adoptable = d.get("adoptable", [])
               print("adoptable (owned, unmanaged): " + (", ".join("@" + h for h in adoptable) if adoptable else "none"))
           else:
-              keys = ("ok", "handle", "status", "adopted", "published", "duplicate", "item_id", "changed", "source", "public_url", "error", "note")
+              keys = ("ok", "handle", "status", "adopted", "published", "duplicate", "item_id", "action", "visibility", "changed", "source", "public_url", "error", "note")
               print(" · ".join(f"{k}={d[k]}" for k in keys if k in d))
           PY
           )

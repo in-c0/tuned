@@ -17,13 +17,14 @@
 //   * read or return a studio token, session token, member email, private charter text,
 //     queued items or a member's skips;
 //   * provision members, approve the private queue, or delete anything;
+//   * hide or unhide any item it did not itself publish, or reverse a hide the owner made;
 //   * run arbitrary SQL, proxy the admin API, or read any secret back;
 //   * manage more than MAX_MANAGED_AGENTS agents.
 //
 // Fail-closed by construction: with the secret absent every route here answers 503 and
 // production behaviour is unchanged. That is the state it ships in.
 
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { keyConfigured, keyMatches, keysCollide } from "./keys";
 import { normalizeHandle } from "./handles";
 import { CATEGORIES } from "./pages";
@@ -73,7 +74,8 @@ let schemaReady: Promise<void> | null = null;
 
 /** Additive, self-applying tables — the same pattern the funnel telemetry uses, because
  *  the executor holds no D1 credentials and cannot run a migration. Nothing is altered or
- *  dropped: both tables are new, and existing agents are NOT silently adopted into them. */
+ *  dropped: all three tables are new, and existing agents are NOT silently adopted into
+ *  them. */
 function ensureTables(db: D1Database): Promise<void> {
   if (!schemaReady) {
     schemaReady = db
@@ -101,6 +103,16 @@ function ensureTables(db: D1Database): Promise<void> {
              principal TEXT NOT NULL DEFAULT '',
              created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
              UNIQUE(creator_id, idempotency_key)
+           )`
+        ),
+        db.prepare(
+          `CREATE TABLE IF NOT EXISTS operator_item_actions (
+             id INTEGER PRIMARY KEY AUTOINCREMENT,
+             creator_id INTEGER NOT NULL,
+             item_id INTEGER NOT NULL,
+             action TEXT NOT NULL,
+             principal TEXT NOT NULL DEFAULT '',
+             created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
            )`
         ),
       ])
@@ -132,7 +144,10 @@ interface OwnedAgent {
   member_id: number | null;
 }
 
-const operator = new Hono<{ Bindings: OperatorBindings; Variables: { ownerId: number; ownerHandle: string } }>();
+type OperatorEnv = { Bindings: OperatorBindings; Variables: { ownerId: number; ownerHandle: string } };
+type OperatorContext = Context<OperatorEnv>;
+
+const operator = new Hono<OperatorEnv>();
 
 // ---------- gate ----------
 operator.use("*", async (c, next) => {
@@ -222,11 +237,20 @@ operator.get("/agents", async (c) => {
             o.created_at, o.updated_at, o.disabled_at,
             (SELECT COUNT(*) FROM items i WHERE i.creator_id = o.creator_id AND i.visibility = 'public') AS items_public,
             (SELECT MAX(i.created_at) FROM items i WHERE i.creator_id = o.creator_id AND i.visibility = 'public') AS last_public_item_at,
-            (SELECT COUNT(*) FROM operator_publications p WHERE p.creator_id = o.creator_id) AS operator_publications
+            (SELECT COUNT(*) FROM operator_publications p WHERE p.creator_id = o.creator_id) AS operator_publications,
+            (SELECT COUNT(*) FROM operator_publications p JOIN items i ON i.id = p.item_id
+              WHERE p.creator_id = o.creator_id AND i.visibility <> 'public') AS operator_publications_hidden
        FROM operator_agents o WHERE o.member_id = ? ORDER BY o.handle`
   )
     .bind(ownerId)
-    .all<ManagedRow & { items_public: number; last_public_item_at: string | null; operator_publications: number }>();
+    .all<
+      ManagedRow & {
+        items_public: number;
+        last_public_item_at: string | null;
+        operator_publications: number;
+        operator_publications_hidden: number;
+      }
+    >();
 
   // Adoptable candidates: agent feeds this member already owns that are not yet managed.
   // Handles are public (they are URLs); nothing else about them is returned.
@@ -255,6 +279,7 @@ operator.get("/agents", async (c) => {
       items_public: m.items_public,
       last_public_item_at: m.last_public_item_at ?? "",
       operator_publications: m.operator_publications,
+      operator_publications_hidden: m.operator_publications_hidden,
     })),
     adoptable: adoptable.map((a) => a.handle),
   });
@@ -492,5 +517,115 @@ operator.post("/agents/:handle/disable", async (c) => {
     .run();
   return c.json({ ok: true, handle, status: "disabled", changed: true });
 });
+
+// ---------- retract / restore one operator-published item ----------
+//
+// The undo `publish` never had. Until this route existed the plane could put an item in
+// front of readers and had no way to take it back: `disable` revokes the operator's
+// authority over a *feed* and deliberately touches no item, so a publication was the one
+// thing this executor could do to production that it could not itself reverse. The
+// operating record's deployment gates require a rollback path to exist for every change,
+// and a publication was shipping without one.
+//
+// This is not a delete. `visibility='hidden'` is exactly the veto the owner already has in
+// their studio: the row, its history and its audit trail stay, and `restore` puts it back
+// with its original `created_at`, so a retract/restore round trip is a no-op on the feed.
+//
+// Two bounds that keep the authority as narrow as it was before:
+//
+//   * **Only items this plane published.** The item must carry an `operator_publications`
+//     row for this creator. An agent's own earlier history, and anything a human put
+//     there, is not the operator's to veto — a retract that could reach those would be a
+//     quiet widening of the credential from "publish one find" to "edit the feed".
+//   * **`restore` undoes only the operator's own retraction.** If the owner hid an item
+//     from their studio, the last operator action on it is not `retract`, and restore
+//     refuses. A human veto is not something a machine gets to reverse; that is the
+//     doctrine applied to the loop's own control plane.
+
+type ItemAction = "retract" | "restore";
+
+interface OperatorItem {
+  id: number;
+  visibility: string;
+}
+
+/** The item, only if this operator published it onto this feed. One join answers both
+ *  "does it exist here" and "was it ours", so there is no path where the second is
+ *  assumed from the first. */
+async function operatorPublishedItem(db: D1Database, creatorId: number, itemId: number): Promise<OperatorItem | null> {
+  return await db
+    .prepare(
+      `SELECT i.id, i.visibility FROM items i
+         JOIN operator_publications p ON p.item_id = i.id AND p.creator_id = i.creator_id
+        WHERE i.id = ? AND i.creator_id = ?`
+    )
+    .bind(itemId, creatorId)
+    .first<OperatorItem>();
+}
+
+/** The last thing this plane did to the item, or "" if it has never touched it. This is
+ *  what separates "the operator hid it" from "the owner hid it". */
+async function lastItemAction(db: D1Database, creatorId: number, itemId: number): Promise<string> {
+  const row = await db
+    .prepare("SELECT action FROM operator_item_actions WHERE creator_id = ? AND item_id = ? ORDER BY id DESC LIMIT 1")
+    .bind(creatorId, itemId)
+    .first<{ action: string }>();
+  return row?.action ?? "";
+}
+
+function itemRoute(action: ItemAction) {
+  const from = action === "retract" ? "public" : "hidden";
+  const to = action === "retract" ? "hidden" : "public";
+
+  return async (c: OperatorContext): Promise<Response> => {
+    const ownerId = c.get("ownerId");
+    const handle = normalizeHandle(c.req.param("handle"));
+    if (!handle) return c.json({ ok: false, error: "invalid handle" }, 400);
+    const itemId = Number(c.req.param("itemId"));
+    if (!Number.isSafeInteger(itemId) || itemId <= 0) return c.json({ ok: false, error: "invalid item id" }, 400);
+
+    const resolved = await resolveManaged(c.env.DB, ownerId, handle);
+    if ("error" in resolved) return c.json({ ok: false, error: resolved.error }, resolved.status);
+
+    const item = await operatorPublishedItem(c.env.DB, resolved.agent.id, itemId);
+    if (!item) {
+      return c.json({ ok: false, error: "no such item, or it was not published by this operator" }, 404);
+    }
+
+    // Already where it is being asked to go. Idempotent, so a retried dispatch is safe.
+    if (item.visibility === to) {
+      return c.json({ ok: true, handle, item_id: itemId, action, changed: false, visibility: to });
+    }
+    if (item.visibility !== from) {
+      return c.json({ ok: false, error: `item is '${item.visibility}', not '${from}'`, item_id: itemId }, 409);
+    }
+    if (action === "restore" && (await lastItemAction(c.env.DB, resolved.agent.id, itemId)) !== "retract") {
+      return c.json(
+        { ok: false, error: "item was not hidden by this operator — a human veto is not the operator's to reverse", item_id: itemId },
+        409
+      );
+    }
+
+    // Guarded on the visibility it was read at, so two concurrent dispatches cannot both
+    // report a change. `created_at` is untouched: a restored item returns to its own place
+    // in the feed rather than to the top of it.
+    const updated = await c.env.DB.prepare("UPDATE items SET visibility = ? WHERE id = ? AND creator_id = ? AND visibility = ?")
+      .bind(to, itemId, resolved.agent.id, from)
+      .run();
+    if (!updated.meta.changes) {
+      return c.json({ ok: false, error: "item changed underneath this request", item_id: itemId }, 409);
+    }
+    await c.env.DB.prepare(
+      "INSERT INTO operator_item_actions (creator_id, item_id, action, principal) VALUES (?, ?, ?, ?)"
+    )
+      .bind(resolved.agent.id, itemId, action, principalOf(c))
+      .run();
+
+    return c.json({ ok: true, handle, item_id: itemId, action, changed: true, visibility: to });
+  };
+}
+
+operator.post("/agents/:handle/items/:itemId/retract", itemRoute("retract"));
+operator.post("/agents/:handle/items/:itemId/restore", itemRoute("restore"));
 
 export default operator;
