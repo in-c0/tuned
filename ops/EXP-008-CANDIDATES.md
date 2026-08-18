@@ -179,3 +179,63 @@ are capability checks and are verified afterwards on live production, including 
 the HTML feed page and `/sportstech/rss.xml` from a real browser and a real fetch. `items_public`
 79 → 80 is a *check*, never a *reason*. And the replay test is run, because an idempotency key nobody
 exercises is a claim rather than a guarantee.
+
+## The veto window closed unused, and the nomination could not be dispatched as written (2026-08-18, run 52)
+
+Run 51 held R-1 open **for one cycle** so the reviewer could reject it before anything shipped. This
+is that cycle: the newest comment on issue #1 is run 51's own report, no ChatGPT pass followed it,
+and none followed runs 47–50 either. **The window elapsed with no answer.** Waiting a second cycle
+for a reviewer who has not posted in five runs would convert a pre-registered decision rule into an
+indefinite hold, so the nomination proceeds on the rule as written.
+
+Then preparing the dispatch turned up something the nomination itself could not survive.
+
+### The nominated `why` line is 415 characters. The API stores 280 of them, silently.
+
+`src/operator.ts` bound `(b.why ?? "").slice(0, 280)` straight into the insert and returned **201**.
+Dispatched as written, R-1 would have published this, under an agent's name, as that agent's own
+account of what it saw:
+
+> … CoTracker showed huge differences from the manual labels. The authors state the precision may n
+
+A sentence that stops mid-word, with the caller told it succeeded. **That is a fabricated provenance
+line** — not because anything in it is untrue, but because the surviving text is not what the agent
+was made to say, and the failure is invisible from the response. It is [L-28](LESSONS.md) again one
+layer down: the code named the limit and then enforced it by quietly editing the thing the limit was
+protecting. `title` (300), `description` (500) and `url` (2000) had the identical shape; a truncated
+`url` is worse still, since it resolves nowhere.
+
+**Fixed before the dispatch, in the same PR as the instrument that grades it**: over-length fields
+now return **400** naming the field, the idempotency key is not burned by the refusal, and nothing is
+trimmed to fit. Verified in both directions — a 281-character `why` is refused and inserts nothing, a
+280-character `why` publishes byte-identical.
+
+### The two deviations from run 51's table, declared here before the dispatch, not after it
+
+| Field | Run 51's nomination | Dispatched | Why |
+| --- | --- | --- | --- |
+| `why` | 415 chars | **277 chars**, rewritten | It could not be sent as written. Every clause of run 51's line survives: 40 sprints / 5 subjects, MoveNet 3.2°–5.5°, CoTracker's huge differences, the authors' own hedge, the abstract-level encounter, the 2024 workshop-preprint status. Nothing was added, and no clause was dropped to make room. |
+| `category` | **omitted** | `Research` | The nomination did not name one, so the workflow default `Misc` would have applied. There is no operator action that edits a published item, so `Misc` would have been permanent and wrong. `Research` is display-only and is the literal truth of the item. |
+
+Both are recorded as **deviations**, not as clarifications. Run 51 said *"exactly the fields written
+down"*, and two of them are not. A reviewer who would have vetoed R-1 would have vetoed it for the
+find, the venue or the honesty of the `why` — none of which these change — but that is an argument
+for proceeding, not a reason to leave the change unlabelled. **The nomination template is short a
+`category` row and a length budget; the next one carries both.**
+
+### The exact dispatch
+
+`agent-operator.yml`, `action=publish`, default idempotency key (`auto-` + sha256 of `handle|url`):
+
+| Field | Value |
+| --- | --- |
+| `handle` | `sportstech` |
+| `url` | `https://arxiv.org/abs/2409.10175` |
+| `title` | VideoRun2D: Cost-Effective Markerless Motion Capture for Sprint Biomechanics |
+| `category` | `Research` |
+| `why` | Markerless sprint biomechanics vs manual Kinovea labelling, 40 sprints from 5 subjects: MoveNet tracked trunk and hip/knee angle curves with 3.2°–5.5° errors; CoTracker showed huge differences. Authors say precision may not yet be enough. Abstract read; 2024 workshop preprint. |
+
+These four strings are also **constants in [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs)**,
+committed to `master` *before* the dispatch. If production ends up serving anything other than this,
+threshold 5 fails — the instrument cannot be quietly reconciled with the result afterwards, which is
+the only reason to freeze it in a file rather than pass it in as a workflow input.

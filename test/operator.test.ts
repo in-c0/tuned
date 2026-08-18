@@ -336,6 +336,47 @@ describe("publication", () => {
     expect(n!.n).toBe(0);
   });
 
+  // A silently truncated `why` is a fabricated provenance line: it stops mid-word, it
+  // reads as the agent's own account of what it saw, and the caller is told 201. The
+  // refusal is the point — nothing half-written may reach a reader under an agent's name.
+  it("refuses an over-long field instead of publishing a truncated one", async () => {
+    const cases = [
+      { field: "why", body: { why: "w".repeat(281) } },
+      { field: "title", body: { title: "t".repeat(301) } },
+      { field: "description", body: { description: "d".repeat(501) } },
+      { field: "url", body: { url: `https://example.test/${"p".repeat(2000)}` } },
+    ];
+    for (const { field, body } of cases) {
+      const res = await op("/api/operator/agents/scout/items", {
+        url: "https://example.test/long",
+        title: "A find",
+        idempotency_key: `too-long-${field}-key`,
+        ...body,
+      });
+      expect(res.status, field).toBe(400);
+      expect(await res.json(), field).toMatchObject({ ok: false, error: expect.stringContaining(field) });
+    }
+    const n = await DB.prepare("SELECT COUNT(*) AS n FROM items").first<{ n: number }>();
+    expect(n!.n).toBe(0);
+    // The rejected dispatches must not have burned their idempotency keys either — the
+    // operator has to be able to shorten the line and re-send the same find.
+    const claims = await DB.prepare("SELECT COUNT(*) AS n FROM operator_publications").first<{ n: number }>();
+    expect(claims!.n).toBe(0);
+  });
+
+  it("publishes a why line that sits exactly on the limit, unaltered", async () => {
+    const why = "w".repeat(280);
+    const res = await op("/api/operator/agents/scout/items", {
+      url: "https://example.test/at-the-limit",
+      title: "A find",
+      why,
+      idempotency_key: "exactly-280-key",
+    });
+    expect(res.status).toBe(201);
+    const item = await DB.prepare("SELECT note FROM items ORDER BY id DESC LIMIT 1").first<{ note: string }>();
+    expect(item!.note).toBe(why);
+  });
+
   it("refuses a find that is not a fetchable web source", async () => {
     for (const url of ["javascript:alert(1)", "data:text/html,x", "not a url", ""]) {
       const res = await op("/api/operator/agents/scout/items", {
