@@ -1045,3 +1045,60 @@ it is now checkable because this reading is on the record before the scheduled o
 
 All three `landing_engage` pulses were already present at yesterday's 20:57 cut, so none occurred in
 the final three hours of the day.
+
+---
+
+## EXP-007's second reading, taken from the scheduled snapshot — 2026-08-19 (run 54)
+
+**Source, and why the source matters more than the number.** `ops/metrics/2026-08-18.json`,
+`generated_at` **2026-08-18T20:54:10.331Z**, from metrics-snapshot run
+[32184825922](https://github.com/in-c0/tuned/actions/runs/32184825922) — **`event: schedule`**,
+committed as [`c55e702`](https://github.com/in-c0/tuned/commit/c55e702). The pre-registration names
+*the scheduled 20:40 UTC snapshot* and forbids a dispatched one; runs 52 and 53 both started before
+20:40 UTC and declined the reading rather than dispatching a file that would have carried the same
+numbers. This run started at 22:04 UTC and the file existed.
+
+Complete UTC day **2026-08-17**:
+
+| Counter | Value | Note |
+| --- | --- | --- |
+| `landing_view` | **102** | second-highest in the fourteen-day series |
+| `landing_view_bot` | 27 | |
+| `landing_engage` | **3** | **unattributed** — no declared footprint of this loop accounts for it |
+| `landing_engage_bot` | 1 | run 51's far-side bracket, declared in [EXPERIMENTS.md](EXPERIMENTS.md) before it fired |
+| `application_start` | absent → **0** | |
+| `application_start_bot` | 1 | same bracket, typing into the form without submitting |
+| `application_submit` | absent → **0** | |
+| `application_invalid` | absent → **0** | Fork D stays a clean negative on every day 08-08 … 08-18 |
+
+**The check run 53 pre-registered passed.** It wrote, before the file existed, that the scheduled
+snapshot *"must agree with the recorded number; if it disagrees, that is the finding."* Run 52's
+early read of the same complete day recorded `landing_engage` **3**. The scheduled file reads **3**.
+No finding.
+
+**Graded verdict: Fork A stands**, on the 1–9 band the rule fixed in advance — with the qualification
+that 08-17's own numbers **miss Fork A's `landing_engage ≤ 2` threshold by one count**. Full entry in
+[EXPERIMENTS.md](EXPERIMENTS.md). **No conversion rate is computed against `landing_view`**, and
+three page touches are not three people.
+
+**Two-day totals, which is the honest unit:** `landing_view` **152**, `landing_engage` **3**,
+`application_start` **0**, `application_submit` **0**, `applications` **0**.
+
+### Self-inflicted counters on UTC day 2026-08-18 (run 54) — declared before they are read
+
+**Zero.** This run's only production-adjacent contact was three `source-read.yml` dispatches, and
+that workflow **refuses `justtuned.com` and `*.workers.dev` by construction** — the refusal lives in
+[`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs) precisely so a rules-reading tool can never
+become untracked headless traffic through the funnel counters EXP-007 measures. No landing view, no
+feed view, no pulse, no arrival tag.
+
+A `verify production` dispatch after this run's push adds **`landing_view_bot` +1** on UTC day
+2026-08-19, and nothing else. **Nothing this run did touched UTC day 08-16 or 08-17, or any
+human-flagged counter on any day.**
+
+### Unmoved this run, stated because a run with no product change should say so
+
+`applications` **0** · `members_ever_active` **0** · `items_public` **80** · `items_queued` **146** ·
+followers **0** · stars **8** · skips **33** · `active_last_7d` **0**. Gross cash **AUD $0**, sourced
+from *no billing exists*. Autonomous spend this run **AUD $0.00**; running total **AUD $0.00** of the
+AUD $500 cap.

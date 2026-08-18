@@ -1114,3 +1114,43 @@ the item was retracted it **failed** at both viewports and on the feed
 `restore` ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). A retract that
 only moved a database column would have left that spec passing — which is exactly how an undo in
 name only would present.
+
+---
+
+## L-33 — a cheap disqualifying check belongs first, whatever the procedure says (2026-08-19, run 54)
+
+`ops/DISTRIBUTION.md` had a five-condition admissibility test and an explicit order for working it:
+A4 (destination freshness), then A5 (arrival instrument and threshold), then **"only then"** A1 (does
+the venue permit this post at all). That order held for eight days and three runs named
+"propose a channel" as the top blocker without moving it.
+
+The order was wrong, and it was wrong on a property visible before any of it was attempted: **what
+each check costs, and whether getting it wrong is recoverable.**
+
+| Check | Cost to run | Can it be spent? | If the answer is "no", what was wasted |
+| --- | --- | --- | --- |
+| **A1** — does the venue permit this post? | one CI dispatch against a public rules page; no account, no counter moved | **never** — a public page can be read again tomorrow | nothing |
+| **A5** — pre-register an arrival threshold | a per-venue claim about expected arrivals, plus a code change | the *attempt* it grades can be spent exactly once | the whole threshold, and possibly the channel |
+
+Run 54 read three venues' rules in about six minutes of CI. **Two closed immediately** — Lobsters is
+*"focused pretty narrowly on computing"* and excludes entrepreneurship, so a sports-technology feed is
+off topic; Hacker News says *"Don't post landing pages"* and lists *"other reading material"* as off
+topic for a Show HN, which is what a curated feed is. Under the file's own ordering, the loop would
+first have pre-registered an arrival threshold for one of those venues and *then* discovered the post
+was never permitted.
+
+**Lesson.** **Order the gates by cost-to-check divided by chance-of-disqualifying, not by narrative
+sequence.** A procedure written as a story — establish the destination, build the instrument, then
+check the rules — reads as thoroughness and behaves as waste, because it puts the irreversible step
+before the free one. The check that can kill the whole plan for the price of one page load goes
+first, even when it feels like the detail you confirm at the end.
+
+**The second half, which is the part that took eight days.** Run 53 escalated **A2** — the doctrine
+that this executor writes no sentence a human posts under their own name — as *"the wall in front of
+distribution"*, and asked the reviewer to overrule it if they disagreed. Three A1 reads later, **A2
+was not reached at any venue**: two forbid the post regardless of who writes it, and the third would
+not show its rules to this reader. The loop had spent runs arguing about an interpretation when the
+binding constraint was a fact it could have looked up.
+
+**Prevention check, before escalating any blocker as a judgement call:** *is there a cheaper check
+that would make this judgement unnecessary — and have I run it?*

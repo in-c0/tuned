@@ -1264,6 +1264,62 @@ so the reviewer can discount it:
   is fixed. **Nothing in this grading is demand, activation, retention, referral or revenue**, and no
   conversion rate is computed against `landing_view`.
 
+#### Second reading, taken 2026-08-19 (run 54) — FORK A STANDS, QUALIFIED BY ONE COUNT
+
+**Read from the source the rule named, and from no other.** `ops/metrics/2026-08-18.json`,
+`generated_at` **2026-08-18T20:54:10.331Z**, produced by metrics-snapshot run
+[32184825922](https://github.com/in-c0/tuned/actions/runs/32184825922) — **`event: schedule`**, not a
+dispatch — and committed as [`c55e702`](https://github.com/in-c0/tuned/commit/c55e702). Runs 52 and 53
+each declined this reading because they started before 20:40 UTC and the file did not exist; this is
+the 08:00 Sydney run, and it does.
+
+Complete UTC day **2026-08-17**:
+
+| counter | complete day | partial at 20:57 (run 52) | agrees? |
+| --- | --- | --- | --- |
+| `landing_view` | **102** | 93 | grew by 9 in the tail, as a partial day should |
+| `landing_view_bot` | 27 | — | — |
+| `landing_engage` | **3** | 3 | **exact** |
+| `landing_engage_bot` | 1 | 1 | exact — run 51's far-side bracket, declared in advance |
+| `application_start` | **absent (0)** | absent | exact |
+| `application_start_bot` | 1 | — | run 51's bracket typing into the form without submitting |
+| `application_submit` | **absent (0)** | absent | exact |
+| `application_invalid` | **absent (0)** | absent | exact |
+
+Run 53 wrote the check into [STATUS.md](STATUS.md) before the file existed: *"the scheduled file must
+agree with the recorded number; **if it disagrees, that is the finding**."* **It agrees, to the
+count.** The nine `landing_view` that arrived in the day's last three hours brought **no** further
+engagement with them.
+
+**Verdict under the pre-registered rule: `landing_engage` = 3 falls in the 1–9 band → FORK A STANDS**,
+with the registered standing note that the denominator is *overwhelmingly*, not *entirely*,
+non-human. No conversion rate is computed from it, and landing-page work does not reopen — the third
+bullet of the rule binds in every branch.
+
+**The qualification, stated because the rule's verdict alone would hide it.** Fork A's own arithmetic
+is `landing_view ≥ 40` **and** `landing_engage ≤ 2`. On 08-17's numbers in isolation that second
+clause **fails by one count** — 3, not ≤ 2 — so 08-17 taken alone grades **Fork E, under-powered**,
+not Fork A. The 1–9 band was written precisely to cover this, before the number was visible, and it
+routes to *Fork A stands*. Both facts are recorded rather than the convenient one: **the reading
+confirms Fork A's conclusion and does not reproduce Fork A's threshold.**
+
+Two-day picture, which is the honest unit here: **152 UA-flagged human-shaped views, 3 touches, 0
+form-starts, 0 submits, 0 applications.** Whatever those three touches were, nothing downstream of
+them moved, and that is the same conclusion under all three of the experiment's original
+explanations.
+
+**The three touches remain unattributed and are not claimed as people.** No declared footprint of
+this loop accounts for them — every browser dispatch this loop makes carries `HeadlessChrome` and
+lands in `landing_engage_bot`, which is exactly where run 51's bracket landed on the same day. A
+JS-executing crawler with a stock UA lands in the human bucket, and the experiment's binding clause
+says a page-reported counter is forgeable evidence, not proof. **Standing blocker #1 — no arrival is
+known to be human — is unchanged by this reading.**
+
+**No third reading is registered.** The instrument stays deployed and the counters keep accruing, but
+this experiment has now spent both readings it pre-registered, and inventing a third after seeing two
+would be choosing the day. A future run that wants to reopen the question registers a new experiment
+with a new threshold, before looking.
+
 ---
 
 ## EXP-008 — can the operator control plane publish one real agent find? (2026-08-15, run 44)

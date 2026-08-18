@@ -190,8 +190,13 @@ destination — it was pointing at the wrong one.
    remains of A5 is the **arrival threshold**, which genuinely cannot be written without a venue: it
    is a claim about how many people that venue should send. Register the channel's tag in
    `ARRIVAL_TAGS` in the same cycle as its threshold, and both still precede the post.
-4. **Only then** are A1 and A2 worth the read for a specific venue — and they are read from GitHub's
-   network and quoted here, not recalled.
+4. ~~**Only then** are A1 and A2 worth the read for a specific venue.~~ **Reversed 2026-08-19 (run
+   54): A1 goes first, not last.** An A1 read is free, needs no account, moves no counter and cannot
+   spend a channel; A5's threshold is a per-venue claim that is thrown away entirely if the venue
+   forbids the post. Read the rules from GitHub's network and quote them here — never recall them —
+   **before** any threshold work for that venue. Two candidates were closed this way at a cost of
+   three dispatches ([L-33](LESSONS.md)). A2 still follows A1, because a venue that forbids the post
+   makes its authorship moot.
 
 **A note on the pointer this replaces.** [EXP-007](EXPERIMENTS.md)'s Fork A names its next action as
 *"the binding constraint is distribution, and it is owner-gated (EXP-002)"*. EXP-002 is
@@ -202,20 +207,147 @@ is read on 08-17.
 
 ---
 
+## A1 read from a dated source for the first time — 2026-08-19 (run 54)
+
+Every A1 cell in the register below had read **UNREAD** since this file was created on 2026-08-16,
+and the procedure above names exactly what would change that: *dispatch `source-read.yml` with the
+rules URL, quote from that run's log, cite the run.* Three runs of runs 47–53 named "propose a
+channel" as the top item and did something else. **This run performed step 3 instead of naming it.**
+
+Three venues were read from GitHub's network on **2026-08-18** (UTC), one page per dispatch, GETs
+only, no link following, no account and no credential:
+
+| Venue | Page read | HTTP | `read_outcome` | Run |
+| --- | --- | --- | --- | --- |
+| Reddit | `https://www.reddit.com/wiki/selfpromotion` | **403** | `interstitial` | [32191175814](https://github.com/in-c0/tuned/actions/runs/32191175814) |
+| Lobsters | `https://lobste.rs/about` | **200** | `page`, 15,676 visible chars | [32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996) |
+| Hacker News | `https://news.ycombinator.com/showhn.html` | **200** | `page`, 1,950 visible chars | [32191459880](https://github.com/in-c0/tuned/actions/runs/32191459880) |
+
+**Reading a venue's published rules is not activity at that venue and authorizes nothing** — the
+procedure above says so, and it is restated here because one of the three pages is Hacker News'. The
+standing hold on *any* HN activity by anyone on the executor's initiative is unchanged: no
+submission, no repost, no comment, no contact with moderation. What changed is that the loop's
+account of why is now quoted from the venue instead of recalled from its own withdrawal note.
+
+### Reddit — A1 is not merely UNREAD, it is UNREADABLE BY THIS EXECUTOR
+
+The reader was refused before any rule was visible. Quoted from the run log verbatim, the whole of
+what the page carried — 221 characters, below the spec's 1000-character floor:
+
+> You've been blocked by network security. To continue, log in to your Reddit account or use your
+> developer token If you think you've been blocked by mistake, file a ticket below and we'll look
+> into it. Log in File a ticket
+
+**What this is and is not.** It is **not** evidence that Reddit forbids the post; nothing about the
+post's form was reached. It is evidence that **the mechanism this file relies on cannot resolve A1
+for Reddit at all** — the venue conditions reading its own rules on an account or a developer token,
+and this executor holds neither and will not spoof a user agent to get past a refusal
+([`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs) refuses to on principle, and that principle
+is not being revisited to win an argument about distribution).
+
+So Reddit's A1 moves from **UNREAD — not yet done** to **UNREADABLE — cannot be done by the
+executor**. That is a different kind of blocker and it names its own remedy precisely: a human who
+holds a Reddit account reads the subreddit's rules and quotes them, or the venue is dropped. It is
+recorded as an owner-boundary item rather than a to-do this loop can keep deferring to itself.
+
+### Lobsters — A1 READ, and the answer is no, on the venue's own words
+
+Read cleanly: HTTP 200, title `About | Lobsters`, `read_outcome: "page"`, `interstitial_signals: []`.
+**Three independent grounds, each quoted from the log, and any one of them alone is disqualifying.**
+
+1. **Topicality excludes the subject.** *"Lobsters is focused pretty narrowly on computing … Some
+   things that are off-topic here but popular on larger, similar sites: entrepreneurship, management,
+   news about companies that employ a lot of programmers, investing, world events, anthropology,
+   self-help, personal productivity systems …"* — The one destination that currently satisfies A4 is
+   **`/sportstech`**, a sports-technology feed. It is not a computing story, and a post about Tuned
+   *as a product* is the entrepreneurship case the same sentence excludes.
+2. **Self-promotion is capped as a ratio, which a first post cannot satisfy.** *"It's great to have
+   authors participate in the community, but not to exploit it as a write-only tool for product
+   announcements or driving traffic to their work. As a rule of thumb, self-promo should be less than
+   a quarter of one's stories and comments."* — A brand-new account whose first submission is its own
+   product is at **100%**, and no drafting fixes an arithmetic condition on an account's history.
+3. **Membership is invite-gated.** The page describes *"a user invitation tree to combat spam"*, so
+   "by exactly this author" is not a property the executor can establish from outside — it depends on
+   whether the owner already holds an account.
+
+**Verdict: Lobsters is INADMISSIBLE, and its A1 is now READ rather than assumed.** This is the first
+venue in the register closed on quoted evidence instead of on absence of evidence, and the finding is
+a **negative** — which is the outcome this file exists to produce cheaply, before a channel is spent
+rather than after ([L-17](LESSONS.md)).
+
+### Hacker News — A1 READ, and it retroactively convicts EXP-002 in the venue's own words
+
+EXP-002 was withdrawn on 2026-08-13 (run 34) as inadmissible, and the grounds were stated from
+**recollection** of HN's rules — the exact [L-17](LESSONS.md) error, committed in the act of
+correcting an L-17 error. The page is now read, dated and quoted, and the withdrawal holds on the
+venue's own text:
+
+- **The submitted URL was disqualified twice over.** *"Please make it easy for users to try your
+  thing out, ideally without barriers such as signups or emails."* and, flatly, *"Don't post landing
+  pages or fundraisers."* EXP-002's submitted URL was `justtuned.com` — an **application-gated
+  landing page**. Both sentences name it.
+- **It must be your own work, and you must be present for it.** *"The project must be something
+  you've worked on personally and which you're around to discuss."* and *"Don't post
+  quickly-generated one-offs; anybody can do that now."* An executor-drafted body posted as the
+  owner's own first comment is the shape those sentences exclude.
+
+**And one constraint that is new information rather than confirmation, which is why this read was
+worth taking.** *"Show HN is for something you've made that other people can play with … On topic:
+things people can run on their computers or hold in their hands … Off topic: blog posts, sign-up
+pages, newsletters, lists, and other reading material. Those can't be tried out, so can't be Show
+HNs."*
+
+A public Tuned feed is **reading material**. `/sportstech` is a page of links with provenance — the
+closest thing in that off-topic list is "lists", and the nearest on-topic category, something you run
+or hold, is not what Tuned is. So even with a fresh destination, moderator permission and an arrival
+counter — all three of which are absent — **`/sportstech` is not obviously a Show HN at all**, and a
+future run that clears the other blockers must answer this sentence before treating HN as reopened.
+Recorded now, while nothing depends on the answer.
+
+**Verdict: Hacker News stays INADMISSIBLE**, its A1 is now **READ**, and the reason has widened from
+*needs moderator permission* to *needs moderator permission and a destination that is a thing rather
+than a reading list*.
+
+### What the three reads together say about the top blocker
+
+**The wall in front of distribution is not drafting, and it is not A4.** Run 53 put A2 — *"every
+listed venue requires a human's own words"* — to the reviewer as the single interpretation deciding
+what this loop can do, and asked the reviewer to overrule it if they disagreed. **Three reads later
+the question is close to moot: A2 was not reached at any of the three venues.** Lobsters fails A1 on
+subject matter, Hacker News fails A1 on what a Show HN may be *about*, and Reddit will not state its
+rules to this reader at all. A venue that does not permit the post makes the authorship of the post
+irrelevant.
+
+That is a correction to this loop's own diagnosis, and it is the useful part of this run: **A2 was
+never the binding constraint. A1 is** — and A1 is answerable with evidence rather than with an
+interpretation, which is why it should have been read five runs ago instead of argued about.
+
+**No channel is admissible today**, and the register below is shorter in substance than it looks: of
+six candidates, **two are now closed on quoted rules**, one is unreadable without an owner's account,
+and the rest remain unread. The honest summary is that Tuned has **no identified venue** whose
+published rules permit a post about a curated feed by the person who runs it — not "no venue chosen
+yet".
+
+---
+
 ## Candidate register
 
 No candidate is ADMISSIBLE. A1/A2 are marked **UNREAD** wherever this loop has not quoted the venue's
 rules from a dated source — marking them unread is the honest state, and asserting them from memory
 is the exact error [L-17](LESSONS.md) records.
 
+**A4 column, read correctly:** ✅ below means *satisfied for `/sportstech` only, until 2026-08-21
+04:15 UTC*, per the section at the foot of this file. Any candidate whose link would land a stranger
+on `/` or `/ava` still fails A4.
+
 | Channel | A1 rules | A2 authorship | A3 | A4 | A5 | Verdict |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Hacker News — Show HN** | **KNOWN-BLOCKING**: prior submission [`49280269`](https://news.ycombinator.com/item?id=49280269) was killed at submission (run 33). Per the withdrawal, a further attempt needs the owner's **explicit moderator permission** first | Owner-authored only; executor drafts nothing | ✅ | ❌ | ❌ | **INADMISSIBLE** — needs moderator permission, a fresh destination, and an arrival counter |
-| **Reddit — a topical subreddit** | UNREAD — per-subreddit self-promotion rules must be quoted, not assumed | Owner-authored only | ✅ | ❌ | ❌ | **INADMISSIBLE** |
-| **Lobsters** | UNREAD — invite-only membership and authored-by-you rules must be quoted | Owner-authored only | ✅ | ❌ | ❌ | **INADMISSIBLE** |
-| **Product Hunt** | UNREAD | Owner-authored only | ✅ | ❌ | ❌ | **INADMISSIBLE** |
-| **Paid acquisition** | n/a | n/a | ✅ | ❌ | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
-| **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ❌ | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
+| **Hacker News — Show HN** | **READ 2026-08-18** ([32191459880](https://github.com/in-c0/tuned/actions/runs/32191459880)) — **FAILS**: *"Don't post landing pages"*; *"without barriers such as signups or emails"*; and a feed is *"reading material"*, which the page lists as off topic. Also **KNOWN-BLOCKING**: prior submission [`49280269`](https://news.ycombinator.com/item?id=49280269) was killed at submission (run 33) and a further attempt needs the owner's **explicit moderator permission** | Owner-authored only; executor drafts nothing | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — fails A1 on the destination's *form*, before moderator permission is even reached |
+| **Reddit — a topical subreddit** | **UNREADABLE 2026-08-18** ([32191175814](https://github.com/in-c0/tuned/actions/runs/32191175814)) — HTTP **403**, *"blocked by network security … log in to your Reddit account or use your developer token"*. The rules cannot be quoted by this executor at all; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable without an account this executor does not hold |
+| **Lobsters** | **READ 2026-08-18** ([32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996)) — **FAILS** on three quoted grounds: topicality is *"pretty narrowly on computing"* and excludes *"entrepreneurship"*; *"self-promo should be less than a quarter of one's stories and comments"*, which a first submission cannot satisfy; and membership runs through *"a user invitation tree"* | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — closed on the venue's own words |
+| **Product Hunt** | UNREAD | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** |
+| **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
+| **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
 
 ### Permanently inadmissible for this loop
 
@@ -266,6 +398,27 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
 ---
 
 ## Change log
+
+- **2026-08-19 (run 54)** — **A1 read for three venues, and the file's own ordering found wrong.**
+  Hacker News and Lobsters **FAIL A1 on quoted rules**; Reddit is **unreadable** by this executor
+  (HTTP 403 demanding an account or developer token). Runs
+  [32191175814](https://github.com/in-c0/tuned/actions/runs/32191175814),
+  [32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996),
+  [32191459880](https://github.com/in-c0/tuned/actions/runs/32191459880). The A4 column was also
+  corrected: it had read ❌ for every candidate since 2026-08-16 while the section at the foot of this
+  file has said **SATISFIED for `/sportstech`** since run 52 — a stale table contradicting its own
+  document.
+
+  **The ordering correction, which is the transferable part.** *"What this forces, in order"* step 4
+  says A1 and A2 are *"only then"* worth reading — after A4 and A5 are satisfied. That is backwards,
+  and this run is the evidence. **An A1 read is free, unspendable and repeatable**: it opens a public
+  rules page, needs no account, moves no counter, and cannot consume a channel that can only be spent
+  once. **A5's threshold work is none of those things** — it is a per-venue claim about expected
+  arrivals, and it is wasted entirely if the venue turns out to forbid the post. Reading A1 first
+  cost three dispatches and closed two candidates; reading it last would have meant pre-registering
+  an arrival threshold for Lobsters and *then* discovering that a sports-technology feed is off topic
+  on a site *"focused pretty narrowly on computing"*. **Cheap disqualifying checks go first.**
+  See [L-33](LESSONS.md).
 
 - **2026-08-16 (run 48)** — **A5's instrument shipped and verified in production**
   ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR

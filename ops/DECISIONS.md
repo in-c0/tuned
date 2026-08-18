@@ -2297,3 +2297,76 @@ whose loss would cost nothing rather than deferred to an item that mattered.
   *no billing exists*.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+---
+
+## Run 54 — 2026-08-19 (08:04 Sydney): take the deferred reading, then read the rules instead of arguing about them
+
+### Decision
+
+Two things, in this order: **(1)** take EXP-007's pre-registered second reading, which runs 52 and 53
+each deferred because they started before the scheduled snapshot existed; **(2)** perform
+[DISTRIBUTION.md](DISTRIBUTION.md)'s procedure **step 3 — read a venue's published rules from
+GitHub's network and quote them** — for three candidate venues, instead of writing another paragraph
+about why the top blocker is hard.
+
+### Rationale
+
+**On (1):** it was owed. The rule named the *scheduled* 20:40 UTC snapshot and forbade a dispatched
+one; this is the 08:00 Sydney run, and the file existed for the first time. Deferring it a third time
+would have been a choice, not a constraint.
+
+**On (2):** runs 47 through 53 each named *"propose a distribution channel"* as the standing top item
+and each did something else, every time for a defensible reason. Run 53 escalated the reason to the
+reviewer as an interpretation question about **A2** — the doctrine that this executor writes no
+sentence a human publishes under their own name — and asked to be overruled if the reviewer
+disagreed.
+
+That escalation was answerable without the reviewer, for the price of three CI dispatches. **A1 —
+does the venue permit a post of this form at all — is logically prior to A2, costs nothing, cannot be
+spent, and had never been checked for a single venue.** Reading it first is not a clever
+reinterpretation of the procedure; it is the correction of an ordering defect in the procedure, now
+recorded as [L-33](LESSONS.md).
+
+### Outcome
+
+**A2 was not reached at any of the three venues, because A1 failed or could not be read first.**
+
+| Venue | Result | Ground |
+| --- | --- | --- |
+| **Lobsters** | **FAILS A1** | *"focused pretty narrowly on computing"* excludes a sports-technology feed; *"self-promo should be less than a quarter of one's stories and comments"* is unsatisfiable by a first submission; membership runs through *"a user invitation tree"* |
+| **Hacker News** | **FAILS A1** | *"Don't post landing pages"*; *"without barriers such as signups or emails"*; and *"other reading material"* is listed off topic for a Show HN — which is what a curated feed is |
+| **Reddit** | **A1 UNREADABLE** | HTTP **403**: *"blocked by network security … log in to your Reddit account or use your developer token"* |
+
+**The correction this forces on the loop's own account of itself:** the wall in front of distribution
+was never A2. It is A1, and **Tuned currently has no identified venue whose published rules permit a
+post about a curated feed by the person who runs it.** That is a harder statement than "no channel
+chosen yet" and it is the honest one.
+
+**A second, unlooked-for result:** Hacker News' rules retroactively convict EXP-002 in the venue's own
+words. Run 34 withdrew that packet on **recalled** rules — an [L-17](LESSONS.md) error committed while
+correcting an L-17 error. The withdrawal was right, and it is now evidenced rather than remembered.
+
+### What was deliberately not done
+
+- **No post, no submission, no comment, no contact with moderation, at any venue.** Reading a public
+  rules page is not activity at that venue and authorizes nothing; the standing hold on all Hacker
+  News activity is unchanged.
+- **No user-agent spoofing to get past Reddit's refusal.** `qa/source-read.spec.mjs` declares itself
+  headless and declares itself as Tuned, and a site that refuses that is giving a real answer. The
+  principle was not revisited to win an argument about distribution.
+- **No A5 arrival threshold pre-registered**, for any venue — that ordering was reversed this run, and
+  registering a threshold for a venue whose A1 is unread is exactly the waste [L-33](LESSONS.md)
+  names.
+- **No publication to hold A4's window open**, no landing-page work, no copy, positioning or pricing.
+- **No code change.** Nothing in this run needed one, and shipping a change to make the run look
+  productive would be the defect this file exists to catch.
+
+### Metrics, unmoved
+
+`applications` **0** · `members_ever_active` **0** · `items_public` **80** · `items_queued` **146** ·
+followers **0**. Gross cash **AUD $0**, sourced from *no billing exists*. EXP-007's second reading
+moved no product metric and claims no demand: three unattributed page touches across 152 UA-flagged
+views are not three people.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
