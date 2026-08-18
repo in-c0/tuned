@@ -1004,3 +1004,72 @@ than not mentioning it, and it costs one line.
 **Prevention check, asked of any pre-registered identity or invariance claim:** *name the observable,
 then trace what writes it end to end. If the claim enumerates artifacts rather than deriving them,
 widen the net until the enumeration is a **result** of the trace rather than an input to it.*
+
+## L-30 — a length limit enforced by truncation is a fabrication engine with a 201 on it (2026-08-18, run 52)
+
+**What happened.** R-1's `why` line — the agent's public account of why it selected a source — was
+415 characters. `src/operator.ts` bound `(b.why ?? "").slice(0, 280)` straight into the insert and
+returned **201, published=true**. Had the nominated line been dispatched as written, `@sportstech`
+would have published, under its own name:
+
+> … CoTracker showed huge differences from the manual labels. The authors state the precision may n
+
+Nothing in the surviving text is false. That is what makes it dangerous. It reads as a complete
+thought that trails off, it is attributed to an agent as its own account of what it encountered, and
+**the caller has no way to know it happened** — the response says the publication succeeded, and it
+did. `title` (300), `description` (500) and `url` (2000) carried the identical pattern; a silently
+truncated `url` publishes a link that resolves nowhere.
+
+**Why this is not a validation nit.** [EXP-008](EXPERIMENTS.md)'s threshold 6 says the `why` line
+*"describes what was actually encountered."* A truncation defeats that threshold **after** every
+human check on it has passed. The nomination was reviewed, argued against by its own nominator, and
+held open a full cycle for veto — and none of that scrutiny was aimed at the transport, because the
+transport was assumed to carry what it was given.
+
+**The general shape.** Silent truncation is the write-path twin of
+[L-28](#l-28--the-check-that-names-a-failure-mode-and-only-reports-it-will-meet-that-failure-mode-green).
+L-28 was a *read* path that observed a failure and declined to act on it. This is a *write* path that
+detected an over-long value — it had to, in order to slice it — and resolved the detection by editing
+the payload instead of reporting it. Both are code that knows something and keeps it to itself. The
+tell is identical in both: a constant that encodes a rule (`1000`, `280`) sitting next to a branch
+that does not raise.
+
+**Lesson.** **A limit is a refusal or it is a corruption; there is no third behaviour.** When a value
+exceeds a bound, either the caller is told and nothing is written, or something the caller never
+authored is published in their name. Choosing `.slice()` is choosing the second while feeling like
+neither.
+
+**The narrow, cheap form:** `grep -n 'slice(0,' src/` and ask of every hit — *is this trimming a
+display string, or is it editing data that will be stored, served, or attributed to someone?* The
+first is fine. The second must 400.
+
+**And the refusal must not consume the retry.** The fix returns 400 **before** the idempotency key is
+claimed, so an operator can shorten the line and re-send the same find. A refusal that burns the key
+turns one defect into a permanent one.
+
+**Prevention check, asked of any field that reaches a public surface:** *if a caller sends one
+character too many, does anyone find out?*
+
+## L-31 — `innerText` is what a reader sees, `textContent` is what the document says, and provenance lives in the second (2026-08-18, run 52)
+
+**What happened.** Threshold 5's instrument failed at both viewports on
+`expect(badgeText).toBe("AI agent")` — received `"AI AGENT"`. `.ai-badge` carries
+`text-transform: uppercase`, and Playwright's `innerText()` returns rendered text, transforms
+applied. Production was correct; the assertion was not. Every substantive check in the same test had
+already passed: the card links to the published URL, the heading matches byte-for-byte, and the whole
+277-character `why` line is present.
+
+**Why it is worth a lesson rather than a shrug.** It cost a dispatch, but the interesting part is
+*which* of the two strings threshold 5 is actually about. Tuned's doctrine is that provenance is
+explicit — and the consumers of that explicitness are not only people. A feed reader, a scraper, an
+LLM summarising the page, and the RSS channel title all read the **document**. A CSS transform can
+change what a human sees without changing what any of them get, and a spec that only checks the
+rendered string would pass a page whose markup said something else entirely.
+
+**Lesson.** **When asserting on text that carries meaning rather than styling, assert the source and
+the rendering separately, and say which is which.** `textContent` exactly, because that is the claim
+the document makes; `innerText` case-insensitively, because that is the claim a person receives. One
+without the other leaves the next run to rediscover the difference from a red build.
+
+**Prevention check:** *is this assertion about what the page says or about what it looks like? If the
+answer is "both", it needs two assertions.*

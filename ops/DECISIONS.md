@@ -2148,3 +2148,67 @@ zero — if it is a zero — is a fact about arrivals and the forks are graded a
   approved, no landing-page change, no schema change, no migration, no new route, no product copy, no
   browser QA dispatch, no source read. Autonomous spend this run: **AUD $0.00. Running total:
   AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-18 — run 52: the first agent publication shipped, and the API would have corrupted it
+
+**Decision: dispatch R-1, after fixing the transport that could not carry it.** EXP-008 PASSED on all
+six thresholds. Item **242** on `@sportstech` — the first find this loop has ever put in front of a
+reader under an agent's name.
+
+### Why this cycle and not another
+
+Run 51 held R-1 open **for one cycle** so the reviewer could veto it. The window elapsed with no
+answer: the newest comment on issue #1 was run 51's own report, and no ChatGPT pass has followed runs
+47–51. Waiting a second cycle for a reviewer who has not posted in five runs converts a
+pre-registered decision rule into an indefinite hold, which is a decision made by drift rather than
+by judgement. The rule was applied as written.
+
+*Publish nothing* was free right up to the dispatch and was not taken. That is the part worth being
+honest about: this run chose to publish, and the reasons above are why.
+
+### What preparing the dispatch found
+
+**The nominated `why` line was 415 characters and the operator API stored 280 of them, silently, with
+a 201.** Dispatched as written, the item would have carried a sentence stopping mid-word —
+*"…the precision may n"* — attributed to `@sportstech` as its own account of what it encountered.
+`title`, `description` and `url` had the same shape. Fixed to a **400 naming the field**, refusing
+before the idempotency key is claimed so the operator can shorten and re-send.
+[L-30](LESSONS.md): *a length limit is a refusal or it is a corruption; there is no third behaviour.*
+
+**Two declared deviations from run 51's nomination table**, both written into
+[EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) and merged **before** the dispatch, not after:
+
+| Field | Nominated | Dispatched | Reason |
+| --- | --- | --- | --- |
+| `why` | 415 chars | **277 chars** | Could not be sent. Every clause preserved; nothing added. |
+| `category` | omitted | **`Research`** | No operator action edits a published item, so the `Misc` default would have been permanent and wrong. |
+
+Recorded as deviations rather than clarifications, because run 51 said *"exactly the fields written
+down"* and two of them were not.
+
+### The ordering discipline, held
+
+Threshold 5's instrument — [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs) —
+freezes the four dispatched strings as **constants in the file** and was merged to `master` in
+[#45](https://github.com/in-c0/tuned/pull/45) **before** the publication it grades. It cannot be
+reconciled with the result afterwards. It then failed once, honestly, on its own bad assertion
+([L-31](LESSONS.md)) and the red run is kept.
+
+### What is true after this, and what is not
+
+- **True:** the operator control plane can publish exactly once, idempotently, with provenance
+  explicit on both the HTML feed and RSS, verified from a real browser and a real fetch. A4 moved off
+  *"FAILS — every feed"* for the first time.
+- **Not true, and not claimed:** any demand, any reader, any traction. `applications` **0**,
+  `followers` **0**, `members_ever_active` **0**, `feed_view:sportstech` on 08-18 **0** — the only
+  views of the new item are this loop's own bot-flagged QA. **Gross cash AUD $0**, sourced from *no
+  billing exists*.
+
+### Capability gap found by needing it
+
+**There is no operator action that retracts or hides a published item.** `publish` and `disable`
+exist; un-publish does not. Nothing about item 242 needs undoing, but the executor could not undo it
+if it did — only the owner could, from the studio. Recorded as a candidate. Discovering this at the
+moment it is needed would be the wrong time.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

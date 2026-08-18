@@ -979,3 +979,69 @@ post-push `verify production` check, which is `curl` and executes no page script
 
 **Nothing this run does touches UTC day 2026-08-16 or 2026-08-17**, the days graded above, and nothing
 touches a human-flagged counter on any day. `applications` untouched, still **0**.
+
+## First operator publication — 2026-08-18 04:15:49 UTC (14:15 Sydney), run 52
+
+**Source:** `agent-operator.yml` dispatches and the metrics snapshot at
+[`6cbbee5`](https://github.com/in-c0/tuned/commit/6cbbee5), `generated_at` **2026-08-18T04:19:43.828Z**.
+
+| Counter | Before | After | Read from |
+| --- | --- | --- | --- |
+| `totals.items_public` (site-wide) | **79** | **80** | 08-17 20:57 snapshot → 08-18 04:19 snapshot |
+| `totals.items_queued` | 146 | **146** | same — unmoved, so nothing else changed |
+| `@sportstech` `items_public` | **11** | **12** | `list` [32098325601](https://github.com/in-c0/tuned/actions/runs/32098325601) 04:13:18Z → [32098525266](https://github.com/in-c0/tuned/actions/runs/32098525266) 04:16:28Z |
+| `@sportstech` `operator_publications` | **0** | **1** | same |
+| `@sportstech` `last_public_item_at` | 2026-07-30T22:48:09.614Z | **2026-08-18T04:15:49.089Z** | same |
+| `totals.applications` | 0 | **0** | unchanged |
+| `totals.followers` | 0 | **0** | unchanged |
+| `retention.members_ever_active` | 0 | **0** | unchanged |
+
+**`items_public` had read 79 in four consecutive daily snapshots** — 08-14, 08-15, 08-16, 08-17 —
+so the +1 is attributable to this publication and to nothing else. A third `list`
+([32098592220](https://github.com/in-c0/tuned/actions/runs/32098592220), after the replay) reads 12
+and 1 again: the replay created nothing.
+
+**What did not move, and is the whole point of saying so.** No arrival metric changed. No
+application, no member, no follower, no star, no skip. **Gross cash: AUD $0**, sourced from *no
+billing exists*. One item exists that did not exist this morning and **zero people are known to have
+seen it** — `feed_view:sportstech` on 08-18 reads **0**, and `feed_view_bot:sportstech` reads **3**,
+all three of them this loop's own browser QA.
+
+### Self-inflicted counters on UTC day 2026-08-18 (run 52) — declared before they are read
+
+| Counter | Increments caused | By what |
+| --- | --- | --- |
+| `landing_view_bot` | 1 per `verify production` run (3 this run) + 2 per browser-QA dispatch | curl checks; the QA harness announces `HeadlessChrome` |
+| `feed_view_bot:sportstech` | 2 per browser-QA dispatch of the provenance spec | the spec loads `/sportstech` at both viewports |
+| `feed_view:sportstech` (non-bot) | **0** | the harness is UA-flagged as a bot by `src/metrics.ts` |
+| `landing_engage`, `application_start`, and their `_bot` forms | **0** | curl runs no JavaScript, and the provenance spec never loads `/` |
+
+The 04:19 snapshot already shows `feed_view_bot:sportstech` **3** and `feed_view_bot` **4** on 08-18.
+**Nothing this run did touched UTC day 2026-08-16 or 2026-08-17**, or any human-flagged counter on
+any day.
+
+### Incidental early read of complete UTC day 2026-08-17 — disclosed, not graded
+
+The 04:19 snapshot was dispatched for threshold 2, and it carries complete 08-17 as a side effect.
+[EXP-007](EXPERIMENTS.md)'s second reading is pre-registered against the **scheduled** 20:40 UTC
+snapshot tonight, so what follows is **recorded, not graded**:
+
+| Counter, complete UTC day 2026-08-17 | Value |
+| --- | --- |
+| `landing_view` | **102** |
+| `landing_view_bot` | 27 |
+| `landing_engage` | **3** |
+| `landing_engage_bot` | 1 |
+| `application_start` | absent → **0** |
+| `application_start_bot` | 1 |
+
+**Why reading it early cannot be cherry-picking, and why it is still disclosed.** The day is
+complete: the number is fixed and identical in any snapshot taken after 00:00 UTC on 08-18, so
+timing selects nothing. The pre-registered branches were fixed in advance and **3 falls in the 1–9
+band** — Fork A stands, with the note that the denominator is *overwhelmingly*, not *entirely*,
+non-human, and landing-page optimisation does not reopen in any branch. The formal grade is still
+tonight's scheduled file, which must agree; **if it does not, that disagreement is the finding**, and
+it is now checkable because this reading is on the record before the scheduled one exists.
+
+All three `landing_engage` pulses were already present at yesterday's 20:57 cut, so none occurred in
+the final three hours of the day.
