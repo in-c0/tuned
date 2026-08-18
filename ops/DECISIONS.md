@@ -2212,3 +2212,88 @@ if it did — only the owner could, from the studio. Recorded as a candidate. Di
 moment it is needed would be the wrong time.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+---
+
+## 2026-08-18 (run 53) — the publication got an undo, and the undo was exercised on the real item
+
+**Decision: build `retract`/`restore` on the operator plane, and prove it by reversing item 242 in
+production and putting it back.** Shipped as [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6),
+PR [#48](https://github.com/in-c0/tuned/pull/48). Blocker #5, opened by run 52, closed the same day.
+
+### Why this and not the queue's item 1
+
+Item 1 was **unavailable, not deprioritised**. [EXP-007](EXPERIMENTS.md)'s second reading is
+pre-registered against the **scheduled** 20:40 UTC snapshot; this run started at **10:04 UTC**, so
+the file did not exist. Taking the reading from a dispatched snapshot is exactly what the spec
+forbids, and a run that cannot do the pre-registered thing should do the next unblocked thing rather
+than manufacture a substitute for it.
+
+### Why this and not the queue's item 2
+
+Item 2 — propose a distribution channel — is the standing **top** blocker and remains so. It was not
+taken this run for a reason worth writing down rather than leaving as a preference: every candidate
+in [DISTRIBUTION.md](DISTRIBUTION.md) is marked *owner-authored only* under **A2**, and this
+executor writes no sentence a human posts under their own name. A proposal is therefore an owner
+decision packet, not an executor deliverable that can be finished unilaterally, and it deserves a
+cycle where it is the whole job. **It is named as the next substantive item and should not slip
+again on this argument.**
+
+### What building the undo found
+
+**`restore` is not the mirror image of `retract`.** An item can be `hidden` because the operator
+retracted it *or* because the owner vetoed it from their studio — the same row either way. A
+`restore` that checks only *"is it hidden and is it mine to touch?"* would answer yes in both cases,
+and the second is a machine reversing a human's decision through a feature whose whole justification
+was safety. `operator_item_actions` records each action, and `restore` refuses with **409** unless
+the last operator action on that item was `retract`. [L-32](LESSONS.md).
+
+The other bound: `retract` requires an `operator_publications` row for that creator, so it reaches
+**only items this plane published**. `@sportstech`'s eleven earlier items are not the operator's to
+veto, and a retract that could reach them would have widened the credential from *publish one find*
+to *edit the feed*.
+
+### The production round trip, and why it was worth the risk
+
+An undo nobody has exercised is a claim. It was exercised on item **242**, the only operator
+publication that exists, and reversed:
+
+| | baseline | retracted | restored |
+| --- | --- | --- | --- |
+| `public_items` | 12 | **11** | **12** |
+| `operator_publications_hidden` | 0 | **1** | **0** |
+| `operator_publications` | 1 | 1 | 1 |
+| `last_public_item_at` | `2026-08-18T04:15:49.089Z` | `2026-07-30T22:48:09.614Z` | `2026-08-18T04:15:49.089Z` |
+
+Runs: [32126125572](https://github.com/in-c0/tuned/actions/runs/32126125572) (baseline),
+[32126247470](https://github.com/in-c0/tuned/actions/runs/32126247470) (retract),
+[32126368450](https://github.com/in-c0/tuned/actions/runs/32126368450) (retracted list),
+[32126603411](https://github.com/in-c0/tuned/actions/runs/32126603411) (restore),
+[32126644562](https://github.com/in-c0/tuned/actions/runs/32126644562) (restored list).
+
+**The reader-facing half is a red run kept on purpose.** While retracted,
+[`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs) — the instrument that proved item
+242 *present* — failed at 1440×900 and 390×844 and on `/sportstech/rss.xml`: *"no card links to the
+published URL"*, *"RSS should carry exactly one `<item>`"*, received **0** in both
+([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)). Green again after restore
+([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). A retract that only moved a
+column would have left that spec passing.
+
+**The risk taken, stated plainly.** For roughly four minutes item 242 was not public, and
+[A4](DISTRIBUTION.md) was momentarily failing for `/sportstech` again. `feed_view:sportstech` for
+human-flagged traffic on 08-18 was **0** before the window and the only recorded views of that item
+are this loop's own bot-flagged QA, so no reader is known to have been affected. If `restore` had
+failed, the failure mode was a hidden item the owner could unhide from the studio — not lost data.
+That is the trade that was accepted, and it is the reason the round trip was run against the one item
+whose loss would cost nothing rather than deferred to an item that mattered.
+
+### What is true after this, and what is not
+
+- **True:** every action the operator plane can take against production is now reversible by the
+  executor, and the reversal has been demonstrated end to end on the live artifact.
+- **Not true, and not claimed:** nothing about demand. `applications` **0**, `followers` **0**,
+  `members_ever_active` **0**, `items_public` **80**, `items_queued` **146**. **A5 still fails**, no
+  channel is admissible today, and no paying customer is closer. **Gross cash AUD $0**, sourced from
+  *no billing exists*.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

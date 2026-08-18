@@ -1073,3 +1073,44 @@ without the other leaves the next run to rediscover the difference from a red bu
 
 **Prevention check:** *is this assertion about what the page says or about what it looks like? If the
 answer is "both", it needs two assertions.*
+
+## L-32 — an undo inherits the authority of whoever moved the state, so it must record who moved it (2026-08-18, run 53)
+
+**What happened.** Building `retract`/`restore` for the operator plane raised a question that
+building `publish` never had to answer. `retract` is easy to bound: it may touch only items this
+plane published, so it needs an `operator_publications` row and nothing else. `restore` looked like
+its mirror image — flip `hidden` back to `public` — and that reading is wrong in a way that is
+invisible from the diff.
+
+An item can be `hidden` for two reasons. The operator retracted it, or **the owner vetoed it from
+their studio**, using the toggle that has existed since long before this plane did. Both produce the
+identical row. A `restore` that only checks *"is it hidden, and is it mine to touch?"* answers *yes*
+in both cases, and the second one is the operator overriding a human's decision — a power nobody
+granted it, arriving through a feature whose entire justification was safety.
+
+The fix is one table and one query: `operator_item_actions` records each retract and restore, and
+`restore` refuses with 409 unless the **last** operator action on that item was `retract`.
+
+**Lesson.** **An undo is not the inverse of an action; it is an authority over state that someone
+else may also have moved.** The scope of a `do` is bounded by what it creates. The scope of an
+`undo` is bounded by *who last changed the thing* — and if the system does not record that, the undo
+silently takes authority over every actor who can reach the same field. Write the actor down at the
+moment of the change, or the reversal cannot tell whose decision it is reversing.
+
+**The general form, worth carrying past this codebase.** Any *toggle* shared between a privileged
+human and an automated principal has this shape: hide/show, enable/disable, approve/unapprove,
+mute/unmute. The dangerous half is always the one that moves state **back toward permissive**,
+because that is where an override looks like a restoration.
+
+**Prevention check, before shipping any reversal:** *who else can put this field in the state I am
+about to reverse — and if it was them, am I allowed to?*
+
+**A second thing this run got right, recorded because it is cheap to skip.** The undo was exercised
+on the **real** artifact — item 242, in production — and put back, rather than asserted from unit
+tests. The proof that it reached readers was the instrument for the opposite claim:
+`qa/exp008-provenance.spec.mjs` proves the item is *present* on the HTML feed and in RSS, and while
+the item was retracted it **failed** at both viewports and on the feed
+([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)), then went green again after
+`restore` ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). A retract that
+only moved a database column would have left that spec passing — which is exactly how an undo in
+name only would present.

@@ -316,3 +316,12 @@ file; it now reads **SATISFIED for `/sportstech`**.
 destination that is not stale on arrival, provided it points at `/sportstech` and is posted inside
 the window. That is a precondition being met, not a channel existing — the proposal itself is still
 unwritten and still needs authorisation.
+
+**A4's evidence survived a deliberate reversal — 2026-08-18 (run 53).** Item 242 was retracted and
+restored in production to prove the operator plane's new undo works
+([DECISIONS.md](DECISIONS.md), blocker #5). During the ~4-minute window `@sportstech`'s
+`last_public_item_at` reverted to **2026-07-30T22:48:09.614Z** and **A4 failed for every feed again**,
+exactly as it should. After `restore` it reads **2026-08-18T04:15:49.089Z** to the byte
+([32126644562](https://github.com/in-c0/tuned/actions/runs/32126644562)), so **nothing in the reading
+above changed and the 2026-08-21 04:15 UTC expiry is unmoved.** Recorded because the window is
+visible in the counters and a later run finding it should not have to reconstruct why.

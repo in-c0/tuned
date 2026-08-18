@@ -1,9 +1,46 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-18 08:20 Sydney (2026-08-17 22:20 UTC), run 51 — **EXP-007 is graded:
-Fork A, the denominator is not human** ·
+**Last updated:** 2026-08-18 20:40 Sydney (2026-08-18 10:40 UTC), run 53 — **the publication is
+reversible now, and it was reversed and put back to prove it** ·
 **OWNER ACTION REQUIRED: NONE** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # Run 52 shipped an item it could not take back. Blocker #5 is closed, and the undo was exercised on the real item.
+>
+> Run 52's own rollback section said it plainly: *"the operator plane has no action that retracts or
+> hides a published item."* `publish` and `disable` existed; un-publish did not — and `disable`
+> revokes authority over a **feed** while deliberately touching no item. So one production mutation
+> was shipping outside this loop's own deployment gate, which requires *"a rollback path exists."*
+>
+> **[`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6) (PR
+> [#48](https://github.com/in-c0/tuned/pull/48)) adds `retract` and `restore`.** Not a delete:
+> `visibility='hidden'` is the same veto the owner already has in their studio, `created_at` is
+> untouched, and the row and its audit trail stay.
+>
+> **Two bounds, because an undo is an authority and not a convenience.** `retract` reaches **only
+> items this plane published** — an `operator_publications` row is required, so the agent's own
+> earlier history is not the operator's to veto. And `restore` undoes **only the operator's own
+> retraction**: if the owner hid an item from their studio, the last row in `operator_item_actions`
+> is not `retract` and restore refuses with 409. [L-32](LESSONS.md) is that second bound —
+> **an undo inherits the authority of whoever moved the state, so it must record who moved it or it
+> quietly widens.**
+>
+> **Exercised on item 242 in production, and put back exactly.** `retract` → `public_items` **12 →
+> 11**, `operator_publications_hidden` **0 → 1**, `last_public_item_at` **2026-08-18T04:15:49.089Z →
+> 2026-07-30T22:48:09.614Z**. `restore` → all three back to the byte. **A4's evidence is unchanged.**
+>
+> **The reader-facing proof is a red run kept on purpose.** While item 242 was retracted,
+> [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs) — the instrument that proved
+> the item *present* — failed at both viewports and on RSS: *"no card links to the published URL"*,
+> *"RSS should carry exactly one `<item>`"*, received **0**
+> ([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)). After `restore` it is
+> green again ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). A retract
+> that only moved a column would have left that spec passing.
+>
+> **What this does not do.** It publishes nothing, proposes no channel, and moves nothing toward a
+> post. **A5 still fails**, no channel is admissible today, and no paying customer is closer.
+> `applications` **0**, `members_ever_active` **0**, followers **0**, `items_public` **80**, gross
+> cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # The wait is over. Fifty landing views, zero touches — the traffic was never people.
 >
@@ -639,7 +676,7 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
 | 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker. One of its five conditions now passes, on a clock.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
-| 5 | **The operator plane cannot retract a publication.** `publish` and `disable` exist; nothing hides or withdraws a published item. Found 2026-08-18 (run 52) by needing it while shipping item 242 — which needs no undoing. The executor could not undo it if it did; only the owner could, from the studio. | Executor — small additive change | AUD $0 | **Open, unstarted, cheap.** Not urgent, and that is exactly why it should be built before it is. |
+| 5 | ~~**The operator plane cannot retract a publication.**~~ **Closed 2026-08-18 (run 53), same day it opened.** `retract` and `restore` ship in [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6) (PR [#48](https://github.com/in-c0/tuned/pull/48)) and were **exercised on item 242 in production and reversed**: `public_items` 12 → 11 → 12, `operator_publications_hidden` 0 → 1 → 0, `last_public_item_at` back to `2026-08-18T04:15:49.089Z` to the byte. The reader-facing proof is the provenance spec **failing** while retracted ([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)) and green after restore ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). Neither action deletes; `restore` refuses to reverse a hide the **owner** made. | — | AUD $0 | **Closed.** Built while nothing needed it, which is the only time an undo can be built calmly. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
 | 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **40 consecutive runs**, re-tested 2026-08-18 (run 52) for `justtuned.com` *and* `example.com` — both `CONNECT tunnel failed, response 403`. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
@@ -723,22 +760,25 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 **Owner: nothing.** No card, no credential, no spend.
 
-**Run 52 published. The queue after it, in order:**
+**Run 53 closed blocker #5. The queue after it, in order:**
 
 1. **Read complete UTC day 2026-08-17** from tonight's **scheduled** 20:40 UTC snapshot against
-   [EXP-007](EXPERIMENTS.md)'s pre-registered branches. This run already saw the number incidentally
-   — `landing_engage` **3**, in the 1–9 band — and recorded it in [METRICS.md](METRICS.md) as
-   *recorded, not graded*. The scheduled file must agree; **if it disagrees, that is the finding.**
-   Costs nothing but waiting; needs no owner.
+   [EXP-007](EXPERIMENTS.md)'s pre-registered branches. Run 52 saw the number incidentally —
+   `landing_engage` **3**, in the 1–9 band — and recorded it in [METRICS.md](METRICS.md) as
+   *recorded, not graded*. **This run did not take the reading either: it started at 10:04 UTC and
+   the scheduled snapshot lands at 20:40 UTC**, so the file did not exist. The scheduled file must
+   agree with the recorded number; **if it disagrees, that is the finding.** Costs nothing but
+   waiting; needs no owner.
 2. **Propose a distribution channel, openly, with its admissibility conditions pre-registered.**
    This is the standing top blocker and it is now one condition closer:
    [A4](DISTRIBUTION.md) is **SATISFIED for `/sportstech`** until **2026-08-21 04:15 UTC** and
    still fails for `/ava`. A5 still fails on its unregistered threshold. **No channel is admissible
    today.** A proposal is for the reviewer and owner to authorise, not something to start unasked.
-3. **An operator `retract` action.** Found by needing it: the plane can `publish` and `disable` an
-   agent, but nothing hides or withdraws a published item. Item 242 needs no undoing; the next one
-   might, and building the undo at the moment it is wanted is the wrong time. Small, additive,
-   reversible.
+   **This is now the only substantive item the executor can advance without waiting on a clock**,
+   and it is the one that has to survive A2: every candidate in the register is *owner-authored
+   only*, and this executor writes no sentence a human posts under their own name.
+3. ~~An operator `retract` action.~~ **Done, run 53** — [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6),
+   exercised on item 242 in production and reversed, blocker #5 closed above.
 4. Cheap and still unclaimed: the unattributed console 404 from run 49.
 
 **Explicitly not:** a second publication to keep A4's 72-hour window open — A4's own text says
