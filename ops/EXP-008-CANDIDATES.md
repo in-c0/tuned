@@ -239,3 +239,39 @@ These four strings are also **constants in [`qa/exp008-provenance.spec.mjs`](../
 committed to `master` *before* the dispatch. If production ends up serving anything other than this,
 threshold 5 fails — the instrument cannot be quietly reconciled with the result afterwards, which is
 the only reason to freeze it in a file rather than pass it in as a workflow input.
+
+## R-1 published, and EXP-008 passed on all six thresholds (2026-08-18, run 52)
+
+Item **242** exists on `@sportstech`. The full threshold table with its evidence is in
+[EXPERIMENTS.md](EXPERIMENTS.md); the short form:
+
+| Threshold | Result |
+| --- | --- |
+| 1 — HTTP 201, `published=true`, `item_id` | PASS — `item_id=242` |
+| 2 — `items_public` 79 → 80 site-wide, `@sportstech` +1 | PASS — site 79 → 80, agent 11 → 12 |
+| 3 — `operator_publications` 0 → 1 | PASS |
+| 4 — replay publishes nothing | PASS — `duplicate=true`, same `item_id`, counts unmoved |
+| 5 — provenance on both surfaces | PASS — 3 passed / 0 failed, both viewports + a real RSS fetch |
+| 6 — the find is real | PASS — page-level read behind it, every `why` clause on screen |
+
+**The instrument failed once first, and the failure is kept.**
+[Run 32098526409](https://github.com/in-c0/tuned/actions/runs/32098526409) went red at both
+viewports on `expect(badgeText).toBe("AI agent")`, received `"AI AGENT"` — `.ai-badge` carries
+`text-transform: uppercase`, so `innerText()` returns the rendered string while the document says
+`AI agent`. Production was right and the assertion was wrong. Everything substantive in the same
+test had already passed before that line. Fixed in [#46](https://github.com/in-c0/tuned/pull/46) by
+asserting both forms separately — [L-31](LESSONS.md) — and the red run is left on the record rather
+than re-run away.
+
+**What the register is now for.** R-1 is spent. This file stays the gate on anything published next:
+a candidate needs a `read_outcome: "page"` dispatch behind it, a `why` line traceable to sentences on
+screen, and — added by this run — **a `category` and a character budget in the nomination itself**,
+because both were missing from R-1's and both had to be resolved as declared deviations minutes
+before the dispatch.
+
+**And one capability that does not exist, found by needing it.** The operator plane can `publish` and
+it can `disable` an agent, but **there is no action that retracts or hides a published item.** Item
+242 was additive and reversible only in the sense that the owner could hide it from the studio; the
+executor cannot. Nothing about this publication needs undoing — but the next one might, and
+discovering that at the moment it is needed would be the wrong time. Recorded as a candidate, not
+started.

@@ -637,10 +637,11 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered, and that proposal is the run-34 next candidate rather than something already underway. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and now nobody's queued action.** |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker. One of its five conditions now passes, on a clock.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
+| 5 | **The operator plane cannot retract a publication.** `publish` and `disable` exist; nothing hides or withdraws a published item. Found 2026-08-18 (run 52) by needing it while shipping item 242 — which needs no undoing. The executor could not undo it if it did; only the owner could, from the studio. | Executor — small additive change | AUD $0 | **Open, unstarted, cheap.** Not urgent, and that is exactly why it should be built before it is. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **34 consecutive runs**, re-tested 2026-08-15 (run 45). Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **40 consecutive runs**, re-tested 2026-08-18 (run 52) for `justtuned.com` *and* `example.com` — both `CONNECT tunnel failed, response 403`. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 **Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
 Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
@@ -695,6 +696,17 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
   resolves to `https://justtuned.com/ava`, that feed serves 200 with **24 items** and no empty
   state, `/ava/rss.xml` serves 200 `application/rss+xml` with **38 items**, and there are no
   first-party errors and no horizontal overflow. GETs only — nothing was written.
+- **EXP-008 — can the operator control plane publish one real agent find? PASSED / CLOSED
+  (run 52).** All six thresholds hold on live production from a single publication: HTTP **201**
+  with `item_id=242` ([32098485065](https://github.com/in-c0/tuned/actions/runs/32098485065));
+  site-wide `items_public` **79 → 80** and `@sportstech` **11 → 12**; `operator_publications`
+  **0 → 1**; the replay returns `duplicate=true` with the same `item_id` and moves nothing
+  ([32098561763](https://github.com/in-c0/tuned/actions/runs/32098561763)); provenance explicit on
+  the HTML feed **and** in `/sportstech/rss.xml` at both 390×844 and 1440×900, **3 passed / 0
+  failed** ([32098770496](https://github.com/in-c0/tuned/actions/runs/32098770496)); and the find is
+  real, behind a recorded page-level read. **Capability evidence, not demand** — every binding clause
+  in the entry stands: no reader is implied, freshness was not the goal, and `items_public` 79 → 80
+  was a check and never a reason.
 - **EXP-002 — Show HN distribution smoke test: `INVALIDATED / NOT STARTED`, withdrawn 2026-08-13
   (run 34).** Authorized [2026-08-08 13:56 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5226414917),
   submitted **2026-08-13 00:13:23 UTC**, killed at submission (`dead: true`, item `49280269`, verified
@@ -709,172 +721,31 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**Owner: nothing.** The card is closed. Still do not email HN moderation, and do not repost.
+**Owner: nothing.** No card, no credential, no spend.
 
-**Run 51 ended the wait, and the queue that was gated behind it is now ordered as follows.**
+**Run 52 published. The queue after it, in order:**
 
-1. **Decide R-1.** The nomination in [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) stands open for
-   one cycle so the reviewer can reject it before it ships. If it is not rejected, the next run may
-   dispatch **one** `agent-operator.yml` `publish` with exactly the fields written there, then verify
-   EXP-008's thresholds 1–5 on live production — including provenance on **both** the HTML feed page
-   and `/sportstech/rss.xml`, and the replay test, because an idempotency key nobody exercises is a
-   claim rather than a guarantee. `items_public` 79 → 80 is a check, never a reason. If it is
-   rejected: more reads from hosts that serve an honestly-declared agent, and **not** a lower bar.
-2. **Read complete UTC day 2026-08-17** from the **scheduled** 08-18 20:40 UTC snapshot, against
-   EXP-007's pre-registered second-reading branches. This costs nothing but waiting and needs no
-   owner. It cannot reopen landing-page work in any branch.
-3. **A4 still fails on every destination**, and only a publication moves it. That is the whole reason
-   item 1 is first.
-4. Free and unclaimed: the unattributed console 404 from run 49, if it is worth a cycle at all.
-   `cron_run` is now **answered** — 49 on complete 08-16 against 48 boundaries, healthy, and 08-14's
-   36 was the partial-day artefact it looked like.
+1. **Read complete UTC day 2026-08-17** from tonight's **scheduled** 20:40 UTC snapshot against
+   [EXP-007](EXPERIMENTS.md)'s pre-registered branches. This run already saw the number incidentally
+   — `landing_engage` **3**, in the 1–9 band — and recorded it in [METRICS.md](METRICS.md) as
+   *recorded, not graded*. The scheduled file must agree; **if it disagrees, that is the finding.**
+   Costs nothing but waiting; needs no owner.
+2. **Propose a distribution channel, openly, with its admissibility conditions pre-registered.**
+   This is the standing top blocker and it is now one condition closer:
+   [A4](DISTRIBUTION.md) is **SATISFIED for `/sportstech`** until **2026-08-21 04:15 UTC** and
+   still fails for `/ava`. A5 still fails on its unregistered threshold. **No channel is admissible
+   today.** A proposal is for the reviewer and owner to authorise, not something to start unasked.
+3. **An operator `retract` action.** Found by needing it: the plane can `publish` and `disable` an
+   agent, but nothing hides or withdraws a published item. Item 242 needs no undoing; the next one
+   might, and building the undo at the moment it is wanted is the wrong time. Small, additive,
+   reversible.
+4. Cheap and still unclaimed: the unattributed console 404 from run 49.
 
-**Closed by measurement rather than by preference (run 51):** landing-page, copy, positioning and
-pricing-surface work. Fork A is the evidence, and *"the page needs work"* is no longer an argument
-anyone in this loop can make from the numbers — 50 UA-flagged views produced **zero** touches on the
-graded day. If a future run wants that work, it needs a *new* reading, not a new opinion.
-
-~~**Executor: the preflight is done and the next step is not yours to take alone.**~~ **Taken up in
-run 44 — the reviewer authorized it, and it is done.** The
-[09:30 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5301607448) chose
-**adoption of `@sportstech`** from the four candidates below, supplied the exact public remit, and
-required the pre-registration first. All three happened, in that order:
-[`ops/agents/sportstech.md`](agents/sportstech.md) and [EXP-008](EXPERIMENTS.md) landed in
-[`9617bea`](https://github.com/in-c0/tuned/commit/9617bea) **before** the mutation; adoption returned
-**201** ([31877368130](https://github.com/in-c0/tuned/actions/runs/31877368130)); one read-only `list`
-confirmed `active 1/12` ([31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247)).
-
-~~**The decision now waiting on the reviewer**~~ — **decided.** Kept for the record of what was on
-the table, with the correction the run itself turned up:
-
-| | |
-| --- | --- |
-| **Adopt an existing feed** | ~~`@graphics`, `@sportstech`, `@wearables` or `@wellbeing`~~ **`@sportstech` adopted.** `@graphics`, `@wearables` and `@wellbeing` remain owned, unmanaged and untouched. Adoption is attributable and reversible: `disable` revokes operator authority and deletes nothing. |
-| **Or create a new one** | Not taken. No feed was created. |
-| **Either way it needs** | A public remit committed to [`ops/agents/`](agents/) — the same text the workflow input carries — **and** a pre-registration of what a working agent feed would have to show, written before any number is read off it. Both exist. ~~and that lands in `creators.charter`~~ — **wrong, and corrected in run 44:** `adopt` writes only `operator_agents.remit`; the charter is left alone. Only `create` writes the charter. |
-
-**Executor: the next step is a publication, and it is gated — do not take it yet.** No `publish`
-dispatch until the scheduled snapshot covering complete UTC day **2026-08-16** is committed and
-EXP-007 is graded against it. Then, and only then, EXP-008's six thresholds apply — including the one
-that permits publishing nothing. **Do not re-run `list`**: it has answered, and re-reading an answered
-route is polling. Do not adopt a second feed to look busier, do not disable and re-adopt to
-re-exercise the path, and do not publish to make `@sportstech` look fresh — staleness is not a metric
-this loop is allowed to move by publishing at itself.
-
-**EXP-007's apparatus is now verified live, and the wait is unchanged by it (run 45).**
-[`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs) proved against production
-([31878890766](https://github.com/in-c0/tuned/actions/runs/31878890766)) that both page-side counters
-emit from a real browser and are accepted **204**, with the `Origin` guard satisfied and each firing
-exactly once. This removes "the instrument is broken" from the validity gate's ambiguity *in advance*;
-it does **not** retire the gate, which is still graded first, and it is not a reading of anything. The
-next executor action on EXP-007 remains **reading the 08-17 snapshot**, and re-dispatching the spec
-before then is polling — it would only add more of this loop's own traffic to the counters. The check
-put `landing_view_bot`, `landing_engage_bot` and `application_start_bot` +1 each on UTC day
-**2026-08-15**, declared in [METRICS.md](METRICS.md); 08-15 is not a day EXP-007 grades.
-
-**The honest limit to state before that decision, not after.** The executor's egress proxy blocks
-direct page fetches, so an agent it drives encounters material at **result level, not page level**.
-Its selections will be real but shallow, and that is a constraint on how good the first agent feed can
-be — see blocker #4. It is a reason to scope the first remit narrowly, not a reason to fake depth. Nothing about agent activation in the meantime: do
-not create a creator, do not ask for `ADMIN_KEY`, do not invent an agent identity or a remit, do not
-publish under the owner, do not approve the member's **146** private queued items, and do not
-manufacture items. Do not ask for `AGENT_STUDIO_TOKEN` — that card is withdrawn. The credential is the
-work; there is no version of this the executor can do alone, and pretending otherwise is how the last
-invalid experiment got built.
-
-**Also standing: stop dispatching [`hn-item-status.yml`](../.github/workflows/hn-item-status.yml)** —
-it is retired in place, its green condition is void, and no run should read item `49280269` again. The
-next candidate is to **propose a different distribution channel openly**, with its admissibility
-conditions pre-registered alongside its thresholds per [L-17](LESSONS.md): what the venue permits, who
-must author the words, and what the destination has to be. That is a proposal for the reviewer and the
-owner to authorize, not something to start unasked — and the honest precondition underneath it is that
-Tuned currently has **no directly usable destination** for a stranger, which is itself a candidate
-piece of work rather than a copy change.
-
-Explicitly **not** a copy or positioning rewrite, ~~**not** a CTA-reach counter,~~ **not** a reworded
-resubmission, **not** a second Hacker News account or a second link to the same site, and **not** a
-replacement channel invented and executed this cycle. ~~The one engineering candidate that survives is
-the flat `items_public` / `items_queued` count, unexamined since run 31 recorded it.~~ **Taken up in
-run 37** — the count was flat because nobody in this loop could see the pipeline behind it. ~~The
-instrument is shipped and [EXP-006](EXPERIMENTS.md) is pre-registered, so the next run's first job is
-to read the counters and grade the fork.~~ **Done — graded run 37 (QUIET, NOT BROKEN), and read again
-run 41: the queue is no longer flat.** 08-14 captured **104** plays and `items_queued` went 42 → 146
-while `items_public` stayed at **79**. Ingestion is not the constraint; publication is, and
-publication is a human act.
-
-**The CTA-reach hold was lifted in run 43, and struck above rather than deleted.** It stood on
-EXP-003's reasoning that such a counter should wait for known-human arrivals, which assumed the
-counter would only measure crawlers. [EXP-007](EXPERIMENTS.md) is run to **test** that assumption —
-EXP-003 named the unknown denominator as the thing blocking every downstream experiment, and
-`landing_engage` is the cheapest measurement of it. The traffic the hold deferred to was to come from
-EXP-002, owner-gated and NOT STARTED for eight days. **What remains held is everything the hold was
-really protecting:** no copy rewrite, no positioning change, no pricing work, and no conversion rate
-computed against `landing_view` as though it were a human denominator — that is the assumption under
-test, and using it would beg the question.
-
-**The candidate that replaces it is small, engineering-shaped and deliberately parked:** `cron_run`
-recorded **30** on 08-14 against **42** expected `*/30` boundaries by the 20:58 UTC snapshot — about
-29% unaccounted for. Not a claimed defect (Cloudflare crons are best-effort, and one partial day is
-thin), not investigated under the current silent hold, and **gradeable only against a complete UTC
-day, where a healthy cron reads `cron_run = 48`**. Reading that costs nothing but waiting for the next
-scheduled snapshot; it needs no owner and no dispatch.
-
-**Run 47 priced a constraint that three runs had only restated, and the wait is unchanged by it.**
-Runs 44, 45 and 46 each carried forward the same sentence — this executor encounters material *at
-result level, not page level* — and each drew the same consequence: EXP-008's threshold 6 cannot be
-met honestly, so *publish nothing*; nothing published means [DISTRIBUTION.md](DISTRIBUTION.md)'s **A4**
-never clears; and while A4 fails, no channel is admissible at all. **None of the three asked what
-removing it cost. It cost one spec and one workflow** —
-[`source-read.yml`](../.github/workflows/source-read.yml) +
-[`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs), the same GitHub-network vantage this loop has
-used for every production statement it has ever made, pointed at third-party public pages. Egress from
-the executor itself is still **403 CONNECT**, **36 consecutive runs**; what was false was the claim
-that the *loop* therefore could not open a page. [L-25](LESSONS.md).
-
-**This widens what the loop can reach, and the reviewer should rule on whether that is wanted.** It is
-not a credential and not a bypass — no security control was weakened and the proxy was not touched —
-but it is a real extension of reach and is flagged rather than buried. The limits live in the spec, so
-they hold however it is invoked: one page per dispatch, no link following, https-only, credentials-in-URL
-refused, and **`justtuned.com` and `*.workers.dev` refused outright**, because a third instrument
-pointed at production would put untracked headless traffic through the very counters EXP-007 is
-measuring.
-
-**What this does not do, stated because the temptation runs the other way:** it publishes nothing,
-nominates no publication candidate, and grades no experiment. EXP-008 stays gated on EXP-007's 08-17
-reading, and *"publish nothing"* remains a pre-registered acceptable outcome — the reader removes the
-*excuse* for it, not the option. A shallow-but-real selection is publishable; a plausible-sounding
-description of a page nobody opened still is not, and now there is no reason to produce one.
-
-**Run 48 built A5's instrument, ten hours into EXP-007's window and nowhere near it.**
-[`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd) (PR
-[#41](https://github.com/in-c0/tuned/pull/41)) splits `feed_view` by destination
-(`feed_view:<handle>`) and tags arrivals by attempt (`arrival:<tag>`, allowlist-only), both bot/human
-split, `feed_view` itself untouched so the ten-day 2–22 series stays comparable. Production verified
-on the serving commit: the tagged URL renders and the `src` query string survives the edge
-([31941200421](https://github.com/in-c0/tuned/actions/runs/31941200421)).
-
-**Why this, and why it could not wait for a channel.** Runs 46 and 47 deferred it in the same words —
-*its shape depends on the channel chosen*. [DISTRIBUTION.md](DISTRIBUTION.md) itself said *"a
-per-handle split and a `?src=` tag answer different questions"*, which is the reason to build both
-rather than a reason to choose. A5 held two separable halves: a **threshold** that genuinely needs a
-venue, and an **instrument** that needs none and can only exist *before* an attempt, because counters
-start at zero on their deploy and there is no backfill. A5 now fails on the threshold alone.
-[L-26](LESSONS.md) — a deferral is a limitation wearing a schedule, and L-25 did not sweep the file it
-was written in.
-
-**Nothing about admissibility changed and no channel is closer to authorized.** **A4 still fails on
-every destination** — that remains the binding condition, and it moves only through EXP-008's first
-publication, which is still gated on EXP-007's 08-17 reading. Do not read a shipped counter as
-progress toward a post. **Do not register a second `ARRIVAL_TAGS` entry** until a channel is proposed
-with its threshold: a tag with no pre-registered arrival number is the ungradeability of
-[L-24](LESSONS.md) reintroduced through the instrument built to prevent it.
-
-**Declared before it is read (run 48):** the production check put `feed_view_bot` **+2**,
-`feed_view_bot:sportstech` **+2** and `arrival_bot:qa` **+1** on UTC day **2026-08-16**, recorded in
-[METRICS.md](METRICS.md). **No landing-surface request was made**, so `landing_view`,
-`landing_engage` and `application_start` are untouched on the day EXP-007 grades. The 08-17 snapshot
-is also this instrument's first real reading, and it is load-bearing: `feed_view_bot` moving while
-`arrival_bot:qa` is absent means the tag path shipped dead.
+**Explicitly not:** a second publication to keep A4's 72-hour window open — A4's own text says
+freshness is a *consequence* of publishing something worth publishing, and EXP-008's binding clauses
+disqualify any publication made to move a number. **A4 decaying back to FAILS is an acceptable
+outcome.** Also not: landing-page, copy, positioning or pricing work, which run 51 closed on a
+measurement rather than a precaution.
 
 ## Not doing (deliberate holds)
 
@@ -899,6 +770,10 @@ is also this instrument's first real reading, and it is load-bearing: `feed_view
   an incidental detail of it.
 - No secret read, hash, rotation, comparison or exposure — ever.
 - No spend; the executor holds no payment credentials.
+- **No second publication to hold A4's 72-hour window open.** Freshness is a consequence of
+  publishing something worth publishing, never a motive — A4 says so and EXP-008's binding clauses
+  disqualify any publication made to move a number. A4 decaying back to FAILS on 2026-08-21 is an
+  acceptable outcome and not a deadline.
 - No generic summarizer, content generator or enterprise agent-observability dashboard. Humans
   contribute attention, not content.
 - No invented baseline, forecast, or traction claim — including any framing of the AUD $1M stretch

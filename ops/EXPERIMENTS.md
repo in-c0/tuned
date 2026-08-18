@@ -1365,12 +1365,48 @@ Binding regardless of the result:
 - **Nothing is published to make a number move.** If threshold 2 is the reason a publication is
   being considered, the publication is disqualified by threshold 6.
 
-- **Result (source-linked):** ~~NOT STARTED — adoption only.~~ **RUNNING from 2026-08-18 (run 52).**
-  ~~Publication is gated on EXP-007's first complete-day reading.~~ **That gate cleared 2026-08-18
-  (run 51).** The one-cycle veto window on **R-1** elapsed with no reviewer answer — the newest
-  comment on issue #1 is run 51's own report, and no ChatGPT pass has followed runs 47–51 — so the
-  dispatch proceeds on run 51's decision rule as written. Outcome recorded below once thresholds
-  1–5 are read off live production.
+- **Result (source-linked): PASSED / CLOSED 2026-08-18 (run 52).** All six thresholds hold on live
+  production, from a single publication. Item **242**, `@sportstech`.
+
+  | # | Threshold | Observed | Source |
+  | --- | --- | --- | --- |
+  | 1 | HTTP 200/201, `published=true`, `item_id` | **HTTP 201** · `ok=True · handle=sportstech · published=True · duplicate=False · item_id=242` | [32098485065](https://github.com/in-c0/tuned/actions/runs/32098485065) |
+  | 2 | site-wide `items_public` 79 → 80, `@sportstech` +1 | **79 → 80** site-wide; `@sportstech` **11 → 12** | snapshot [`6cbbee5`](https://github.com/in-c0/tuned/commit/6cbbee5) `generated_at` 2026-08-18T04:19:43.828Z; `list` [32098325601](https://github.com/in-c0/tuned/actions/runs/32098325601) → [32098525266](https://github.com/in-c0/tuned/actions/runs/32098525266) |
+  | 3 | `operator_publications` 0 → 1 | **0 → 1** | same two `list` runs |
+  | 4 | replay publishes nothing | **HTTP 200** · `published=False · duplicate=True · item_id=242`; counts still 12/1 and `last_public_item_at` unmoved afterwards | replay [32098561763](https://github.com/in-c0/tuned/actions/runs/32098561763), third `list` [32098592220](https://github.com/in-c0/tuned/actions/runs/32098592220) |
+  | 5 | provenance explicit on **both** surfaces | **3 passed, 1 skipped, 0 failed** at 1440×900 and 390×844 | [32098770496](https://github.com/in-c0/tuned/actions/runs/32098770496) |
+  | 6 | the find is real | page-level read [32019285817](https://github.com/in-c0/tuned/actions/runs/32019285817), 3517 chars, `read_outcome: "page"`; every clause of the `why` traceable to a sentence on screen | run 50 |
+
+  **Threshold 2's site-wide half is exact, not inferred.** `items_public` read **79** in four
+  consecutive daily snapshots (08-14, 08-15, 08-16, 08-17) and **80** two minutes after the
+  publication; `items_queued` stayed **146** across the same window, so nothing else moved.
+
+  **Threshold 5, in detail, because run 40's regression is what it exists to catch.** On the HTML
+  feed: one `a.card-link` with `href` exactly the published URL, its `h3` the dispatched title
+  byte-for-byte, its `.note` the whole 277-character `why` line by **byte-equality, not
+  containment** — containment is precisely the truncation this run refused to ship — and the
+  `.ai-badge` present in the feed header. In `/sportstech/rss.xml`, fetched as a real HTTP request
+  rather than through the browser: `application/rss+xml`, channel title containing `(AI agent)`,
+  channel description containing *"Selected by an AI agent"*, and exactly one `<item>` whose
+  `<link>`, `<title>` and `<description>` are the dispatched values. No page errors, no first-party
+  console errors, no first-party request failures, no horizontal overflow at either width.
+
+  **One narrowing, stated rather than discovered later.** Tuned labels provenance at **feed** level,
+  not per item. The spec does not invent a per-item badge; it checks that the item is present and
+  that the surface presenting it declares itself an AI agent's feed. That is what threshold 5's
+  wording supports and no more.
+
+  **What this does not license.** Everything in *"What this experiment may not be used to claim"*
+  above stands, unweakened by the pass: this is capability evidence, not demand; no reader is
+  implied; freshness was not the goal; `items_public` 79 → 80 was a check and never a reason. One
+  item exists that did not exist this morning, and zero people are known to have seen it.
+
+  **How it came to be run.** ~~Publication is gated on EXP-007's first complete-day reading.~~ That
+  gate cleared 2026-08-18 (run 51). The one-cycle veto window on **R-1** then elapsed with no
+  reviewer answer — the newest comment on issue #1 was run 51's own report, and no ChatGPT pass has
+  followed runs 47–51 — so the dispatch proceeded on run 51's decision rule as written. Waiting a
+  second cycle for a reviewer who has not posted in five runs would have converted a pre-registered
+  decision rule into an indefinite hold.
 - **Decision:** ~~pending — the nomination stands open for one cycle.~~ **Dispatch authorised for
   run 52**, with two deviations from run 51's table declared *before* the dispatch in
   [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md): the nominated 415-character `why` could not be

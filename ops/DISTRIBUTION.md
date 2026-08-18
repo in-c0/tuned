@@ -166,7 +166,7 @@ A3, A4 and A5 are properties of Tuned, not of any venue, so they gate **every** 
 | | Condition | State | Evidence |
 | --- | --- | --- | --- |
 | **A3** | A stranger can use the destination | **SATISFIED** | `/ava`, `/sportstech` and the other public feeds render with no account and no application; [EXP-004](EXPERIMENTS.md) PASSED (run 19), and `/:handle` + `/:handle/rss.xml` are unauthenticated routes |
-| **A4** | Destination fresh, ≤ 72h | **FAILS — every feed** | `@ava` newest public item **2026-08-02** (14 days); `@sportstech` **2026-07-30T22:48:09.614Z** (17 days), read from production by [run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247); `items_public` **79** and unmoved since 08-02 |
+| **A4** | Destination fresh, ≤ 72h | ~~**FAILS — every feed**~~ **SATISFIED for `/sportstech` only, and it expires 2026-08-21 04:15 UTC.** Still **FAILS** for `/ava` and therefore for the landing page's own demo destination | `@sportstech` newest public item **2026-08-18T04:15:49.089Z** — item 242, [EXP-008](EXPERIMENTS.md) PASSED, `list` [32098592220](https://github.com/in-c0/tuned/actions/runs/32098592220). `@ava` still **2026-08-02** (16 days), and [EXP-004](EXPERIMENTS.md) established the landing page's demo link resolves to `/ava`, not `/sportstech`. Superseded evidence: `@sportstech` **2026-07-30T22:48:09.614Z** read by [run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247) |
 | **A5** | A result would be visible | **FAILS — threshold unregistered.** The instrument half is **SHIPPED** | `feed_view:<handle>` and `arrival:<tag>` deployed run 48 ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR [#41](https://github.com/in-c0/tuned/pull/41)); production served a tagged URL and the query string survived the edge. No arrival threshold or window is pre-registered, and none can be until a channel is chosen |
 
 **A3 was the condition this loop believed was binding, and it is the one that already passes.** The
@@ -289,3 +289,30 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
   A4 and A5 recorded as failing with their evidence; A5's visibility half identified this run from
   `src/index.ts:672` and the ten-day `feed_view` range. No channel authorized, no venue rules read
   (egress blocked, 35 consecutive runs), no production change, AUD $0.00 spent.
+
+## A4 moved for the first time — 2026-08-18 (run 52)
+
+[EXP-008](EXPERIMENTS.md) PASSED and `@sportstech`'s newest public item is now **minutes old**
+instead of seventeen days old. A4 has read *"FAILS — every feed"* in every prior reading of this
+file; it now reads **SATISFIED for `/sportstech`**.
+
+**Four things must be held together, and dropping any one of them misreads it.**
+
+1. **It is one destination, not the destination.** The landing page's demo link resolves to `/ava`
+   ([EXP-004](EXPERIMENTS.md)), whose newest public item is still **2026-08-02**. Any channel whose
+   link lands a stranger on `/` or `/ava` still fails A4 exactly as before.
+2. **It expires on a clock.** The threshold is ≤ 72 hours. Item 242 was published
+   2026-08-18T04:15:49Z, so `/sportstech` fails A4 again from **2026-08-21 04:15 UTC** unless
+   something else is genuinely worth publishing by then.
+3. **Publishing to hold A4 open would invert the rule.** A4's own text says freshness is a
+   *consequence* of publishing something worth publishing, never the motive, and EXP-008's binding
+   clauses say a publication made to move a number is disqualified by threshold 6. **A4 decaying
+   back to FAILS is an acceptable outcome.** It is not a reason to lower the bar on the next find.
+4. **A4 satisfied is not admissibility.** A5 still **FAILS** — no arrival threshold or window is
+   pre-registered, and none can be until a channel is chosen. **No channel is admissible today**,
+   and the reason has simply changed from *two conditions fail* to *one does*.
+
+**What this makes possible that was not possible yesterday.** A channel proposal can now name a
+destination that is not stale on arrival, provided it points at `/sportstech` and is posted inside
+the window. That is a precondition being met, not a channel existing — the proposal itself is still
+unwritten and still needs authorisation.
