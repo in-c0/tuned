@@ -1,11 +1,72 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-19 14:20 Sydney (2026-08-19 04:20 UTC), run 55 — **the first venue whose
-rules did not close the door, found by fixing a reader that was passing on pages it had not
-searched** ·
-**OWNER ACTION REQUIRED: ONE DECISION, NO SPEND** — may this executor submit a feed URL to a
-third-party list in the owner's name, or does a human do it? ·
+**Last updated:** 2026-08-20 08:04 Sydney (2026-08-19 22:04 UTC), run 57 — **a second venue whose
+rules do not close the door, and the discovery that our own report published a campaign tag's key** ·
+**OWNER ACTION REQUIRED: ONE DECISION, NO SPEND** — may this executor submit to a third-party list in
+the owner's name, or does a human do it? (now two venues, one decision) ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # We printed the tagged URL as proof it worked. Something has been fetching it every forty minutes since.
+>
+> Run 56 shipped `arrival_fetch:<tag>` so a directory listing could be told from background traffic,
+> and verified it with `?src=qa` — the tag created precisely because **only this loop would ever use
+> it.** The verification was right and the evidence belonged in the record. Nine minutes after the
+> counters went live, the execution report printed the proof verbatim into a **public** GitHub issue:
+> `"url": "https://justtuned.com/sportstech/rss.xml?src=qa"`.
+>
+> **The evening snapshot reads `feed_fetch 16 · feed_fetch:sportstech 16 · arrival_fetch:qa 16`**,
+> against a `_bot` half of 10 that this loop's own dispatches fully explain. Sixteen fetches from a
+> client that does not declare itself a bot, and **all sixteen carrying a tag no stranger could
+> guess.** Ruled out by opening the files rather than recalling them: local vitest runs on a
+> simulated D1 with no network; no scheduled workflow fetches a tagged URL; the Worker's cron is a
+> Spotify sync that makes no request to its own routes. Not reachable from here: the Cloudflare
+> request log, which would name the client. **Status: unattributed, with a leading hypothesis. Not
+> reported as traffic, not reported as demand, not reported as anything.**
+>
+> **Nothing is corrupted today** — [EXP-009](EXPERIMENTS.md) grades `arrival_fetch:awesome-rss-feeds`,
+> which is still zero. The hazard is prospective and general: **`arrival:<tag>` measures a channel
+> only while the tagged URL exists in exactly one place**, and a loop whose discipline is to quote
+> its evidence verbatim into a public record reliably creates a second place — *as a direct
+> consequence of doing the transparency right.* [L-36](LESSONS.md).
+>
+> **Binding from now, added to EXP-009 before Reading 1 and before any submission exists:** a real
+> channel tag's full URL is never printed — not in a report, an ops file, a code comment, a workflow
+> input or a CI log. Route and tag are named separately.
+
+> # ooh.directory permits a link blog "only if they include original commentary about each link" — which is the one thing Tuned makes.
+>
+> Run 56's queue asked for the thing no owner decision gates: **A1 for another venue whose subject is
+> a feed.** Three reads, GETs only, no account.
+> [`/suggest/`](https://github.com/in-c0/tuned/actions/runs/32307232421) · [`feedle.world`](https://github.com/in-c0/tuned/actions/runs/32307293995) ·
+> [`/about/faq/`](https://github.com/in-c0/tuned/actions/runs/32307374484).
+>
+> **`ooh.directory` — A1 PARTIALLY SATISFIED**, the second candidate ever to get there. *"Link blogs
+> are only included if they include original commentary about each link."* `/sportstech` is a link
+> blog and every item carries a `why` line. English ✅; *"updated within the past couple of months"* ✅.
+> **Authorship unaddressed**, exactly as at the first candidate — and it bites harder here, because
+> the condition being met is *original commentary* and Tuned's is agent-written. The page shows the
+> `AI AGENT` badge, so nothing is concealed; that is provenance being visible, not a rule satisfied.
+> The venue also says the quiet part in advance: *"These are suggestions rather than submissions…
+> Suggesting a blog does not guarantee it will appear on the site."*
+>
+> **A5 FAILS for it, and it is [L-35](LESSONS.md) with the axes swapped.** The form asks for *"The URL
+> of the blog's front page **(not its feed)**"* — so the applicable route is the **HTML** one, covered
+> since run 48. What is missing is the **tag**: `src/index.ts:703` reads `new Set(["qa",
+> "awesome-rss-feeds"])`, opened this run rather than recalled, so `?src=ooh-directory` would write
+> **nothing** and look identical to no tag. Run 56 found an instrumented tag on an uninstrumented
+> route; this is an instrumented route with an unregistered tag. **Nothing was shipped for it** —
+> building the instrument before A1 is settled and A2 answered is the ordering [L-33](LESSONS.md)
+> forbids.
+>
+> **`feedle` — A1 UNREAD, and the reader was wrong rather than refused.** 200, no gate markers, and
+> the whole 745 characters includes **"Submit your blog or podcast"** — a submission surface exists,
+> no rule about who may submit was reached. The run went **red** on the spec's own 1,000-character
+> floor. That is a false alarm on a genuinely terse page, overruled here on the evidence; **the floor
+> was not lowered**, because a floor tuned until nothing trips it is the run-50 defect returning.
+>
+> **What this is not.** No submission was made anywhere, nothing was published, and no human has seen
+> anything. `applications` **0**, `members_ever_active` **0**, followers **0**, `items_public` **80**,
+> gross cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # A read came back green with 69,678 characters and answered nothing. The rules were at character 68,472.
 >
@@ -830,6 +891,14 @@ No card, no credential, no spend.
 > name at a third party, which is a boundary rather than an interpretation. **A "no" costs nothing** —
 > a human submitting it is a perfectly good outcome, and so is dropping the candidate.
 
+**Run 57 widened what that one decision governs, without changing the decision.** There are now
+**two** venues whose rules do not close the door, and they want **different URLs**: `awesome-rss-feeds`
+takes the **feed** (`/sportstech/rss.xml`), `ooh.directory` takes the **front page**
+(`/sportstech`) — its form says *"(not its feed)"* in as many words. The question is the same
+boundary either way, so **one answer covers both**, and answering it does not commit the owner to
+both: `ooh.directory` still fails A5 (its tag is not allowlisted) and would not be submitted on a
+"yes" until that is fixed. **Only `awesome-rss-feeds` is ready to go the moment the answer arrives.**
+
 **Run 56 closed A5 for that candidate, and found it had been misdiagnosed.** The register listed A5
 as *"threshold unregistered"*. It was **unsatisfiable**: `GET /:handle/rss.xml` — the exact URL in the
 question above — wrote **no counter of any kind**. Run 48's arrival instrument lives on the HTML feed
@@ -851,12 +920,20 @@ satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, **A5 ✅**. The queue afte
 2. **EXP-009 Reading 1, due on the complete UTC day 2026-08-26** and gradeable without anyone's
    permission: does `feed_fetch:sportstech` write in production at all, and what is the background
    fetch rate? Fork I-B — seven days of silence on a route this loop's own QA fetches on a schedule —
-   would mean the instrument is defective and A5 fails again.
-3. **A1 for any further venue whose subject is a feed.** Product Hunt is now **UNREADABLE** to this
-   executor, not unread, so the register has no readable unread entry left. The search that remains is
-   for *another* venue where a feed is the permitted subject — the reads cost one dispatch each and
-   cannot spend a channel. If none exists beyond this one, **that is the finding** and it belongs in
-   front of the reviewer rather than buried in a register.
+   would mean the instrument is defective and A5 fails again. **Read it against run 57's dated note:**
+   the counters' first day shows unsuffixed `feed_fetch` at **16, all tag-carrying and unattributed**,
+   so *"background rate of third-party fetchers"* is not a description that survived contact with
+   data. The liveness half behaved as registered; the baseline half did not.
+3. ~~**A1 for any further venue whose subject is a feed.**~~ **Done, run 57 — and the register now has
+   two open candidates instead of one.** `ooh.directory` reads **A1 PARTIALLY SATISFIED** on the same
+   footing as the first (*"Link blogs are only included if they include original commentary about each
+   link"*, authorship unaddressed), and `feedle` is added as the only **readable, unread** entry left
+   — its `Submit your blog or podcast` surface is confirmed, its rules are not. **The remaining work
+   on this line is: read feedle's rules (one dispatch), and if the owner answers the decision above,
+   note that it now covers two venues rather than one.** `ooh.directory` additionally needs **A5**,
+   which **fails**: its form takes the *front page, not the feed*, so the route is covered and the
+   **tag** is not — `ARRIVAL_TAGS` holds only `qa` and `awesome-rss-feeds`. Nothing was shipped for
+   it, per [L-33](LESSONS.md).
 4. **One re-read owed, and it is smaller than it sounds.** Every A1 verdict before run 55 was graded
    from the 4,000-character prefix. Hacker News' page is 1,950 characters, so nothing was out of
    reach there. Lobsters' is **15,676**, and its three quoted disqualifying grounds are real — run 54
@@ -888,6 +965,17 @@ to everyone — which is the only condition under which a pre-registration means
 
 ## Not doing (deliberate holds)
 
+- **No real channel tag's full URL is ever printed** — not in an execution report, an ops file, a code
+  comment, a workflow input or a CI log. **New, run 57**, and it exists because the loop already broke
+  it: run 56 printed `/sportstech/rss.xml?src=qa` in a public issue as proof the query string survived
+  the edge, and by that evening `arrival_fetch:qa` read **16** unattributed non-declaring fetches.
+  Route and tag are named **separately**; the joined string belongs in the submission and nowhere
+  else. `?src=qa` may keep appearing — it grades nothing, and its contamination is the evidence for
+  this hold. [L-36](LESSONS.md), and a binding clause in [EXP-009](EXPERIMENTS.md).
+- **No lowering of `MIN_PAGE_CHARS` in the source reader**, however many legitimately terse pages trip
+  it — `feedle.world` at 745 characters did, this run. A false alarm is overruled **in the register,
+  on the evidence, with the run kept red**; a floor tuned down until nothing trips it reintroduces the
+  run-50 defect, where a reCAPTCHA page reported `1 passed`.
 - ~~No pricing, positioning or copy work while the denominator is unknown.~~ **The denominator is no
   longer unknown, and the hold hardens rather than lifts (run 51).** [EXP-007](EXPERIMENTS.md) Fork A
   is graded: 50 UA-flagged views, **0** engagements on complete UTC day 2026-08-16. The hold now rests

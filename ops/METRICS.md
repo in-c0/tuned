@@ -902,6 +902,15 @@ series for Tuned at all, and none can be reconstructed.
   fetchers.** Neither is demand. Only `arrival_fetch:<tag>` grades an attempt, because no QA path
   passes a channel tag. *(This bullet initially said the opposite; it was corrected the same run,
   before any value was read — see [EXP-009](EXPERIMENTS.md)'s closing note.)*
+  - **Read this bullet against its first day of data, 2026-08-19, which does not support the second
+    half of it.** `feed_fetch 16 · feed_fetch:sportstech 16 · arrival_fetch:qa 16`, against a `_bot`
+    half of 10 fully accounted for by this loop's own dispatches. Sixteen non-declaring fetches, **all
+    sixteen tag-carrying** — so the unsuffixed name on the only day it has a value is **not** a
+    background rate of untagged third-party fetchers; it is unattributed traffic on a URL this loop
+    published in a public report nine minutes after the counters shipped. The liveness half
+    (`feed_fetch_bot:sportstech`) behaved exactly as written. See [L-36](LESSONS.md): a tagged URL
+    printed as evidence is a publication of that URL. **Never treat unsuffixed `feed_fetch` as a clean
+    third-party baseline without checking whether the tagged URL has been published anywhere.**
 - **`feed_fetch` and `feed_view` are different events and are never additive.** They are not two
   measurements of one thing; summing them mixes a poll with a page view.
 - **An absent `arrival_fetch:<tag>` row is ambiguous** in exactly the way `arrival:<tag>` is: nobody
