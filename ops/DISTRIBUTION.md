@@ -335,14 +335,16 @@ yet".
 Run 54 ended on a statement that was worse news than the loop had been carrying: **Tuned has no
 identified venue whose published rules permit a post about a curated feed by the person who runs
 it.** It left one instruction with it — *find a venue where a feed is a permitted subject at all, and
-if none exists, that is the finding.* This run went looking, and it took two reads to get there and a
-third to make either of them mean anything.
+if none exists, that is the finding.* This run went looking. Four dispatches: one venue refused the
+reader outright, one was read cleanly and answered nothing, one shorter page turned out to need an
+account, and the fourth — after the reader was fixed — got the rules.
 
 | Venue | Page read | HTTP | `read_outcome` | Run |
 | --- | --- | --- | --- | --- |
 | Product Hunt | `help.producthunt.com/en/articles/3615694-community-guidelines` | **403** | `interstitial` | [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616) |
 | awesome-rss-feeds | `github.com/plenaryapp/awesome-rss-feeds` | 200 | `page`, 69,678 chars — **and it answered nothing** | [32214622360](https://github.com/in-c0/tuned/actions/runs/32214622360) |
-| awesome-rss-feeds | same page, `find: "contribut"` | 200 | `page`, rules quoted | [32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407) |
+| awesome-rss-feeds | `…/issues/new/choose` | 200 | `interstitial` — **279 chars** to a logged-out reader | [32214769752](https://github.com/in-c0/tuned/actions/runs/32214769752) |
+| awesome-rss-feeds | the README again, `find: "contribut"` | 200 | `page`, rules quoted | [32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407) |
 
 ### Product Hunt — A1 is UNREADABLE BY THIS EXECUTOR, the same category as Reddit
 
