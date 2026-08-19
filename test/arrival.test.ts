@@ -165,6 +165,130 @@ describe("an arrival tag identifies the attempt that sent someone", () => {
   });
 });
 
+// The RSS surface is the one that matters commercially, and it is the one that counted nothing
+// until run 56. ops/DISTRIBUTION.md's only candidate whose published rules do not forbid the post
+// is a directory of RSS feeds, so the URL that would be submitted is /<handle>/rss.xml — which
+// means A5 ("if it works, would I see it?") was unsatisfiable for that candidate on an instrument
+// gap, not on an unregistered threshold. These tests assert the names that actually land, for the
+// same reason as the ones above: there is exactly one chance to have them right, before the post.
+describe("an RSS fetch is counted, separately from a feed view", () => {
+  it("counts the site-wide name and the per-handle split from one fetch", async () => {
+    await seedFeed("sportstech");
+
+    const res = await visit("/sportstech/rss.xml", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toEqual({ feed_fetch: 1, "feed_fetch:sportstech": 1 });
+  });
+
+  it("does not touch feed_view, so the ten-day view series stays comparable", async () => {
+    await seedFeed("sportstech");
+
+    await visit("/sportstech", HUMAN_UA);
+    await visit("/sportstech/rss.xml", HUMAN_UA);
+    await visit("/sportstech/rss.xml", HUMAN_UA);
+
+    // One subscriber polls many times a day and one reader views once. If a poll incremented
+    // feed_view, a single feed client would read as a traffic spike and the series that has
+    // read 2–22 a day would stop meaning what it meant before this deploy.
+    expect(await countersToday()).toEqual({
+      feed_view: 1,
+      "feed_view:sportstech": 1,
+      feed_fetch: 2,
+      "feed_fetch:sportstech": 2,
+    });
+  });
+
+  it("splits a self-declaring crawler out of both names", async () => {
+    await seedFeed("sportstech");
+
+    await visit("/sportstech/rss.xml", BOT_UA);
+
+    // Neither bucket is a person on this surface — every fetch of an RSS URL is a machine.
+    // The split separates a crawler that says so from a feed reader that does not.
+    expect(await countersToday()).toEqual({ feed_fetch_bot: 1, "feed_fetch_bot:sportstech": 1 });
+  });
+
+  it("names the destination from the creator row, not from the request", async () => {
+    await seedFeed("sportstech");
+
+    const res = await visit("/SportsTech/rss.xml", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toEqual({ feed_fetch: 1, "feed_fetch:sportstech": 1 });
+  });
+
+  it("counts nothing for a handle that does not exist", async () => {
+    const res = await visit("/nobody/rss.xml", HUMAN_UA);
+
+    expect(res.status).toBe(404);
+    expect(await countersToday()).toEqual({});
+  });
+});
+
+describe("an arrival tag on a feed URL identifies the attempt that sent a subscriber", () => {
+  it("counts the pre-registered channel tag alongside the fetch it came with", async () => {
+    await seedFeed("sportstech");
+
+    // The exact URL ops/DISTRIBUTION.md proposes submitting, tag and all. This assertion is
+    // the whole of A5's instrument half for that candidate.
+    const res = await visit("/sportstech/rss.xml?src=awesome-rss-feeds", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toEqual({
+      feed_fetch: 1,
+      "feed_fetch:sportstech": 1,
+      "arrival_fetch:awesome-rss-feeds": 1,
+    });
+  });
+
+  it("keeps a tagged fetch distinct from a tagged view, so polls never inflate arrivals", async () => {
+    await seedFeed("sportstech");
+
+    await visit("/sportstech?src=qa", HUMAN_UA);
+    await visit("/sportstech/rss.xml?src=qa", HUMAN_UA);
+
+    // arrival:<tag> and arrival_fetch:<tag> are not additive and must never be summed: one
+    // counts someone opening a page, the other counts a client re-reading a file.
+    expect(await countersToday()).toEqual({
+      feed_view: 1,
+      "feed_view:sportstech": 1,
+      "arrival:qa": 1,
+      feed_fetch: 1,
+      "feed_fetch:sportstech": 1,
+      "arrival_fetch:qa": 1,
+    });
+  });
+
+  it("splits a tagged crawler fetch too", async () => {
+    await seedFeed("sportstech");
+
+    await visit("/sportstech/rss.xml?src=awesome-rss-feeds", BOT_UA);
+
+    // A listing is crawled within seconds of merging. If the sweep landed in the unsuffixed
+    // name, the first hours of the attempt would grade as subscribers.
+    expect(await countersToday()).toEqual({
+      feed_fetch_bot: 1,
+      "feed_fetch_bot:sportstech": 1,
+      "arrival_fetch_bot:awesome-rss-feeds": 1,
+    });
+  });
+
+  it("cannot be made to mint arbitrary counter rows from a feed URL", async () => {
+    await seedFeed("sportstech");
+
+    for (const src of ["qa'; DROP TABLE metric_days; --", "a".repeat(400), "feed_fetch", "", "QA", "awesome_rss_feeds"]) {
+      await visit(`/sportstech/rss.xml?src=${encodeURIComponent(src)}`, HUMAN_UA);
+    }
+
+    // Six hostile or near-miss tags, six fetches, and the only names written are the two the
+    // route writes unconditionally. `awesome_rss_feeds` is in the list on purpose: matching is
+    // exact, so a submitted URL that gets its hyphens mangled counts under no name at all
+    // rather than quietly under a neighbouring one.
+    expect(await countersToday()).toEqual({ feed_fetch: 6, "feed_fetch:sportstech": 6 });
+  });
+});
+
 describe("countEach writes every name in one round trip", () => {
   it("increments each distinct name, and increments an existing row rather than replacing it", async () => {
     await countEach(DB, ["alpha", "beta"]);

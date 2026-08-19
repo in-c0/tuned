@@ -2456,3 +2456,57 @@ no data, no public surface** — the Cloudflare build ships the same runtime byt
 Reverting it removes an optional dispatch input and changes nothing a user can reach.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-19 (run 56) — A5 was unsatisfiable for the only open candidate, and the register said "unregistered"
+
+**Decision: instrument the RSS route before anything else this run, and pre-register EXP-009 in the
+same commit.** Run 55's queue put a submission to `plenaryapp/awesome-rss-feeds` first, gated on the
+owner's answer to the authorship question, with A5 listed as an outstanding pre-condition in these
+words: *"an `arrival:<tag>` allowlisted for this attempt … The instrument exists (run 48); the tag
+and threshold do not."*
+
+**The instrument did not exist for the URL in the proposal.** Run 48 built arrival attribution on
+`GET /:handle` — the HTML feed page. The proposal submits `https://justtuned.com/sportstech/rss.xml`
+to a directory of **RSS feeds**, and `GET /:handle/rss.xml` had **no `track()` call at all**: the only
+public route in the Worker with none.
+
+**Why this outranked every other item in the queue.** Had the submission gone ahead on the register's
+own reading, the loop would have allowlisted a tag on a route that never reads `?src=`, watched a
+permanently zero counter for fourteen days, and recorded a **confident null result about demand**
+manufactured entirely by its own blind spot. A5 exists to keep *"nobody wanted it"* separable from
+*"it was never admissible"*, and the condition as written would have destroyed exactly that
+distinction. The venue is also spendable once — a listing submitted and merged without a working
+counter cannot be resubmitted to get the measurement back.
+
+**Shipped** (PR [#49](https://github.com/in-c0/tuned/pull/49)): `feed_fetch`, `feed_fetch:<handle>`
+and `arrival_fetch:<tag>` on the RSS route; `awesome-rss-feeds` allowlisted; a second production check
+in `qa/arrival-instrument.spec.mjs` asserting the route serves and `?src=` survives the edge; and
+[EXP-009](EXPERIMENTS.md) with its thresholds, window and **two inadmissible outcomes** written before
+any submission exists.
+
+**Decided deliberately, and recorded because each had a cheaper alternative:**
+
+- **Separate counter names, not `feed_view`.** A feed client polls on a schedule; a reader views once.
+  Folding fetches into the view series would have turned one subscriber into a traffic spike and
+  broken the comparability of the ten-day `feed_view` series on the deploy that shipped it.
+- **Days with activity, not totals, as the threshold.** Fork A is *"≥ 7 of 14 days"* precisely because
+  a one-off crawl of a newly merged listing produces fetches on one or two days and a subscribed
+  client polls daily. A total could be moved by a single crawler and would read as demand.
+- **No human/bot claim on this surface.** Every fetch of an RSS URL is a machine. The `_bot` split is
+  kept for consistency but separates *self-declaring crawler* from *feed reader*, and unsuffixed
+  `feed_fetch` carries this loop's own scheduled QA fetches — a liveness signal, not a demand signal.
+- **`?src=qa` for verification, never a real channel tag.** Cloudflare Workers Builds now raises a
+  **preview deployment per branch**, and a preview binds the **same D1** as production. Exercising
+  `awesome-rss-feeds` anywhere — including a preview URL — would write the counter EXP-009 grades.
+
+**Reversal recorded:** the A5 row in [DISTRIBUTION.md](DISTRIBUTION.md) read *"FAILS — threshold
+unregistered. The instrument half is SHIPPED"* from run 48 to run 55. That diagnosis was wrong, not
+merely incomplete, and it is struck through rather than deleted so the register shows it was wrong.
+
+**Not done, deliberately:** no submission, no form opened, no issue created, no account used at any
+third-party venue — **A2 remains the owner's to answer and this run did not answer it for them**. No
+publication to hold A4's window open before its 2026-08-21 04:15 UTC expiry. No A5 threshold for any
+other venue, since a threshold is per-attempt. No landing-page, copy, positioning or pricing work.
+No user-agent spoofing at Reddit or Product Hunt. [L-35](LESSONS.md).
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

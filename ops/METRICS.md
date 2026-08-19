@@ -854,6 +854,58 @@ before 2026-08-16**, which is the deploy day and therefore itself partial.
   label on a URL we publish ourselves, aggregated into the daily counts that already existed. The
   published privacy policy is unchanged by it.
 
+### The words "on the public feed route only" were load-bearing, and nobody read them that way (run 56)
+
+That phrase, three lines above, is this section's own qualification and it is **correct**. It also
+turned out to be the whole problem. `GET /:handle/rss.xml` was **not** the public feed route — it is a
+separate handler, and until run 56 it wrote **no counter of any kind**. So every A5 assessment that
+cited this section as *"instrument shipped"* was citing a true sentence about the **HTML** page while
+the URL under discussion — `https://justtuned.com/sportstech/rss.xml`, proposed for submission to a
+directory of RSS feeds — was the **XML** one.
+
+This is [L-35](LESSONS.md), and the sharpest version of it: **the record was accurate and was still
+read as a coverage claim.** A qualification that appears once, in the file that defines the counter,
+does not survive eight runs of being summarised. The only check that would have caught it is opening
+the handler for the exact URL.
+
+## RSS fetch counters — added 2026-08-19 (run 56)
+
+Deployed via PR [#49](https://github.com/in-c0/tuned/pull/49), on `GET /:handle/rss.xml`. **Zero on
+every day before 2026-08-19**, which is the deploy day and therefore itself partial — and zero not
+because nothing was fetched, but because **nothing was counted**. There is no historical RSS fetch
+series for Tuned at all, and none can be reconstructed.
+
+| Counter | Definition | Source |
+| --- | --- | --- |
+| `feed_fetch` / `feed_fetch_bot` | every fetch of any feed's `rss.xml` | `/api/metrics` daily |
+| `feed_fetch:<handle>` / `feed_fetch_bot:<handle>` | the same event split by destination; the handle is read from the creator row, never the request URL | `/api/metrics` daily |
+| `arrival_fetch:<tag>` / `arrival_fetch_bot:<tag>` | a fetch whose URL carried an **allowlisted** `?src=` tag. Unrecognised tags are counted under no name at all | `/api/metrics` daily |
+
+**Reading rules, binding on whoever reads these first — and three of them are new, not inherited:**
+
+- **These count polls, not people, and the gap is much larger than it is for a page view.** A feed
+  client re-reads the file on a schedule: one subscriber can produce dozens of fetches a day, forever,
+  without a person ever looking at any of them. **No subscriber count can be derived from these
+  numbers**, because there is no visitor identifier and one is not going to be added. Grade *days with
+  activity*, never totals — which is why [EXP-009](EXPERIMENTS.md)'s Fork A is "≥ 7 of 14 days" and
+  not a count.
+- **Neither bucket is a person.** Every fetch of an RSS URL is a machine. The `_bot` split separates a
+  crawler that declares itself in its user agent from a feed reader that does not — it does **not**
+  separate machines from humans, and unsuffixed `feed_fetch` must never be read the way unsuffixed
+  `landing_view` is read.
+- **Unsuffixed `feed_fetch` carries this loop's own traffic.** `qa/freshness.spec.mjs`,
+  `qa/public-surfaces.spec.mjs` and `qa/exp008-provenance.spec.mjs` all fetch `/sportstech/rss.xml` on
+  a schedule. It is a **liveness signal, not a demand signal.** Only `arrival_fetch:<tag>` grades an
+  attempt, because no QA path passes a channel tag.
+- **`feed_fetch` and `feed_view` are different events and are never additive.** They are not two
+  measurements of one thing; summing them mixes a poll with a page view.
+- **An absent `arrival_fetch:<tag>` row is ambiguous** in exactly the way `arrival:<tag>` is: nobody
+  arrived, *or* the tag was never allowlisted, *or* — new here — the published URL lost its query
+  string somewhere between this loop and the reader. Check `ARRIVAL_TAGS` in
+  [`src/index.ts`](../src/index.ts) **and** the published URL before writing down a zero.
+- **No per-visitor data.** No cookie, no identifier, no per-visitor state, no new data category. The
+  published privacy policy is unchanged by it.
+
 ### Self-inflicted counters on UTC day 2026-08-16 (run 48) — declared before they are read
 
 The production check ([`qa/arrival-instrument.spec.mjs`](../qa/arrival-instrument.spec.mjs), run

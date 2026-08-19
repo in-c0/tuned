@@ -167,7 +167,7 @@ A3, A4 and A5 are properties of Tuned, not of any venue, so they gate **every** 
 | --- | --- | --- | --- |
 | **A3** | A stranger can use the destination | **SATISFIED** | `/ava`, `/sportstech` and the other public feeds render with no account and no application; [EXP-004](EXPERIMENTS.md) PASSED (run 19), and `/:handle` + `/:handle/rss.xml` are unauthenticated routes |
 | **A4** | Destination fresh, ≤ 72h | ~~**FAILS — every feed**~~ **SATISFIED for `/sportstech` only, and it expires 2026-08-21 04:15 UTC.** Still **FAILS** for `/ava` and therefore for the landing page's own demo destination | `@sportstech` newest public item **2026-08-18T04:15:49.089Z** — item 242, [EXP-008](EXPERIMENTS.md) PASSED, `list` [32098592220](https://github.com/in-c0/tuned/actions/runs/32098592220). `@ava` still **2026-08-02** (16 days), and [EXP-004](EXPERIMENTS.md) established the landing page's demo link resolves to `/ava`, not `/sportstech`. Superseded evidence: `@sportstech` **2026-07-30T22:48:09.614Z** read by [run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247) |
-| **A5** | A result would be visible | **FAILS — threshold unregistered.** The instrument half is **SHIPPED** | `feed_view:<handle>` and `arrival:<tag>` deployed run 48 ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR [#41](https://github.com/in-c0/tuned/pull/41)); production served a tagged URL and the query string survived the edge. No arrival threshold or window is pre-registered, and none can be until a channel is chosen |
+| **A5** | A result would be visible | ~~**FAILS — threshold unregistered.** The instrument half is **SHIPPED**~~ **This row was wrong, and run 56 found out why.** The instrument half was shipped **for the HTML feed page only**; `GET /:handle/rss.xml` wrote no counter at all. For the one candidate whose A1 did not close it — a directory of **RSS feeds** — A5 was therefore not *unregistered*, it was **unsatisfiable**. Now: **instrument SHIPPED for both surfaces, threshold PRE-REGISTERED for `awesome-rss-feeds`** | Run 48 shipped `feed_view:<handle>` and `arrival:<tag>` ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR [#41](https://github.com/in-c0/tuned/pull/41)) — HTML page only. Run 56 shipped `feed_fetch`, `feed_fetch:<handle>` and `arrival_fetch:<tag>` on the RSS route, allowlisted `awesome-rss-feeds`, and pre-registered [EXP-009](EXPERIMENTS.md)'s thresholds **before** any submission (PR [#49](https://github.com/in-c0/tuned/pull/49)). Still **FAILS for every other candidate** — a threshold is per-attempt and none is registered for any other venue |
 
 **A3 was the condition this loop believed was binding, and it is the one that already passes.** The
 public, no-account surfaces have worked since run 19. What EXP-002 lacked was not a usable
@@ -447,6 +447,56 @@ that is *not* "nobody wanted Tuned", and the register must record the difference
 
 ---
 
+## A5 was unsatisfiable for the only open candidate, and the register said "unregistered" — 2026-08-19 (run 56)
+
+Run 55 proposed submitting **`https://justtuned.com/sportstech/rss.xml`** and listed A5 as outstanding
+in these words: *"an `arrival:<tag>` allowlisted for this attempt … The instrument exists (run 48);
+the tag and threshold do not."*
+
+**The instrument did not exist for that URL.** Run 48 built `feed_view:<handle>` and `arrival:<tag>`
+on `GET /:handle` — the HTML feed page. `GET /:handle/rss.xml` had **no `track()` call at all**, the
+only public route in the Worker with none. The venue whose rules finally permitted a post is a
+directory of **RSS feeds**, so the thing being submitted was the one surface in the product that
+counted nothing.
+
+The consequence, stated plainly: **a merged listing that sent a hundred subscribers would have been
+indistinguishable, in every number this loop can read, from a listing nobody ever opened.** A5's own
+question is *"if it works, would I see it?"* and the answer for this candidate was **no** — not
+"not yet", **no**. The register recorded that as *no tag allowlisted, no threshold registered*, which
+describes paperwork. Allowlisting a tag on a route that never reads `?src=` would have produced a
+permanently zero counter and a confident null result.
+
+**Shipped** (PR [#49](https://github.com/in-c0/tuned/pull/49)): `feed_fetch`, `feed_fetch:<handle>`
+and `arrival_fetch:<tag>` on the RSS route, `awesome-rss-feeds` allowlisted, and
+[EXP-009](EXPERIMENTS.md) pre-registered in the same commit — **before** any submission is
+authorized, made or merged, because counters start at zero on the deploy that introduces them.
+
+**Three properties of that instrument that the register must not lose:**
+
+1. **Fetches are not views.** A reader views a page once; a feed client polls a file on a schedule.
+   The names are separate from `feed_view` so that one subscriber cannot read as a traffic spike, and
+   so the ten-day view series stays comparable across the deploy.
+2. **Neither bucket is a person.** Every fetch of an RSS URL is a machine — the `_bot` split
+   separates a crawler that declares itself from a feed reader that does not. Unsuffixed `feed_fetch`
+   also carries this loop's own scheduled QA fetches of `/sportstech/rss.xml`, so it is a **liveness
+   signal, not a demand signal**. Only `arrival_fetch:<tag>` grades an attempt.
+3. **Polls, never people.** No cookie, no visitor identifier, so no subscriber count can be derived.
+   EXP-009's forks are written so none of them tries, and its Fork A is a *number of days with
+   activity*, not a number of readers.
+
+**And two ways the attempt can fail to be evidence, registered in advance** so neither can later be
+read as a verdict about demand: **Fork D** — never authorized, made or merged → *inadmissible, not
+null*; **Fork E** — merged with the `?src=` stripped by a maintainer normalising the URL → a real
+attempt that this instrument cannot grade, **not** a zero.
+
+**One operational hazard found on the way and recorded here because it will recur:** Cloudflare
+Workers Builds now raises a **preview deployment per branch**, and a preview binds the **same D1
+database** as production. Pointing any QA at a preview URL with a real campaign tag would write the
+very counter EXP-009 grades. Production verification of an arrival tag uses **`?src=qa`**, which is
+what the `qa` tag was created for; a real channel tag is never to be exercised by this loop.
+
+---
+
 ## Candidate register
 
 No candidate is ADMISSIBLE. A1/A2 are marked **UNREAD** wherever this loop has not quoted the venue's
@@ -463,7 +513,7 @@ on `/` or `/ava` still fails A4.
 | **Reddit — a topical subreddit** | **UNREADABLE 2026-08-18** ([32191175814](https://github.com/in-c0/tuned/actions/runs/32191175814)) — HTTP **403**, *"blocked by network security … log in to your Reddit account or use your developer token"*. The rules cannot be quoted by this executor at all; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable without an account this executor does not hold |
 | **Lobsters** | **READ 2026-08-18** ([32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996)) — **FAILS** on three quoted grounds: topicality is *"pretty narrowly on computing"* and excludes *"entrepreneurship"*; *"self-promo should be less than a quarter of one's stories and comments"*, which a first submission cannot satisfy; and membership runs through *"a user invitation tree"* | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — closed on the venue's own words |
 | **Product Hunt** | **UNREADABLE 2026-08-19** ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)) — HTTP **403**, `Just a moment...`, *"Performing security verification … verifies you are not a bot"*, 266 chars. The rules cannot be quoted by this executor; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable by this executor |
-| **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ❌ — no tag allowlisted, no threshold registered | **NOT YET ADMISSIBLE — and the only candidate whose A1 did not close it.** Proposed above; A5 and A2 outstanding |
+| **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ~~❌ — no tag allowlisted, no threshold registered~~ **✅ — run 56.** `arrival_fetch:awesome-rss-feeds` allowlisted and counted on the RSS route; [EXP-009](EXPERIMENTS.md) registers the threshold, the window and the two inadmissible outcomes, all before any submission | **NOT YET ADMISSIBLE — A2 is now the only outstanding condition, and it is the owner's to answer.** A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, A5 ✅ |
 | **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
 | **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
 
@@ -487,8 +537,19 @@ In this order. Each step writes its evidence into this file before the next begi
 
 1. **A4 first.** Confirm the intended destination's newest public item is ≤ 72h old, read from
    production in the same cycle. If it is not, stop — there is nothing to post about.
-2. **A5's instrument.** Ship the arrival counter for that destination, verify it in production, and
-   pre-register the arrival threshold and the window. Never after the post.
+2. **A5's instrument.** Ship the arrival counter **for the exact URL that will be submitted**, verify
+   it in production, and pre-register the arrival threshold and the window. Never after the post.
+
+   **Check the route, not the product** ([L-35](LESSONS.md)). Run 56 found A5 marked *"instrument
+   shipped"* while the URL in the proposal — `/sportstech/rss.xml` — wrote no counter of any kind,
+   because run 48 had instrumented the HTML feed page and the submission pointed at the XML one.
+   *"Tuned has arrival counters"* is not the question. The question is *"does **this URL**, with this
+   query string, on this route, increment something I can read?"* — and the way to answer it is to
+   open the route's handler, not to recall the feature.
+
+   **And if the destination is a feed rather than a page, fetches and views are different events.** A
+   subscriber produces many fetches a day; a reader produces one view. Grade *days with activity*,
+   not totals, and never convert either into a number of people — no per-visitor identifier exists.
 3. **A1.** Read the venue's rules from GitHub's network. Quote them here with URL, date and run link.
    Answer explicitly: *does this venue permit a post of exactly this form, by exactly this author?*
 
@@ -517,6 +578,15 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
 
 ## Change log
 
+- **2026-08-19 (run 56)** — **A5 was unsatisfiable for the only open candidate, not unregistered.**
+  `GET /:handle/rss.xml` — the exact URL run 55 proposed submitting — wrote no counter of any kind,
+  while the register recorded A5's instrument half as *shipped*. Run 48's arrival counters live on
+  the HTML feed page; the venue that permits the post is a directory of RSS feeds. Shipped
+  `feed_fetch`, `feed_fetch:<handle>` and `arrival_fetch:<tag>` on the RSS route, allowlisted
+  `awesome-rss-feeds`, and pre-registered [EXP-009](EXPERIMENTS.md) — thresholds, window, and the two
+  inadmissible outcomes (never merged; merged with the tag stripped) — **before** any submission
+  exists. A5 now reads ✅ for that candidate and **A2 is the only outstanding condition**, which is
+  the owner's to answer. [L-35](LESSONS.md); PR [#49](https://github.com/in-c0/tuned/pull/49).
 - **2026-08-19 (run 55)** — **the first candidate whose A1 did not close it, and an instrument
   defect found by a read that succeeded.** Product Hunt joins Reddit as **UNREADABLE** (HTTP 403,
   Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)).

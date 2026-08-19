@@ -1474,3 +1474,145 @@ Binding regardless of the result:
   [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs), carries the four dispatched
   strings as constants and was committed to `master` **before** the publication it grades.
   *Publish nothing* was available at zero cost up to the dispatch and was not taken.
+
+---
+
+## EXP-009 — if a feed listing sent subscribers, would Tuned see them? (2026-08-19, run 56)
+
+**Pre-registered at 2026-08-19 ~10:15 UTC (20:15 Sydney): before the counters it reads existed,
+before any value of them could be known, and — the part that matters — before any submission to the
+venue it grades has been authorized, let alone made.** [A5](DISTRIBUTION.md) fixes when this may be
+written: **before the post, never after**, because counters start at zero on the deploy that
+introduces them and nothing is backfilled. A channel is spent once.
+
+### The question
+
+[Run 55](https://github.com/in-c0/tuned/issues/1#issuecomment-5337548557) found the first candidate
+venue whose published rules do not forbid a post about a curated feed:
+[`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds), whose contribution
+section states *"There are two ways to add any category, country or feed in the repository."* The
+proposal is one submission of **`https://justtuned.com/sportstech/rss.xml`** to the `Sports` category.
+
+**That URL wrote no counter of any kind.** `GET /:handle/rss.xml` was the only public route in the
+Worker with no `track()` call at all — not `feed_view`, not `feed_view:<handle>`, not `arrival:<tag>`.
+Every arrival instrument built in run 48 hangs off the **HTML** feed page, and the thing being
+submitted is the **XML** one.
+
+So A5 for this candidate was not "threshold unregistered", which is how the register recorded it. It
+was **unsatisfiable**: the submission would have pointed a venue at the one public surface in the
+product that counts nothing, and a merged listing that quietly sent a hundred subscribers would have
+been indistinguishable, in every number this loop can read, from a listing nobody ever opened.
+
+### Hypothesis
+
+An RSS destination needs a *different* instrument from a page destination, because the two record
+different events. A reader views a page once; a feed client polls a file on a schedule. A counter
+that cannot tell those apart either understates an attempt (by not counting fetches) or overstates it
+(by summing polls into a view series) — and the second failure is worse, because it manufactures a
+traffic spike out of one subscriber.
+
+### Baseline (source-linked)
+
+`feed_fetch`, `feed_fetch:<handle>` and `arrival_fetch:<tag>` **do not exist and read nothing on
+every UTC day up to and including 2026-08-19**, which is a statement about the code rather than about
+traffic: the route wrote no counter. There is therefore **no historical fetch series at all** — not a
+low one, not a zero one, none — and any claim about how often Tuned's RSS has been fetched before
+this deploy is unavailable and must stay unavailable.
+
+Latest funnel readings for context, from [`ops/metrics/latest.json`](metrics/latest.json):
+`applications` **0** · `members_ever_active` **0** · followers **0** · `items_public` **80**.
+
+### Change (commit/deploy)
+
+Three counters on `GET /:handle/rss.xml`, additive, no schema change, no new data category:
+
+- `feed_fetch` / `feed_fetch_bot` — every fetch of any feed's RSS.
+- `feed_fetch:<handle>` / `feed_fetch_bot:<handle>` — the same event split by destination, named from
+  the creator row rather than from the request.
+- `arrival_fetch:<tag>` / `arrival_fetch_bot:<tag>` — fetches whose URL carried an **allowlisted**
+  `?src=` tag. `awesome-rss-feeds` is added to the allowlist by this deploy.
+
+Deliberately **not** folded into `feed_view`: they are a different event, and merging them would have
+broken the comparability of the ten-day view series on the deploy that shipped them.
+
+**On this surface neither bucket is a person.** Every fetch of an RSS URL is a machine; the `_bot`
+split separates a crawler that declares itself from a feed reader that does not. Unsuffixed
+`feed_fetch` additionally carries this loop's own scheduled QA fetches
+([`qa/freshness.spec.mjs`](../qa/freshness.spec.mjs),
+[`qa/public-surfaces.spec.mjs`](../qa/public-surfaces.spec.mjs),
+[`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs) all fetch `/sportstech/rss.xml`),
+so it is a **liveness signal, not a demand signal**. Only `arrival_fetch:<tag>` grades an attempt,
+because only a link this loop published carries the tag — and no QA path passes `?src=awesome-rss-feeds`.
+
+**And the count is polls, never people.** With no cookie and no visitor identifier there is no way to
+derive a subscriber count from a daily poll count. No fork below uses one, and any future run that
+reports a poll total as a number of subscribers is inventing a metric.
+
+### Reading 1 — the instrument, gradeable without anyone's permission
+
+*Registered because it is the half that does not depend on the owner's decision, and it is worth
+knowing either way.*
+
+Read on the **complete UTC day 2026-08-26** (seven complete days after deploy), from a `schedule`
+metrics snapshot, against `feed_fetch*` on days 2026-08-20 … 2026-08-26.
+
+- **Fork I-A — the route writes.** `feed_fetch:sportstech` is non-zero on ≥ 1 day. The instrument is
+  live in production and the background fetch rate is now known. *Next action:* record the band; it
+  is the noise floor any future attempt must be read against.
+- **Fork I-B — the route writes nothing across seven days.** Given that this loop's own QA fetches
+  `/sportstech/rss.xml` on a schedule, this would mean the counter is not landing in production and
+  the instrument is defective. *Next action:* fix it before any submission is made, and treat A5 as
+  failing again.
+
+### Reading 2 — the attempt, gradeable only if a submission is authorized, made and merged
+
+Window: **14 complete UTC days beginning the first complete UTC day after the listing is merged**,
+read from `schedule` metrics snapshots. Primary counter: `arrival_fetch:awesome-rss-feeds`, with
+`arrival_fetch_bot:awesome-rss-feeds` reported alongside it and never summed into it.
+
+- **Fork A — a durable subscriber exists.** Unsuffixed tagged fetches on **≥ 7 of the 14 days**.
+  *Reading:* at least one client is polling the tagged URL on an ongoing basis — the first evidence in
+  Tuned's history that a stranger subscribed to a Tuned feed. The threshold is set here, before any
+  number is visible, because **a one-off crawl of a newly merged listing produces fetches on one or
+  two days and a subscribed client polls daily**; 7 of 14 is the smallest bar a single sweep cannot
+  clear. *Next action:* read A1 for further feed directories — the channel *class* works — and only
+  then ask what a subscriber is worth.
+- **Fork B — crawled, not subscribed.** Tagged fetches on 1–6 days, or tagged fetches appearing only
+  in the `_bot` bucket. *Reading:* the listing was indexed and nobody kept reading. **Not demand.**
+  *Next action:* the venue is not a channel; do not spend another on the same shape without a reason.
+- **Fork C — a true null.** Zero tagged fetches, in either bucket, across all 14 days with the listing
+  live and its URL verified as carrying the tag. *Reading:* nobody reached the feed through this
+  venue. This is a genuine null result **about this venue** — one directory serving one Android RSS
+  reader — and it is **not** evidence that nobody wants Tuned. *Next action:* record it as a closed
+  candidate and keep the distinction in the register.
+- **Fork D — inadmissible, not null.** The submission is never authorized, never made, or never
+  merged. *Reading:* **nothing above is graded and no conclusion about demand may be drawn.** A
+  maintainer who never merges an entry has told us nothing about strangers.
+- **Fork E — inadmissible on the URL.** The listing merges but the merged entry's URL does not carry
+  `?src=awesome-rss-feeds` — a maintainer normalising the URL is an ordinary thing to do. *Reading:*
+  the attempt is real but ungradeable by this instrument; `feed_fetch:sportstech` against its Reading-1
+  band is the only remaining evidence and it is weaker. **The merged entry's exact URL must be checked
+  before grading, and Fork E must not be reported as Fork C.**
+
+### Stop conditions, stated in advance
+
+- **No submission is authorized by this pre-registration.** EXP-009 registers the instrument and the
+  thresholds; whether this executor may submit at all is the open owner/reviewer question in
+  [DISTRIBUTION.md](DISTRIBUTION.md), and the standing hold on third-party submissions is unchanged.
+- **No publication may be made to satisfy A4.** [EXP-008](#exp-008--can-the-operator-control-plane-publish-one-real-agent-find-2026-08-15-run-44)'s
+  binding clauses disqualify any publication made to move a number, and A4's decay on
+  **2026-08-21 04:15 UTC** is a pre-registered acceptable outcome.
+- **No third reading.** Two readings are registered. Inventing a third after seeing them is choosing
+  the day.
+
+### Result
+
+**PENDING.** Reading 1 is due on the complete UTC day 2026-08-26. Reading 2 is not scheduled and may
+never be, and Fork D is the honest outcome if it is not.
+
+### Decision
+
+**PENDING.** What this experiment has already decided, before either reading: **A5's verdict for
+`awesome-rss-feeds` was wrong in the register, not merely incomplete.** It read *"no tag allowlisted,
+no threshold registered"*, which describes paperwork. The truth was that the destination was
+uninstrumented and the paperwork could not have fixed it.
