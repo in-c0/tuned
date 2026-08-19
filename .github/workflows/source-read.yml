@@ -20,17 +20,29 @@ name: source read
 # for anything else. Keeping them separate also keeps the two questions separate: qa-browser asks
 # "what is Tuned doing", this asks "what does this page say".
 #
+# The optional `find` input was added in run 55, after a read that succeeded and still answered
+# nothing: github.com/plenaryapp/awesome-rss-feeds came back HTTP 200 with 69,678 visible characters
+# and `read_outcome: "page"`, but the reader reports the first 4,000 characters of a page, and on
+# that page those are the directory tables — the contribution rules the read was for sit far below.
+# `find` reports bounded windows around a LITERAL string instead of a bigger prefix, because a
+# bigger prefix mirrors more of someone else's page for the same one clause and still misses it if
+# the clause sits further down. It is never asserted: a rules page that does not contain the word is
+# a reading about that venue, not a failure of this workflow. See qa/find-windows.mjs.
+#
 # Bounded by construction: dispatch-only, read-only permissions, no secrets in scope, exactly one
-# page per run, no link following, https-only, credentials in a URL refused, and Tuned's own hosts
-# refused outright so this can never become untracked headless traffic through the funnel counters
-# EXP-007 is measuring. The refusals live in qa/source-read.spec.mjs, not here, so they hold however
-# the spec is invoked.
+# page per run, no link following, https-only, credentials in a URL refused, at most six quoted
+# windows per read, and Tuned's own hosts refused outright so this can never become untracked
+# headless traffic through the funnel counters EXP-007 is measuring. The refusals live in
+# qa/source-read.spec.mjs, not here, so they hold however the spec is invoked.
 on:
   workflow_dispatch:
     inputs:
       url:
         description: "Absolute https:// URL of ONE candidate source page to open and report"
         required: true
+      find:
+        description: "Optional LITERAL text to locate on the page (case-insensitive, not a pattern)"
+        required: false
 
 permissions:
   contents: read
@@ -62,6 +74,7 @@ jobs:
         working-directory: qa
         env:
           SOURCE_URL: ${{ inputs.url }}
+          SOURCE_FIND: ${{ inputs.find }}
         # Named explicitly rather than left to the config's testDir glob, so adding another spec to
         # qa/ can never silently change what this dispatch runs.
         run: npx playwright test source-read.spec.mjs

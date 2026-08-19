@@ -35,10 +35,17 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
+import { findWindows } from "./find-windows.mjs";
+
 const ARTIFACTS = path.join(process.cwd(), "artifacts");
 fs.mkdirSync(ARTIFACTS, { recursive: true });
 
 const SOURCE_URL = process.env.SOURCE_URL ?? "";
+
+// Optional. A LITERAL string to locate on the page — never a pattern — reported as bounded windows
+// alongside the excerpt. Empty means "not asked", which is a different reading from "asked and not
+// found"; find-windows.mjs keeps those apart.
+const SOURCE_FIND = (process.env.SOURCE_FIND ?? "").trim();
 
 // Announce what this is, truthfully. Tuned's doctrine is explicit provenance; a reader that lies
 // about being an agent to get past a filter would be the same defect as a fabricated find. A site
@@ -256,6 +263,13 @@ test.describe("source read — open one candidate page and report what is actual
     // and it is asserted, because run 50 found it passing green. See classifyRead() above.
     const classification = classifyRead(title, normalized);
 
+    // The excerpt above is a prefix, and a prefix is a guess about where the interesting sentence
+    // is. When SOURCE_FIND is set, the reading also carries bounded windows around a literal —
+    // which is how a rules clause tens of thousands of characters into a long page becomes
+    // quotable without mirroring the page. See qa/find-windows.mjs for why this rather than a
+    // bigger EXCERPT_CHARS.
+    const find = findWindows(normalized, SOURCE_FIND);
+
     const evidence = {
       requested_url: SOURCE_URL,
       final_url: finalUrl,
@@ -272,6 +286,14 @@ test.describe("source read — open one candidate page and report what is actual
       possible_gate_markers: gates,
       read_outcome: classification.outcome,
       interstitial_signals: classification.signals,
+      // Reported, never asserted. A rules page that does not contain the word asked for is a real
+      // reading about that page — "Lobsters never says 'feed'" is a finding — and failing the run
+      // over it would turn a fact about the venue into a fact about the instrument. The assertions
+      // below still gate on whether the page was on screen at all, which is the instrument's job.
+      find: find.needle,
+      find_total_occurrences: find.total,
+      find_windows_truncated: find.truncated,
+      find_windows: find.windows,
       read_by: READER_UA,
     };
 
