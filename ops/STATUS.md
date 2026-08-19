@@ -1,9 +1,58 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-18 20:40 Sydney (2026-08-18 10:40 UTC), run 53 — **the publication is
-reversible now, and it was reversed and put back to prove it** ·
-**OWNER ACTION REQUIRED: NONE** ·
+**Last updated:** 2026-08-19 14:20 Sydney (2026-08-19 04:20 UTC), run 55 — **the first venue whose
+rules did not close the door, found by fixing a reader that was passing on pages it had not
+searched** ·
+**OWNER ACTION REQUIRED: ONE DECISION, NO SPEND** — may this executor submit a feed URL to a
+third-party list in the owner's name, or does a human do it? ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # A read came back green with 69,678 characters and answered nothing. The rules were at character 68,472.
+>
+> Run 54 ended on the hardest sentence this loop has written: **Tuned has no identified venue whose
+> published rules permit a post about a curated feed by the person who runs it.** It left one
+> instruction — find a venue where a *feed* is a permitted subject at all, and if none exists, say so.
+>
+> **`plenaryapp/awesome-rss-feeds` is that venue, and its rules do not close the door.** A curated
+> list of RSS feeds and OPML files that populates the Recommended Feeds section of Plenary, an Android
+> RSS reader. Categories include **Sports**, **Tech** and **Startups**. Quoted from
+> [32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407): *"There are two ways to add
+> any category, country or feed in the repository"* — a Google form, or *"an issue with one of the
+> given templates to add new feeds."* **The form is explicitly permitted. Authorship is not addressed
+> at all**, and silence is not permission, so A1 reads **PARTIALLY SATISFIED**, not cleared.
+>
+> **It took three dispatches, and the middle one is the lesson.** The first read of that page returned
+> HTTP 200, `read_outcome: "page"`, **69,678 visible characters**, `1 passed` — every signal this loop
+> has for *the page was really on screen* — and was **worthless**, because
+> [`source-read.spec.mjs`](../qa/source-read.spec.mjs) reports the first 4,000 characters and the
+> contribution rules begin at character **68,472**. The compact alternative, `/issues/new/choose`,
+> served **279** characters to a logged-out reader. Not a bot check, not a paywall, not egress:
+> **the page was reached and the clause was not.** [L-34](LESSONS.md).
+>
+> **[`cd2d4c6`](https://github.com/in-c0/tuned/commit/cd2d4c6)** adds a bounded literal `find` —
+> at most six windows, every occurrence counted including unquoted ones, *not asked* kept distinct
+> from *asked and not found*, and never asserted. **Not** a bigger `EXCERPT_CHARS`: a longer prefix
+> mirrors more of someone else's page for the same one clause and still misses it if the clause sits
+> further down. `qa/find-windows.mjs` is pure because it is the only part of that spec that can be
+> wrong **silently** — a windowing bug produces text that looks like a quotation and is cut in the
+> wrong place, and a misquoted rule is exactly what A1 exists to prevent. Eight tests.
+>
+> **Product Hunt joins Reddit as UNREADABLE, not unread** — HTTP 403, *"Performing security
+> verification … Ray ID: a2d64936ffeaad44"*, 266 characters, no rule reached
+> ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)). No user agent was spoofed.
+> **Two of six candidates now refuse to state their rules to a reader that declares itself.**
+>
+> **Proposed, not performed.** The submission this venue takes is a feed URL, a title and a category —
+> so the EXP-002 defect (this executor writing the owner's words) **does not arise**. What does arise
+> is that submitting is an outward-facing act in the owner's name, needing a form or an account this
+> executor will not use on its own initiative. [DISTRIBUTION.md](DISTRIBUTION.md) carries the proposal
+> with its A4/A5/A2 pre-conditions written **before** anything ships.
+>
+> **What this is not.** Not traction, and not a big channel. Every source in that list is a publisher;
+> whether an attention feed with 12 public items belongs there is the maintainer's call, and rejection
+> is reasonable. Any arrival estimate above single digits would be invention. `applications` **0**,
+> `members_ever_active` **0**, followers **0**, `items_public` **80**, gross cash **AUD $0** from *no
+> billing exists*, spend **AUD $0.00 of $500**.
 
 > # Run 52 shipped an item it could not take back. Blocker #5 is closed, and the undo was exercised on the real item.
 >
@@ -676,11 +725,11 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. **Run 54 found the blocker's shape had been misdiagnosed.** Three venues' published rules were read from GitHub's network: **Hacker News and Lobsters both FAIL A1 on quoted text** — HN says *"Don't post landing pages"* and lists *"other reading material"* as off topic for a Show HN, which is what a curated feed is; Lobsters is *"focused pretty narrowly on computing"*, caps self-promo at *"less than a quarter of one's stories"*, and gates membership behind an invitation tree. **Reddit returns HTTP 403** and will not show its rules to this reader without an account or developer token. So the binding condition is **A1 — no identified venue permits this post at all** — not A2 (authorship), which run 53 had escalated as the wall and which was **never reached at any of the three**. | Executor reads A1; owner holds any account | AUD $0 | **Open. Top blocker, and now correctly diagnosed: two candidates closed on quoted rules, one unreadable without an owner.** |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. **Run 54 found the blocker's shape had been misdiagnosed.** Three venues' published rules were read from GitHub's network: **Hacker News and Lobsters both FAIL A1 on quoted text** — HN says *"Don't post landing pages"* and lists *"other reading material"* as off topic for a Show HN, which is what a curated feed is; Lobsters is *"focused pretty narrowly on computing"*, caps self-promo at *"less than a quarter of one's stories"*, and gates membership behind an invitation tree. **Reddit returns HTTP 403** and will not show its rules to this reader without an account or developer token. So the binding condition is **A1 — no identified venue permits this post at all** — not A2 (authorship), which run 53 had escalated as the wall and which was **never reached at any of the three**. **Run 55 found the first venue whose A1 did not close it.** `plenaryapp/awesome-rss-feeds` — a curated list of RSS feeds populating an Android reader's Recommended Feeds — states *"There are two ways to add any category, country or feed in the repository"*, via a Google form or *"an issue with one of the given templates to add new feeds"*, with **Sports**, **Tech** and **Startups** categories ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)). **Authorship is not addressed at all**, so A1 is **PARTIALLY SATISFIED — form permitted, authorship unanswered**, not cleared. **Product Hunt is now UNREADABLE too** (HTTP 403 Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)), so two of six candidates will not state their rules to this reader at all. The channel is **proposed, not performed**: A5 has no tag and no registered threshold, and whether this executor may submit in the owner's name is an owner decision. | Executor read A1; owner decides authorship | AUD $0 | **Open, and moved for the first time. One candidate is no longer closed by its own rules.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 5 | ~~**The operator plane cannot retract a publication.**~~ **Closed 2026-08-18 (run 53), same day it opened.** `retract` and `restore` ship in [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6) (PR [#48](https://github.com/in-c0/tuned/pull/48)) and were **exercised on item 242 in production and reversed**: `public_items` 12 → 11 → 12, `operator_publications_hidden` 0 → 1 → 0, `last_public_item_at` back to `2026-08-18T04:15:49.089Z` to the byte. The reader-facing proof is the provenance spec **failing** while retracted ([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)) and green after restore ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). Neither action deletes; `restore` refuses to reverse a hide the **owner** made. | — | AUD $0 | **Closed.** Built while nothing needed it, which is the only time an undo can be built calmly. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **42 consecutive runs**, re-tested 2026-08-19 (run 54) and 2026-08-18 (run 52) for `justtuned.com` *and* `example.com` — both `CONNECT tunnel failed, response 403`. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **43 consecutive runs**, re-tested 2026-08-19 (run 55 and run 54) and 2026-08-18 (run 52) for `justtuned.com` *and* `example.com` — both `CONNECT tunnel failed, response 403`. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 **Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
 Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
@@ -767,39 +816,50 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**Owner: nothing.** No card, no credential, no spend.
+**Owner: one decision, and it is the only thing standing between this loop and its first channel.**
+No card, no credential, no spend.
 
-**Run 54 took the deferred reading and read three venues' rules. The queue after it, in order:**
+> **May this executor submit `https://justtuned.com/sportstech/rss.xml` to
+> [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) — a feed URL, a
+> title and a `Sports` category, on the venue's own Google form or issue template — or does a human
+> do it?**
+>
+> Either answer is workable and the executor will not choose for itself. This is **not** the EXP-002
+> question: the venue takes a factual record, not prose in the owner's voice, so nothing is being
+> written for the owner to publish as their own words. It is an outward-facing act in the owner's
+> name at a third party, which is a boundary rather than an interpretation. **A "no" costs nothing** —
+> a human submitting it is a perfectly good outcome, and so is dropping the candidate.
 
-1. ~~**Read complete UTC day 2026-08-17** from the **scheduled** 20:40 UTC snapshot.~~ **Done, run
-   54.** Taken from the scheduled snapshot
-   ([32184825922](https://github.com/in-c0/tuned/actions/runs/32184825922), `event: schedule`,
-   `generated_at` 2026-08-18T20:54:10Z, [`c55e702`](https://github.com/in-c0/tuned/commit/c55e702)):
-   `landing_view` **102**, `landing_engage` **3**, `application_start` **0**, `application_submit`
-   **0**. **It agrees to the count** with the number run 52 recorded early, so run 53's
-   *"if it disagrees, that is the finding"* check passes with no finding. **Fork A stands** on the
-   pre-registered 1–9 band, qualified by the fact that 08-17's own numbers miss Fork A's
-   `landing_engage ≤ 2` threshold by one. **EXP-007 has now spent both its pre-registered readings
-   and no third is registered.**
-2. **A distribution channel proposal — and the shape of the blocker has changed.** Run 53 named
-   **A2** (this executor writes no sentence a human posts under their own name) as the wall. Run 54
-   read three venues' published rules from GitHub's network and **A2 was never reached**:
-   [Hacker News](DISTRIBUTION.md) and [Lobsters](DISTRIBUTION.md) both **FAIL A1** on quoted rules,
-   and Reddit returns **403** and will not show its rules to this reader at all. **The binding
-   constraint is A1, not A2** — a venue that forbids the post makes its authorship moot. What the
-   executor can still do without an owner: read A1 for the remaining unread candidate (Product Hunt)
-   and for any venue where a *feed* is a permitted subject. What it cannot do: obtain a Reddit
-   account, or invent a venue.
-3. Cheap and still unclaimed: the unattributed console 404 from run 49.
-4. **Do not** pre-register an A5 arrival threshold for any venue whose A1 is unread — that ordering
-   was reversed this run ([L-33](LESSONS.md)), because a threshold is thrown away entirely if the
-   venue turns out to forbid the post.
+**Run 55 read A1 where the venue's subject is a feed. The queue after it, in order:**
+
+1. **The submission above, once authorized — and not before its pre-conditions hold**, in
+   [L-33](LESSONS.md) order: **A4** (`/sportstech`'s newest public item ≤ 72h, currently satisfied
+   only until **2026-08-21 04:15 UTC**), then **A5** (an `arrival:<tag>` allowlisted and verified in
+   production, plus an arrival threshold and window **pre-registered before** the submission, never
+   after), then **A2** (the decision above). A null result must stay separable from an inadmissible
+   one: a maintainer who never merges it is **not** evidence that nobody wanted Tuned.
+2. **A1 for any further venue whose subject is a feed.** Product Hunt is now **UNREADABLE** to this
+   executor, not unread, so the register has no readable unread entry left. The search that remains is
+   for *another* venue where a feed is the permitted subject — the reads cost one dispatch each and
+   cannot spend a channel. If none exists beyond this one, **that is the finding** and it belongs in
+   front of the reviewer rather than buried in a register.
+3. **One re-read owed, and it is smaller than it sounds.** Every A1 verdict before run 55 was graded
+   from the 4,000-character prefix. Hacker News' page is 1,950 characters, so nothing was out of
+   reach there. Lobsters' is **15,676**, and its three quoted disqualifying grounds are real — run 54
+   could only quote what the log carried. What a prefix cannot show is what a page *stops* saying:
+   a later carve-out ("feeds and aggregators are an exception") would have been invisible. **A FAIL
+   from quoted prohibitions is sound unless something later softens them**, so this is a completeness
+   check, not a suspected error — one dispatch with `find: "self-promo"` closes it, and it ranks
+   below finding a venue that permits the post.
+4. Cheap and still unclaimed: the unattributed console 404 from run 49.
 
 **Explicitly not:** a second publication to keep A4's 72-hour window open — A4's own text says
 freshness is a *consequence* of publishing something worth publishing, and EXP-008's binding clauses
 disqualify any publication made to move a number. **A4 decaying back to FAILS is an acceptable
-outcome.** Also not: landing-page, copy, positioning or pricing work, which run 51 closed on a
-measurement rather than a precaution.
+outcome**, and it is *not* a reason to rush the submission above. Also not: an A5 threshold for a
+channel that is not yet authorized; any submission, form, issue or account use before the decision
+above; user-agent spoofing to get past Product Hunt's or Reddit's refusal; and landing-page, copy,
+positioning or pricing work, which run 51 closed on a measurement rather than a precaution.
 
 ## Not doing (deliberate holds)
 
@@ -822,6 +882,12 @@ measurement rather than a precaution.
   venue that asks for the poster's own words. This is the doctrine turned on the loop itself: humans
   contribute attention, not content. Writing the owner's voice for them was the defect in EXP-002, not
   an incidental detail of it.
+- **No submission, form, issue or account use at any third-party venue until the owner or reviewer
+  answers the authorship question in *Next action*.** Reading a venue's published rules is not
+  activity at that venue and authorizes nothing; submitting to one is.
+- **No user-agent spoofing, challenge-solving or routing around a bot check** to reach rules a host is
+  deliberately withholding. Product Hunt and Reddit both refused this reader in 2026-08; *"this venue
+  will not state its rules to a declared agent"* is a reading the loop records rather than defeats.
 - No secret read, hash, rotation, comparison or exposure — ever.
 - No spend; the executor holds no payment credentials.
 - **No second publication to hold A4's 72-hour window open.** Freshness is a consequence of

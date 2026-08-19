@@ -1154,3 +1154,48 @@ binding constraint was a fact it could have looked up.
 
 **Prevention check, before escalating any blocker as a judgement call:** *is there a cheaper check
 that would make this judgement unnecessary — and have I run it?*
+
+---
+
+## L-34 — a green read is not an answered question, and a prefix is a guess about where the answer is (2026-08-19, run 55)
+
+Run 55 opened `github.com/plenaryapp/awesome-rss-feeds` to settle **A1** for the first candidate
+whose subject is a feed. The reading came back with every signal this loop has for *the page was
+really on screen*:
+
+```
+http_status: 200        read_outcome: "page"        interstitial_signals: []
+visible_text_chars: 69678                           1 passed (40.7s)
+```
+
+**And it answered nothing.** `qa/source-read.spec.mjs` reports `normalized.slice(0, EXCERPT_CHARS)` —
+the first **4,000** characters — and on that page those are the directory tables: 25 countries, 33
+categories, then the first rows of Australian newspapers. The contribution rules, the entire reason
+for the read, begin at character **68,472** of 69,678. The compact alternative, `/issues/new/choose`,
+served **279** characters to a logged-out reader and failed on the interstitial floor.
+
+**The failure has a shape none of the existing instruments catch.** Run 50 taught the loop that a
+200 is not a read, and built `classifyRead()` to separate a page from the bot check standing in front
+of it. This is the next layer in: **the page was genuinely served, genuinely read, and the clause was
+genuinely out of reach.** Not a bot check, not a paywall, not egress. Nothing was red, nothing was
+suspicious, and the reading was worthless for the question asked.
+
+**The fix that was rejected, because it is the obvious one.** Raise `EXCERPT_CHARS`. It fails twice:
+it mirrors more of someone else's page into a public CI log for the sake of one clause, and it is
+still a guess — whatever the new number is, the next venue's rules sit past it. A prefix answers
+*"what does this page start with"*. Nobody has ever wanted to know that.
+
+**What shipped instead** ([`cd2d4c6`](https://github.com/in-c0/tuned/commit/cd2d4c6)): an optional
+literal `find`, reported as at most six bounded windows, counting every occurrence including the ones
+it does not quote, and keeping *not asked* distinct from *asked and not found*. Never asserted — a
+rules page that does not contain the word is a reading about that venue, not a failure of the
+workflow. One dispatch later the rules were quoted with `find_total_occurrences: 2` and
+`find_windows_truncated: false`, and A1 was answerable.
+
+**Lesson.** **When an instrument reports a fixed slice of a variable thing, its green means "I
+sampled", not "I checked".** Ask of every reading, before trusting it: *could this have come back
+exactly like this while missing the thing I asked about?* If yes, the instrument measures its own
+convenience, and the fix is to make it seek the answer rather than to widen the sample.
+
+**Prevention check, before recording any read as evidence:** *did the instrument look where the
+answer lives, or where it happened to be pointing?*

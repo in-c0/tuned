@@ -2370,3 +2370,89 @@ moved no product metric and claims no demand: three unattributed page touches ac
 views are not three people.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+---
+
+## Run 55 — 2026-08-19 (14:05 Sydney): the read succeeded and answered nothing, so the reader was fixed
+
+**Directive.** No reviewer directive; the newest comment on issue #1 is run 54's own report
+(2026-08-18 22:20 UTC). **Eight consecutive execution reports with no ChatGPT pass between them.**
+The operative instruction was run 54's queue, item 1: *A1 for the remaining candidates, and more
+useful than another Product Hunt read — a venue where a **feed** is a permitted subject at all; and
+if none exists, that is the finding.*
+
+**Decision: read the two remaining candidates, and when the second read succeeded without answering
+the question, fix the instrument rather than record a half-answer.**
+
+Three dispatches of [`source-read.yml`](../.github/workflows/source-read.yml), GETs only, no account,
+no credential, no link following, no Tuned counter touched:
+
+| Venue | HTTP | Outcome | Run |
+| --- | --- | --- | --- |
+| Product Hunt community guidelines | **403** | Cloudflare bot check — **A1 UNREADABLE** | [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616) |
+| `plenaryapp/awesome-rss-feeds` | 200 | `page`, 69,678 chars — **and no rule reached** | [32214622360](https://github.com/in-c0/tuned/actions/runs/32214622360) |
+| same page, `find: "contribut"` | 200 | rules quoted, A1 answerable | [32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407) |
+
+**Product Hunt joins Reddit as UNREADABLE, not unread.** *"Performing security verification … Ray
+ID: a2d64936ffeaad44"*, 266 visible characters, no rule reached. No user agent was spoofed. Two of
+six candidates now sit in that category, and the pattern is worth naming: **a reader that announces
+itself honestly is refused by exactly the venues with the most traffic.**
+
+**The instrument defect, which is the reason this run shipped code.** The second read returned every
+signal the loop has for *the page was on screen* — HTTP 200, `read_outcome: "page"`,
+`interstitial_signals: []`, `1 passed` — and was worthless, because the spec reports the first 4,000
+characters and the contribution rules start at character **68,472** of 69,678. The compact
+alternative, `/issues/new/choose`, served **279** characters to a logged-out reader. This is a
+failure mode no existing instrument catches: not a bot check (run 50), not a paywall, not egress —
+**the page was reached and the clause was not.** It will recur at every venue whose rules sit at the
+bottom of a long page, which is most of them.
+
+**Shipped: [`cd2d4c6`](https://github.com/in-c0/tuned/commit/cd2d4c6)** — an optional literal `find`
+input, at most six bounded windows, every occurrence counted including unquoted ones, *not asked*
+kept distinct from *asked and not found*, and **never asserted** (a rules page that lacks the word is
+a reading about that venue, not a failure of the workflow). `qa/find-windows.mjs` is pure so it can
+be tested — it is the only part of that spec that can be wrong **silently**, since a windowing bug
+produces text that looks like a quotation and is cut in the wrong place, and a misquoted rule is
+exactly what A1 exists to prevent. Eight tests, `test/find-windows.test.ts`.
+
+**Rejected: raising `EXCERPT_CHARS`.** It mirrors more of someone else's page into a public CI log
+for one clause, and it is still a guess — the next venue's rules sit past whatever the new number is.
+[L-34](LESSONS.md).
+
+**The finding.** `plenaryapp/awesome-rss-feeds` is the **first candidate in this register whose A1
+did not close it**: *"There are two ways to add any category, country or feed in the repository"* —
+a Google form, or *"an issue with one of the given templates to add new feeds"*. Categories include
+Sports, Tech and Startups. **Authorship is not addressed at all**, and silence is not permission, so
+A1 reads **PARTIALLY SATISFIED: form permitted, authorship unanswered by the venue.**
+
+**Proposed, not performed — and the boundary is deliberate.** The submission this venue accepts is a
+feed URL, a title and a category, so the EXP-002 defect (this executor writing the owner's words)
+does not arise. What does arise is that submitting anything is an outward-facing act in the owner's
+name at a third party, needing a form or an account this executor will not use on its own initiative.
+[DISTRIBUTION.md](DISTRIBUTION.md) carries the proposal with A4/A5/A2 pre-conditions stated in
+advance so the reviewer can reject them before anything ships.
+
+**Not claimed:** that this is traction, or a large channel. Every source in that list is a publisher;
+whether an attention feed with 12 public items belongs there is the maintainer's judgement, and
+rejection is a reasonable outcome. It is a list in a GitHub repository read by one Android RSS
+reader's users. **Any arrival estimate above single digits would be invention.**
+
+**Not done, deliberately:** no submission, no form opened, no issue created, no account used, no
+user-agent spoofing to get past Product Hunt's refusal, no A5 threshold registered for a channel not
+yet authorized, no second publication to hold A4's window open, and no landing-page, copy,
+positioning or pricing work (closed on a measurement at run 51).
+
+**Verification.** Local: `npm run check` exit **0**; `vitest run` **119/119** (111 + 8 new);
+`scripts/validate-workflows.py` green on all ten workflows. CI on the pushed commit:
+[`check` 32215100375](https://github.com/in-c0/tuned/actions/runs/32215100375) success;
+[`verify production` 32215100614](https://github.com/in-c0/tuned/actions/runs/32215100614) success,
+past *"Wait for the expected commit to be serving"*, which exits 0 only on an exact `/api/version`
+match. Executor egress re-tested and unchanged: **403 CONNECT**, `justtuned.com` and `example.com`
+alike — **43 consecutive runs**.
+
+**Rollback.** [`cd2d4c6`](https://github.com/in-c0/tuned/commit/cd2d4c6) touches
+`.github/workflows/source-read.yml`, `qa/` and `test/` only. **No Worker code, no schema, no route,
+no data, no public surface** — the Cloudflare build ships the same runtime bytes it shipped before.
+Reverting it removes an optional dispatch input and changes nothing a user can reach.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

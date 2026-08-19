@@ -330,6 +330,121 @@ yet".
 
 ---
 
+## A1 read where the venue's subject is a feed — 2026-08-19 (run 55)
+
+Run 54 ended on a statement that was worse news than the loop had been carrying: **Tuned has no
+identified venue whose published rules permit a post about a curated feed by the person who runs
+it.** It left one instruction with it — *find a venue where a feed is a permitted subject at all, and
+if none exists, that is the finding.* This run went looking, and it took two reads to get there and a
+third to make either of them mean anything.
+
+| Venue | Page read | HTTP | `read_outcome` | Run |
+| --- | --- | --- | --- | --- |
+| Product Hunt | `help.producthunt.com/en/articles/3615694-community-guidelines` | **403** | `interstitial` | [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616) |
+| awesome-rss-feeds | `github.com/plenaryapp/awesome-rss-feeds` | 200 | `page`, 69,678 chars — **and it answered nothing** | [32214622360](https://github.com/in-c0/tuned/actions/runs/32214622360) |
+| awesome-rss-feeds | same page, `find: "contribut"` | 200 | `page`, rules quoted | [32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407) |
+
+### Product Hunt — A1 is UNREADABLE BY THIS EXECUTOR, the same category as Reddit
+
+The last never-read entry in the register, and the reader never reached a rule. HTTP **403**, title
+`Just a moment...`, 266 visible characters, and the whole of what the page carried:
+
+> help.producthunt.com Performing security verification This website uses a security service to
+> protect against malicious bots. This page is displayed while the website verifies you are not a
+> bot. Ray ID: a2d64936ffeaad44 Performance and Security by Cloudflare Privacy
+
+As with Reddit, this is **not** evidence that Product Hunt forbids the post — nothing about the
+post's form was reached. It is evidence that **A1 for Product Hunt cannot be resolved by this
+executor.** No user agent was spoofed to get past it, and none will be.
+
+**Two of six candidates now sit in "unreadable" rather than "unread".** That is worth stating as its
+own fact: the constraint is not only *what venues permit*, it is increasingly *which venues will
+speak to a declared agent at all*. A loop that reads rules honestly, from a browser that announces
+itself, is refused by exactly the venues with the most traffic.
+
+### awesome-rss-feeds — the first candidate whose subject is a feed, and A1 says the form is permitted
+
+`https://github.com/plenaryapp/awesome-rss-feeds` — a curated list of RSS feeds and OPML files that
+populates the Recommended Feeds and local-news sections of Plenary, an Android RSS reader. CC0-1.0,
+2.7k stars, 199 forks. Read 2026-08-19, HTTP 200, `read_outcome: "page"`, `interstitial_signals: []`.
+
+Its stated purpose, quoted from the run log: *"Using Plenary, we are trying to solve discovability of
+RSS feeds for first time users."* Its category list includes **Sports**, **Tech**, **Startups**,
+**Football**, **Cricket** and **Tennis**. Its country list includes **Australia**.
+
+**The contribution rules, quoted verbatim** from
+[32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407) — `find: "contribut"`,
+`find_total_occurrences: 2`, `find_windows_truncated: false`, first window at character **68,472** of
+69,678:
+
+> **Contribution** Add new category/country/feed We are planning to expand this by adding more feeds,
+> recommended categories and countries with the help of the community and our own curation. There are
+> two ways to add any category, country or feed in the repository. **Fill Google form:** Add new
+> country - https://forms.gle/U3GrbbJEEtrmBeh19 Add new feed source in a country -
+> https://forms.gle/GGppD2uD1Paa6G5Z9 Add new feed in a recommended category -
+> https://forms.gle/tKMot484rhvZjGHk8 **Create an issue** Create an issue with one of the given
+> templates to add new feeds. **PR** PRs suggesting improvements in Readme are welcome!
+
+**A1, answered in two halves, and the halves must not be collapsed.**
+
+1. **The form is explicitly permitted.** *"There are two ways to add any category, country or feed in
+   the repository."* A feed is not merely tolerated here — adding one is the documented purpose of
+   the contribution section. This is the **first** venue this register has read where that is true.
+   Hacker News disqualifies Tuned on *what it is* (*"other reading material"*), Lobsters on subject
+   matter (*"pretty narrowly on computing"*); this venue's subject **is** the thing Tuned publishes.
+2. **Authorship is not addressed at all.** There is no self-promotion clause, no "not your own feed"
+   rule, no invitation tree, no account-age or karma requirement — and **silence is not permission**.
+   The rules say submissions come *"with the help of the community and our own curation"*, which
+   names a maintainer who decides. So A1 reads **PARTIALLY SATISFIED: the form is permitted, the
+   authorship question is unanswered by the venue** — and it is unanswered because the venue never
+   raises it, not because this loop failed to look.
+
+**What this does not establish, stated before anyone gets ahead of it.** Every source presently in
+that list is a publisher — Daily Telegraph, Sydney Morning Herald. Whether an attention feed with
+**12 public items** is the kind of feed a Recommended-Feeds list carries is the maintainer's
+judgement and nobody else's, and a rejection would be an entirely reasonable outcome. This is also
+**not a large channel**: it is a list in a GitHub repository read by one Android RSS reader's users,
+and any arrival estimate above single digits would be invention. It clears the gate that closed every
+other candidate. It does not clear the others, and it is not traction.
+
+### A2 is now genuinely reached for the first time, and it is narrower than the loop assumed
+
+Run 53 escalated A2 — *this executor writes no sentence a human publishes under their own name* — as
+the wall in front of distribution. Run 54 found A2 was never reached, because two venues forbade the
+post outright. **Here it is reached, and the shape of it changes**: the submission this venue accepts
+is a **feed URL, a title and a category** on a form, or an issue from a template. That is a factual
+record, not authored prose in the owner's voice, so the specific defect that killed EXP-002 — this
+executor writing the owner's words — **does not arise**.
+
+What does arise is different and is a boundary, not an interpretation: submitting anything is an
+**outward-facing act in the owner's name at a third party**, and the Google forms and the issue
+template both need a human or an account this executor should not use on its own initiative.
+**Therefore: proposed, not performed.** Nothing was submitted this run, no form was opened, no issue
+was created, and the only pages touched were public and read-only.
+
+### The proposal, with its thresholds stated in advance so the reviewer can reject them
+
+If the reviewer or the owner authorizes it, the smallest complete version is: **one submission of
+`https://justtuned.com/sportstech/rss.xml` to the `Sports` recommended category**, via the venue's
+own Google form or issue template, describing the feed truthfully as an attention feed with explicit
+provenance and single-digit item counts. Pre-conditions that must hold **before** it is made, in
+[L-33](LESSONS.md) order:
+
+- **A4** — `/sportstech`'s newest public item ≤ 72h old, read from production in the same cycle. It
+  is **SATISFIED only until 2026-08-21 04:15 UTC**, and a publication made to hold that window open
+  is disqualified by [EXP-008](EXPERIMENTS.md)'s binding clauses. If A4 has decayed, A4 is fixed by
+  publishing something worth publishing or the submission waits.
+- **A5** — an `arrival:<tag>` allowlisted for this attempt, verified in production, plus a
+  pre-registered arrival threshold and window **written before the submission**, never after. The
+  instrument exists (run 48); the tag and threshold do not.
+- **A2** — the owner or reviewer decides whether this executor may submit at all, or whether a human
+  does it. Either answer is workable; the executor will not choose for itself.
+
+**A null result must stay separable from an inadmissible one:** if the maintainer never merges it,
+that is *not* "nobody wanted Tuned", and the register must record the difference.
+
+---
+
 ## Candidate register
 
 No candidate is ADMISSIBLE. A1/A2 are marked **UNREAD** wherever this loop has not quoted the venue's
@@ -345,7 +460,8 @@ on `/` or `/ava` still fails A4.
 | **Hacker News — Show HN** | **READ 2026-08-18** ([32191459880](https://github.com/in-c0/tuned/actions/runs/32191459880)) — **FAILS**: *"Don't post landing pages"*; *"without barriers such as signups or emails"*; and a feed is *"reading material"*, which the page lists as off topic. Also **KNOWN-BLOCKING**: prior submission [`49280269`](https://news.ycombinator.com/item?id=49280269) was killed at submission (run 33) and a further attempt needs the owner's **explicit moderator permission** | Owner-authored only; executor drafts nothing | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — fails A1 on the destination's *form*, before moderator permission is even reached |
 | **Reddit — a topical subreddit** | **UNREADABLE 2026-08-18** ([32191175814](https://github.com/in-c0/tuned/actions/runs/32191175814)) — HTTP **403**, *"blocked by network security … log in to your Reddit account or use your developer token"*. The rules cannot be quoted by this executor at all; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable without an account this executor does not hold |
 | **Lobsters** | **READ 2026-08-18** ([32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996)) — **FAILS** on three quoted grounds: topicality is *"pretty narrowly on computing"* and excludes *"entrepreneurship"*; *"self-promo should be less than a quarter of one's stories and comments"*, which a first submission cannot satisfy; and membership runs through *"a user invitation tree"* | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — closed on the venue's own words |
-| **Product Hunt** | UNREAD | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** |
+| **Product Hunt** | **UNREADABLE 2026-08-19** ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)) — HTTP **403**, `Just a moment...`, *"Performing security verification … verifies you are not a bot"*, 266 chars. The rules cannot be quoted by this executor; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable by this executor |
+| **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ❌ — no tag allowlisted, no threshold registered | **NOT YET ADMISSIBLE — and the only candidate whose A1 did not close it.** Proposed above; A5 and A2 outstanding |
 | **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
 | **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
 
@@ -398,6 +514,24 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
 ---
 
 ## Change log
+
+- **2026-08-19 (run 55)** — **the first candidate whose A1 did not close it, and an instrument
+  defect found by a read that succeeded.** Product Hunt joins Reddit as **UNREADABLE** (HTTP 403,
+  Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)).
+  `plenaryapp/awesome-rss-feeds` **permits the form** — *"There are two ways to add any category,
+  country or feed in the repository"* — and does not address authorship at all
+  ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)). Registered above as
+  **NOT YET ADMISSIBLE** with A5 and A2 outstanding, and **proposed rather than performed**.
+
+  **The instrument correction, which is the transferable part.** The first read of that page came
+  back HTTP 200, `read_outcome: "page"`, **69,678 visible characters** — every signal this loop has
+  for *"the page was really on screen"* — and answered nothing, because
+  [`source-read.spec.mjs`](../qa/source-read.spec.mjs) reports the first 4,000 characters and the
+  contribution rules sat at character **68,472**. The compact alternative, `/issues/new/choose`,
+  served **279** characters to a logged-out reader. **A green read is not an answered question.**
+  Fixed in [`cd2d4c6`](https://github.com/in-c0/tuned/commit/cd2d4c6) with a bounded literal `find`
+  input rather than a bigger excerpt — a longer prefix mirrors more of someone else's page for the
+  same one clause and still misses it if the clause sits further down. See [L-34](LESSONS.md).
 
 - **2026-08-19 (run 54)** — **A1 read for three venues, and the file's own ordering found wrong.**
   Hacker News and Lobsters **FAIL A1 on quoted rules**; Reddit is **unreadable** by this executor
