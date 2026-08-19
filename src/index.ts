@@ -693,10 +693,14 @@ app.get("/studio/:token/setup", async (c) => {
 // campaign label on the URL, aggregated into the same daily counts everything else uses. The
 // published privacy policy is unchanged by it.
 //
-// `qa` is the only tag today, and it is not a placeholder — it is this loop's own
-// verification traffic, self-labelled so it stays separable from any real campaign, and it is
-// what proves the path writes in production before an attempt depends on it.
-const ARRIVAL_TAGS = new Set(["qa"]);
+// `qa` is this loop's own verification traffic, self-labelled so it stays separable from any
+// real campaign, and it is what proves the path writes in production before an attempt depends
+// on it. `awesome-rss-feeds` is pre-registered for the one candidate channel whose published
+// rules do not forbid the post (ops/DISTRIBUTION.md, run 55) — registered here *before* any
+// submission because counters start at zero on the deploy that introduces them and nothing is
+// backfilled. Registering it authorizes no submission; it only means that if a submission is
+// ever authorized, its result would be readable.
+const ARRIVAL_TAGS = new Set(["qa", "awesome-rss-feeds"]);
 
 // ---------- public feed ----------
 app.get("/:handle", async (c) => {
@@ -730,6 +734,44 @@ app.get("/:handle/rss.xml", async (c) => {
     .bind(c.req.param("handle").toLowerCase())
     .first<Creator>();
   if (!creator) return c.text("No such feed", 404);
+  // Counted from run 56, and the reason is specific rather than general tidiness. The one
+  // distribution candidate whose published rules do not forbid the post is a directory of RSS
+  // feeds, so the URL that would be submitted is *this* route — and until now this route wrote
+  // no counter of any kind. Condition A5 in ops/DISTRIBUTION.md ("if it works, would I see
+  // it?") was therefore not merely unregistered for that candidate, it was unsatisfiable: the
+  // submission would have pointed at the one public surface in the product that counts nothing.
+  //
+  // Separate names from `feed_view` on purpose. These are not the same event: a feed client
+  // polls on a schedule, so one subscriber produces many fetches a day while one reader
+  // produces one view. Folding them together would have made a single subscriber look like a
+  // traffic spike, and it would have broken the comparability of the ten-day `feed_view`
+  // series the moment it shipped.
+  //
+  //   feed_fetch            every fetch of any feed's RSS
+  //   feed_fetch:<handle>   the same event split by destination, read from the creator row
+  //   arrival_fetch:<tag>   fetches whose URL carried an allowlisted ?src= tag
+  //
+  // The `_bot` split is the same UA heuristic the rest of the funnel uses, kept for
+  // consistency, but on this surface **neither bucket is a person** and the unsuffixed one must
+  // never be read as human traffic. Every fetch of an RSS URL is a machine; what the split
+  // separates is a self-declaring crawler from a feed reader that does not self-declare. The
+  // unsuffixed name also carries this loop's own scheduled QA fetches, so it is a liveness
+  // signal and not a demand signal. `arrival_fetch:<tag>` is the one that grades an attempt,
+  // because only a link this loop published carries the tag.
+  //
+  // And the count is polls, never people: with no cookie and no visitor identifier there is no
+  // way to turn a daily poll count into a subscriber count, and any run that reports one as the
+  // other is inventing a metric.
+  const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
+  const src = c.req.query("src") ?? "";
+  track(
+    c,
+    countEach(c.env.DB, [
+      `feed_fetch${suffix}`,
+      `feed_fetch${suffix}:${creator.handle}`,
+      ARRIVAL_TAGS.has(src) ? `arrival_fetch${suffix}:${src}` : "",
+    ])
+  );
   const items = await itemsFor(c.env.DB, creator.id, true);
   return c.body(rssFeed(creator, items, new URL(c.req.url).origin), 200, { "content-type": "application/rss+xml; charset=utf-8" });
 });
