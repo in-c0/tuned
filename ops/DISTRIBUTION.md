@@ -477,9 +477,11 @@ authorized, made or merged, because counters start at zero on the deploy that in
    The names are separate from `feed_view` so that one subscriber cannot read as a traffic spike, and
    so the ten-day view series stays comparable across the deploy.
 2. **Neither bucket is a person.** Every fetch of an RSS URL is a machine — the `_bot` split
-   separates a crawler that declares itself from a feed reader that does not. Unsuffixed `feed_fetch`
-   also carries this loop's own scheduled QA fetches of `/sportstech/rss.xml`, so it is a **liveness
-   signal, not a demand signal**. Only `arrival_fetch:<tag>` grades an attempt.
+   separates a crawler that declares itself from a feed reader that does not. This loop's own
+   scheduled QA fetches of `/sportstech/rss.xml` declare a `HeadlessChrome` user agent and so land in
+   **`feed_fetch_bot`**, which makes that name the **liveness signal** and leaves unsuffixed
+   `feed_fetch` as a **background rate of third-party fetchers**. Neither is demand. Only
+   `arrival_fetch:<tag>` grades an attempt.
 3. **Polls, never people.** No cookie, no visitor identifier, so no subscriber count can be derived.
    EXP-009's forks are written so none of them tries, and its Fork A is a *number of days with
    activity*, not a number of readers.

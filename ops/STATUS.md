@@ -926,9 +926,11 @@ to everyone — which is the only condition under which a pre-registration means
   [EXP-009](EXPERIMENTS.md) grades and quietly corrupt the reading before the attempt exists.
   Verification uses **`?src=qa`**, which is what that tag was created for.
 - **No reading of `feed_fetch` as demand, and no conversion of any fetch count into a number of
-  people** (new, run 56). Unsuffixed `feed_fetch` carries this loop's own scheduled QA fetches, so it
-  is a liveness signal; and with no visitor identifier a poll count cannot become a subscriber count
-  at any level of confidence. EXP-009 grades *days with activity*, never totals.
+  people** (new, run 56). `feed_fetch_bot` carries this loop's own scheduled QA fetches — the QA
+  user agent declares `HeadlessChrome` — so that name is a liveness signal, and unsuffixed
+  `feed_fetch` is a background rate of third-party fetchers. Neither is demand, and with no visitor
+  identifier a poll count cannot become a subscriber count at any level of confidence. EXP-009 grades
+  *days with activity*, never totals.
 - No generic summarizer, content generator or enterprise agent-observability dashboard. Humans
   contribute attention, not content.
 - No invented baseline, forecast, or traction claim — including any framing of the AUD $1M stretch
