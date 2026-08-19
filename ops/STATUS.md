@@ -725,7 +725,7 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. **Run 54 found the blocker's shape had been misdiagnosed.** Three venues' published rules were read from GitHub's network: **Hacker News and Lobsters both FAIL A1 on quoted text** — HN says *"Don't post landing pages"* and lists *"other reading material"* as off topic for a Show HN, which is what a curated feed is; Lobsters is *"focused pretty narrowly on computing"*, caps self-promo at *"less than a quarter of one's stories"*, and gates membership behind an invitation tree. **Reddit returns HTTP 403** and will not show its rules to this reader without an account or developer token. So the binding condition is **A1 — no identified venue permits this post at all** — not A2 (authorship), which run 53 had escalated as the wall and which was **never reached at any of the three**. **Run 55 found the first venue whose A1 did not close it.** `plenaryapp/awesome-rss-feeds` — a curated list of RSS feeds populating an Android reader's Recommended Feeds — states *"There are two ways to add any category, country or feed in the repository"*, via a Google form or *"an issue with one of the given templates to add new feeds"*, with **Sports**, **Tech** and **Startups** categories ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)). **Authorship is not addressed at all**, so A1 is **PARTIALLY SATISFIED — form permitted, authorship unanswered**, not cleared. **Product Hunt is now UNREADABLE too** (HTTP 403 Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)), so two of six candidates will not state their rules to this reader at all. The channel is **proposed, not performed**: A5 has no tag and no registered threshold, and whether this executor may submit in the owner's name is an owner decision. | Executor read A1; owner decides authorship | AUD $0 | **Open, and moved for the first time. One candidate is no longer closed by its own rules.** |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. **Run 54 found the blocker's shape had been misdiagnosed.** Three venues' published rules were read from GitHub's network: **Hacker News and Lobsters both FAIL A1 on quoted text** — HN says *"Don't post landing pages"* and lists *"other reading material"* as off topic for a Show HN, which is what a curated feed is; Lobsters is *"focused pretty narrowly on computing"*, caps self-promo at *"less than a quarter of one's stories"*, and gates membership behind an invitation tree. **Reddit returns HTTP 403** and will not show its rules to this reader without an account or developer token. So the binding condition is **A1 — no identified venue permits this post at all** — not A2 (authorship), which run 53 had escalated as the wall and which was **never reached at any of the three**. **Run 55 found the first venue whose A1 did not close it.** `plenaryapp/awesome-rss-feeds` — a curated list of RSS feeds populating an Android reader's Recommended Feeds — states *"There are two ways to add any category, country or feed in the repository"*, via a Google form or *"an issue with one of the given templates to add new feeds"*, with **Sports**, **Tech** and **Startups** categories ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)). **Authorship is not addressed at all**, so A1 is **PARTIALLY SATISFIED — form permitted, authorship unanswered**, not cleared. **Product Hunt is now UNREADABLE too** (HTTP 403 Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)), so two of six candidates will not state their rules to this reader at all. The channel is **proposed, not performed**: A5 has no tag and no registered threshold, and whether this executor may submit in the owner's name is an owner decision. **Run 56 closed A5 for that candidate and found the register had misdiagnosed it.** A5 read *"threshold unregistered"*; it was **unsatisfiable** — `GET /:handle/rss.xml`, the exact URL in the proposal, wrote **no counter of any kind**, because run 48's arrival instrument lives on the HTML feed page and the venue that permits the post is a directory of **RSS feeds**. Shipped in PR [#49](https://github.com/in-c0/tuned/pull/49): `feed_fetch`, `feed_fetch:<handle>`, `arrival_fetch:<tag>`, the `awesome-rss-feeds` tag, a production check that `?src=` survives the edge on that route, and [EXP-009](EXPERIMENTS.md) pre-registered before any submission exists — thresholds graded in *days with activity* rather than totals, plus **Fork D** (never merged → inadmissible, not null) and **Fork E** (merged with the tag stripped → ungradeable, not a zero). **A2 is now this candidate's only outstanding condition.** [L-35](LESSONS.md). | Executor read A1 and closed A5; **owner decides authorship** | AUD $0 | **Open, and one condition from admissible. Only the owner's decision remains.** |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 5 | ~~**The operator plane cannot retract a publication.**~~ **Closed 2026-08-18 (run 53), same day it opened.** `retract` and `restore` ship in [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6) (PR [#48](https://github.com/in-c0/tuned/pull/48)) and were **exercised on item 242 in production and reversed**: `public_items` 12 → 11 → 12, `operator_publications_hidden` 0 → 1 → 0, `last_public_item_at` back to `2026-08-18T04:15:49.089Z` to the byte. The reader-facing proof is the provenance spec **failing** while retracted ([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)) and green after restore ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). Neither action deletes; `restore` refuses to reverse a hide the **owner** made. | — | AUD $0 | **Closed.** Built while nothing needed it, which is the only time an undo can be built calmly. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
@@ -830,20 +830,34 @@ No card, no credential, no spend.
 > name at a third party, which is a boundary rather than an interpretation. **A "no" costs nothing** —
 > a human submitting it is a perfectly good outcome, and so is dropping the candidate.
 
-**Run 55 read A1 where the venue's subject is a feed. The queue after it, in order:**
+**Run 56 closed A5 for that candidate, and found it had been misdiagnosed.** The register listed A5
+as *"threshold unregistered"*. It was **unsatisfiable**: `GET /:handle/rss.xml` — the exact URL in the
+question above — wrote **no counter of any kind**. Run 48's arrival instrument lives on the HTML feed
+page; the venue that permits the post is a directory of **RSS feeds**. Had the submission gone ahead
+on the register's own reading, the loop would have watched a permanently zero counter for fourteen
+days and recorded a **confident null result about demand** it had manufactured itself. Shipped in PR
+[#49](https://github.com/in-c0/tuned/pull/49): `feed_fetch`, `feed_fetch:<handle>`,
+`arrival_fetch:<tag>`, the `awesome-rss-feeds` tag, and [EXP-009](EXPERIMENTS.md)'s thresholds
+pre-registered before any submission exists. [L-35](LESSONS.md).
 
-1. **The submission above, once authorized — and not before its pre-conditions hold**, in
-   [L-33](LESSONS.md) order: **A4** (`/sportstech`'s newest public item ≤ 72h, currently satisfied
-   only until **2026-08-21 04:15 UTC**), then **A5** (an `arrival:<tag>` allowlisted and verified in
-   production, plus an arrival threshold and window **pre-registered before** the submission, never
-   after), then **A2** (the decision above). A null result must stay separable from an inadmissible
-   one: a maintainer who never merges it is **not** evidence that nobody wanted Tuned.
-2. **A1 for any further venue whose subject is a feed.** Product Hunt is now **UNREADABLE** to this
+**So the decision above is now the candidate's *only* outstanding condition** — A1 partially
+satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, **A5 ✅**. The queue after it, in order:
+
+1. **The submission above, once authorized.** Its pre-conditions in [L-33](LESSONS.md) order are now
+   **A4** (satisfied only until **2026-08-21 04:15 UTC**) and **A2** (the decision above); **A5 is
+   done**. A null result must stay separable from an inadmissible one: a maintainer who never merges
+   it is **not** evidence that nobody wanted Tuned — that is EXP-009 Fork D, and Fork E covers a
+   merge that strips the `?src=` tag.
+2. **EXP-009 Reading 1, due on the complete UTC day 2026-08-26** and gradeable without anyone's
+   permission: does `feed_fetch:sportstech` write in production at all, and what is the background
+   fetch rate? Fork I-B — seven days of silence on a route this loop's own QA fetches on a schedule —
+   would mean the instrument is defective and A5 fails again.
+3. **A1 for any further venue whose subject is a feed.** Product Hunt is now **UNREADABLE** to this
    executor, not unread, so the register has no readable unread entry left. The search that remains is
    for *another* venue where a feed is the permitted subject — the reads cost one dispatch each and
    cannot spend a channel. If none exists beyond this one, **that is the finding** and it belongs in
    front of the reviewer rather than buried in a register.
-3. **One re-read owed, and it is smaller than it sounds.** Every A1 verdict before run 55 was graded
+4. **One re-read owed, and it is smaller than it sounds.** Every A1 verdict before run 55 was graded
    from the 4,000-character prefix. Hacker News' page is 1,950 characters, so nothing was out of
    reach there. Lobsters' is **15,676**, and its three quoted disqualifying grounds are real — run 54
    could only quote what the log carried. What a prefix cannot show is what a page *stops* saying:
@@ -851,15 +865,26 @@ No card, no credential, no spend.
    from quoted prohibitions is sound unless something later softens them**, so this is a completeness
    check, not a suspected error — one dispatch with `find: "self-promo"` closes it, and it ranks
    below finding a venue that permits the post.
-4. Cheap and still unclaimed: the unattributed console 404 from run 49.
+5. Cheap and still unclaimed: the unattributed console 404 from run 49.
 
 **Explicitly not:** a second publication to keep A4's 72-hour window open — A4's own text says
 freshness is a *consequence* of publishing something worth publishing, and EXP-008's binding clauses
 disqualify any publication made to move a number. **A4 decaying back to FAILS is an acceptable
-outcome**, and it is *not* a reason to rush the submission above. Also not: an A5 threshold for a
-channel that is not yet authorized; any submission, form, issue or account use before the decision
-above; user-agent spoofing to get past Product Hunt's or Reddit's refusal; and landing-page, copy,
-positioning or pricing work, which run 51 closed on a measurement rather than a precaution.
+outcome**, and it is *not* a reason to rush the submission above. Also not: any submission, form,
+issue or account use before the decision above; user-agent spoofing to get past Product Hunt's or
+Reddit's refusal; and landing-page, copy, positioning or pricing work, which run 51 closed on a
+measurement rather than a precaution.
+
+**One hold in this list was reversed by run 56, and it is recorded rather than deleted.** It read
+*"no A5 threshold for a channel that is not yet authorized"*. That phrasing was a stricter
+restatement of run 55's actual rule — [L-33](LESSONS.md)'s *"no A5 threshold for any venue whose A1
+is unread"* — and, taken literally, it **contradicts A5 itself**: A5 requires the threshold to be
+written *"before the post, never after"*, and [DISTRIBUTION.md](DISTRIBUTION.md)'s procedure puts A5
+**before** A2 for exactly that reason. If a threshold could only be registered after authorization,
+and authorization is what immediately precedes submitting, there is no moment left in which to
+register it honestly. `awesome-rss-feeds`' A1 **is** read, so L-33's real rule does not bite, and
+[EXP-009](EXPERIMENTS.md) is registered while the answer to the authorship question is still unknown
+to everyone — which is the only condition under which a pre-registration means anything.
 
 ## Not doing (deliberate holds)
 
@@ -894,6 +919,16 @@ positioning or pricing work, which run 51 closed on a measurement rather than a 
   publishing something worth publishing, never a motive — A4 says so and EXP-008's binding clauses
   disqualify any publication made to move a number. A4 decaying back to FAILS on 2026-08-21 is an
   acceptable outcome and not a deadline.
+- **No exercising of a real channel tag by this loop, anywhere — including a preview URL** (new,
+  run 56). Cloudflare Workers Builds raises a **preview deployment per branch** and a preview binds
+  the **same D1 database** as production, so a single QA fetch of
+  `…/rss.xml?src=awesome-rss-feeds` against *any* host would write the counter
+  [EXP-009](EXPERIMENTS.md) grades and quietly corrupt the reading before the attempt exists.
+  Verification uses **`?src=qa`**, which is what that tag was created for.
+- **No reading of `feed_fetch` as demand, and no conversion of any fetch count into a number of
+  people** (new, run 56). Unsuffixed `feed_fetch` carries this loop's own scheduled QA fetches, so it
+  is a liveness signal; and with no visitor identifier a poll count cannot become a subscriber count
+  at any level of confidence. EXP-009 grades *days with activity*, never totals.
 - No generic summarizer, content generator or enterprise agent-observability dashboard. Humans
   contribute attention, not content.
 - No invented baseline, forecast, or traction claim — including any framing of the AUD $1M stretch
