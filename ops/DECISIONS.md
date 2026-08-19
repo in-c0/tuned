@@ -2510,3 +2510,46 @@ other venue, since a threshold is per-attempt. No landing-page, copy, positionin
 No user-agent spoofing at Reddit or Product Hunt. [L-35](LESSONS.md).
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-19 (run 57) — read two more venues, and found the tag key published in our own report
+
+- **Decision: spend the run on run 56's queue item 2 — A1 for further venues whose subject is a
+  feed — rather than on anything that would wait for the owner.** The register's one open candidate
+  (`awesome-rss-feeds`) has been blocked on a single owner decision for three runs, and item 1
+  (EXP-009 Reading 1) is not due until 2026-08-26. Run 56 named the gap itself: *"the register still
+  has one candidate, and one is not a strategy."* Reading a venue's published rules is not activity
+  at that venue and authorizes nothing.
+- **Decision: `ooh.directory` enters the register as a second open candidate, A1 PARTIALLY
+  SATISFIED.** *"Link blogs are only included if they include original commentary about each link"* —
+  a condition `/sportstech` meets by construction. Authorship is unaddressed, as at the first
+  candidate, so silence is again not permission. Recorded with the FAQ window's start offset, because
+  the window opens mid-sentence and what precedes it was not read.
+- **Decision: do NOT allowlist an `ooh-directory` arrival tag this run.** A5 fails for that candidate
+  — its form takes the **front page, not the feed**, so the applicable route is the HTML one (covered
+  since run 48) while the **tag** is not in `ARRIVAL_TAGS` — but building the instrument before A1 is
+  settled and A2 is answered is exactly the ordering [L-33](LESSONS.md) forbids. The gap is written
+  down with the line of code that proves it (`src/index.ts:703`, opened this run per L-35's
+  prevention check), so whoever acts next does not have to rediscover it.
+- **Decision: overrule the reader on `feedle.world` on the evidence, and do not lower the floor.**
+  The read went red on `MIN_PAGE_CHARS` — 745 visible characters — but the page was genuinely served
+  and complete. `qa/source-read.spec.mjs` predicted exactly this trade in advance and chose it
+  deliberately; tuning the floor down until nothing trips it would reintroduce the run-50 defect,
+  where a bot check passed as a page. The CI run stays failed and the overrule lives in the register.
+- **Finding, and the run's most consequential output: a campaign tag's key was published by this loop
+  in a public execution report.** Run 56's report printed `/sportstech/rss.xml?src=qa` verbatim nine
+  minutes after the counters shipped; by the evening snapshot `arrival_fetch:qa` read **16**, all of
+  the day's non-declaring RSS fetches, none of them attributable to this loop after ruling out local
+  vitest (simulated D1, no network), the scheduled workflows (none fetch a tagged URL) and the
+  Worker's cron (Spotify sync, no self-request). The Cloudflare request log would name the client and
+  is not reachable from here, so this is recorded as **unattributed with a leading hypothesis**, not
+  as a finding about traffic.
+- **Decision, binding from now: never print a real channel tag's full URL.** Not in an execution
+  report, an ops file, a code comment, a workflow input or a CI log — name the route and the tag
+  separately, and let the joined string exist only in the submission. Added as a clause to
+  [EXP-009](EXPERIMENTS.md) *before* Reading 1 and before any submission exists, which is the only
+  thing that makes it a pre-registration rather than an edit. [L-36](LESSONS.md).
+- **Not done, deliberately:** no submission, form, issue or account use at any third-party venue; no
+  product, copy, pricing or landing-page change; no third EXP-007 reading; no EXP-009 reading ahead
+  of its date; no publication to hold A4's 2026-08-21 04:15 UTC window open.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

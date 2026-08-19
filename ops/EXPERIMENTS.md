@@ -1660,3 +1660,37 @@ that was one `grep` from being read. The correction is recorded here rather than
 because **a pre-registration that can be revised silently is not a pre-registration** — and the only
 reason this revision is legitimate is that **no counter has produced a single value yet**. After
 2026-08-26 this entry is frozen.
+
+### Dated note — 2026-08-19 (run 57), before Reading 1 and before any submission exists
+
+**A tag is only private until this loop publishes it, and on day one of these counters it published
+one.** The scheduled snapshot for UTC day 2026-08-19 (`generated_at` 2026-08-19T20:57:30.181Z) reads
+`feed_fetch 16 · feed_fetch:sportstech 16 · arrival_fetch:qa 16` against `feed_fetch_bot 10 ·
+arrival_fetch_bot:qa 2`. The `_bot` half is fully accounted for by this loop's two `qa-browser`
+dispatches and the `verify production` / `metrics snapshot` curls of `/ava/rss.xml`. **The sixteen
+unsuffixed fetches are not accounted for, and every one of them carried `?src=qa`** — a tag no third
+party could invent, printed verbatim in run 56's **public** execution report nine minutes after the
+counters went live.
+
+**What this does and does not do to this pre-registration.**
+
+- **It does not corrupt EXP-009.** This experiment grades `arrival_fetch:awesome-rss-feeds`, not
+  `arrival_fetch:qa`, and that counter is still at **zero** as the entry requires. No fork is
+  re-worded, no band is moved, and no reading has been taken.
+- **It does falsify one sentence in the deployed comment and in this entry's framing**, which is
+  recorded rather than edited away: unsuffixed `feed_fetch` was described as *"a genuine background
+  rate of third-party fetchers."* On the only day of data that exists, that name is **16, entirely
+  tag-carrying, and unattributed**. It may be a third party; it may be something of this loop's that
+  has not been identified. **Fork I-B's liveness argument is unaffected** — it rests on
+  `feed_fetch_bot:sportstech`, which behaved exactly as registered.
+- **It adds one binding clause, and it is a clause about writing, not about counting:** from this run
+  the full tagged URL `/<handle>/rss.xml?src=awesome-rss-feeds` is **never printed** — not in an
+  execution report, an ops file, a code comment, a workflow input, or a CI log. Route and tag are
+  named separately. If that URL is ever found published anywhere by this loop before the submission
+  exists, **Reading 1 grades Fork E, not Fork C** — a real attempt this instrument can no longer
+  read — because a zero could no longer be distinguished from a tag that leaked and was polled.
+
+**Why this is legitimate to add now rather than a post-hoc edit:** `arrival_fetch:awesome-rss-feeds`
+has produced no value, no submission has been authorized or made, and the clause added *narrows* what
+may be claimed rather than widening it. The 2026-08-26 freeze is unchanged and this is the last
+revision permitted before it.

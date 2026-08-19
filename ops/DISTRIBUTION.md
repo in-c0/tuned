@@ -499,6 +499,148 @@ what the `qa` tag was created for; a real channel tag is never to be exercised b
 
 ---
 
+## A second venue whose subject is a feed, and it wants the page rather than the feed — 2026-08-19 (run 57)
+
+Run 56 left one instruction this loop could act on without anyone's permission: *"A1 for any further
+venue whose subject is a feed. The register still has **one** candidate, and one is not a strategy."*
+Three dispatches of [`source-read.yml`](../.github/workflows/source-read.yml), GETs only, no account,
+no credential, no link following.
+
+| Venue | Page | HTTP | `read_outcome` | Run |
+| --- | --- | --- | --- | --- |
+| ooh.directory | `/suggest/` | 200 | `page`, 5,296 chars | [32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421) |
+| feedle | `feedle.world/` | 200 | `interstitial` — **745 chars, below the floor** | [32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995) |
+| ooh.directory | `/about/faq/`, `find: "link blog"` | 200 | `page`, rules quoted | [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484) |
+
+### ooh.directory — A1 READ, and the door is open on a condition Tuned happens to meet
+
+A curated blog directory, started 2022 by Phil Gyford. The form page states the invitation, quoted
+from [32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421):
+
+> If there's a good blog missing from the site, we want to hear about it! Check the FAQ for what
+> ooh.directory includes. Enter the blog's URL (and maybe other info) in this form and send it in.
+> We've had many submissions, so it will take a while for new ones to appear.
+
+**The form itself carries the finding that matters, and it is a field label:**
+
+> **URL** — The URL of the blog's front page **(not its feed)**
+
+Its category list includes **Sport and exercise**, and **Computers, internet, tech → Artificial
+intelligence**; its country list includes **Australia**.
+
+**The inclusion rules are on the FAQ the form points at, not on the form** — a second read, and the
+same [L-34](LESSONS.md) shape as run 55. Quoted from
+[32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484), `find_total_occurrences: 1`,
+window at character 694. The window opens mid-sentence and the characters before it were **not
+quoted**, so what counts as a blog in the general case is read here only from where the window starts:
+
+> …eem like a blog are included. Only blogs updated within the past couple of months or so are added.
+> Tumblrs are only included if they're either focused on a specific topic or feature original content.
+> **Link blogs are only included if they include original commentary about each link.** At the moment
+> we only have the ability to check and add English-language blogs, sorry. No blogs promoting hate
+> speech, denial of climate change, anti-vax ideas, etc. Rules will probably be changed over time as
+> more blogs are added. **Where is the blog I suggested?** Probably in the very, very long list of
+> not-yet-reviewed blogs. **These are suggestions rather than submissions.** When I get time to add
+> new blogs I use this as one of the sources to look for a good mix of blogs to add to the site.
+> **Suggesting a blog does not guarantee it will appear on the site.**
+
+**A1 in three parts, and they must not be collapsed:**
+
+1. **The form is permitted, on a condition.** *"Link blogs are only included if they include original
+   commentary about each link."* `/sportstech` is a link blog, and every item carries a `why` line —
+   the condition names precisely the thing Tuned publishes. English ✅. *"updated within the past
+   couple of months"* ✅ and far weaker than A4's own 72h bar.
+2. **Authorship is unaddressed, exactly as at `awesome-rss-feeds`.** The FAQ has no clause about
+   machine-written text either way. **Silence is not permission**, and here it bites harder than at a
+   feed directory: the condition being met is *original commentary*, and Tuned's commentary is
+   written by an agent. A human curator reading `/sportstech` sees the `AI AGENT` badge on the page,
+   so nothing is concealed — but that is provenance being visible, not a rule being satisfied. **A1
+   reads PARTIALLY SATISFIED**, on the same grounds and no stronger than the first candidate.
+3. **The venue tells you in advance that the modal outcome is silence.** *"These are suggestions
+   rather than submissions… Suggesting a blog does not guarantee it will appear on the site."* Any
+   experiment here must pre-register that a never-reviewed suggestion is **inadmissible, not null** —
+   [EXP-009](EXPERIMENTS.md)'s Fork D shape — and that this is the *expected* outcome rather than a
+   disappointing one.
+
+**A5 FAILS for this candidate, and the reason is the mirror image of [L-35](LESSONS.md).** The URL
+this venue takes is the **front page, not the feed** — `https://justtuned.com/sportstech` — which is
+the **HTML** route, `GET /:handle`. That route has been instrumented since run 48, so the *route* is
+covered this time. What is not covered is the **tag**: [`src/index.ts:703`](../src/index.ts) reads
+`const ARRIVAL_TAGS = new Set(["qa", "awesome-rss-feeds"]);`, opened this run rather than recalled,
+and `ARRIVAL_TAGS.has(src)` gates the write — so `?src=ooh-directory` would be counted **under no
+name at all** and would look identical to no tag. Run 56 found an instrumented tag on an
+uninstrumented route; this is an instrumented route with an unregistered tag. **Same failure, other
+axis.** Nothing is shipped for it here: A1 is only partially satisfied and A2 is unanswered, and
+building the instrument before the gate is the ordering [L-33](LESSONS.md) exists to forbid.
+
+### feedle — a submission surface exists, A1 UNREAD, and the reader was wrong rather than refused
+
+`feedle.world`, a search engine for blogs and podcasts (IN2 Digital Innovations GmbH). HTTP 200,
+`possible_gate_markers: []`, and the whole of what the page carried — 745 characters — including its
+navigation: **"feedle Submit your blog or podcast | FAQ | Top Stories"**. So a submission surface
+exists and its subject is a feed. **No rule about who may submit was reached**, so A1 is **UNREAD**,
+not answered.
+
+**The run went red, and the instrument was wrong.** `read_outcome: "interstitial"` on the single
+signal *"only 745 visible characters, below the 1000 floor"* — but the page was genuinely served and
+genuinely complete; it is a terse marketing landing page, not a bot check. `MIN_PAGE_CHARS` is
+fail-closed by design and [`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs) says so in advance:
+*"A legitimately terse page that trips this fails loudly with its text in the log, so a human can
+overrule it on the evidence; the opposite error passes silently and cannot be caught at all."* **That
+is the trade working as designed, and the overrule is recorded here on the evidence rather than the
+floor being lowered** — a floor tuned down until nothing trips it is the run-50 defect coming back.
+The read is still marked failed in CI, which is correct: it is a false alarm, not a pass.
+
+### A6, in effect: a campaign tag is only a measurement while the tagged URL exists in one place
+
+Not a sixth condition in the test above — it is a hazard inside A5, found in production data on the
+first day the RSS counters existed, and it is recorded here because it constrains how this loop may
+*write about* a channel, which nothing else in this file does.
+
+The scheduled snapshot for UTC day **2026-08-19**
+([`ops/metrics/latest.json`](metrics/latest.json), `generated_at` 2026-08-19T20:57:30.181Z) reads:
+
+```
+feed_fetch 16 · feed_fetch:sportstech 16 · arrival_fetch:qa 16
+feed_fetch_bot 10 · feed_fetch_bot:sportstech 4 · feed_fetch_bot:ava 6 · arrival_fetch_bot:qa 2
+```
+
+The `_bot` row is fully accounted for: two `qa-browser` dispatches × two fetches = 4, one tagged each
+= 2, plus 6 `/ava/rss.xml` curls from `verify production` and `metrics snapshot`. **The unsuffixed row
+is not accounted for at all.** Sixteen fetches of `/sportstech/rss.xml` by a client whose user agent
+`isBot()` does not match — and **all sixteen carried `?src=qa`**, a tag no third party could invent.
+
+**What was ruled out, by opening the file rather than recalling it:** `vitest.config.ts` runs against
+a *simulated* local D1 with no network, so `test/arrival.test.ts`'s `HUMAN_UA` visits cannot reach
+production; no workflow is on a schedule that fetches a tagged URL (`metrics-snapshot` is the only
+scheduled one and it probes `/ava/rss.xml` untagged); and the Worker's own cron is a Spotify sync
+that makes no request to its own routes. **What was not ruled out, and cannot be from here:** the
+Cloudflare request log, which would name the client — it needs dashboard credentials this executor
+does not hold and an egress path it does not have.
+
+**The leading explanation, stated as a hypothesis and not as a finding.** Run 56's execution report —
+a **public** GitHub issue comment, posted 2026-08-19T10:28:00Z, nine minutes after the counters went
+live at 10:19:44Z — printed the tagged URL verbatim: `"url":
+"https://justtuned.com/sportstech/rss.xml?src=qa"`. Sixteen fetches across the ~10.5 hours between
+that comment and the snapshot is roughly one every forty minutes, which is the shape of a feed client
+or an indexer that found the URL in public text. It fits; it is not proven, and nothing here is
+graded on it.
+
+**The consequence is real whichever explanation holds, and it is prospective rather than damage
+already done.** `qa` is not the tag any experiment grades, so nothing is corrupted today. But the
+mechanism is general: **`arrival:<tag>` and `arrival_fetch:<tag>` are only measurements for as long
+as the tagged URL appears in exactly one place — the channel.** This loop's own transparency
+practice, quoting exact URLs into a public issue and public CI logs, is itself a publication of that
+URL, and it writes to the counter the report is about.
+
+**Standing rule, from now:** a **real** channel tag's full URL is **never** printed in an execution
+report, an ops file, a code comment, a workflow input or a CI log. Name the route and the tag
+separately (`/sportstech/rss.xml`, tag `awesome-rss-feeds`) and let the one place the joined URL
+exists be the submission itself. `?src=qa` may keep appearing — it grades nothing, and its
+contamination is now the evidence for this rule.
+
+---
+
 ## Candidate register
 
 No candidate is ADMISSIBLE. A1/A2 are marked **UNREAD** wherever this loop has not quoted the venue's
@@ -516,6 +658,8 @@ on `/` or `/ava` still fails A4.
 | **Lobsters** | **READ 2026-08-18** ([32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996)) — **FAILS** on three quoted grounds: topicality is *"pretty narrowly on computing"* and excludes *"entrepreneurship"*; *"self-promo should be less than a quarter of one's stories and comments"*, which a first submission cannot satisfy; and membership runs through *"a user invitation tree"* | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — closed on the venue's own words |
 | **Product Hunt** | **UNREADABLE 2026-08-19** ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)) — HTTP **403**, `Just a moment...`, *"Performing security verification … verifies you are not a bot"*, 266 chars. The rules cannot be quoted by this executor; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable by this executor |
 | **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ~~❌ — no tag allowlisted, no threshold registered~~ **✅ — run 56.** `arrival_fetch:awesome-rss-feeds` allowlisted and counted on the RSS route; [EXP-009](EXPERIMENTS.md) registers the threshold, the window and the two inadmissible outcomes, all before any submission | **NOT YET ADMISSIBLE — A2 is now the only outstanding condition, and it is the owner's to answer.** A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, A5 ✅ |
+| **ooh.directory** | **READ 2026-08-19** ([32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421), [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484)) — **FORM PERMITTED ON A CONDITION**: *"Link blogs are only included if they include original commentary about each link"*; English-only ✅; *"updated within the past couple of months"* ✅. **Authorship unaddressed**, and the condition met is *original commentary*, which here is agent-written | **Not authored prose** — a URL, a category and optional names. Submitting in the owner's name is still an owner/reviewer decision, and the venue calls these *"suggestions rather than submissions"* | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ❌ — **route covered, tag not.** The URL this venue takes is the **front page, not the feed**, so run 48's HTML instrument applies; but `ARRIVAL_TAGS` ([`src/index.ts:703`](../src/index.ts)) holds only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes **nothing**. No threshold registered | **NOT YET ADMISSIBLE** — A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, **A5 ❌**, A2 open |
+| **feedle** (`feedle.world`) | **UNREAD 2026-08-19** ([32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995)) — the page was served (200, 745 chars, no gate markers) and carries **"Submit your blog or podcast"**, but no rule about who may submit was reached. The read went red on the reader's own 1,000-character floor, which was a **false alarm rather than a refusal** | UNREAD | ✅ | ✅ `/sportstech` | ❌ | **CANDIDATE — A1 UNREAD.** The only register entry with a readable, unread rules page |
 | **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
 | **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
 
@@ -580,6 +724,19 @@ here?* And the one this file adds: *(4) if it works, would I see it?*
 
 ## Change log
 
+- **2026-08-19 (run 57)** — **the register has a second open candidate, and it wants a different URL
+  from the first.** `ooh.directory` permits a link blog *"only … if they include original commentary
+  about each link"* — a condition `/sportstech` meets — and leaves authorship unaddressed, so A1 is
+  **PARTIALLY SATISFIED** on the same footing as `awesome-rss-feeds`. Its form asks for **the blog's
+  front page, not its feed**, which puts the applicable instrument on the HTML route rather than the
+  RSS one; the route is covered and **the tag is not**, so A5 **FAILS** — found by running
+  [L-35](LESSONS.md)'s prevention check rather than by recalling the feature. `feedle`
+  added as **A1 UNREAD** — a submission surface confirmed, no rule reached, and the read went red on
+  the reader's own terse-page floor rather than on anything the host did. Three reads
+  ([32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421),
+  [32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995),
+  [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484)). **Nothing submitted, and
+  no instrument built ahead of its gate.**
 - **2026-08-19 (run 56)** — **A5 was unsatisfiable for the only open candidate, not unregistered.**
   `GET /:handle/rss.xml` — the exact URL run 55 proposed submitting — wrote no counter of any kind,
   while the register recorded A5's instrument half as *shipped*. Run 48's arrival counters live on

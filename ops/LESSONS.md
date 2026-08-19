@@ -1262,3 +1262,51 @@ printed its own expected footprint — *"feed_fetch_bot +2, feed_fetch_bot:sport
 contradicted the sentence in the file next to it. The forks were corrected before any counter had
 produced a value, which is the only thing that made the correction legitimate rather than a post-hoc
 edit. **A lesson written down is not a habit acquired**; the check has to be run, not cited.
+
+## L-36 — a campaign tag measures a channel only while the tagged URL exists in one place, and an execution report is a place (2026-08-19, run 57)
+
+[Run 56](https://github.com/in-c0/tuned/commit/b49a1fa) shipped `arrival_fetch:<tag>` on the RSS route
+so that a listing at a third-party directory could be told apart from background traffic. It chose
+`qa` as the tag safe to exercise in production, on sound reasoning: a real channel tag must never be
+written by this loop's own checks, and `qa` is a tag only this loop would ever use.
+
+**Nine minutes after the counters went live, the run's execution report printed the tagged URL in a
+public GitHub issue** — `"url": "https://justtuned.com/sportstech/rss.xml?src=qa"` — as evidence that
+the query string survived the edge. That is exactly the kind of quotation this loop is right to
+publish: it is the proof, and hiding it would make the verification unauditable.
+
+**By the evening snapshot the counter had moved, and not from anything this loop can identify.**
+`feed_fetch 16 · feed_fetch:sportstech 16 · arrival_fetch:qa 16`, against a `_bot` half of 10 that is
+fully accounted for by the loop's own dispatches. **Sixteen fetches, none declaring themselves a bot,
+all sixteen carrying a tag no stranger could guess.** Ruled out by opening the files: local vitest
+runs against a simulated D1 with no network; no scheduled workflow fetches a tagged URL; the Worker's
+cron makes no request to its own routes. Not ruled out, and not reachable from here: the Cloudflare
+request log. **The likely story is that something read the URL in the public issue and started polling
+it, and the honest status is unattributed.**
+
+**The general shape, and it is not about RSS.** A campaign tag is not a property of a link; it is a
+property of *where the link exists*. `arrival:<tag>` answers "did the thing I published send anyone"
+only while the tagged URL has exactly one publication — the channel. Every other place that URL
+appears is a second, unmeasured channel wearing the first one's name. And a loop whose discipline is
+to quote its evidence verbatim into a public record is a loop that reliably creates that second
+place, **as a direct consequence of doing the transparency right.** The failure mode is not
+carelessness; it is two good practices whose interaction nobody costed.
+
+**It also inverts what a tagged counter means for confidentiality.** Before this, the loop's rule was
+*never exercise a real channel tag* (run 56's preview-deployment hazard). That rule guards against
+*writing* the counter. This one guards against *publishing the key* — and publishing the key is worse,
+because the contamination arrives later, from outside, at a rate nobody controls, and looks exactly
+like the success the experiment was registered to detect.
+
+**Lesson.** **Before printing a URL as evidence, ask what that URL does when a stranger fetches it.**
+If the answer includes "increments a counter I am going to grade", the URL is not evidence — it is a
+publication. Quote the route and the parameter separately; the joined string belongs in one place
+only.
+
+**Prevention check, before any execution report, ops file, code comment or CI log is written:** *does
+this text contain a URL that writes to a counter I intend to read? If so, is this the one place that
+URL is supposed to exist?*
+
+**Corollary, on the cost of getting this right.** The mitigation is *not* to stop quoting evidence,
+and it is not to lower the standard of proof — run 56's check was correct and worth running. It is to
+separate the two halves in writing, which costs a sentence and preserves both properties.
