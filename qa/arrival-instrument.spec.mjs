@@ -122,4 +122,76 @@ test.describe("A5 arrival instrument — a tagged feed URL is served, and an unk
       fullPage: false,
     });
   });
+
+  // Added run 56, and it is the half that was missing rather than an extension of the above.
+  //
+  // The candidate channel whose published rules do not forbid the post is a directory of RSS
+  // feeds (ops/DISTRIBUTION.md), so the URL that would be submitted is `/<handle>/rss.xml` —
+  // a *different route* from the one the test above checks. Until run 56 that route wrote no
+  // counter at all, which made A5 unsatisfiable rather than unregistered (L-35). The test above
+  // would have passed throughout, because it exercises the HTML page.
+  //
+  // No browser render here on purpose: an RSS URL is fetched by a feed client, not painted, so
+  // the check is the fetch. `page.request` carries the headless user-agent, so both fetches are
+  // bot-classified and land in `feed_fetch_bot` — never in a name a real subscriber would move.
+  test("the RSS destination is served with a tag on it, and the tag survives the edge", async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1440x900", "instrument check runs once");
+
+    const fetchFeed = async (search) => {
+      const res = await page.request.get(`/${HANDLE}/rss.xml${search}`);
+      const body = await res.text();
+      return {
+        url: res.url(),
+        status: res.status(),
+        content_type: res.headers()["content-type"] ?? "",
+        bytes: body.length,
+        items: (body.match(/<item>/g) ?? []).length,
+      };
+    };
+
+    const tagged = await fetchFeed(`?${new URLSearchParams({ src: TAG })}`);
+
+    expect(tagged.status, "production did not serve the tagged RSS URL").toBe(200);
+    expect(tagged.content_type, "the tagged RSS URL did not serve RSS").toContain("application/rss+xml");
+    // The whole instrument hangs off this: if the edge strips or rewrites the query string on
+    // this route, `?src=` never reaches the Worker, `arrival_fetch:<tag>` stays at zero forever,
+    // and a channel would be spent producing a confident null result about demand.
+    expect(new URL(tagged.url).searchParams.get("src"), "the src tag did not survive to the served RSS URL").toBe(TAG);
+    // A feed that serves no items is not a destination a subscriber keeps. A4 is graded
+    // elsewhere; this only refuses to call an empty document a working arrival.
+    expect(tagged.items, "the tagged RSS URL served no items").toBeGreaterThan(0);
+
+    const junk = await fetchFeed(`?${new URLSearchParams({ src: UNREGISTERED })}`);
+
+    expect(junk.status, "an unrecognised src tag changed the RSS response status").toBe(200);
+    expect(junk.items, "an unrecognised src tag changed what the feed serves").toBe(tagged.items);
+
+    const build = await (await page.request.get("/api/version")).json();
+
+    const evidence = {
+      measured_at: new Date().toISOString(),
+      target: baseURL,
+      serving_commit: build.commit,
+      handle: HANDLE,
+      route: `/${HANDLE}/rss.xml`,
+      tagged,
+      unregistered_tag: junk,
+      footprint:
+        "Two GETs of one public RSS feed. Bot-classified by src/metrics.ts because of the headless user-agent, so the expected writes are feed_fetch_bot +2, feed_fetch_bot:" +
+        HANDLE +
+        " +2, arrival_fetch_bot:qa +1. No landing-page request, no HTML feed view, no POST.",
+      note:
+        "Production check on the RSS half of the A5 arrival instrument (run 56). A counter write has no observable effect on the response, so this proves the route serves and the tag survives the edge; the counter values are read from the next scheduled ops/metrics snapshot. The `qa` tag is used deliberately — a real channel tag is never exercised by this loop, because a preview deployment binds the same D1 as production and would contaminate the counter EXP-009 grades.",
+    };
+    console.log("arrival-instrument-rss evidence:", JSON.stringify(evidence, null, 2));
+
+    fs.writeFileSync(path.join(ARTIFACTS, "arrival-instrument-rss.json"), JSON.stringify(evidence, null, 2));
+    await testInfo.attach("arrival-instrument-rss.json", {
+      body: JSON.stringify(evidence, null, 2),
+      contentType: "application/json",
+    });
+  });
 });

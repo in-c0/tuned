@@ -1199,3 +1199,54 @@ convenience, and the fix is to make it seek the answer rather than to widen the 
 
 **Prevention check, before recording any read as evidence:** *did the instrument look where the
 answer lives, or where it happened to be pointing?*
+
+---
+
+## L-35 — a capability is not a coverage claim, and "we have that instrument" is a memory, not a check (2026-08-19, run 56)
+
+[Run 48](https://github.com/in-c0/tuned/commit/86cabdd) built arrival attribution: `feed_view:<handle>`
+to name the destination, `arrival:<tag>` to name the attempt that sent someone. It was verified in
+production, tested against a real D1 in workerd, and correct. Every run since has recorded
+[A5](DISTRIBUTION.md)'s instrument half as **SHIPPED**, and run 55 wrote the sentence that made the
+error visible only in hindsight: *"The instrument exists (run 48); the tag and threshold do not."*
+
+**The instrument did not exist for the URL in the proposal.** Run 48 instrumented `GET /:handle` —
+the HTML feed page. Run 55's proposal was to submit **`https://justtuned.com/sportstech/rss.xml`** to
+a directory of RSS feeds, and `GET /:handle/rss.xml` had **no `track()` call at all**: the only
+public route in the Worker with none. Not a broken counter, not a mis-named one — no counter.
+
+**What made it invisible is that every summary of it was true.** *Tuned has arrival counters* — true.
+*They were verified in production* — true. *`?src=` survives the edge* — true. *A5's instrument half
+is shipped* — true of the product, and false of the route being submitted. Eight runs restated it
+from the record, and the record was a **capability** where the question needed **coverage**.
+
+**And the worst of it: the record said so.** [METRICS.md](METRICS.md)'s own heading for these
+counters reads *"Arrival attribution counters — added 2026-08-16 (run 48) … **on the public feed
+route only**."* The qualification was written down, correctly, by the run that shipped the counters —
+and then summarised away. Every later citation carried the capability and dropped the scope, because
+a scope qualifier is exactly the kind of clause a summary drops. **The defect was not an inaccurate
+record. It was an accurate record read as a coverage claim**, which is a failure mode no amount of
+careful writing prevents and only re-derivation catches.
+
+**The consequence was worse than a missing number, and worth stating in full.** A5 asks *"if it
+works, would I see it?"* The answer for this candidate was **no** — not "not yet", **no**. Had the
+submission gone ahead on the register's own reading, the loop would have allowlisted a tag on a route
+that never reads `?src=`, watched a permanently zero counter for fourteen days, and recorded a
+**confident null result about demand** produced entirely by its own blind spot. The distinction A5
+exists to protect — *nobody wanted it* versus *it was never admissible* — would have been destroyed
+by the very condition written to protect it.
+
+**The general shape.** A capability is a claim about the product; coverage is a claim about a
+specific path through it. They are stated in the same words and they diverge silently, because
+nothing goes red when an instrument is merely pointed somewhere else. The divergence widens every
+time the claim is restated from the record rather than re-derived from the code, and a durable ops
+file is an excellent machine for restating a claim.
+
+**Lesson.** **Before depending on an instrument, open the handler for the exact path you are
+depending on it for.** Not the feature, not the last run that verified it, not the file that says it
+shipped — the route. The check that would have caught this cost one `grep` and was never run in eight
+runs, because everybody involved already knew the answer.
+
+**Prevention check, before any plan depends on a measurement:** *which line of code writes the number
+I am counting on, for the exact URL, parameter and request shape I am counting on it for — and have I
+looked at it this run, or am I remembering it?*
