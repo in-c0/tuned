@@ -1536,13 +1536,20 @@ Deliberately **not** folded into `feed_view`: they are a different event, and me
 broken the comparability of the ten-day view series on the deploy that shipped them.
 
 **On this surface neither bucket is a person.** Every fetch of an RSS URL is a machine; the `_bot`
-split separates a crawler that declares itself from a feed reader that does not. Unsuffixed
-`feed_fetch` additionally carries this loop's own scheduled QA fetches
+split separates a crawler that declares itself from a feed reader that does not.
+
+**Corrected before this experiment read anything — see the note at the end of this entry.** This
+loop's own scheduled QA fetches of `/sportstech/rss.xml`
 ([`qa/freshness.spec.mjs`](../qa/freshness.spec.mjs),
 [`qa/public-surfaces.spec.mjs`](../qa/public-surfaces.spec.mjs),
-[`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs) all fetch `/sportstech/rss.xml`),
-so it is a **liveness signal, not a demand signal**. Only `arrival_fetch:<tag>` grades an attempt,
-because only a link this loop published carries the tag — and no QA path passes `?src=awesome-rss-feeds`.
+[`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs)) land in **`feed_fetch_bot`**,
+not in the unsuffixed name: [`qa/playwright.config.mjs`](../qa/playwright.config.mjs) sets a
+`HeadlessChrome` user agent for every spec and every `APIRequestContext`, and `isBot()` matches it.
+So **`feed_fetch_bot:<handle>` is the liveness signal** — non-zero whenever the QA schedule runs —
+and **unsuffixed `feed_fetch:<handle>` is a genuine background rate of third-party fetchers**, which
+is a cleaner instrument than first described, not a dirtier one. Neither is demand. Only
+`arrival_fetch:<tag>` grades an attempt, because only a link this loop published carries the tag —
+and no QA path passes `?src=awesome-rss-feeds`.
 
 **And the count is polls, never people.** With no cookie and no visitor identifier there is no way to
 derive a subscriber count from a daily poll count. No fork below uses one, and any future run that
@@ -1556,13 +1563,16 @@ knowing either way.*
 Read on the **complete UTC day 2026-08-26** (seven complete days after deploy), from a `schedule`
 metrics snapshot, against `feed_fetch*` on days 2026-08-20 … 2026-08-26.
 
-- **Fork I-A — the route writes.** `feed_fetch:sportstech` is non-zero on ≥ 1 day. The instrument is
-  live in production and the background fetch rate is now known. *Next action:* record the band; it
-  is the noise floor any future attempt must be read against.
-- **Fork I-B — the route writes nothing across seven days.** Given that this loop's own QA fetches
-  `/sportstech/rss.xml` on a schedule, this would mean the counter is not landing in production and
-  the instrument is defective. *Next action:* fix it before any submission is made, and treat A5 as
-  failing again.
+- **Fork I-A — the route writes.** `feed_fetch_bot:sportstech` is non-zero on ≥ 1 day. This is the
+  liveness half and it is graded on the **`_bot`** name deliberately: this loop's own QA fetches
+  declare a headless user agent, so they and they alone are guaranteed to be there. *Next action:*
+  read unsuffixed `feed_fetch:sportstech` across the same seven days and record it as the
+  **background rate of third-party fetchers** — the noise floor any future attempt must be read
+  against. That band is a measurement, not a fork, and it may legitimately be zero.
+- **Fork I-B — the route writes nothing across seven days.** `feed_fetch_bot:sportstech` zero on
+  every day, despite the QA schedule fetching that exact URL. The counter is not landing in
+  production and the instrument is defective. *Next action:* fix it before any submission is made,
+  and treat A5 as failing again.
 
 ### Reading 2 — the attempt, gradeable only if a submission is authorized, made and merged
 
@@ -1616,3 +1626,37 @@ never be, and Fork D is the honest outcome if it is not.
 `awesome-rss-feeds` was wrong in the register, not merely incomplete.** It read *"no tag allowlisted,
 no threshold registered"*, which describes paperwork. The truth was that the destination was
 uninstrumented and the paperwork could not have fixed it.
+
+### Correction to this entry, made before it read anything (2026-08-19, run 56)
+
+As first written, this entry claimed that unsuffixed `feed_fetch` *"carries this loop's own scheduled
+QA fetches, so it is a liveness signal, not a demand signal"*, and Fork I-A/I-B were graded on
+`feed_fetch:sportstech` with the suffix left unstated.
+
+**That was wrong.** [`qa/playwright.config.mjs`](../qa/playwright.config.mjs) sets
+`userAgent: "…HeadlessChrome/140.0.0.0 Safari/537.36 tuned-qa-exp003"` on `use` and on both projects,
+and `isBot()` matches `/headless/i`. Every fetch this loop makes therefore lands in
+**`feed_fetch_bot`**. The production check that shipped with this experiment
+([32242080703](https://github.com/in-c0/tuned/actions/runs/32242080703)) says so in its own footprint
+line — *"the expected writes are feed_fetch_bot +2, feed_fetch_bot:sportstech +2,
+arrival_fetch_bot:qa +1"* — which is how the error was caught.
+
+**The consequence for the forks was real, not cosmetic.** Fork I-B's whole argument is *"our own QA
+fetches this URL on a schedule, so silence means the counter is broken."* That argument holds for
+`feed_fetch_bot:sportstech` and **does not hold** for the unsuffixed name, which can be legitimately
+zero for seven days simply because no third-party fetcher arrived. Graded as originally written, a
+perfectly healthy instrument could have been declared defective — or, worse, this loop's own traffic
+could have been mistaken for a background rate.
+
+**Corrected as above:** liveness is graded on `feed_fetch_bot:sportstech`; the unsuffixed name is
+read as the background rate of third-party fetchers and may legitimately be zero. The instrument is
+**cleaner** than first described, not dirtier — nothing this loop does contaminates the unsuffixed
+name.
+
+**This is [L-35](LESSONS.md) applied to the run that wrote L-35.** The lesson says: *before depending
+on an instrument, open the handler for the exact path you are depending on it for — do not remember
+it.* The claim about which bucket QA traffic lands in was asserted from memory about a config file
+that was one `grep` from being read. The correction is recorded here rather than quietly edited in,
+because **a pre-registration that can be revised silently is not a pre-registration** — and the only
+reason this revision is legitimate is that **no counter has produced a single value yet**. After
+2026-08-26 this entry is frozen.

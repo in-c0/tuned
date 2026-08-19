@@ -893,10 +893,15 @@ series for Tuned at all, and none can be reconstructed.
   crawler that declares itself in its user agent from a feed reader that does not — it does **not**
   separate machines from humans, and unsuffixed `feed_fetch` must never be read the way unsuffixed
   `landing_view` is read.
-- **Unsuffixed `feed_fetch` carries this loop's own traffic.** `qa/freshness.spec.mjs`,
-  `qa/public-surfaces.spec.mjs` and `qa/exp008-provenance.spec.mjs` all fetch `/sportstech/rss.xml` on
-  a schedule. It is a **liveness signal, not a demand signal.** Only `arrival_fetch:<tag>` grades an
-  attempt, because no QA path passes a channel tag.
+- **This loop's own traffic is in `feed_fetch_bot`, not in the unsuffixed name.**
+  `qa/playwright.config.mjs` sets a `HeadlessChrome` user agent on every spec and every
+  `APIRequestContext`, and `isBot()` matches it, so the scheduled fetches of `/sportstech/rss.xml` in
+  `qa/freshness.spec.mjs`, `qa/public-surfaces.spec.mjs` and `qa/exp008-provenance.spec.mjs` all land
+  in `feed_fetch_bot:sportstech`. **That name is therefore a liveness signal** — non-zero whenever
+  the QA schedule runs — **and unsuffixed `feed_fetch` is a genuine background rate of third-party
+  fetchers.** Neither is demand. Only `arrival_fetch:<tag>` grades an attempt, because no QA path
+  passes a channel tag. *(This bullet initially said the opposite; it was corrected the same run,
+  before any value was read — see [EXP-009](EXPERIMENTS.md)'s closing note.)*
 - **`feed_fetch` and `feed_view` are different events and are never additive.** They are not two
   measurements of one thing; summing them mixes a poll with a page view.
 - **An absent `arrival_fetch:<tag>` row is ambiguous** in exactly the way `arrival:<tag>` is: nobody

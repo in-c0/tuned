@@ -754,10 +754,15 @@ app.get("/:handle/rss.xml", async (c) => {
   // The `_bot` split is the same UA heuristic the rest of the funnel uses, kept for
   // consistency, but on this surface **neither bucket is a person** and the unsuffixed one must
   // never be read as human traffic. Every fetch of an RSS URL is a machine; what the split
-  // separates is a self-declaring crawler from a feed reader that does not self-declare. The
-  // unsuffixed name also carries this loop's own scheduled QA fetches, so it is a liveness
-  // signal and not a demand signal. `arrival_fetch:<tag>` is the one that grades an attempt,
-  // because only a link this loop published carries the tag.
+  // separates is a self-declaring crawler from a feed reader that does not self-declare.
+  //
+  // This loop's own scheduled QA fetches of this route land in `feed_fetch_bot`, not in the
+  // unsuffixed name: qa/playwright.config.mjs sets a `HeadlessChrome` user agent for every
+  // spec and every APIRequestContext, which isBot() matches. So `feed_fetch_bot:<handle>` is
+  // the liveness signal — it is non-zero whenever the QA schedule is running — and unsuffixed
+  // `feed_fetch:<handle>` is a genuine background rate of third-party fetchers. Neither is
+  // demand. `arrival_fetch:<tag>` is the one that grades an attempt, because only a link this
+  // loop published carries the tag.
   //
   // And the count is polls, never people: with no cookie and no visitor identifier there is no
   // way to turn a daily poll count into a subscriber count, and any run that reports one as the

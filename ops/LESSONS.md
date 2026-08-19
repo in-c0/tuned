@@ -1250,3 +1250,15 @@ runs, because everybody involved already knew the answer.
 **Prevention check, before any plan depends on a measurement:** *which line of code writes the number
 I am counting on, for the exact URL, parameter and request shape I am counting on it for — and have I
 looked at it this run, or am I remembering it?*
+
+**Postscript, same run.** This lesson was violated by the run that wrote it, within the hour. The
+commit shipping the RSS counters claimed — in the deployed code comment, in the public
+`/api/metrics` description, and in [EXP-009](EXPERIMENTS.md)'s forks — that unsuffixed `feed_fetch`
+carries this loop's own scheduled QA fetches. It does not:
+[`qa/playwright.config.mjs`](../qa/playwright.config.mjs) sets a `HeadlessChrome` user agent on every
+spec, `isBot()` matches it, and every QA fetch lands in `feed_fetch_bot`. **The config file was one
+`grep` from being read and was recalled instead.** It surfaced only because the production check
+printed its own expected footprint — *"feed_fetch_bot +2, feed_fetch_bot:sportstech +2"* — and that
+contradicted the sentence in the file next to it. The forks were corrected before any counter had
+produced a value, which is the only thing that made the correction legitimate rather than a post-hoc
+edit. **A lesson written down is not a habit acquired**; the check has to be run, not cited.
