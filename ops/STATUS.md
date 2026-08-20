@@ -1,9 +1,12 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-20 14:30 Sydney (2026-08-20 04:30 UTC), run 58 — **the tag leak's second
-day contradicts the first, and the contamination is now the control EXP-009 was missing** ·
-**OWNER ACTION REQUIRED: ONE DECISION, NO SPEND** — may this executor submit to a third-party list in
-the owner's name, or does a human do it? (two venues, one decision, unanswered four runs) ·
+**Last updated:** 2026-08-20 19:40 Sydney (2026-08-20 09:40 UTC), run 59 — **the canonical owner card
+said NONE while every other line in this file said a decision was outstanding; the card is now the
+decision** ·
+**[OWNER ACTION REQUIRED](#owner-action-required): ONE DECISION, NO SPEND** — may this executor submit
+the `@sportstech` feed record to `plenaryapp/awesome-rss-feeds`, or does a human? Answer on
+[issue #1](https://github.com/in-c0/tuned/issues/1) with **A** (executor may submit) · **B** (I will
+submit it) · **C** (drop the candidate). Opened 2026-08-19 04:30 UTC, **unanswered across four runs** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
 
 > # 23 fetches on day one, 1 on day two. A burst that decayed is a crawl — which is the exact call EXP-009's Fork A exists to make, and we got it backwards on our own data.
@@ -610,9 +613,52 @@ the owner's name, or does a human do it? (two venues, one decision, unanswered f
 
 ## OWNER ACTION REQUIRED
 
-### **NONE.**
+### **ONE DECISION. No card, no credential, no spend.**
 
-**Nothing is being asked of the owner.** The `AGENT_OPERATOR_KEY` card is **closed — success check
+> **May this executor submit the `@sportstech` feed record to
+> [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) — the feed URL
+> `https://justtuned.com/sportstech/rss.xml`, a title and the `Sports` category, on the venue's own
+> Google form or issue template — or does a human do it?**
+
+**Reply on [issue #1](https://github.com/in-c0/tuned/issues/1) with exactly one of these three.**
+Nothing else is being asked, and the executor will not choose for itself.
+
+| | Response | What happens next |
+| --- | --- | --- |
+| **A** | **"Executor may submit."** | The executor submits the factual record — feed URL, title, `Sports` — under the venue's own template, and [EXP-009](EXPERIMENTS.md) begins grading on its pre-registered forks. |
+| **B** | **"I will submit it."** | The executor submits nothing. The URL must carry the `awesome-rss-feeds` tag as its `?src=` value, or EXP-009 grades **Fork E** — a real attempt nobody can read — instead of a result. The tag is named in [DISTRIBUTION.md](DISTRIBUTION.md); per [L-36](LESSONS.md) the joined URL is deliberately not written anywhere public, including here. |
+| **C** | **"Drop the candidate."** | The venue is struck from [DISTRIBUTION.md](DISTRIBUTION.md)'s register, EXP-009 closes at **Fork D — inadmissible, not null**, and the executor resumes A1 reading for other venues. |
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking the loop's single objective.** Not urgent in the sense of risk — nothing degrades, nothing is lost, and **a "no" costs nothing**. |
+| **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* — is measured, correctly diagnosed as A1, and now **one condition from testable**: A1 partially satisfied, A3 ✅, A5 ✅, A4 ✅ until **2026-08-21 04:15 UTC**. **A2 is the only condition left, and A2 is this decision.** |
+| **Why owner authority is required** | Submitting is an **outward-facing act at a third party in the owner's name**. That is a boundary in the operating contract, not an interpretation the executor may resolve. It is **not** the EXP-002 question — the venue takes a factual record (URL, title, category), not prose in the owner's voice — and prior Hacker News authorization does not carry to a different venue. |
+| **Exact minimum action** | One comment on issue #1 containing **A**, **B** or **C**. No account, no form, no credential, no spend, no reading required beyond this card. |
+| **Observable success check** | A comment by the owner on issue #1 naming A, B or C. **This card is removed the run after that comment exists** — on the comment, not on the executor's judgement of what was meant. |
+| **Blocker age** | **~29 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58** and re-surfaced here at run 59. |
+| **Where surfaced** | Every execution report on [issue #1](https://github.com/in-c0/tuned/issues/1) since run 55, and — as of this run — this card, [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), blocker #1 and [Next action](#next-action). |
+
+**One thing that changed about the decision itself, and it is worth a sentence.** Run 58 registered
+[EXP-010](EXPERIMENTS.md): a tagged counter cannot on its own tell a directory's subscribers from
+anyone who assembled the URL from public source, because this loop has no private store and every tag
+it uses is public. EXP-010 measures how large that problem is by **2026-09-04**. **That is not a
+reason to wait** — admissibility turns on A1/A2, which EXP-010 does not touch — but a submission made
+before then will have its Fork A read against a null that does not exist yet.
+
+**Run 57 widened what one answer governs, without changing the question.** A second venue,
+`ooh.directory`, also reads A1 PARTIALLY SATISFIED, and it wants the **front page** rather than the
+feed. **One answer covers both venues and commits you to neither**: `ooh.directory` still **fails A5**
+(its tag is not allowlisted) and would not be submitted on an "A" until that is fixed. **Only
+`awesome-rss-feeds` is ready to go the moment the answer arrives.**
+
+**A4 expires 2026-08-21 04:15 UTC.** Its decay is a **pre-registered acceptable outcome** — explicitly
+**not** a deadline, and **not** a reason to answer quickly or to publish something to hold the window
+open, which EXP-008's binding clauses disqualify.
+
+---
+
+**Previously here, and closed: the `AGENT_OPERATOR_KEY` card.** It is **closed — success check
 passed** at 2026-08-15 03:43:10 UTC, on its own stated terms rather than on an executor's judgement:
 `action=list` returned `HTTP 200` with **`owner: @ava · active 0/12`**
 ([agent operator 31862547681](https://github.com/in-c0/tuned/actions/runs/31862547681)). It is removed
@@ -626,11 +672,15 @@ here the moment it passed, not when it was noticed.
 | **Verified by** | 503 → **401** on a push-triggered [verify production](https://github.com/in-c0/tuned/actions/runs/31862472255), then **200** on one read-only `list`. |
 | **Cost** | AUD $0. No spend, no credential ever read by the executor. |
 
-**The next decision is the reviewer's, not the owner's.** Adopting or creating the first managed agent
-needs a review authorizing it and a public remit in [`ops/agents/`](agents/), and then finds the agent
-genuinely encountered and selected, with what a working agent feed must show **pre-registered before
-any number is read off it**. Four feeds the owner already owns are adoptable — `@graphics`,
-`@sportstech`, `@wearables`, `@wellbeing` — and none has been touched.
+**Nothing on the operator plane is owner-blocked, and that has not changed** — the decision above is a
+distribution boundary, not an operator-plane one. **Two sentences that stood here were stale and are
+corrected rather than deleted:** this said *"the next decision is the reviewer's, not the owner's"*
+and that four owned feeds were adoptable *"and none has been touched"*. Both were written at run 42,
+before run 44 adopted `@sportstech` under the reviewer's public remit (**`active 1/12`**) and run 52
+published its first source-linked find. Adoptable today: **`@graphics`, `@wearables`, `@wellbeing`** —
+three, not four. Adopting or creating a *further* managed agent still needs a review authorizing it, a
+public remit in [`ops/agents/`](agents/), and what a working agent feed must show **pre-registered
+before any number is read off it**.
 
 **The standing rollback signal on this surface is unchanged and now matters more, not less:**
 `/api/operator/agents` answering **200 without a key** means the control plane is open to anonymous
@@ -826,11 +876,11 @@ partial — it was read at 21:24 UTC, before that day closed). Read through the 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
 | 0 | ~~**The deploy pipeline did not pick up `master`.**~~ **One build was dropped; the pipeline was never broken.** [`ffe54b4`](https://github.com/in-c0/tuned/commit/ffe54b4) merged 21:46 UTC and was never picked up — 72 consecutive `/api/version` probes across three runs of `verify production` over 32 minutes read the *previous* build every time. The next push, [`23b1f42`](https://github.com/in-c0/tuned/commit/23b1f42) at 22:11 UTC, **deployed in 61 seconds** and [verify production 31645872052](https://github.com/in-c0/tuned/actions/runs/31645872052) passed every step. Since `23b1f42` is a descendant of `ffe54b4`, the skipped commit's content is live regardless. **No owner action, and nothing to read in the Cloudflare dashboard** — the escalation written at 22:09 was falsified two minutes later by its own push. | — | AUD $0 | **Closed 2026-08-12 22:12 UTC**, same day it opened. Kept for the standing lesson below. |
-| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. **Run 54 found the blocker's shape had been misdiagnosed.** Three venues' published rules were read from GitHub's network: **Hacker News and Lobsters both FAIL A1 on quoted text** — HN says *"Don't post landing pages"* and lists *"other reading material"* as off topic for a Show HN, which is what a curated feed is; Lobsters is *"focused pretty narrowly on computing"*, caps self-promo at *"less than a quarter of one's stories"*, and gates membership behind an invitation tree. **Reddit returns HTTP 403** and will not show its rules to this reader without an account or developer token. So the binding condition is **A1 — no identified venue permits this post at all** — not A2 (authorship), which run 53 had escalated as the wall and which was **never reached at any of the three**. **Run 55 found the first venue whose A1 did not close it.** `plenaryapp/awesome-rss-feeds` — a curated list of RSS feeds populating an Android reader's Recommended Feeds — states *"There are two ways to add any category, country or feed in the repository"*, via a Google form or *"an issue with one of the given templates to add new feeds"*, with **Sports**, **Tech** and **Startups** categories ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)). **Authorship is not addressed at all**, so A1 is **PARTIALLY SATISFIED — form permitted, authorship unanswered**, not cleared. **Product Hunt is now UNREADABLE too** (HTTP 403 Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)), so two of six candidates will not state their rules to this reader at all. The channel is **proposed, not performed**: A5 has no tag and no registered threshold, and whether this executor may submit in the owner's name is an owner decision. **Run 56 closed A5 for that candidate and found the register had misdiagnosed it.** A5 read *"threshold unregistered"*; it was **unsatisfiable** — `GET /:handle/rss.xml`, the exact URL in the proposal, wrote **no counter of any kind**, because run 48's arrival instrument lives on the HTML feed page and the venue that permits the post is a directory of **RSS feeds**. Shipped in PR [#49](https://github.com/in-c0/tuned/pull/49): `feed_fetch`, `feed_fetch:<handle>`, `arrival_fetch:<tag>`, the `awesome-rss-feeds` tag, a production check that `?src=` survives the edge on that route, and [EXP-009](EXPERIMENTS.md) pre-registered before any submission exists — thresholds graded in *days with activity* rather than totals, plus **Fork D** (never merged → inadmissible, not null) and **Fork E** (merged with the tag stripped → ungradeable, not a zero). **A2 is now this candidate's only outstanding condition.** [L-35](LESSONS.md). | Executor read A1 and closed A5; **owner decides authorship** | AUD $0 | **Open, and one condition from admissible. Only the owner's decision remains.** |
+| 1 | **No arrival is known to be human.** EXP-003 removed the mechanism explanation for 0 applications — the apply path works in production at both widths — so the denominator is the problem. **Run 43 put an instrument on it for the first time:** `landing_engage` measures whether anything arriving at the landing page behaves like a person, and [EXP-007](EXPERIMENTS.md) grades it on the first complete UTC day after deploy. That does not close this blocker — a channel of known-human traffic is still the thing it wants — but it stops the blocker from being *unmeasurable*, and fork A would confirm it in numbers rather than by assumption. **Run 34 changed who this is blocked on.** The channel meant to fix it was withdrawn as inadmissible on the venue's own rules (see #3), so the blocker no longer has an owner action in front of it: there is no prepared channel, and the executor cannot conjure one this cycle without authorization. It is now **executor-side and unstarted** — the next move is to propose a *different* channel openly, with its admissibility conditions pre-registered. **Run 51 measured it and run 52 moved one of its preconditions.** The graded reading of complete UTC day 2026-08-16 (Fork A: `landing_view` 50, `landing_engage` 0) makes this a settled fact about distribution rather than an open question about the landing page; and EXP-008's publication put [A4](DISTRIBUTION.md) at **SATISFIED for `/sportstech`** until 2026-08-21 04:15 UTC, the first time A4 has not read *FAILS — every feed*. A5 still fails, so **no channel is admissible today** and the blocker stands. **Run 54 found the blocker's shape had been misdiagnosed.** Three venues' published rules were read from GitHub's network: **Hacker News and Lobsters both FAIL A1 on quoted text** — HN says *"Don't post landing pages"* and lists *"other reading material"* as off topic for a Show HN, which is what a curated feed is; Lobsters is *"focused pretty narrowly on computing"*, caps self-promo at *"less than a quarter of one's stories"*, and gates membership behind an invitation tree. **Reddit returns HTTP 403** and will not show its rules to this reader without an account or developer token. So the binding condition is **A1 — no identified venue permits this post at all** — not A2 (authorship), which run 53 had escalated as the wall and which was **never reached at any of the three**. **Run 55 found the first venue whose A1 did not close it.** `plenaryapp/awesome-rss-feeds` — a curated list of RSS feeds populating an Android reader's Recommended Feeds — states *"There are two ways to add any category, country or feed in the repository"*, via a Google form or *"an issue with one of the given templates to add new feeds"*, with **Sports**, **Tech** and **Startups** categories ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)). **Authorship is not addressed at all**, so A1 is **PARTIALLY SATISFIED — form permitted, authorship unanswered**, not cleared. **Product Hunt is now UNREADABLE too** (HTTP 403 Cloudflare bot check, [32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)), so two of six candidates will not state their rules to this reader at all. The channel is **proposed, not performed**: A5 has no tag and no registered threshold, and whether this executor may submit in the owner's name is an owner decision. **Run 56 closed A5 for that candidate and found the register had misdiagnosed it.** A5 read *"threshold unregistered"*; it was **unsatisfiable** — `GET /:handle/rss.xml`, the exact URL in the proposal, wrote **no counter of any kind**, because run 48's arrival instrument lives on the HTML feed page and the venue that permits the post is a directory of **RSS feeds**. Shipped in PR [#49](https://github.com/in-c0/tuned/pull/49): `feed_fetch`, `feed_fetch:<handle>`, `arrival_fetch:<tag>`, the `awesome-rss-feeds` tag, a production check that `?src=` survives the edge on that route, and [EXP-009](EXPERIMENTS.md) pre-registered before any submission exists — thresholds graded in *days with activity* rather than totals, plus **Fork D** (never merged → inadmissible, not null) and **Fork E** (merged with the tag stripped → ungradeable, not a zero). **A2 is now this candidate's only outstanding condition.** [L-35](LESSONS.md). | Executor read A1 and closed A5; **owner decides authorship** | AUD $0 | **Open, and one condition from admissible. Only the owner's decision remains** — the canonical card is [OWNER ACTION REQUIRED](#owner-action-required), answered **A**, **B** or **C** on [issue #1](https://github.com/in-c0/tuned/issues/1). Opened 2026-08-19 04:30 UTC, unanswered across runs 55–58. |
 | 2 | **No payment path.** No payment-provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started. Not yet blocking: there is no demand to collect. |
 | 5 | ~~**The operator plane cannot retract a publication.**~~ **Closed 2026-08-18 (run 53), same day it opened.** `retract` and `restore` ship in [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6) (PR [#48](https://github.com/in-c0/tuned/pull/48)) and were **exercised on item 242 in production and reversed**: `public_items` 12 → 11 → 12, `operator_publications_hidden` 0 → 1 → 0, `last_public_item_at` back to `2026-08-18T04:15:49.089Z` to the byte. The reader-facing proof is the provenance spec **failing** while retracted ([32126387432](https://github.com/in-c0/tuned/actions/runs/32126387432)) and green after restore ([32126651069](https://github.com/in-c0/tuned/actions/runs/32126651069)). Neither action deletes; `restore` refuses to reverse a hide the **owner** made. | — | AUD $0 | **Closed.** Built while nothing needed it, which is the only time an undo can be built calmly. |
 | 3 | ~~**EXP-002 is authorized and unpublished.**~~ **Withdrawn as inadmissible, 2026-08-13 (run 34).** The packet was authorized 2026-08-08, pasted 2026-08-13, killed at submission — and then found unpublishable on Hacker News' own rules regardless: **§3 was AI-written and was to be posted as the owner's own first comment**, and **§2 submitted an application-gated landing page**. [EXP-002-PACKET.md](EXP-002-PACKET.md) is fenced **WITHDRAWN — DO NOT POST OR RESTORE UNCHANGED**; EXP-002 is **`INVALIDATED / NOT STARTED`** with no t0, window, grade or demand inference; the restoration checker is retired. | Closed — no owner action | AUD $0 | **Closed unperformed.** Eleven runs of checking its *claims* never asked whether the venue permits a post of that form by that author — [L-17](LESSONS.md). |
-| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **43 consecutive runs**, re-tested 2026-08-19 (run 55 and run 54) and 2026-08-18 (run 52) for `justtuned.com` *and* `example.com` — both `CONNECT tunnel failed, response 403`. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
+| 4 | **Executor has no direct egress to `justtuned.com`** — 403 CONNECT at the proxy, **47 consecutive runs**, re-tested 2026-08-20 (run 59, this row's count corrected here — it read 43 while the reports read 46) for `justtuned.com` *and* `example.com` — both `CONNECT tunnel failed, response 403`. Run 28 confirmed the denial is upstream gateway policy, not local misconfiguration: `/__agentproxy/status` reports `connect_rejected`, *"gateway answered 403 to CONNECT"*, for `justtuned.com:443`. Nothing to fix on our side. Mitigated, not fixed: GitHub Actions is the production read path and demonstrably works. | Environment | — | Standing limitation, not a stop condition. |
 
 **Standing lesson from blocker #0, kept because the next dropped build will look identical.** Workers
 Builds can silently skip a single push. The signature is specific: `verify production` red on *"expected
@@ -918,18 +968,24 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 ## Next action
 
 **Owner: one decision, and it is the only thing standing between this loop and its first channel.**
-No card, no credential, no spend.
+No card, no credential, no spend. **The canonical statement of it is
+[OWNER ACTION REQUIRED](#owner-action-required) above; this section says the same thing and defers to
+it on any disagreement.**
 
 > **May this executor submit `https://justtuned.com/sportstech/rss.xml` to
 > [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) — a feed URL, a
 > title and a `Sports` category, on the venue's own Google form or issue template — or does a human
 > do it?**
 >
+> **Answer on [issue #1](https://github.com/in-c0/tuned/issues/1) with exactly one of: (A) executor
+> may submit · (B) I will submit it · (C) drop the candidate.**
+>
 > Either answer is workable and the executor will not choose for itself. This is **not** the EXP-002
 > question: the venue takes a factual record, not prose in the owner's voice, so nothing is being
 > written for the owner to publish as their own words. It is an outward-facing act in the owner's
-> name at a third party, which is a boundary rather than an interpretation. **A "no" costs nothing** —
-> a human submitting it is a perfectly good outcome, and so is dropping the candidate.
+> name at a third party, which is a boundary rather than an interpretation, and **prior Hacker News
+> authorization does not carry to a different venue**. **A "no" costs nothing** — a human submitting
+> it is a perfectly good outcome, and so is dropping the candidate.
 
 **Run 57 widened what that one decision governs, without changing the decision.** There are now
 **two** venues whose rules do not close the door, and they want **different URLs**: `awesome-rss-feeds`

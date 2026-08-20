@@ -18,9 +18,21 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **There is nothing for you to do.**
+> # **There is one thing for you to do, and it is a single word.**
 >
-> **Newest thing you should know (run 49, 2026-08-17 14:40 Sydney).** **Tomorrow morning's number
+> **Reply on [issue #1](https://github.com/in-c0/tuned/issues/1) with A, B or C.** May the executor
+> submit `@sportstech`'s feed to a public RSS directory in your name — **(A)** yes, executor submits ·
+> **(B)** no, you will submit it yourself · **(C)** no, drop it. **No card, no credential, no spend,
+> and "no" costs nothing.** It is the only thing standing between this loop and the first traffic it
+> could ever call human. Full card: [§1](#1-owner-action-required). Asked since **2026-08-19**,
+> unanswered across four runs.
+>
+> **This headline said *"There is nothing for you to do"* for ten days while the rest of this file and
+> [STATUS.md](STATUS.md) said a decision was outstanding.** That was a real defect in the mirror, not
+> a wording choice, and it is the whole substance of run 59 — recorded here rather than quietly
+> overwritten.
+>
+> **Previously here (run 49, 2026-08-17 14:40 Sydney).** **Tomorrow morning's number
 > arrives, and this afternoon we caught a rule that would have thrown it away.**
 >
 > Since Saturday the loop has been waiting on one measurement: of the ~44 apparent visitors a day to
@@ -207,7 +219,54 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 
 ## 1. OWNER ACTION REQUIRED
 
-### **NONE — the `AGENT_OPERATOR_KEY` card is closed.**
+**Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
+disagree, STATUS is right.**
+
+### **ONE DECISION. No card, no credential, no spend.**
+
+> **May this executor submit the `@sportstech` feed record to
+> [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) — the feed URL
+> `https://justtuned.com/sportstech/rss.xml`, a title and the `Sports` category, on the venue's own
+> Google form or issue template — or does a human do it?**
+
+**Reply on [issue #1](https://github.com/in-c0/tuned/issues/1) with exactly one of these three.**
+Nothing else is being asked, and the executor will not choose for itself.
+
+| | Response | What happens next |
+| --- | --- | --- |
+| **A** | **"Executor may submit."** | The executor submits the factual record — feed URL, title, `Sports` — under the venue's own template, and [EXP-009](EXPERIMENTS.md) begins grading on its pre-registered forks. |
+| **B** | **"I will submit it."** | The executor submits nothing. The URL must carry the `awesome-rss-feeds` tag as its `?src=` value or the experiment cannot be read — it grades **Fork E**, a real attempt nobody can measure. The tag is named in [DISTRIBUTION.md](DISTRIBUTION.md); per [L-36](LESSONS.md) the joined URL is deliberately not written anywhere public, including here. |
+| **C** | **"Drop the candidate."** | The venue is struck from the register, EXP-009 closes at **Fork D — inadmissible, not null**, and the executor goes back to reading other venues' rules. |
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking the loop's single objective.** Nothing degrades while it waits and nothing is lost, and **a "no" costs nothing**. |
+| **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* ([§5](#5-blockers-ordered-by-leverage)) — is now **one condition from testable**: A1 partially satisfied, A3 ✅, A5 ✅, A4 ✅ until **2026-08-21 04:15 UTC**. **A2 is the only condition left, and A2 is this decision.** |
+| **Why it needs you** | Submitting is an **outward-facing act at a third party in your name** — a boundary in the operating contract, not something the executor may decide for itself. It is **not** the EXP-002 problem: the venue takes a factual record (URL, title, category), not prose in your voice. Prior Hacker News authorization does not carry to a different venue. |
+| **Exact minimum action** | One comment on issue #1 containing **A**, **B** or **C**. No account, no form, no credential, no spend. |
+| **Observable success check** | A comment by you on issue #1 naming A, B or C. **This card is removed the run after that comment exists** — on the comment, not on the executor's reading of what was meant. |
+| **Blocker age** | **~29 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58**, re-surfaced at run 59. |
+| **Where surfaced** | Every execution report on [issue #1](https://github.com/in-c0/tuned/issues/1) since run 55, and — as of run 59 — this card, [STATUS.md's canonical card](STATUS.md#owner-action-required), blocker #1 and STATUS's Next action. |
+
+**One thing that changed about the decision, worth a sentence before you answer.** Run 58 registered
+EXP-010: a tagged link cannot on its own tell a directory's readers from anyone who assembled the URL
+from this loop's public source, because nothing this loop holds is private. EXP-010 measures how big
+that problem is by **2026-09-04**. **That is not a reason to wait** — whether the submission is
+allowed at all does not depend on it — but a submission made before then gets read against a
+comparison that does not exist yet.
+
+**One answer covers two venues and commits you to neither.** A second directory, `ooh.directory`, is
+also open on its published rules, and wants the feed's **web page** rather than its RSS file. On an
+"A" it would still not be submitted: its arrival counter is not wired up yet. **Only
+`awesome-rss-feeds` is ready to go the moment you answer.**
+
+**One deadline that is not a deadline.** `@sportstech`'s freshness condition lapses **2026-08-21
+04:15 UTC**. That lapse is a **pre-registered acceptable outcome** — not a reason to answer quickly,
+and explicitly not a reason for the executor to publish something to hold the window open.
+
+---
+
+**Previously here, and closed — the `AGENT_OPERATOR_KEY` card.**
 
 **You installed it, and it works.** Closed **2026-08-15 03:43:10 UTC** on its own stated success
 check, not on anyone's opinion: `action=list` returned `HTTP 200` with **`owner: @ava · active 0/12`**
@@ -226,9 +285,13 @@ only means "you already own these and they are not yet managed". **None was adop
 or disabled.** No secret, charter, token or member data appeared in the log; the workflow prints named
 fields only.
 
-**What happens next is not yours.** The first agent needs a reviewer authorization plus a public remit
-committed to [`ops/agents/`](agents/), and a pre-registration of what a working agent feed must show
-before any number is read off it. If you ever want it switched off, `disable` is one dispatch and
+**Nothing on this plane is yours to decide — and two sentences here were stale, corrected rather than
+deleted.** This said the first agent still needed authorizing and that none of the four owned feeds had
+been touched. Both were written at run 42: run 44 adopted **`@sportstech`** under the reviewer's public
+remit and run 52 published its first source-linked find, so adoptable today is **`@graphics`,
+`@wearables`, `@wellbeing`** — three, not four. A *further* agent needs a reviewer authorization plus a
+public remit committed to [`ops/agents/`](agents/), and a pre-registration of what a working agent feed
+must show before any number is read off it. If you ever want it switched off, `disable` is one dispatch and
 destroys nothing — it revokes the operator's authority and leaves the feed, its items and your own
 studio URL untouched.
 
@@ -262,10 +325,12 @@ a **directly usable destination** that needs no application; **your own genuinel
 for the title and any comment, which the executor will not draft or edit; and **explicit moderator
 permission** to submit again. None is urgent, and none is queued.
 
-**Underneath, the real blocker is unchanged and is not yours right now:** 0 applications against 431
-UA-flagged human-shaped landing views, so no arrival is known to be human. The channel meant to fix it
-turned out to be inadmissible; the next candidate is a *different* channel, proposed openly by the
-executor for authorization.
+**Underneath, the real blocker is unchanged — and since run 55 it *is* yours:** 0 applications against
+431 UA-flagged human-shaped landing views, so no arrival is known to be human. The Hacker News channel
+meant to fix that was withdrawn as inadmissible; a different candidate was found, its rules read, and
+its counter built and verified in production. **The one condition left on it is the A/B/C decision at
+the top of this section.** This paragraph said *"not yours right now"* for five runs after that stopped
+being true.
 
 **Bot Fight Mode: closed 2026-08-11, and now retired from this card** as promised — the full record,
 including the two colo readings that settled it and the standing recommendation to use path exemptions
@@ -393,7 +458,7 @@ Full reading and caveats in [METRICS.md](METRICS.md).
 
 | # | Blocker | Owner | Cost | State |
 | --- | --- | --- | --- | --- |
-| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. **The channel meant to fix this was withdrawn as inadmissible on 2026-08-13** (see #3), so there is now no prepared channel and no owner step: the next move is an executor proposal for a *different* one, with admissibility pre-registered. | Executor proposes; owner authorizes | AUD $0 | **Open. Top blocker, and nobody's queued action.** See §1. |
+| 1 | **No arrival is known to be human.** EXP-003 proved the apply path works in production, so the zero is not explainable by a broken form — the denominator is the problem. **431** UA-flagged views on a product never posted anywhere is most likely crawler traffic. **The Hacker News channel meant to fix this was withdrawn as inadmissible on 2026-08-13** (see #3). **Runs 55–56 replaced it and closed every condition the executor controls:** `plenaryapp/awesome-rss-feeds` permits the post on its published rules, and the arrival counter for the exact URL was built and verified against the deployed build. **The single remaining condition is the owner's A/B/C answer — see [§1](#1-owner-action-required).** This row said *"no owner step"* for five runs after that stopped being true; corrected run 59. | **Owner decides — A/B/C on [issue #1](https://github.com/in-c0/tuned/issues/1)** | AUD $0 | **Open. Top blocker, and one word from testable.** Opened 2026-08-19 04:30 UTC, unanswered across runs 55–58. See §1. |
 | 2 | **No payment path.** No provider account exists, so gross cash is structurally $0 regardless of demand. | Owner — account creation | unknown | Not started; **not yet blocking** — no demand to collect. |
 | 3 | **EXP-002 authored, authorized, submitted, killed — and then withdrawn as inadmissible.** Run 34 found it unpublishable on HN's own rules whatever moderation said: AI-written body to be posted as the owner's own comment, application-gated landing page as the URL. Eleven runs verified its *claims* and none asked whether the venue permits that form by that author. | Closed — no owner action | AUD $0 | **Closed unperformed.** Packet fenced WITHDRAWN; EXP-002 `INVALIDATED / NOT STARTED`; checker retired. [L-17](LESSONS.md). |
 | 5 | ~~**The operator plane cannot retract a publication.**~~ **Opened run 52 and closed run 53, same day (2026-08-18).** `retract`/`restore` ship in [`91f84d6`](https://github.com/in-c0/tuned/commit/91f84d6) and were exercised on item 242 in production and reversed exactly. Neither deletes; `restore` refuses to reverse a hide the **owner** made. [L-32](LESSONS.md). | — | AUD $0 | **Closed.** Full evidence in [STATUS.md](STATUS.md) and [DECISIONS.md](DECISIONS.md). |
@@ -490,11 +555,11 @@ that turns an attestation into a check.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-08-15 19:40 Sydney (2026-08-15 09:40 UTC) |
-| **Run** | 44 — **the operator control plane made its first production mutation, and published nothing.** `@sportstech` adopted under the reviewer's exact public remit: **HTTP 201** (`adopted=True · source=adopted`), then one read-only `list` returning **`owner: @ava · active 1/12`**, `@sportstech [active] source=adopted public_items=11 operator_publications=0`, adoptable now `@graphics @wearables @wellbeing`. Every acceptance criterion read back from production rather than asserted. The remit ([`ops/agents/sportstech.md`](agents/sportstech.md)) and [EXP-008](EXPERIMENTS.md)'s first-publication contract were committed in [`9617bea`](https://github.com/in-c0/tuned/commit/9617bea) **before** the mutation; the publication itself is **gated** on EXP-007's first complete-day reading so nothing changes the landing surface inside that window. One documentation defect found and corrected: `ops/agents/README.md` claimed a remit is written to `creators.charter` "at adoption or creation" — false for adoption, where only `operator_agents.remit` is written, and **the code is the part that is right** ([L-22](LESSONS.md)). No agent created, no item published, no queued item touched, `items_public` still **79**; AUD $0. Previously, run 43 — **the middle of the acquisition funnel was instrumented for the first time.** Nine UTC days of 605 UA-flagged human-shaped landing views against **0** applications, with **nothing recorded in between**, so three unrelated causes were producing one indistinguishable reading. Three counters now separate them — `landing_engage`, `application_start` (page-reported, one-shot per page load, same-origin only) and `application_invalid` (server-side, a submit rejected by email validation, previously invisible because `application_submit` counts only the ones that worked). No schema change, no new table, no cookie, no identifier, no new data category, **so the privacy policy was deliberately not amended**. [EXP-007](EXPERIMENTS.md) pre-registered five exclusive forks and a validity gate **before the counters existed**; the first reading is the snapshot covering complete UTC day 08-16. `verify production` now asserts the instrument's own presence on every push — POST with no Origin must answer **403**; 404 (absent) and 204 (guard gone) are both roll-back signals. This **reverses** EXP-003's standing "not a CTA-reach counter" hold, struck rather than deleted in STATUS, on the grounds that the counter is run to *test* the crawler assumption EXP-003 made and that the known-human traffic it deferred to (EXP-002) has been owner-gated and NOT STARTED for eight days. No agent adopted, created, published or disabled; no queued item touched; AUD $0. Previously, run 42 — **the blocker narrowed, then closed, inside one run.** It began as an ops-only reconciliation: the owner's 08-14 22:24 `list` dispatch proved the GitHub secret present (it cleared the workflow's own guard) and the Worker binding absent (`error=operator key not configured`, the first check in `src/operator.ts`, which excludes mismatch, `ADMIN_KEY` collision and owner resolution), so §1 was rewritten to **Cloudflare only**. The push carrying that rewrite then triggered `verify production`, which read **401** instead of 503 at 03:42:09 — the pre-registered resumption signal, arriving naturally rather than by dispatch. One authorized read-only `action=list` followed at 03:43:10: **`HTTP 200 · owner: @ava · active 0/12`**, adoptable `@graphics @sportstech @wearables @wellbeing`. **§1 is now NONE.** Stopped there per directive — no adopt, create, publish or disable. Blocker #4's egress count also corrected to **31** in both files (they disagreed at 29/27). No source, schema, workflow, product, pricing, distribution, billing or experiment change; no queued item touched; AUD $0. Previously, run 41 — **ops-only evidence reconciliation.** The durable claim that Tuned has "one live connection with nothing to carry" was falsified by the 08-14 snapshot: ingestion ran 30×, succeeded 30×, captured **104** plays, and the private queue went **42 → 146** while `items_public` stayed at **79**. Corrected here, in STATUS and in METRICS; [EXP-006](EXPERIMENTS.md)'s original grade and timestamp preserved with the later reading filed separately. No source, schema, workflow or product change; no queued item opened or approved; no manual dispatch; §1 unchanged. Previously, run 37 — the ingestion cron, Tuned's only current producer of items, was made observable through the existing metrics path; [EXP-006](EXPERIMENTS.md) pre-registered before any reading. Graded the same run: **QUIET, NOT BROKEN** — the cron fires, the token still authenticates, and there was simply no new play to capture, so the flat `items_queued` is a true absence of supply rather than a defect (n = 1 poll; the three earlier flat days stay uninterpretable). Nothing was published, no owner card changed. Previously, run 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
+| **Last materially updated** | 2026-08-20 19:40 Sydney (2026-08-20 09:40 UTC) |
+| **Run** | 59 — **the owner card said NONE for five runs while every other line said a decision was outstanding.** No product change and no experiment change: the reviewer's directive was to synchronize the owner boundary and stop. §1 now carries the canonical A/B/C decision — may the executor submit `@sportstech`'s feed record to `plenaryapp/awesome-rss-feeds`, or does the owner — with severity, blocked outcome, why owner authority is required, an observable success check (a comment on issue #1 naming A, B or C), blocker age (opened 2026-08-19 04:30 UTC) and where it was surfaced. The headline card, §1, §5's blocker #1 and [STATUS.md](STATUS.md)'s canonical card, blocker #1 and Next action now say the same thing, with STATUS named as authoritative. Four stale claims were corrected in place rather than deleted: the headline's *"There is nothing for you to do"*, §1's *"what happens next is not yours"*, §1's *"the real blocker … is not yours right now"*, and §5 blocker #1's *"no owner step"*. §1 also corrected the adoptable-feed list to **three** (`@graphics`, `@wearables`, `@wellbeing`) — `@sportstech` was adopted at run 44 and published at run 52. **EXP-009 and EXP-010 were deliberately not touched**; no counter, name, allowlist entry, route, schema or public surface changed; no submission was made anywhere; AUD $0. Previously, run 44 — **the operator control plane made its first production mutation, and published nothing.** `@sportstech` adopted under the reviewer's exact public remit: **HTTP 201** (`adopted=True · source=adopted`), then one read-only `list` returning **`owner: @ava · active 1/12`**, `@sportstech [active] source=adopted public_items=11 operator_publications=0`, adoptable now `@graphics @wearables @wellbeing`. Every acceptance criterion read back from production rather than asserted. The remit ([`ops/agents/sportstech.md`](agents/sportstech.md)) and [EXP-008](EXPERIMENTS.md)'s first-publication contract were committed in [`9617bea`](https://github.com/in-c0/tuned/commit/9617bea) **before** the mutation; the publication itself is **gated** on EXP-007's first complete-day reading so nothing changes the landing surface inside that window. One documentation defect found and corrected: `ops/agents/README.md` claimed a remit is written to `creators.charter` "at adoption or creation" — false for adoption, where only `operator_agents.remit` is written, and **the code is the part that is right** ([L-22](LESSONS.md)). No agent created, no item published, no queued item touched, `items_public` still **79**; AUD $0. Previously, run 43 — **the middle of the acquisition funnel was instrumented for the first time.** Nine UTC days of 605 UA-flagged human-shaped landing views against **0** applications, with **nothing recorded in between**, so three unrelated causes were producing one indistinguishable reading. Three counters now separate them — `landing_engage`, `application_start` (page-reported, one-shot per page load, same-origin only) and `application_invalid` (server-side, a submit rejected by email validation, previously invisible because `application_submit` counts only the ones that worked). No schema change, no new table, no cookie, no identifier, no new data category, **so the privacy policy was deliberately not amended**. [EXP-007](EXPERIMENTS.md) pre-registered five exclusive forks and a validity gate **before the counters existed**; the first reading is the snapshot covering complete UTC day 08-16. `verify production` now asserts the instrument's own presence on every push — POST with no Origin must answer **403**; 404 (absent) and 204 (guard gone) are both roll-back signals. This **reverses** EXP-003's standing "not a CTA-reach counter" hold, struck rather than deleted in STATUS, on the grounds that the counter is run to *test* the crawler assumption EXP-003 made and that the known-human traffic it deferred to (EXP-002) has been owner-gated and NOT STARTED for eight days. No agent adopted, created, published or disabled; no queued item touched; AUD $0. Previously, run 42 — **the blocker narrowed, then closed, inside one run.** It began as an ops-only reconciliation: the owner's 08-14 22:24 `list` dispatch proved the GitHub secret present (it cleared the workflow's own guard) and the Worker binding absent (`error=operator key not configured`, the first check in `src/operator.ts`, which excludes mismatch, `ADMIN_KEY` collision and owner resolution), so §1 was rewritten to **Cloudflare only**. The push carrying that rewrite then triggered `verify production`, which read **401** instead of 503 at 03:42:09 — the pre-registered resumption signal, arriving naturally rather than by dispatch. One authorized read-only `action=list` followed at 03:43:10: **`HTTP 200 · owner: @ava · active 0/12`**, adoptable `@graphics @sportstech @wearables @wellbeing`. **§1 is now NONE.** Stopped there per directive — no adopt, create, publish or disable. Blocker #4's egress count also corrected to **31** in both files (they disagreed at 29/27). No source, schema, workflow, product, pricing, distribution, billing or experiment change; no queued item touched; AUD $0. Previously, run 41 — **ops-only evidence reconciliation.** The durable claim that Tuned has "one live connection with nothing to carry" was falsified by the 08-14 snapshot: ingestion ran 30×, succeeded 30×, captured **104** plays, and the private queue went **42 → 146** while `items_public` stayed at **79**. Corrected here, in STATUS and in METRICS; [EXP-006](EXPERIMENTS.md)'s original grade and timestamp preserved with the later reading filed separately. No source, schema, workflow or product change; no queued item opened or approved; no manual dispatch; §1 unchanged. Previously, run 37 — the ingestion cron, Tuned's only current producer of items, was made observable through the existing metrics path; [EXP-006](EXPERIMENTS.md) pre-registered before any reading. Graded the same run: **QUIET, NOT BROKEN** — the cron fires, the token still authenticates, and there was simply no new play to capture, so the flat `items_queued` is a true absence of supply rather than a defect (n = 1 poll; the three earlier flat days stay uninterpretable). Nothing was published, no owner card changed. Previously, run 36 — the agent publication contract was traced end to end and works; **credentials and permission are the missing prerequisites, both owner-only**, so §1 carries one card again. Agent provenance in RSS was found missing and fixed. Nothing was published |
 | **Repository commit at time of writing** | [`9617bea`](https://github.com/in-c0/tuned/commit/9617bead978707864fac802c39e14c7533299e74) — confirmed by `verify production` [31877364330](https://github.com/in-c0/tuned/actions/runs/31877364330) to be the commit **actually serving**, by build stamp rather than by timing |
 | **Data commit** | [`7a73982`](https://github.com/in-c0/tuned/commit/7a739827c21f9716765670f20f05fadeb1899ad3) — `generated_at` 2026-08-14T20:58:56Z, read through the public zone by the scheduled snapshot job. **This is the reading that moved:** content totals and ingestion counters in §4 come from it. The **§4 stage table still comes from [`567dad0`](https://github.com/in-c0/tuned/commit/567dad0) (08-12)** and is labelled stale in place. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** §1, §6's EXP-008 entry and this section are current as of **run 44**; §6's EXP-007 entry as of **run 43**; §5's blocker #4 was corrected at run 42; §7 as of run 37. **§4 was deliberately not touched this run — no metric moved**, so its content totals and ingestion counters remain at the 08-14 snapshot and its **stage table** remains three days stale at the 08-12 snapshot, labelled in place. **§4 carries no row for the three counters added this run, and must not: they read zero on every day committed so far because they did not exist.** §2 and §3's 1-week row are current as of run 34; **§5's blocker rows 1–4 are also as of run 34, and only its new row 5 was written at run 53** — the rest of §5 has not been re-verified since.  **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** **The headline card, §1 and §5's blocker #1 are current as of run 59**, and are the sections this file exists to get right; §6's EXP-008 entry as of **run 44**; §6's EXP-007 entry as of **run 43**; §5's blocker #4 was corrected at run 42 and its *count* is stale — STATUS carries the current figure; §7 as of run 37. **§6 does not list EXP-009 or EXP-010**, both registered since; read [EXPERIMENTS.md](EXPERIMENTS.md) for those, and note run 59 was directed not to touch them. **§4 was deliberately not touched this run — no metric moved**, so its content totals and ingestion counters remain at the 08-14 snapshot and its **stage table** remains three days stale at the 08-12 snapshot, labelled in place. **§4 carries no row for the three counters added this run, and must not: they read zero on every day committed so far because they did not exist.** §2 and §3's 1-week row are current as of run 34; **§5's blocker rows 1–4 are also as of run 34, and only its new row 5 was written at run 53** — the rest of §5 has not been re-verified since.  **The rest of §3 was last written at run 20** and is stale. Read [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md) for those. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
