@@ -25,7 +25,14 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 > **(B)** no, you will submit it yourself · **(C)** no, drop it. **No card, no credential, no spend,
 > and "no" costs nothing.** It is the only thing standing between this loop and the first traffic it
 > could ever call human. Full card: [§1](#1-owner-action-required). Asked since **2026-08-19**,
-> unanswered across four runs.
+> unanswered across five runs.
+>
+> **One thing worth knowing before you answer, and it was stated backwards until run 60.** The feed's
+> freshness condition lapses **tomorrow at 14:15 Sydney**. An **A** answered before then is submitted;
+> an **A** answered after it waits — not for a date, but for the next find genuinely worth publishing,
+> which is not scheduled. **There is no penalty for missing it**, nothing breaks, and the executor will
+> not publish anything to hold the window open. Answering tonight or tomorrow morning is simply worth
+> more than tomorrow afternoon.
 >
 > **This headline said *"There is nothing for you to do"* while [STATUS.md](STATUS.md) and the rest of
 > this file said a decision was outstanding.** Written at run 49 on 2026-08-17, false from **2026-08-19
@@ -241,12 +248,12 @@ Nothing else is being asked, and the executor will not choose for itself.
 
 | | |
 | --- | --- |
-| **Severity** | **Blocking the loop's single objective.** Nothing degrades while it waits and nothing is lost, and **a "no" costs nothing**. |
+| **Severity** | **Blocking the loop's single objective, and on a clock as of run 60.** Nothing is at risk, nothing breaks, and **a "no" still costs nothing** — but the freshness condition lapses **2026-08-21 04:15 UTC, 14:15 Sydney tomorrow**, and an **A** answered before that is submitted while an **A** answered after it waits on an unscheduled event. See *"The one thing that does lapse"* below; run 59's card said the opposite and was wrong. |
 | **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* ([§5](#5-blockers-ordered-by-leverage)) — is now **one condition from testable**: A1 partially satisfied, A3 ✅, A5 ✅, A4 ✅ until **2026-08-21 04:15 UTC**. **A2 is the only condition left, and A2 is this decision.** |
 | **Why it needs you** | Submitting is an **outward-facing act at a third party in your name** — a boundary in the operating contract, not something the executor may decide for itself. It is **not** the EXP-002 problem: the venue takes a factual record (URL, title, category), not prose in your voice. Prior Hacker News authorization does not carry to a different venue. |
 | **Exact minimum action** | One comment on issue #1 containing **A**, **B** or **C**. No account, no form, no credential, no spend. |
 | **Observable success check** | A comment by you on issue #1 naming A, B or C. **This card is removed the run after that comment exists** — on the comment, not on the executor's reading of what was meant. |
-| **Blocker age** | **~29 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58**, re-surfaced at run 59. |
+| **Blocker age** | **~30 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58, 59**, re-surfaced at run 60. |
 | **Where surfaced** | Every execution report on [issue #1](https://github.com/in-c0/tuned/issues/1) since run 55, and — as of run 59 — this card, [STATUS.md's canonical card](STATUS.md#owner-action-required), blocker #1 and STATUS's Next action. |
 
 **One thing that changed about the decision, worth a sentence before you answer.** Run 58 registered
@@ -261,9 +268,23 @@ also open on its published rules, and wants the feed's **web page** rather than 
 "A" it would still not be submitted: its arrival counter is not wired up yet. **Only
 `awesome-rss-feeds` is ready to go the moment you answer.**
 
-**One deadline that is not a deadline.** `@sportstech`'s freshness condition lapses **2026-08-21
-04:15 UTC**. That lapse is a **pre-registered acceptable outcome** — not a reason to answer quickly,
-and explicitly not a reason for the executor to publish something to hold the window open.
+**The one thing that does lapse — corrected at run 60, one run after this card said the opposite.**
+`@sportstech`'s freshness condition lapses **2026-08-21 04:15 UTC, 14:15 Sydney tomorrow.** Run 59 wrote
+that this is *"not a reason to answer quickly"* and that nothing degrades while the decision waits.
+**Right about the executor, wrong about your answer**, because two claims were collapsed into one:
+
+- **True, and unchanged.** The executor must **not** publish anything to hold the window open, and it
+  will not. A publication made to move a number is disqualified by EXP-008's own rules, and the
+  condition decaying is a **pre-registered acceptable outcome**. Nothing is asked of you to prevent it.
+- **False.** That the timing of your answer therefore does not matter. The condition has to hold
+  **before** a submission is made, read from the live site in the same cycle. An **A** before 04:15 UTC
+  is submitted; an **A** after it **waits** — not for a date, but for the next find genuinely worth
+  publishing, which is not scheduled and could be days. **B** carries the same staleness into your own
+  submission. **C** costs nothing at any hour.
+
+**Not a deadline, and no penalty for missing it.** Just one fact you were owed while deciding:
+answering tonight or tomorrow morning is worth strictly more than tomorrow afternoon. The question
+itself is unchanged.
 
 ---
 

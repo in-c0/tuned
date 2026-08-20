@@ -2637,9 +2637,52 @@ or product feature."*
   migration, workflow or test. No product, copy, pricing or landing-page change. No new experiment,
   no new venue search, no publication to hold A4's 2026-08-21 04:15 UTC window open — its decay
   remains a pre-registered acceptable outcome and is **not** a reason for the owner to answer quickly.
+  **[Corrected at run 60, 2026-08-20 10:35 UTC.]** The first half stands: the executor must not and
+  will not publish to hold the window open. The last clause is **wrong** and was carried into both
+  owner cards. A4 must hold *before* a submission is made, so an **A** answered before 04:15 UTC is
+  submitted and an **A** answered after it waits on the next find genuinely worth publishing, which is
+  not scheduled. Not a deadline and no penalty — but a fact the owner is owed while deciding, and run
+  59 removed it from the card. See the run-60 entry below and [L-39](LESSONS.md).
 - **Standing note the reviewer raised and this run accepts:** twelve execution reports ran without a
   review, and in that gap measurement repair outran the owner boundary. The card being stale is the
   concrete cost of that, and it cost four runs of asking into a file that told the owner there was
   nothing to do.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-20 — run 60: the owner card removed a fact the owner needed to decide with
+
+- **Directive standing, not new.** No reviewer comment exists after
+  [the run-59 directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5354062728) (2026-08-20
+  09:32 UTC), which said: synchronize the owner boundary and stop — *"Do not create another experiment,
+  instrument, venue search, or product feature."* Run 60 stays inside it: `ops/*.md` only.
+- **Decision: correct the owner card's treatment of the A4 clock, in all four places it was stated.**
+  Run 59's card said the 2026-08-21 04:15 UTC expiry is *"not a reason to answer quickly"* and that
+  *"nothing degrades, nothing is lost"* while the decision waits. The first half of the underlying rule
+  is right and is kept verbatim — **the executor must not publish anything to hold the window open**,
+  and it did not. The conclusion drawn for the owner is wrong: A4 must hold *before* a submission is
+  made ([DISTRIBUTION.md](DISTRIBUTION.md), L-33 order), so an **A** answered before 04:15 UTC is
+  submitted and an **A** answered after it waits on the next find genuinely worth publishing, which is
+  not scheduled. Corrected in `STATUS.md`'s canonical card (severity row, the A4 paragraph, the header
+  and *Next action*), `DASHBOARD.md`'s headline and §1, and in place at the run-59 `DECISIONS.md` entry.
+- **Decision: state it as a fact, not as pressure.** The card says explicitly that this is **not a
+  deadline**, that missing it carries **no penalty**, that nothing breaks, and that the executor will
+  not act to prevent the lapse. What it now also says is what changes for each of A / B / C if the
+  answer arrives after 14:15 Sydney tomorrow. Withholding that was not neutrality; it was an owner
+  deciding with one input missing.
+- **Decision: escalate the ask off GitHub for the first time.** The decision has been unanswered across
+  five runs and its cheapest window closes in ~18 hours. The routine's own notification channel reaches
+  the owner directly; it was used to surface the A/B/C question and the clock. No private individual
+  was contacted, nothing was sent to a third party, and the notification carries the same text as the
+  card.
+- **Not done, deliberately:** **EXP-009 and EXP-010 byte-untouched** — no reading taken ahead of its
+  date, no fork edited, no threshold moved; EXP-010's control window opens 2026-08-21. No submission,
+  form, issue or account use at any third-party venue. No feedle A1 read (a venue search, which the
+  directive forbids). No counter, tag, allowlist entry, route, schema, migration, workflow or test. No
+  product, copy, pricing or landing-page change. No publication, and specifically none that would move
+  A4. DASHBOARD §8's stale `9617bea` row is still left alone, as at run 59.
+- **[L-39](LESSONS.md):** a rule constraining what the executor may do is not a description of what
+  matters to whoever is deciding. Every dated condition on an owner card needs its effect on *their*
+  options stated separately from its effect on the executor's permissions.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

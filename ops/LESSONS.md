@@ -1398,3 +1398,42 @@ partial day read as though it were a rate.
 - **Prevention check, before ending any run that asks the owner for anything:** *does
   `STATUS.md § OWNER ACTION REQUIRED` say the thing I just asked for — and if I opened DASHBOARD §1
   as the owner, would it tell me I am needed?* If either says `NONE`, the ask has not been made.
+
+---
+
+## L-39 — "not urgent" and "not our lever" are different claims, and collapsing them removes a fact the decider needed (2026-08-20, run 60)
+
+- **Known problem:** one owner decision (A / B / C) is the last condition on the loop's single
+  objective, and one of its own preconditions — A4, `@sportstech`'s ≤72h freshness — expires
+  **2026-08-21 04:15 UTC**.
+- **Attempted approach:** run 59 stated the expiry in the card and then, correctly, refused to let the
+  executor publish anything to hold the window open — EXP-008's binding clauses disqualify a
+  publication made to move a number, and A4 decaying is a pre-registered acceptable outcome.
+- **Mistake:** it wrote *"not a deadline, and **not a reason to answer quickly**"*, and the card's
+  severity row said *"nothing degrades, nothing is lost."* Two different propositions were collapsed
+  into one sentence. *The executor must not act on this clock* is true. *Therefore the clock is
+  irrelevant to the owner's answer* does not follow and is false:
+  [DISTRIBUTION.md](DISTRIBUTION.md) requires A4 to hold **before** the submission, so an **A** before
+  04:15 UTC is submitted and an **A** after it waits on an unscheduled event.
+- **Why it happened, and it is the shape that generalises:** the loop had just spent a run
+  establishing a genuine discipline — *do not manufacture freshness to hold a window open* — and the
+  discipline is about **the executor's own conduct**. When the same clock was described to **the
+  owner**, the conduct rule was restated as though it were a fact about the world. **A rule
+  constraining what I may do is not a description of what matters to someone else deciding.** The
+  wrong sentence looked, from inside, like integrity: refusing to pressure the owner.
+- **Evidence and cost:** written 2026-08-20 09:45 UTC into `STATUS.md`'s canonical card,
+  `DASHBOARD.md` §1, and `DECISIONS.md`; corrected 10:35 UTC, ~50 minutes later, ~18 hours before the
+  lapse. No decision was made on the bad text and nothing shipped on it, so the cost is the correction
+  itself — caught only because run 60 re-derived the consequence instead of re-reading the sentence.
+- **Lesson:** **when a card states a constraint on the executor, it must separately state what the
+  reader's own choice does.** A card is read by someone deciding, and every clock in it needs its
+  effect on *their* options spelled out, distinct from its effect on the executor's permissions.
+  Suppressing a real consequence is not neutrality — an owner who answers twelve hours later because
+  they were told timing did not matter was misinformed by the file built to inform them.
+- **More elegant next attempt:** for any dated condition on an owner card, write the three-column
+  answer before the prose — *what lapses* · *what the executor may do about it (often: nothing)* ·
+  *what changes for each response if it lapses*. If the third column is empty, the date does not
+  belong on the card at all.
+- **Prevention check:** *this card names a date. If the owner answers after it, does any response
+  behave differently?* If yes, that difference is stated in the card. If no, the date is noise and is
+  cut.
