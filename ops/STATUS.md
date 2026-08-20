@@ -1,12 +1,13 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-20 19:40 Sydney (2026-08-20 09:40 UTC), run 59 — **the canonical owner card
-said NONE while every other line in this file said a decision was outstanding; the card is now the
-decision** ·
+**Last updated:** 2026-08-20 20:35 Sydney (2026-08-20 10:35 UTC), run 60 — **the card written last run
+told the owner their answer's timing does not matter; it does, and it does until 14:15 Sydney
+tomorrow** ·
 **[OWNER ACTION REQUIRED](#owner-action-required): ONE DECISION, NO SPEND** — may this executor submit
 the `@sportstech` feed record to `plenaryapp/awesome-rss-feeds`, or does a human? Answer on
 [issue #1](https://github.com/in-c0/tuned/issues/1) with **A** (executor may submit) · **B** (I will
-submit it) · **C** (drop the candidate). Opened 2026-08-19 04:30 UTC, **unanswered across four runs** ·
+submit it) · **C** (drop the candidate). Opened 2026-08-19 04:30 UTC, **unanswered across five runs**;
+**an "A" before 2026-08-21 04:15 UTC ships, an "A" after it waits on an unscheduled event** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
 
 > # 23 fetches on day one, 1 on day two. A burst that decayed is a crawl — which is the exact call EXP-009's Fork A exists to make, and we got it backwards on our own data.
@@ -631,12 +632,12 @@ Nothing else is being asked, and the executor will not choose for itself.
 
 | | |
 | --- | --- |
-| **Severity** | **Blocking the loop's single objective.** Not urgent in the sense of risk — nothing degrades, nothing is lost, and **a "no" costs nothing**. |
+| **Severity** | **Blocking the loop's single objective, and on a clock as of this run.** Nothing is at risk, nothing breaks, and **a "no" still costs nothing** — but **A4 lapses 2026-08-21 04:15 UTC (14:15 Sydney tomorrow)**, and an **A** answered before that is submitted while an **A** answered after it waits on an unscheduled event. The paragraph *"The one thing that does lapse"* below states exactly what that does and does not mean; run 59's card said the opposite and was wrong. |
 | **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* — is measured, correctly diagnosed as A1, and now **one condition from testable**: A1 partially satisfied, A3 ✅, A5 ✅, A4 ✅ until **2026-08-21 04:15 UTC**. **A2 is the only condition left, and A2 is this decision.** |
 | **Why owner authority is required** | Submitting is an **outward-facing act at a third party in the owner's name**. That is a boundary in the operating contract, not an interpretation the executor may resolve. It is **not** the EXP-002 question — the venue takes a factual record (URL, title, category), not prose in the owner's voice — and prior Hacker News authorization does not carry to a different venue. |
 | **Exact minimum action** | One comment on issue #1 containing **A**, **B** or **C**. No account, no form, no credential, no spend, no reading required beyond this card. |
 | **Observable success check** | A comment by the owner on issue #1 naming A, B or C. **This card is removed the run after that comment exists** — on the comment, not on the executor's judgement of what was meant. |
-| **Blocker age** | **~29 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58** and re-surfaced here at run 59. |
+| **Blocker age** | **~30 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58, 59** and re-surfaced here at run 60. |
 | **Where surfaced** | Every execution report on [issue #1](https://github.com/in-c0/tuned/issues/1) since run 55, and — as of this run — this card, [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), blocker #1 and [Next action](#next-action). |
 
 **One thing that changed about the decision itself, and it is worth a sentence.** Run 58 registered
@@ -652,9 +653,26 @@ feed. **One answer covers both venues and commits you to neither**: `ooh.directo
 (its tag is not allowlisted) and would not be submitted on an "A" until that is fixed. **Only
 `awesome-rss-feeds` is ready to go the moment the answer arrives.**
 
-**A4 expires 2026-08-21 04:15 UTC.** Its decay is a **pre-registered acceptable outcome** — explicitly
-**not** a deadline, and **not** a reason to answer quickly or to publish something to hold the window
-open, which EXP-008's binding clauses disqualify.
+**The one thing that does lapse — corrected here, one run after this card said the opposite.**
+`@sportstech`'s freshness condition **A4 expires 2026-08-21 04:15 UTC, 14:15 Sydney tomorrow.** Run 59
+wrote that its decay is *"not a reason to answer quickly"* and that nothing degrades while the decision
+waits. **Both statements are right about the executor and wrong about the answer**, because two
+separate claims were collapsed into one:
+
+- **True, and unchanged.** The executor must **not** publish anything to hold the window open —
+  [EXP-008](EXPERIMENTS.md)'s binding clauses disqualify a publication made to move a number — and A4
+  decaying back to FAILS is a **pre-registered acceptable outcome**. Nothing is being asked of you to
+  prevent it, and the executor will not act to prevent it either.
+- **False.** That the timing of *your* answer therefore does not matter.
+  [DISTRIBUTION.md](DISTRIBUTION.md) requires A4 to hold **before** a submission is made, read from
+  production in the same cycle, in [L-33](LESSONS.md) order. So an **A** answered before 04:15 UTC is
+  submitted; an **A** answered after it **waits** — not until a date, but until the next find genuinely
+  worth publishing, which is not scheduled and could be days. **B** carries the same staleness into
+  your own submission. **C** costs nothing at any hour.
+
+**This is not a deadline, and missing it has no penalty.** It is one fact you were entitled to have
+while deciding: answering tonight or tomorrow morning Sydney time is worth strictly more than answering
+tomorrow afternoon. Nothing else on this card changes either way, and the question itself is unchanged.
 
 ---
 
@@ -986,6 +1004,11 @@ it on any disagreement.**
 > name at a third party, which is a boundary rather than an interpretation, and **prior Hacker News
 > authorization does not carry to a different venue**. **A "no" costs nothing** — a human submitting
 > it is a perfectly good outcome, and so is dropping the candidate.
+>
+> **On timing, corrected at run 60:** A4 lapses **2026-08-21 04:15 UTC (14:15 Sydney)**, and it must
+> hold *before* a submission is made. An **A** before then is submitted; an **A** after it waits on the
+> next find genuinely worth publishing, which is not scheduled. Not a deadline, no penalty, and the
+> executor will not publish anything to hold the window open.
 
 **Run 57 widened what that one decision governs, without changing the decision.** There are now
 **two** venues whose rules do not close the door, and they want **different URLs**: `awesome-rss-feeds`
