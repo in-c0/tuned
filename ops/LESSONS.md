@@ -1478,3 +1478,60 @@ is authorized is not the same as the fact that it is gradeable.
 - **Prevention check:** *before asking anyone to authorize an act — have I confirmed, by trying the
   cheapest read against the real target, that I could perform it if the answer were yes?* If not, the
   card is asking for permission the executor may not be able to spend.
+
+---
+
+## L-41 — a rule written to catch an error does not catch the error in the sentence next to it (2026-08-20, run 62)
+
+**What happened.** Run 61 discovered it could not open an issue at `awesome-rss-feeds`, and correctly
+made that a mandatory stop. It then shipped **A0** — *"before any A1 read, confirm the executor holds
+what the mechanism needs"* — and [L-40](#l-40--an-authorization-is-worth-nothing-until-someone-has-checked-the-executor-can-physically-perform-the-act-2026-08-20-run-61)'s
+prevention check: *"before asking anyone to authorize an act, have I confirmed I could perform it if
+the answer were yes?"* **In the same commit, in the same card, it offered the owner a fallback —
+"use the Google form instead, the executor can submit it unaided" — without applying either.**
+
+It cannot. Its egress answers **403 CONNECT to every host**, `docs.google.com` included; its one
+third-party vantage is a **GET-only reader** that contains no `.fill()`, `.click()` or POST; the only
+form-filling spec in the repository targets Tuned's own `baseURL`. **There is no instrument here that
+can write to any third party.** So a second owner decision was queued against a second act the
+executor could not perform — the identical failure, one run later, discovered *before* the owner
+answered instead of after only because this run happened to look.
+
+**Why it is a distinct lesson rather than L-40 repeated.** L-40 says *check capability before asking*.
+This run shows that **writing that rule down does not apply it** — and specifically, that the rule was
+applied to the option under examination and not to the option offered as its replacement. **A
+substitute is a proposal, and it inherits every precondition of the thing it substitutes for.** The
+loop's attention was entirely on the *primary* route, where the check had just failed painfully; the
+fallback slipped through as an aside in the same paragraph, phrased as a reassurance rather than a
+claim, and nobody re-ran the test on it.
+
+**The generalisable shape.** *A new check gets applied to the case that motivated it, and the cases
+sitting beside it stay unchecked.* A rule born from one incident inherits that incident's shape, so
+the run that ships it is the run **least** likely to apply it evenly — the author is still reasoning
+about the specific failure, not the class. **A remedy is not in force on the run that writes it; it is
+in force on the run that audits everything the remedy now covers.**
+
+**The second edge, and the sharper one.** Run 61 *did* decline the Google form — for A5, because a form
+leaves no receipt. The reasoning was sound and the conclusion was right. **It was right for the
+interesting reason while a plain one was also true and unexamined**, and a decision that lands correctly
+on its subtle ground can conceal that its obvious ground was never checked. **Being right is not
+evidence of having looked.** Had the owner answered A-2, the loop would have discovered the plain
+reason at the moment of acting, for the second consecutive run.
+
+- **Evidence and cost:** no owner decision was spent this time — the correction landed ~30 minutes
+  after the card was posted and before any answer. Cost is one run, and one withdrawn option.
+- **Shipped:** A0 amended from a per-venue question to a **per-mechanism** one with a single answer for
+  every third-party venue — **NO** — recorded once in [DISTRIBUTION.md](DISTRIBUTION.md)'s register
+  rather than seven times; the false sentence struck where it was published, in
+  [STATUS.md](STATUS.md), [DASHBOARD.md](DASHBOARD.md) and DISTRIBUTION.md alike; **A-2 withdrawn** and
+  replaced with **B**, which names building a submitting instrument as the capability decision it
+  actually is.
+- **Recorded and refused:** a Google Form accepts a `formResponse` over **GET**, so the read-only reader
+  could mechanically be pointed at a submitting URL. **That route is not taken and is written down so no
+  later run rediscovers it as a clever unblock** — it is using an instrument whose documented contract
+  is *"this reads source material"* to perform a third-party write, the same shape as spoofing a user
+  agent past a bot check.
+- **Prevention check:** *when shipping a new gate, list every item it now applies to and run it against
+  all of them in the same run — starting with anything the same document offers as an alternative.* And
+  separately: *when declining something, name every reason it fails, not the most interesting one* — a
+  single sufficient reason ends the analysis and hides whether the cheap checks were ever made.

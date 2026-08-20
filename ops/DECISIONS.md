@@ -2737,3 +2737,49 @@ records why five runs of permission work never asked it.
 **EXP-009 and EXP-010 are byte-untouched.** No t0 exists, because no submission exists.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-20 (run 62) — the fallback offered to the owner was also unperformable, and it is withdrawn rather than left standing
+
+- **Context.** No new reviewer directive since 2026-08-20 21:34 UTC; run 61 executed it up to the
+  stop condition it named and posted its report at 21:54 UTC. The owner's A-1/A-2/C card was ~10
+  minutes old at the start of this run and unanswered. **A4 lapses 2026-08-21 04:15:49 UTC.**
+- **Decision: spend the run applying A0 to the executor's own instruments rather than to another
+  venue.** Run 61 shipped A0 and [L-40](LESSONS.md) after an authorization was spent on an act the
+  executor could not perform. The obvious next move was reading the next venue's rules; the higher-value
+  one was asking whether *any* venue's submission mechanism is reachable at all, since a NO there makes
+  every A1 verdict in the register a statement about what **a human with an account** may do.
+- **Finding — A0 is a question about instruments, not venues, and it has one answer: NO.** Established
+  entirely from this repository and this environment, with nothing at any venue touched. Egress **403
+  CONNECT to every host**, re-tested this run and including **`docs.google.com`** (50 consecutive runs).
+  The only third-party vantage is `source-read.yml` → `qa/source-read.spec.mjs`, **GET-only by
+  construction**, `permissions: contents: read`, no secrets, no link following, and containing no
+  `.fill()`, `.click()` or `request.post()`. The single form-filling spec in `qa/`
+  (`exp003-mechanism.spec.mjs`) targets Tuned's own `baseURL`. GitHub scope is `in-c0/tuned`.
+- **Consequence: run 61's A-2 is withdrawn.** *"The executor could submit it unaided"* was false when
+  written, and would have had the owner authorize a second unperformable act one run after the first.
+  The struck sentence is corrected **where it was published** — STATUS.md, DASHBOARD.md and
+  DISTRIBUTION.md — rather than quietly dropped. **Replaced with option B**, which names the real
+  question: building an instrument that performs writes at third parties is a capability decision with
+  its own boundary, not a one-word authorization. **B is listed and explicitly not recommended.**
+- **Net effect on the owner, which is why this ranked above a venue read:** the card goes from three
+  options to **one route plus two ways of saying no**. A-1 is unchanged and is now the only path that is
+  both performable and gradeable.
+- **Considered and refused, recorded so no later run rediscovers it:** a Google Form accepts a
+  `formResponse` over **GET**, so the read-only reader could mechanically be aimed at a submitting URL.
+  **Not taken.** It would use an instrument whose documented contract is *"this reads source material"*
+  to perform a third-party write — the same class of quiet boundary crossing as user-agent spoofing,
+  which this loop has already refused twice. If a submitting instrument is wanted, it gets built in the
+  open under option B.
+- **Secondary, and genuinely answered: feedle's FAQ.** Two GETs. `/submit` is a **404** — a finding about
+  a guessed path, not about the venue. `/faq` read **whole** (`read_outcome: "page"`,
+  `excerpt_truncated: false`), and it publishes **four questions about what RSS is and no rule about who
+  may submit anything**; the sole `"submit"` occurrence is the nav label. By this register's standing
+  rule **silence is not permission**, so **A1 is NOT SATISFIED on an established absence** rather than
+  on an unread page — a stronger verdict than the "UNREAD" it replaces. Remaining place a rule could
+  live: `/terms`. Not spent, because A0 means no answer could authorize this executor to submit anyway.
+- **Not done, deliberately:** no submission, form, issue or account use anywhere; no publication to hold
+  A4's window open ([EXP-008](EXPERIMENTS.md)'s clauses disqualify it and A4 decaying is an acceptable
+  outcome); no `MIN_PAGE_CHARS` change despite a second terse-page false alarm; no code change at all —
+  the reader's missing `href` reporting is recorded as the next candidate, not folded into this run;
+  **EXP-009 and EXP-010 byte-untouched**; no phone or inbox notification sent or claimed.
+- **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

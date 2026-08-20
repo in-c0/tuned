@@ -262,17 +262,18 @@ disagree, STATUS is right.**
 | | Response | What happens next |
 | --- | --- | --- |
 | **A-1** | **"I'll open the issue."** *(recommended)* | You open one issue from the venue's template: category **`Sports`**, feed = route **`/sportstech/rss.xml`** on `justtuned.com` with **`?src=` tag `awesome-rss-feeds`** (joined when you paste, per [L-36](LESSONS.md)), not a podcast. Paste the resulting URL on [issue #1](https://github.com/in-c0/tuned/issues/1) and the executor records t0 and grades [EXP-009](EXPERIMENTS.md) from there. **This is the only option that produces a link anyone can check later.** |
-| **A-2** | **"Use the Google form instead."** | The venue's form needs **no account and no sign-in** and asks only **Category**, **Feed URL** and **Is this a Podcast?** — no title, no prose. The executor can submit it unaided the moment you say so. **The cost:** no receipt and no link, so a silent outcome could never be told apart from a submission that never arrived. |
+| **A-2** | ~~**"Use the Google form instead."**~~ **WITHDRAWN run 62.** | It claimed *"the executor can submit it unaided the moment you say so."* **That was false.** The form is open to an anonymous *human*; this executor has **no instrument that can submit a form to anyone** — egress **403 to every host including `docs.google.com`**, and one GET-only external reader with no form-filling or POST in it. **Nothing is lost:** A-2 was already the weaker option, since a form leaves no receipt and no link. |
+| **B** | **"Build the thing that can submit."** *(new, not recommended)* | Reviving A-2 needs a **new instrument that writes to other people's websites** — a capability, not a permission, and one this loop has never had. Listed only so the withdrawal is not read as the door closing. The executor is **not** asking for it. |
 | **C** | **"Drop the candidate."** | Still costs nothing at any hour. The venue leaves the register and EXP-009 closes at **Fork D — inadmissible, not null**. |
 
 | | |
 | --- | --- |
 | **Severity** | **Blocking the loop's single objective, and on a clock.** Nothing is at risk and nothing breaks, but the freshness condition lapses **2026-08-21 04:15:49 UTC, 14:15 Sydney today**; after that the submission waits on the next find genuinely worth publishing, which is not scheduled. **No penalty for missing it**, and the executor will publish nothing to hold it open. |
 | **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* ([§5](#5-blockers-ordered-by-leverage)) — now has **every admissibility condition satisfied**. What is left is not a condition; it is an account the executor does not have. |
-| **Why it needs you** | Not authorship — you settled that. **Access.** Posting at a third party's repository needs an identity there, and the executor has one only at `in-c0/tuned`. |
-| **Exact minimum action** | **A-1:** open the issue, paste its URL on issue #1. **A-2 or C:** one comment saying so. No credential to install, no spend. |
-| **Observable success check** | A `plenaryapp/awesome-rss-feeds` issue URL posted on issue #1, or a comment naming **A-2** or **C**. **This card is removed the run after one of those exists.** |
-| **Blocker age** | **New at run 61 (2026-08-20 21:55 UTC).** The authorship question that preceded it is **closed** — asked 2026-08-19 04:30 UTC, answered 2026-08-20 15:04 UTC, age ~35 hours. |
+| **Why it needs you** | Not authorship — you settled that. **Access, and now capability.** Posting at a third party's repository needs an identity there, and the executor has one only at `in-c0/tuned`. **Run 62 adds the wider fact:** it holds no instrument that can write to *any* third party, so no venue and no form changes this. |
+| **Exact minimum action** | **A-1:** open the issue, paste its URL on issue #1. **B or C:** one comment saying so. No credential to install, no spend. |
+| **Observable success check** | A `plenaryapp/awesome-rss-feeds` issue URL posted on issue #1, or a comment naming **B** or **C**. **This card is removed the run after one of those exists.** |
+| **Blocker age** | **Opened run 61 (2026-08-20 21:55 UTC).** The authorship question that preceded it is **closed** — asked 2026-08-19 04:30 UTC, answered 2026-08-20 15:04 UTC, age ~35 hours. **Run 62 narrowed the card** by withdrawing one unperformable option rather than restating it. |
 | **Where surfaced** | This card, [STATUS.md's canonical card](STATUS.md#owner-action-required), blocker #1, STATUS's Next action, [DISTRIBUTION.md](DISTRIBUTION.md), and run 61's report on [issue #1](https://github.com/in-c0/tuned/issues/1). |
 
 **One thing that changed about the decision, worth a sentence before you answer.** Run 58 registered
