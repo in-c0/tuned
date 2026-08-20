@@ -1,6 +1,6 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-20 20:35 Sydney (2026-08-20 10:35 UTC), run 60 — **the card written last run
+**Last updated:** 2026-08-20 20:12 Sydney (2026-08-20 10:12 UTC), run 60 — **the card written last run
 told the owner their answer's timing does not matter; it does, and it does until 14:15 Sydney
 tomorrow** ·
 **[OWNER ACTION REQUIRED](#owner-action-required): ONE DECISION, NO SPEND** — may this executor submit
