@@ -675,6 +675,104 @@ were.
 
 ---
 
+## A2 answered, every condition satisfied, and the executor cannot post — 2026-08-20 (run 61)
+
+**The owner answered `A` on [issue #1](https://github.com/in-c0/tuned/issues/1) at 2026-08-20 15:04:36
+UTC.** A2 is **SATISFIED** for `awesome-rss-feeds`: this executor may submit. The reviewer's directive
+of 21:34 UTC scoped the transaction — preflight for duplicates and A4, then **one** factual submission
+on the venue's **GitHub issue template**, recording the canonical URL and t0.
+
+**Preflight completed, in [L-33](LESSONS.md) order, and every reading is dated:**
+
+| Step | Result | Evidence |
+| --- | --- | --- |
+| **A4** — newest public item ≤ 72h, from production, same cycle | **SATISFIED, 65.4h.** `/sportstech` newest item `2026-08-18T04:15:49.000Z`, read `2026-08-20T21:39:13Z`. `demoIsFreshest: true`, `pulseServesNewestItem: true`, `retiredClaimsStillPresent: []`. **Lapses 2026-08-21T04:15:49Z.** | [qa-browser 32420428170](https://github.com/in-c0/tuned/actions/runs/32420428170) |
+| **Duplicate — issue surface** | **None.** `is:issue justtuned` at the venue: *"Open 0 (0) Closed 0 (0) … No results. Try adjusting your search filters."* The one `find` hit is the query echoed in GitHub's own chrome, not a result. | [source read 32420411861](https://github.com/in-c0/tuned/actions/runs/32420411861) |
+| **Duplicate — repository content** | **None.** The venue's `README.md` read clean (`read_outcome: "page"`, spec passed) with `find_windows: []` for `justtuned`. | [source read 32420571372](https://github.com/in-c0/tuned/actions/runs/32420571372) |
+
+**Two notes on how those two reads are graded, because both workflow runs are red.** The issue-search
+read tripped the **1,000-character substance floor** at 733 visible characters — GitHub's zero-result
+page is genuinely that short. This is the false-alarm class the standing hold covers: **the reading is
+overruled in this register, on the quoted evidence, and the run is left red.** `MIN_PAGE_CHARS` is not
+lowered. The `qa-browser` run is red because `freshness.spec.mjs` asserts **EXP-005's 48-hour**
+threshold, which is a different and stricter pre-registered claim about the landing page's wording —
+**A4's threshold is 72 hours and it passes.** Neither red run is a defect, and neither is treated as
+one.
+
+### The binding condition is now a credential, not an admissibility condition
+
+**Every condition in the test above is satisfied for this candidate** — A1 partial, A2 ✅, A3 ✅,
+A4 ✅, A5 ✅ — **and the submission still cannot be made by this executor.** The reason is outside the
+A-series entirely and is recorded here because the register had no place for it:
+
+> **This executor's GitHub access is scoped to `in-c0/tuned`. It holds no identity, token or session
+> at `plenaryapp/awesome-rss-feeds` and cannot open an issue there.**
+
+Established three ways, this run, without touching the venue:
+
+1. Reading the venue's issue templates through the GitHub tool path returned **`Access denied:
+   repository "plenaryapp/awesome-rss-feeds" is not configured for this session. Allowed repositories:
+   in-c0/tuned`**.
+2. The session's own repository-attach refused: **`cross-tier adds are not supported in v1 … Start a
+   new session with the requested repo as the initial source`**. Provisioning a second session to
+   obtain what this one was scoped out of is **boundary-shopping and was not attempted**; the
+   underlying authorization — an app installation on someone else's organization — does not exist and
+   would not be created by it.
+3. No cross-repository token exists among the configured secrets (`AGENT_OPERATOR_KEY`,
+   `AGENT_STUDIO_TOKEN`, `METRICS_KEY`, `CLAUDE_ROUTINE_*`), and a workflow's `GITHUB_TOKEN` is scoped
+   to this repository by construction. **No secret was read, hashed, compared or exposed — only the
+   names workflows already reference in public source.**
+
+This is the operating record's **"unavailable credentials"** mandatory stop, and the reviewer's own
+stop condition names *"authentication fails"* among the cases where the executor **makes no submission,
+records the exact failed precondition and stops**. It did.
+
+### The Google form is open, and it was deliberately not used
+
+The owner's `A` names *"the venue's own Google form or issue template"*, so the form is inside the
+authorization. It was read, read-only, and it is genuinely available:
+
+> **`Recommended Feed Suggestion` — *"Suggest your favorite blog/podcast/YouTube channel etc in this
+> category to be added in recommended feed"*.** Fields, quoted from
+> [source read 32420489078](https://github.com/in-c0/tuned/actions/runs/32420489078): **`Category *`**
+> (a list including `Sports`, `Tech`, `Startups`, `Football`, `Cricket`, `Tennis`), **`Feed *`** —
+> *"Enter website URL or RSS feed URL of your favorite feed from this category"* — and **`Is this a
+> Podcast?` Yes / No**, then `Submit`. *"Sign in to Google to save your progress"* is the optional
+> progress-save notice; **no sign-in gates the Submit control**, and `possible_gate_markers` is empty.
+> **There is no title field and no free-text field of any kind**, so A2's original worry — this
+> executor writing prose a human publishes as their own — cannot arise here at all.
+
+**It was still not used, and the reason is A5 rather than caution.** A form submission produces **no
+receipt and no canonical URL**. [EXP-009](EXPERIMENTS.md) Fork D exists precisely to keep *"the
+maintainer never merged it"* separable from *"it was never admissible"*; with a form, a third
+possibility — *"the submission never arrived"* — is **indistinguishable from both, permanently**. That
+is prevention check #2 of the procedure above (*"if it returns nothing, can I tell 'nobody wanted it'
+from 'it was never admissible'?"*) answered **no**. A channel is worth testing only in a way that can
+come back negative and be believed.
+
+**So the form is recorded as available and authorized-in-principle, and held.** If the owner prefers
+the attempt to the receipt, one comment saying so is enough and the executor submits it; that trade is
+the owner's to make and was not made for them.
+
+### What this adds to the procedure
+
+**A new step, before A1 and cheaper than any of them.** The A-series asks whether a venue *permits* the
+post and whether the result would be *visible*. It never asked whether this executor can physically
+*perform* the act at that venue. Five runs of A-series work and one owner decision were spent on a
+candidate whose submission mechanism was never checked against the executor's actual reach —
+and the check costs one tool call.
+
+> **A0 — can this executor perform the submission at all?** Before any A1 read, name the exact
+> mechanism the venue requires (issue, form, account, email) and confirm the executor holds what that
+> mechanism needs. **An unauthenticated form counts; a repository outside this session's scope does
+> not.** Record the answer with its evidence. A **no** does not disqualify the venue — a human can
+> still post — but it changes who the eventual owner action is *for*, and that belongs in the card
+> from the start rather than after the authorization arrives.
+
+[L-40](LESSONS.md).
+
+---
+
 ## Candidate register
 
 No candidate is ADMISSIBLE. A1/A2 are marked **UNREAD** wherever this loop has not quoted the venue's

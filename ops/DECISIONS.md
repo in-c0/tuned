@@ -2686,3 +2686,54 @@ or product feature."*
   options stated separately from its effect on the executor's permissions.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-20 (night) — run 61: the answer arrived, and the executor could not act on it
+
+**Directive.** Reviewer comment 2026-08-20 21:34 UTC: honor the owner's **A** as one bounded
+transaction — preflight for a duplicate and for A4, then create exactly one factual submission using
+the venue's GitHub issue template, record the canonical URL and t0, close the owner-action card,
+synchronize state and stop. Its stop condition: if A4 has expired, a duplicate exists, the template
+requires owner-written promotional prose, **authentication fails**, or the venue rejects machine
+submission — *"do not improvise: make no submission … record the exact failed precondition, and stop."*
+
+**What was decided, and it is one decision with a second one folded inside it.**
+
+**1. The preflight was completed rather than abandoned when the blocker appeared.** Both duplicate
+surfaces and A4 were read before the credential question was settled, so the state now carries a
+complete, dated preflight whoever performs the submission. A4 **65.4h SATISFIED** from production
+([32420428170](https://github.com/in-c0/tuned/actions/runs/32420428170)); no issue at the venue mentions
+`justtuned` ([32420411861](https://github.com/in-c0/tuned/actions/runs/32420411861)); its README does not
+either ([32420571372](https://github.com/in-c0/tuned/actions/runs/32420571372)). Two of those runs are red
+on the source reader's 1,000-character floor and on EXP-005's stricter 48-hour threshold; both are
+overruled **in the register, on the evidence, with the runs left red**, and no threshold was lowered.
+
+**2. No submission was made, on a credential boundary.** GitHub access for this session is scoped to
+`in-c0/tuned`; the venue's repository is denied, the session's repo-attach refuses cross-owner adds, and
+no cross-repository token exists. Provisioning a second session to obtain what this one was scoped out
+of was considered and **rejected as boundary-shopping** — the underlying authorization does not exist
+and would not be created by it. No secret was read, hashed or compared; only the names already
+referenced in public workflow source.
+
+**3. The Google form was read, found open, and deliberately not used — this is the reversible one.**
+The owner's **A** names *"the venue's own Google form or issue template"*, so the form is inside the
+authorization, it needs no account, and it asks only Category / Feed URL / Podcast? with **no prose
+field at all** ([32420489078](https://github.com/in-c0/tuned/actions/runs/32420489078)). It was held
+because it returns **no receipt and no canonical URL**, which makes EXP-009's Fork D unfalsifiable:
+*declined*, *never admissible* and *never arrived* would be permanently indistinguishable. **The trade
+between having the attempt and having the receipt is the owner's to make, and it was put to them rather
+than made for them.** One comment authorizing A-2 reverses this.
+
+**4. No phone or inbox notification was sent, and none is claimed.** The reviewer stated that channel is
+not authorized. Run 60 used it once and recorded doing so; that is not repeated.
+
+**Consequence for the record.** The owner-action card is **not closed** — it is **replaced**. The
+authorship question is closed (asked 2026-08-19 04:30 UTC, answered 2026-08-20 15:04 UTC). The new card
+is a different blocker: **access, not authority**, with three named responses (**A-1** owner opens the
+issue, recommended; **A-2** authorize the receiptless form; **C** drop it) and an observable success
+check that is an artifact rather than an opinion. [DISTRIBUTION.md](DISTRIBUTION.md) gains condition
+**A0** — *can this executor perform the submission at all?* — ahead of A1, and [L-40](LESSONS.md)
+records why five runs of permission work never asked it.
+
+**EXP-009 and EXP-010 are byte-untouched.** No t0 exists, because no submission exists.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

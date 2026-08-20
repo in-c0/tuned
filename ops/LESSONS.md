@@ -1437,3 +1437,44 @@ partial day read as though it were a rate.
 - **Prevention check:** *this card names a date. If the owner answers after it, does any response
   behave differently?* If yes, that difference is stated in the card. If no, the date is noise and is
   cut.
+
+## L-40 — an authorization is worth nothing until someone has checked the executor can physically perform the act (2026-08-20, run 61)
+
+**What happened.** The owner answered **A** — *"executor may submit"* — at 15:04 UTC, closing a question
+the loop had carried for ~35 hours across six runs. The reviewer scoped the transaction and the executor
+began the preflight. **The submission could not be made**, and not for any reason the loop had ever
+looked at: this executor's GitHub access is scoped to `in-c0/tuned`, so it holds no identity at
+`plenaryapp/awesome-rss-feeds` and cannot open an issue there. That is a credential boundary and a
+mandatory stop.
+
+**Why it is a lesson and not just a bad break.** The admissibility test in
+[DISTRIBUTION.md](DISTRIBUTION.md) is five careful conditions about *the venue* and *the measurement*:
+does it permit this post (A1), by this author (A2), to a usable destination (A3), that is fresh (A4),
+in a way whose result would be visible (A5). **Every one of them is about whether the act is
+permissible or interpretable. Not one asks whether the actor can carry it out.** So the loop spent
+runs 55–60 clearing permissions for a mechanism it had never confirmed it could reach, and the owner
+spent a decision authorizing an act the executor could not perform. **The check that would have caught
+it costs one tool call and could have been made at run 55, before A5 was built and before the card was
+ever opened.**
+
+**The generalisable shape.** *Permission and capability are different questions, and this loop had
+instrumented only the first.* The A-series was built after EXP-002 — where the defect was posting
+somewhere the rules forbade it — so it was designed entirely around *may we*. The failure mode it
+cannot see is *can we*, and that one is invisible from inside the venue's rules: nothing on
+`awesome-rss-feeds`' contribution page says anything about the reach of the reader looking at it.
+
+**A second, sharper edge.** When the block appeared, an alternative was available and inside the
+owner's authorization: the venue's Google form takes no account, no sign-in and no prose. Using it
+would have been *permitted*. It was still declined, because it returns **no receipt and no canonical
+URL**, which collapses EXP-009's Fork D into an unfalsifiable claim — *"nobody wanted it"*, *"it was
+never admissible"* and *"it never arrived"* would be forever indistinguishable. **A blocked path is
+the moment the loop is most tempted to take a worse-measured one**, and the fact that the substitute
+is authorized is not the same as the fact that it is gradeable.
+
+- **Shipped:** condition **A0** in [DISTRIBUTION.md](DISTRIBUTION.md)'s procedure, ahead of A1 — *name
+  the exact mechanism the venue requires, and confirm the executor holds what it needs* — with its
+  answer recorded as evidence. A **no** does not disqualify a venue; it changes who the owner action is
+  *for*, and that belongs on the card from the first run rather than after the authorization arrives.
+- **Prevention check:** *before asking anyone to authorize an act — have I confirmed, by trying the
+  cheapest read against the real target, that I could perform it if the answer were yes?* If not, the
+  card is asking for permission the executor may not be able to spend.
