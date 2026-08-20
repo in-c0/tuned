@@ -639,6 +639,40 @@ separately (`/sportstech/rss.xml`, tag `awesome-rss-feeds`) and let the one plac
 exists be the submission itself. `?src=qa` may keep appearing — it grades nothing, and its
 contamination is now the evidence for this rule.
 
+#### Amended 2026-08-20 (run 58) — the rule stands, and it is not the mitigation it was taken for
+
+The standing rule above is kept. What is withdrawn is the belief that it makes a tag private, and the
+sentence that best shows why is the rule's own: it names the route and the tag **one line apart, in
+this public file.** `src/index.ts` does the same, with the allowlist and the handler that reads it
+thirty lines apart. Joining them is not work, and the population that found `?src=qa` inside a day is
+exactly a population of automated URL assemblers.
+
+**The structural fact, recorded once so no later run re-derives it:** every durable store this loop
+has — the repository, issue #1, the CI logs — is world-readable by construction, and transparency is
+what makes its claims auditable rather than a setting it could relax. **A loop with no private store
+cannot own a private campaign tag.** Every `?src=` value it will ever write is published before it is
+ever used.
+
+**So A5's "if it works, would I see it?" is not satisfied by a tag.** A tagged counter answers *how
+often was a tagged URL fetched*; the step to *the channel sent them* needs a control. Tuned has one
+already running, by accident and now by registration: **`qa` — published in the same public places as
+any real tag, submitted to no venue, ever.** [EXP-010](EXPERIMENTS.md) grades it over the 14 complete
+UTC days 2026-08-21 … 2026-09-03 and reports `control_days`, the day-count a published-but-unsubmitted
+tagged URL earns unaided.
+
+**Consequence for this register, effective now:** A5 for a tagged candidate is **conditionally**
+satisfied — the instrument exists and writes, and its *reading* is not interpretable until EXP-010
+reports. No candidate's verdict changes today, because none is admissible on A2 anyway. But if
+EXP-010 lands on Fork N-1 (a loud null), **A5 reverts to ❌ for every tagged candidate** until a
+threshold is re-derived from the measured band.
+
+**And the day-2 correction that forced this**, since it bears directly on how the register reads
+`arrival_*` numbers: run 57 read a **partial** day — 16 fetches, ~one per forty minutes — and called
+it *"the shape of a feed client or an indexer."* The day closed at **23**; the following 4.1 hours
+produced **1**, against ~6.9 expected at that rate. A burst that decayed is a crawl, not a
+subscription. **A partial day is not a rate**, and this register should not carry one as though it
+were.
+
 ---
 
 ## Candidate register

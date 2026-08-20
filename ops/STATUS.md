@@ -1,10 +1,50 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-20 08:04 Sydney (2026-08-19 22:04 UTC), run 57 — **a second venue whose
-rules do not close the door, and the discovery that our own report published a campaign tag's key** ·
+**Last updated:** 2026-08-20 14:30 Sydney (2026-08-20 04:30 UTC), run 58 — **the tag leak's second
+day contradicts the first, and the contamination is now the control EXP-009 was missing** ·
 **OWNER ACTION REQUIRED: ONE DECISION, NO SPEND** — may this executor submit to a third-party list in
-the owner's name, or does a human do it? (now two venues, one decision) ·
+the owner's name, or does a human do it? (two venues, one decision, unanswered four runs) ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # 23 fetches on day one, 1 on day two. A burst that decayed is a crawl — which is the exact call EXP-009's Fork A exists to make, and we got it backwards on our own data.
+>
+> Run 57 read a **partial** UTC day — `arrival_fetch:qa` 16, ~one per forty minutes — and called it
+> *"the shape of a feed client or an indexer."* The day closed at **23** over the 13.7 hours the
+> counters were live, consistent with that. The next **4.1 hours produced 1**, against ~6.9 expected
+> at that rate (Poisson P(X ≤ 1) ≈ 0.008). **A partial day is not a rate**, and the shape is a
+> discovery burst decaying — a crawl, not a subscription.
+>
+> [EXP-009](EXPERIMENTS.md)'s Fork A reads *"tagged fetches on ≥ 7 of 14 days"* as **a durable
+> subscriber — the first evidence in Tuned's history that a stranger subscribed.** Its argument is
+> that a one-off crawl produces one or two days and a subscriber polls daily. It has a hidden premise:
+> that the only holders of the tagged URL are people the channel gave it to.
+>
+> **That premise is false here, structurally.** `ARRIVAL_TAGS` is public source in a public repo, the
+> routes are public, and **this loop has no store that is not world-readable** — not the repository,
+> not issue #1, not the CI logs. It cannot hold a private campaign tag at all. Run 57's rule (never
+> print the *joined* URL) is kept and is not the mitigation it was taken for: its own text names route
+> and tag one line apart in a public file. [L-37](LESSONS.md).
+>
+> **The repair is a control, not better secrecy — and one was already running, filed as
+> contamination.** `qa` is published in exactly the same public places as any real channel tag and is
+> submitted to no venue, ever. [**EXP-010**](EXPERIMENTS.md) registers it: `control_days`, the number
+> of the **14 complete UTC days 2026-08-21 … 2026-09-03** with unsuffixed `arrival_fetch:qa` ≥ 1, read
+> **2026-09-04**. Registered expectation before the window opens: **0–3**. If it clears 7, Fork A is
+> not a bar and A5 reverts to ❌ for every tagged candidate. **EXP-009 is not edited** — run 57 closed
+> it to revision before its 2026-08-26 freeze and that clause is honoured; the two partial days above
+> are baseline context, excluded from grading.
+>
+> **And one live public claim was wrong and is withdrawn where it is published.** The deployed comment
+> and the `/api/metrics` note — copied into every file in `ops/metrics/`, the only description of
+> these numbers a reader outside this loop can see — called unsuffixed `feed_fetch` *"a background
+> rate of third-party fetchers"* and said `arrival_fetch:<tag>` grades an attempt *"because only a
+> link this loop published carries the tag."* On **both** days it has a value it is **100%
+> tag-carrying and unattributed**, and every tag that writes is listed in public source next to the
+> public route it applies to.
+>
+> **What this is not.** No submission was made anywhere, nothing was published to any venue, and no
+> human has been shown anything. `applications` **0**, `members_ever_active` **0**, followers **0**,
+> `items_public` **80**, gross cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # We printed the tagged URL as proof it worked. Something has been fetching it every forty minutes since.
 >

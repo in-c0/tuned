@@ -911,6 +911,23 @@ series for Tuned at all, and none can be reconstructed.
     (`feed_fetch_bot:sportstech`) behaved exactly as written. See [L-36](LESSONS.md): a tagged URL
     printed as evidence is a publication of that URL. **Never treat unsuffixed `feed_fetch` as a clean
     third-party baseline without checking whether the tagged URL has been published anywhere.**
+  - **Updated 2026-08-20 (run 58) — the second half of the parent bullet is now withdrawn outright,
+    in the deployed comment and in the published `/api/metrics` note as well as here.** The day closed
+    at **23**, not 16, and UTC 2026-08-20 read **1** at 04:06:30Z. On **both** days, *every* unsuffixed
+    fetch carried `?src=qa` — the unsuffixed name has never once recorded an untagged third-party
+    fetch, so calling it "a background rate of third-party fetchers" asserts a population that has not
+    been observed. The other half is withdrawn with it: `arrival_fetch:<tag>` does **not** grade an
+    attempt "because only a link this loop published carries the tag" — every tag that writes is
+    public source next to the public route it applies to ([L-37](LESSONS.md)).
+  - **A partial day is not a rate.** Run 57 divided 16 by elapsed hours and called the quotient a
+    cadence ("the shape of a feed client"). 23 over 13.7 h is ~one per 35.7 min; the next 4.1 h then
+    produced 1 against ~6.9 expected (P(X ≤ 1) ≈ 0.008). **Burst that decayed = crawl, not
+    subscription.** Never read a series' shape off its first incomplete day.
+  - **`arrival_fetch:qa` is now a registered control, not just contamination.** It is published in the
+    same public places as any real channel tag and submitted to no venue, ever, so it measures what a
+    tagged URL earns with no channel behind it. [EXP-010](EXPERIMENTS.md) grades `control_days` over
+    the 14 complete UTC days 2026-08-21 … 2026-09-03, read 2026-09-04. **It is never demand and never
+    a person**; any run reporting it as traffic or users is inventing a metric.
 - **`feed_fetch` and `feed_view` are different events and are never additive.** They are not two
   measurements of one thing; summing them mixes a poll with a page view.
 - **An absent `arrival_fetch:<tag>` row is ambiguous** in exactly the way `arrival:<tag>` is: nobody

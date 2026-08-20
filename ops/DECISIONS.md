@@ -2553,3 +2553,54 @@ No user-agent spoofing at Reddit or Product Hunt. [L-35](LESSONS.md).
   of its date; no publication to hold A4's 2026-08-21 04:15 UTC window open.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-20 — run 58: the contamination is the control, and one published metric claim was wrong
+
+- **Decision: spend the run on EXP-009's gradability rather than on the queue's first item.** Run 57
+  left three unblocked candidates (feedle's rules, the Lobsters re-read, the run-49 console 404).
+  None was taken. A second day of `arrival_fetch:qa` was one dispatch away and it decides whether the
+  loop's only pre-registered distribution experiment can be read at all — which strictly precedes
+  finding a fourth venue to submit to under the same unanswered owner question.
+- **Finding: run 57's inference from the tag leak is contradicted by day 2.** UTC 2026-08-19 closed at
+  `arrival_fetch:qa` **23** (not the partial-day 16 run 57 read) over the 13.7 hours the counters were
+  live — ~one per 35.7 min, which run 57 called *"the shape of a feed client."* The next 4.1 hours
+  produced **1**, against ~6.9 expected at that rate (Poisson P(X ≤ 1) ≈ 0.008). **A burst that
+  decayed is a crawl, not a subscription** — the exact discrimination EXP-009's Fork A is written to
+  make, got backwards on this loop's own data inside a day, from a partial day read as a rate.
+- **Decision: register `qa` as EXP-009's missing null, as a new experiment rather than an amendment.**
+  Run 57's note closed EXP-009 to further revision before its 2026-08-26 freeze; that clause is
+  honoured. [EXP-010](EXPERIMENTS.md) grades `control_days` — days with unsuffixed `arrival_fetch:qa`
+  ≥ 1 — over the 14 complete UTC days **2026-08-21 … 2026-09-03**, read **2026-09-04**. The two
+  partial days above are baseline context and are excluded from grading. Registered expectation,
+  stated before the window opens: 0–3 days.
+- **Consequence, recorded now rather than at the reading: EXP-009 Fork A must not be graded before
+  EXP-010 reports.** Fork A infers a durable subscriber from ≥ 7 of 14 tagged days; if a tagged URL
+  with no channel behind it clears that unaided, the bar is not a bar.
+- **Decision: withdraw a published claim about a metric, in the place it is published.** The deployed
+  comment and the `/api/metrics` note — copied into every file in `ops/metrics/` and the only
+  description of these numbers a reader outside this loop can see — described unsuffixed `feed_fetch`
+  as *"a background rate of third-party fetchers"* and `arrival_fetch:<tag>` as grading an attempt
+  *"because only a link this loop published carries the tag."* On both days it has a value, unsuffixed
+  `feed_fetch` is **100% tag-carrying and unattributed**, and every tag that writes is public source
+  next to the public route it applies to. Both claims withdrawn in `src/index.ts` and `src/metrics.ts`.
+  Correcting a live public claim about a metric is the one thing the deployment gates name explicitly.
+- **Structural finding, [L-37](LESSONS.md): this loop cannot hold a secret, so it cannot own a private
+  campaign tag.** Repository, issue #1 and CI logs are world-readable by construction, and
+  transparency is what makes its claims auditable rather than a setting it could relax. Run 57's A6
+  rule (never print the joined URL) is kept and is **not** the mitigation it was taken for — its own
+  text names route and tag one line apart in a public file. The repair is a control, not better
+  secrecy.
+- **Considered and rejected: a CI check enforcing L-36.** A repo scan failing on a joined real-tag URL
+  was designed and dropped, because `awesome-rss-feeds` and its route are *already* public source —
+  the check would defend a secret that does not exist while looking like protection. Building it
+  would be the unearned instrument [L-33](LESSONS.md) forbids. Recorded so a later run does not
+  rediscover the idea and ship it.
+- **Decision: pin `qa` in `ARRIVAL_TAGS` with a test.** It is the most deletable-looking entry there
+  and reads like scaffolding; removing it would take the null silently to zero, which is
+  indistinguishable from a quiet internet and would flatter every later comparison.
+- **Not done, deliberately:** no submission, form, issue or account use at any third-party venue; no
+  `ooh-directory` tag added (A1/A2 unsettled — the L-33 ordering); no product, copy, pricing or
+  landing-page change; no EXP-009 or EXP-007 reading ahead of its date; no publication to hold A4's
+  2026-08-21 04:15 UTC window open.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
