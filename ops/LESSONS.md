@@ -1380,8 +1380,11 @@ partial day read as though it were a rate.
   55–58 while STATUS's header, blocker #1 and *Next action* all said a decision was outstanding and
   its canonical card said NONE — **a contradiction inside a single file**, not merely between a
   source and its mirror. Found by the reviewer, not by this loop, in the first review after twelve
-  executions. Cost: four runs of the top blocker sitting one word from testable, and a mirror that
-  told the owner the opposite of the truth for ten days.
+  executions. Cost: four runs and **~29 hours** of the top blocker sitting one word from testable
+  while both files told the owner the opposite of the truth. **The empty card long predates the
+  question** — STATUS's has read `NONE` since run 42 on 2026-08-15 and DASHBOARD's headline since run
+  49 on 2026-08-17 — which is the point: an emptied card is the *normal* state, so nothing about it
+  looks wrong until a boundary exists that it fails to name.
 - **Lesson:** **an ask is not made until it exists in the state, not the stream.** A durable record
   has two kinds of surface — the append-only channel (issue comments, reports) and the overwritten
   card (STATUS §1, DASHBOARD §1) — and only the second is what a reader consults when they want to
