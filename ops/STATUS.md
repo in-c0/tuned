@@ -632,7 +632,7 @@ Nothing else is being asked, and the executor will not choose for itself.
 
 | | |
 | --- | --- |
-| **Severity** | **Blocking the loop's single objective, and on a clock as of this run.** Nothing is at risk, nothing breaks, and **a "no" still costs nothing** — but **A4 lapses 2026-08-21 04:15 UTC (14:15 Sydney tomorrow)**, and an **A** answered before that is submitted while an **A** answered after it waits on an unscheduled event. The paragraph *"The one thing that does lapse"* below states exactly what that does and does not mean; run 59's card said the opposite and was wrong. |
+| **Severity** | **Blocking the loop's single objective, and on a clock as of run 60 (2026-08-20).** Nothing is at risk, nothing breaks, and **a "no" still costs nothing** — but **A4 lapses 2026-08-21 04:15 UTC (14:15 Sydney tomorrow)**, and an **A** answered before that is submitted while an **A** answered after it waits on an unscheduled event. The paragraph *"The one thing that does lapse"* below states exactly what that does and does not mean; run 59's card said the opposite and was wrong. |
 | **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* — is measured, correctly diagnosed as A1, and now **one condition from testable**: A1 partially satisfied, A3 ✅, A5 ✅, A4 ✅ until **2026-08-21 04:15 UTC**. **A2 is the only condition left, and A2 is this decision.** |
 | **Why owner authority is required** | Submitting is an **outward-facing act at a third party in the owner's name**. That is a boundary in the operating contract, not an interpretation the executor may resolve. It is **not** the EXP-002 question — the venue takes a factual record (URL, title, category), not prose in the owner's voice — and prior Hacker News authorization does not carry to a different venue. |
 | **Exact minimum action** | One comment on issue #1 containing **A**, **B** or **C**. No account, no form, no credential, no spend, no reading required beyond this card. |
@@ -653,7 +653,7 @@ feed. **One answer covers both venues and commits you to neither**: `ooh.directo
 (its tag is not allowlisted) and would not be submitted on an "A" until that is fixed. **Only
 `awesome-rss-feeds` is ready to go the moment the answer arrives.**
 
-**The one thing that does lapse — corrected here, one run after this card said the opposite.**
+**The one thing that does lapse — corrected at run 60, one run after this card said the opposite.**
 `@sportstech`'s freshness condition **A4 expires 2026-08-21 04:15 UTC, 14:15 Sydney tomorrow.** Run 59
 wrote that its decay is *"not a reason to answer quickly"* and that nothing degrades while the decision
 waits. **Both statements are right about the executor and wrong about the answer**, because two
