@@ -1,13 +1,17 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-21 07:55 Sydney (2026-08-20 21:55 UTC), run 61 — **the owner answered A, and
-the executor cannot carry it out: it holds no GitHub identity at the venue** ·
+**Last updated:** 2026-08-21 08:25 Sydney (2026-08-20 22:25 UTC), run 62 — **the fallback the executor
+offered you last night was one it cannot perform either; it is withdrawn, and the ask is now a single
+route** ·
 **[OWNER ACTION REQUIRED](#owner-action-required): ONE SUBMISSION, NO SPEND** — **A is granted and is
 not being re-asked.** This executor's GitHub access is scoped to `in-c0/tuned` alone, so it cannot open
 an issue at `plenaryapp/awesome-rss-feeds`; that is a credential boundary and a mandatory stop.
-**Fastest path: you submit the issue yourself** (~2 minutes, you hold the account). Preflight is done
-and current — A4 **65.4h ✅**, no duplicate at the venue — and **A4 lapses 2026-08-21 04:15:49 UTC
-(14:15 Sydney today)** ·
+**Run 62 adds that it cannot submit the Google form either — it holds no instrument that can write to
+any third party at all** (egress 403 to every host including `docs.google.com`; its one external
+vantage is a GET-only reader). **A-2 is withdrawn as unperformable.**
+**Fastest path, and now the only one: you submit the issue yourself** (~2 minutes, you hold the
+account). Preflight is done and current — A4 **65.4h ✅**, no duplicate at the venue — and **A4 lapses
+2026-08-21 04:15:49 UTC (14:15 Sydney today)** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
 
 > # 23 fetches on day one, 1 on day two. A burst that decayed is a crawl — which is the exact call EXP-009's Fork A exists to make, and we got it backwards on our own data.
@@ -638,12 +642,14 @@ part with a clock on it:
 | **No duplicate** | **None ✅.** `is:issue justtuned` at the venue returns *"Open 0 (0) Closed 0 (0) … No results"*. | [source read 32420411861](https://github.com/in-c0/tuned/actions/runs/32420411861) |
 | **A1** partial · **A3** ✅ · **A5** ✅ · **A2** ✅ (**A**) | unchanged | [DISTRIBUTION.md](DISTRIBUTION.md) |
 
-**Two ways to finish it. The executor recommends the first and will not choose between them itself.**
+**Run 61 offered three ways. One of them was not real, and withdrawing it leaves you a simpler
+decision than you had last night.**
 
 | | Response | What happens next |
 | --- | --- | --- |
-| **A-1** | **"I'll open the issue."** *(recommended)* | You open one issue at [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) from its own template: **category `Sports`**, **feed = route `/sportstech/rss.xml` on `justtuned.com` carrying `?src=` tag `awesome-rss-feeds`**, not a podcast. Per [L-36](LESSONS.md) the joined URL is deliberately not written anywhere public, including here — join the route and the tag when you paste it. This produces the **canonical issue URL** [EXP-009](EXPERIMENTS.md) needs to tell a declined submission from one that never arrived. Post the URL on [issue #1](https://github.com/in-c0/tuned/issues/1) and the executor records t0 and grades from there. |
-| **A-2** | **"Use the Google form instead."** | The venue's *Recommended Feed Suggestion* form is readable, needs **no account and no sign-in**, and asks for exactly three factual values — **Category** (a list that includes `Sports`), **Feed** (*"Enter website URL or RSS feed URL"*), and **Is this a Podcast?** — with **no title field and no prose field at all** ([source read 32420489078](https://github.com/in-c0/tuned/actions/runs/32420489078)). The executor could submit it unaided. **The cost is real and is why this is not the recommendation:** a form returns **no receipt and no canonical URL**, so EXP-009 could not separate *"the maintainer declined"* from *"the form never arrived"* — which is precisely what condition A5 exists to prevent. Authorize it explicitly if you want it anyway. |
+| **A-1** | **"I'll open the issue."** *(recommended — and now the only route that works)* | You open one issue at [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) from its own template: **category `Sports`**, **feed = route `/sportstech/rss.xml` on `justtuned.com` carrying `?src=` tag `awesome-rss-feeds`**, not a podcast. Per [L-36](LESSONS.md) the joined URL is deliberately not written anywhere public, including here — join the route and the tag when you paste it. This produces the **canonical issue URL** [EXP-009](EXPERIMENTS.md) needs to tell a declined submission from one that never arrived. Post the URL on [issue #1](https://github.com/in-c0/tuned/issues/1) and the executor records t0 and grades from there. |
+| **A-2** | ~~**"Use the Google form instead."**~~ **WITHDRAWN by the executor, run 62.** | **It said the executor could submit the form unaided. That was false, and it was the executor's error, not yours.** The form is open to an anonymous *human*; this executor holds **no instrument that can submit a form to anyone** — its egress is **403 to every host including `docs.google.com`**, and its only third-party vantage is a **GET-only reader** with no form-filling or POST capability in it at all. Saying **A-2** today would authorize an act that still could not happen. **Nothing is lost:** A-2 was already the worse option on its own terms, because a form leaves no receipt and no canonical URL. If you want it revived, that is **option B** below, and it is a bigger question than it looks. |
+| **B** | **"Build the thing that can submit."** *(new, and deliberately not recommended)* | Honouring A-2 needs a **new instrument that performs writes at other people's websites** — not a permission, a capability, and one this loop has never had. It would be built in the open with its own limits and its own review. **The executor is not asking for this** and does not think the receiptless Google form is worth it; it is listed so the withdrawal above is not mistaken for the door being closed. |
 | **C** | **"Drop the candidate."** | Still costs nothing at any hour. The venue is struck from [DISTRIBUTION.md](DISTRIBUTION.md)'s register and EXP-009 closes at **Fork D — inadmissible, not null**. |
 
 | | |
@@ -651,9 +657,9 @@ part with a clock on it:
 | **Severity** | **Blocking the loop's single objective, and on a clock.** Nothing is at risk and nothing breaks — but **A4 lapses 2026-08-21 04:15:49 UTC (14:15 Sydney today)**. A submission made before then ships against a fresh feed; after it, the candidate **waits** on the next find genuinely worth publishing, which is not scheduled and could be days. **There is no penalty for missing it**, and the executor will publish nothing to hold it open — [EXP-008](EXPERIMENTS.md)'s binding clauses disqualify a publication made to move a number. |
 | **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* — is measured, correctly diagnosed as A1, and now has **every admissibility condition satisfied**: A1 partial, A2 ✅ (**A**, 2026-08-20 15:04 UTC), A3 ✅, A4 ✅, A5 ✅. **What is left is not a condition. It is a credential the executor does not hold.** |
 | **Why owner action is required** | Not authorship — you settled that with **A**. **Access.** Opening an issue at a third party's repository needs a GitHub identity there, and this executor has one only at `in-c0/tuned`. Working around a scope boundary is forbidden absolutely, so the act itself needs a human account or an explicitly authorized unauthenticated form. |
-| **Exact minimum action** | **A-1:** open one issue at the venue from its own template with the three factual values above, then paste the resulting URL on issue #1. **A-2 or C:** one comment on issue #1 saying so. No credential to install, no spend, and **C still costs nothing**. |
-| **Observable success check** | Either a canonical `plenaryapp/awesome-rss-feeds` issue URL exists and is posted on issue #1, or a comment on issue #1 names **A-2** or **C**. **This card is removed the run after one of those exists** — on the artifact, not on the executor's reading of intent. |
-| **Blocker age** | **The authorship question is closed** — opened 2026-08-19 04:30 UTC, answered 2026-08-20 15:04 UTC, age ~35 hours. **This card is new at run 61** and is a different blocker: access, not authority. |
+| **Exact minimum action** | **A-1:** open one issue at the venue from its own template with the three factual values above, then paste the resulting URL on issue #1. **B or C:** one comment on issue #1 saying so. No credential to install, no spend, and **C still costs nothing**. |
+| **Observable success check** | Either a canonical `plenaryapp/awesome-rss-feeds` issue URL exists and is posted on issue #1, or a comment on issue #1 names **B** or **C**. **This card is removed the run after one of those exists** — on the artifact, not on the executor's reading of intent. |
+| **Blocker age** | **The authorship question is closed** — opened 2026-08-19 04:30 UTC, answered 2026-08-20 15:04 UTC, age ~35 hours. **This card opened at run 61** and is a different blocker: access, not authority. **Run 62 narrowed it rather than restating it:** one of its three options was withdrawn as unperformable, so what is in front of you is now a single route plus two ways of saying no. |
 | **Where surfaced** | This card, [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), blocker #1, [Next action](#next-action), [DISTRIBUTION.md](DISTRIBUTION.md), and run 61's execution report on [issue #1](https://github.com/in-c0/tuned/issues/1). |
 
 **One thing that changed about the decision itself, and it is worth a sentence.** Run 58 registered
@@ -675,7 +681,13 @@ naming *"authentication fails"* explicitly — the executor is to make no submis
 failed precondition; and a form submission leaves **no artifact anyone can point at**, which collapses
 [EXP-009](EXPERIMENTS.md)'s Fork D (*never merged → inadmissible, not null*) into an unfalsifiable
 claim. A channel worth testing is worth testing in a way that can come back negative and be believed.
-**If you would rather have the attempt than the receipt, say A-2 and it goes out.**
+~~**If you would rather have the attempt than the receipt, say A-2 and it goes out.**~~
+
+> **Struck run 62 — it would not have gone out.** That sentence promised an act the executor cannot
+> perform: there is no instrument here that can submit a form to a third party. The declining was still
+> correct on its own reasoning, but the *reason recorded* was A5 alone when **A0 was also failing and
+> nobody had checked** — the loop declined the form for the interesting reason and missed the plain
+> one. See [DISTRIBUTION.md](DISTRIBUTION.md) run-62 and [L-41](LESSONS.md).
 
 **Nothing was sent to your phone or inbox this run.** The reviewer's 2026-08-20 21:34 UTC directive
 states that channel is not authorized; it was not used and no such notification is claimed. This card

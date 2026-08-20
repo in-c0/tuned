@@ -750,9 +750,16 @@ is prevention check #2 of the procedure above (*"if it returns nothing, can I te
 from 'it was never admissible'?"*) answered **no**. A channel is worth testing only in a way that can
 come back negative and be believed.
 
-**So the form is recorded as available and authorized-in-principle, and held.** If the owner prefers
+**So the form is recorded as available and authorized-in-principle, and held.** ~~If the owner prefers
 the attempt to the receipt, one comment saying so is enough and the executor submits it; that trade is
-the owner's to make and was not made for them.
+the owner's to make and was not made for them.~~
+
+> **Corrected 2026-08-20 (run 62): the struck sentence was false.** One comment is *not* enough,
+> because **this executor holds no instrument that can submit a form to any third party** — its egress
+> is 403 to every host including `docs.google.com`, and its only third-party vantage is a GET-only
+> reader with no `.fill()`, `.click()` or POST in it. The form's being open to an anonymous human says
+> nothing about whether this actor can reach it. See the run-62 section below; **A0 applies to the
+> substitute exactly as it applied to the issue template, and run 61 did not apply it.**
 
 ### What this adds to the procedure
 
@@ -764,12 +771,112 @@ and the check costs one tool call.
 
 > **A0 — can this executor perform the submission at all?** Before any A1 read, name the exact
 > mechanism the venue requires (issue, form, account, email) and confirm the executor holds what that
-> mechanism needs. **An unauthenticated form counts; a repository outside this session's scope does
-> not.** Record the answer with its evidence. A **no** does not disqualify the venue — a human can
+> mechanism needs. ~~**An unauthenticated form counts; a repository outside this session's scope does
+> not.**~~ Record the answer with its evidence. A **no** does not disqualify the venue — a human can
 > still post — but it changes who the eventual owner action is *for*, and that belongs in the card
 > from the start rather than after the authorization arrives.
+>
+> **Amended run 62 — A0 is a question about this executor's instruments, not about the venue, and it
+> must be asked of every mechanism including the substitute.** An unauthenticated form does **not**
+> count merely because it is unauthenticated: the question is whether an instrument exists here that
+> can perform the write. Today none does, so **A0 is NO at every third-party venue**, and the answer
+> changes only when a submitting instrument is deliberately built and named.
 
 [L-40](LESSONS.md).
+
+---
+
+## A0 asked of the mechanism instead of the venue, and the answer is no at every venue — 2026-08-20 (run 62)
+
+**A0 was added one run ago and immediately asked at the wrong granularity.** Run 61 asked it of
+`awesome-rss-feeds`' *issue template* — answer **no**, GitHub scope — and then offered the owner a
+substitute, the venue's Google form, describing it as something **"the executor could submit
+unaided"**. That sentence is the same class of claim A0 exists to stop, and **nobody applied A0 to
+it**. [L-40](LESSONS.md)'s own prevention check — *"before asking anyone to authorize an act, have I
+confirmed I could perform it if the answer were yes?"* — was written into this file in the same commit
+that shipped an unchecked authorization request.
+
+**Applied properly, A0 is a question about the executor's instruments, not about a venue.** It has one
+answer for every third-party venue at once, and the answer is established entirely from this
+repository and this environment, with nothing at any venue touched.
+
+| Capability | State | Evidence |
+| --- | --- | --- |
+| **Direct egress from the executor** | **403 CONNECT to every host**, re-tested this run: `justtuned.com`, `example.com` **and `docs.google.com`** all `curl: (56) CONNECT tunnel failed, response 403`. **50 consecutive runs.** | This run, executor shell |
+| **Third-party network vantage** | **One:** [`source-read.yml`](../.github/workflows/source-read.yml) → [`qa/source-read.spec.mjs`](../qa/source-read.spec.mjs). **GET-only by construction** — *"GETs only. No credentials are available to it and none are accepted in the URL"* — dispatch-only, `permissions: contents: read`, no secrets in scope, one page per dispatch, no link following. It contains **no `.fill()`, `.click()` or `request.post()` at all.** | Repository source, this run |
+| **Any form-filling / POSTing instrument** | **One exists** — [`qa/exp003-mechanism.spec.mjs`](../qa/exp003-mechanism.spec.mjs) `.fill()`/`.click()`/`request.post()` — and it targets **Tuned's own `baseURL`**. Nothing in `qa/` can write to a third party. | Repository source, this run |
+| **GitHub identity beyond this repository** | **None.** Scope is `in-c0/tuned`; every workflow's `GITHUB_TOKEN` is scoped to this repository by construction. | Run 61, unchanged |
+
+> **A0, for every third-party venue in this register, reads NO — and the reason is never the venue.
+> This executor holds no instrument capable of performing a write at any third party.** An
+> unauthenticated form does not help, because there is nothing here that can submit one.
+
+**So run 61's A-2 is withdrawn as offered.** *"The executor could submit it unaided"* was false when it
+was written. Honouring A-2 does not need one comment from the owner; it needs **a new instrument that
+performs writes at other people's websites** — a capability this loop has never had, deliberately
+scoped out of the one reader it does have, and a boundary question in its own right rather than an
+implementation detail smuggled inside a one-word authorization.
+
+**One technicality, named rather than used.** A Google Form accepts a `formResponse` submission over
+**GET**, so the read-only source reader could, in a narrow mechanical sense, be pointed at a URL that
+submits the form. **That is not a route this loop takes.** It would mean using an instrument whose
+documented contract is *"this reads source material"* to perform a third-party write, which is the
+quiet boundary crossing the whole A-series exists to prevent — the same shape as spoofing a user agent
+to reach rules a host is withholding. It is recorded here so that no later run "discovers" it as a
+clever unblock. **If the owner wants a submitting instrument, it gets built and named as one, in the
+open, with its own limits.**
+
+**What this does to the owner's decision, which is the point of recording it.** It does not weaken
+A-1; it makes A-1 the **only** route that is both performable and gradeable, and it removes a choice
+the owner would otherwise have had to think about. The card is corrected accordingly.
+
+### feedle — the FAQ was read in full, and it publishes no rule about who may submit
+
+Two dispatches, both GETs, nothing submitted, no account touched.
+
+| Page | HTTP | `read_outcome` | Run |
+| --- | --- | --- | --- |
+| `feedle.world/submit`, `find: "submit"` | **404** — title `Error`, 9 visible characters, `"Not Found"` | `interstitial` (below the floor) | [32422654363](https://github.com/in-c0/tuned/actions/runs/32422654363) |
+| `feedle.world/faq`, `find: "submit"` | **200**, **`excerpt_truncated: false`**, `possible_gate_markers: []`, `visible_text_status: "read"` | **`page`** ✅, `interstitial_signals: []` | [32422829776](https://github.com/in-c0/tuned/actions/runs/32422829776) |
+
+**The 404 is a finding about the guess, not about feedle.** `/submit` was inferred from the run-57 nav
+text; the venue does not use that path. The reader **reports what a page says, never where it points**,
+so a surface named only in navigation cannot be reached without guessing its address.
+
+**The FAQ, by contrast, was read whole** — `excerpt_truncated: false` means the entire visible page is
+in the log, so [L-34](LESSONS.md)'s prefix trap does not apply and nothing is sitting below the window.
+**It answers four questions — *What is an RSS feed*, *Why is RSS better than social media*, *What do I
+use to subscribe*, *How do I discover interesting RSS feeds* — and none of them is about submitting
+anything.** `find_total_occurrences: 1` for `"submit"`, and the single occurrence is the navigation
+label **"Submit your blog or podcast"** in the page chrome, not a rule.
+
+**So this is a reading, not a failure, and it is a different verdict from "UNREAD".** The venue's FAQ —
+the page its own navigation offers as the place questions are answered — **publishes no admissibility
+condition at all**: nothing about who may submit, nothing about self-submission, nothing about machine
+authorship. By this register's standing rule, **silence is not permission** ([L-17](LESSONS.md), applied
+identically at `awesome-rss-feeds` and `ooh.directory`), so **A1 is NOT SATISFIED — on an absence now
+established rather than on a page never reached.**
+
+What the FAQ does establish is the venue's model, which is relevant to A5 and worth one quotation:
+
+> *"every search in feedle has its dedicated RSS feed … since every feed item on feedle explicitly
+> links to its origin, we hope readers and listeners will eventually decide to subscribe to authors
+> directly."*
+
+That is an **index**, not a curated list — it makes indexed content searchable and passes readers
+through to the origin. A directory listing is a durable link; a search index is a query result. **Any
+future A5 threshold for feedle has to be written against that shape**, and it is not written here,
+because A1 is not satisfied and [L-33](LESSONS.md) forbids building the instrument before the gate.
+
+**Where A1 would be answered if anyone asks it again:** the FAQ is exhausted, so the remaining
+candidates are the footer's **Terms** and the unlocated submission surface itself. **One dispatch at
+`/terms`** is the precise next read — recorded rather than spent, because A0 above means no answer it
+returns could authorize this executor to submit anyway.
+
+**A small instrument gap, recorded and not fixed this run.** `source-read.spec.mjs` extracts
+`body.innerText()` and never reads `href`. Reporting the `href` of links whose text matches the `find`
+literal would close it, is bounded, and is a **next candidate** — not folded into a run whose one
+action was the capability audit above.
 
 ---
 
@@ -783,6 +890,12 @@ is the exact error [L-17](LESSONS.md) records.
 04:15 UTC*, per the section at the foot of this file. Any candidate whose link would land a stranger
 on `/` or `/ava` still fails A4.
 
+**A0 has no column, because it has the same answer in every row (run 62): NO.** This executor holds no
+instrument that can perform a write at any third party — not an issue, not a form, not an email. Every
+verdict below is therefore about whether **a human with an account** may post, and the executor's role
+at every venue in this table is to prepare the preflight, never to submit. This is a fact about the
+executor and it is recorded once here rather than repeated seven times.
+
 | Channel | A1 rules | A2 authorship | A3 | A4 | A5 | Verdict |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Hacker News — Show HN** | **READ 2026-08-18** ([32191459880](https://github.com/in-c0/tuned/actions/runs/32191459880)) — **FAILS**: *"Don't post landing pages"*; *"without barriers such as signups or emails"*; and a feed is *"reading material"*, which the page lists as off topic. Also **KNOWN-BLOCKING**: prior submission [`49280269`](https://news.ycombinator.com/item?id=49280269) was killed at submission (run 33) and a further attempt needs the owner's **explicit moderator permission** | Owner-authored only; executor drafts nothing | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — fails A1 on the destination's *form*, before moderator permission is even reached |
@@ -791,7 +904,7 @@ on `/` or `/ava` still fails A4.
 | **Product Hunt** | **UNREADABLE 2026-08-19** ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)) — HTTP **403**, `Just a moment...`, *"Performing security verification … verifies you are not a bot"*, 266 chars. The rules cannot be quoted by this executor; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable by this executor |
 | **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ~~❌ — no tag allowlisted, no threshold registered~~ **✅ — run 56.** `arrival_fetch:awesome-rss-feeds` allowlisted and counted on the RSS route; [EXP-009](EXPERIMENTS.md) registers the threshold, the window and the two inadmissible outcomes, all before any submission | **NOT YET ADMISSIBLE — A2 is now the only outstanding condition, and it is the owner's to answer.** A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, A5 ✅ |
 | **ooh.directory** | **READ 2026-08-19** ([32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421), [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484)) — **FORM PERMITTED ON A CONDITION**: *"Link blogs are only included if they include original commentary about each link"*; English-only ✅; *"updated within the past couple of months"* ✅. **Authorship unaddressed**, and the condition met is *original commentary*, which here is agent-written | **Not authored prose** — a URL, a category and optional names. Submitting in the owner's name is still an owner/reviewer decision, and the venue calls these *"suggestions rather than submissions"* | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ❌ — **route covered, tag not.** The URL this venue takes is the **front page, not the feed**, so run 48's HTML instrument applies; but `ARRIVAL_TAGS` ([`src/index.ts:703`](../src/index.ts)) holds only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes **nothing**. No threshold registered | **NOT YET ADMISSIBLE** — A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, **A5 ❌**, A2 open |
-| **feedle** (`feedle.world`) | **UNREAD 2026-08-19** ([32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995)) — the page was served (200, 745 chars, no gate markers) and carries **"Submit your blog or podcast"**, but no rule about who may submit was reached. The read went red on the reader's own 1,000-character floor, which was a **false alarm rather than a refusal** | UNREAD | ✅ | ✅ `/sportstech` | ❌ | **CANDIDATE — A1 UNREAD.** The only register entry with a readable, unread rules page |
+| **feedle** (`feedle.world`) | **UNREAD 2026-08-19** ([32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995)) — the page was served (200, 745 chars, no gate markers) and carries **"Submit your blog or podcast"**, but no rule about who may submit was reached. The read went red on the reader's own 1,000-character floor, which was a **false alarm rather than a refusal**. **Still UNREAD after run 62**, now for a third and distinct reason: **the submission surface's address was not located.** `/submit` is a **404** ([32422654363](https://github.com/in-c0/tuned/actions/runs/32422654363)) — a finding about the guess, not the venue — and the reader reports page text but never `href`, so a surface named only in navigation cannot be reached without guessing | UNREAD | ✅ | ✅ `/sportstech` | ❌ | **CANDIDATE — A1 UNREAD.** The only register entry with a readable, unread rules page. Reaching it needs the reader to report link targets ([next candidate](#feedle--the-submission-surface-was-not-located-and-the-reader-cannot-follow-a-link)) |
 | **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
 | **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
 
