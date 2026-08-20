@@ -287,6 +287,28 @@ describe("an arrival tag on a feed URL identifies the attempt that sent a subscr
     // rather than quietly under a neighbouring one.
     expect(await countersToday()).toEqual({ feed_fetch: 6, "feed_fetch:sportstech": 6 });
   });
+
+  it("keeps writing the qa control, because EXP-009 has no null without it", async () => {
+    await seedFeed("sportstech");
+
+    // `qa` reads like test scaffolding and is the single most deletable-looking entry in
+    // ARRIVAL_TAGS. It is not scaffolding any more. Every tag this service writes is listed
+    // in public source next to the public route it applies to, and this loop keeps no store
+    // that is not world-readable — so no campaign tag can be private, and a tagged counter on
+    // its own cannot distinguish "the channel sent them" from "someone assembled the URL".
+    //
+    // `qa` is the control that closes that gap: published in exactly the same public places as
+    // a real channel tag, and submitted to no venue, ever. Unsuffixed `arrival_fetch:qa` is
+    // therefore what a published-but-never-submitted tagged URL earns by itself, which is the
+    // null EXP-009's Reading 2 grades against. It measured 23 over the 13.7 hours it was
+    // live on 2026-08-19 and 1 in the first 4.1 hours of 2026-08-20 — both partial days.
+    // Drop it from the allowlist and the control goes silently to zero — which
+    // reads identically to a quiet internet and would make every later comparison flattering.
+    const res = await visit("/sportstech/rss.xml?src=qa", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toMatchObject({ "arrival_fetch:qa": 1 });
+  });
 });
 
 describe("countEach writes every name in one round trip", () => {

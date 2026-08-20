@@ -693,13 +693,29 @@ app.get("/studio/:token/setup", async (c) => {
 // campaign label on the URL, aggregated into the same daily counts everything else uses. The
 // published privacy policy is unchanged by it.
 //
-// `qa` is this loop's own verification traffic, self-labelled so it stays separable from any
-// real campaign, and it is what proves the path writes in production before an attempt depends
-// on it. `awesome-rss-feeds` is pre-registered for the one candidate channel whose published
+// `qa` began as this loop's own verification traffic, self-labelled so it stays separable
+// from any real campaign, and it is what proved the path writes in production before an
+// attempt depended on it. It now has a second and more important job — see the control note
+// below. `awesome-rss-feeds` is pre-registered for the one candidate channel whose published
 // rules do not forbid the post (ops/DISTRIBUTION.md, run 55) — registered here *before* any
 // submission because counters start at zero on the deploy that introduces them and nothing is
 // backfilled. Registering it authorizes no submission; it only means that if a submission is
 // ever authorized, its result would be readable.
+//
+// **This allowlist is public source in a public repository, and so is every route it applies
+// to.** There is therefore no such thing as a private campaign tag for this service: anyone
+// reading this line knows every tag that writes, and this loop has no store that is not
+// world-readable in which to keep one. That is a structural property of running the loop in
+// the open, not a discipline failure, and it means a tagged counter can never be read as
+// "arrivals from the channel I gave this tag to" on its own. It needs a control.
+//
+// **`qa` is that control, and it must stay on this list for that reason.** It is a tag that
+// is published in exactly the same public places, at the same cadence, as any real channel
+// tag — and is submitted to no venue, ever. Unsuffixed `arrival_fetch:qa` therefore measures
+// precisely what a published-but-never-submitted tagged Tuned URL attracts on its own. That
+// number is the null any real tag must be read against (EXP-009, Reading 2). Deleting `qa`
+// here because it looks like test scaffolding would silently destroy the null, so
+// test/arrival.test.ts pins it.
 const ARRIVAL_TAGS = new Set(["qa", "awesome-rss-feeds"]);
 
 // ---------- public feed ----------
@@ -759,10 +775,25 @@ app.get("/:handle/rss.xml", async (c) => {
   // This loop's own scheduled QA fetches of this route land in `feed_fetch_bot`, not in the
   // unsuffixed name: qa/playwright.config.mjs sets a `HeadlessChrome` user agent for every
   // spec and every APIRequestContext, which isBot() matches. So `feed_fetch_bot:<handle>` is
-  // the liveness signal — it is non-zero whenever the QA schedule is running — and unsuffixed
-  // `feed_fetch:<handle>` is a genuine background rate of third-party fetchers. Neither is
-  // demand. `arrival_fetch:<tag>` is the one that grades an attempt, because only a link this
-  // loop published carries the tag.
+  // the liveness signal — it is non-zero whenever the QA schedule is running.
+  //
+  // Unsuffixed `feed_fetch:<handle>` was described here, on the deploy that introduced it, as
+  // "a genuine background rate of third-party fetchers". **Its first two days of data say
+  // otherwise and the description is withdrawn.** UTC 2026-08-19 read 23 over the 13.7 hours
+  // the counters were live; UTC 2026-08-20 read 1 in its first 4.1 hours — and on both days
+  // *every single one* carried `?src=qa`, a tag whose joined URL this loop had printed in a
+  // public GitHub issue hours earlier. It is not a background rate
+  // of anything; so far it is one population, and that population arrived because a URL was
+  // published, not because a feed was wanted.
+  //
+  // Nor does `arrival_fetch:<tag>` "grade an attempt because only a link this loop published
+  // carries the tag" — that was the other half of the same mistake. Every tag that writes is
+  // listed in public source above, next to the public route it applies to; a stranger does not
+  // need to receive the link to fetch it. What a tagged counter measures is *fetches of a
+  // tagged URL*, from anyone who assembled one. Attributing them to a channel requires the
+  // control (`qa`), not the tag.
+  //
+  // Neither name is demand and neither is a person.
   //
   // And the count is polls, never people: with no cookie and no visitor identifier there is no
   // way to turn a daily poll count into a subscriber count, and any run that reports one as the

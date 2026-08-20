@@ -1694,3 +1694,177 @@ counters went live.
 has produced no value, no submission has been authorized or made, and the clause added *narrows* what
 may be claimed rather than widening it. The 2026-08-26 freeze is unchanged and this is the last
 revision permitted before it.
+
+### Cross-reference — 2026-08-20 (run 58). No fork, band, window or clause above is altered.
+
+Run 57 closed the note above with *"this is the last revision permitted before it [the 2026-08-26
+freeze]"*, and that clause is honoured here: **nothing in EXP-009 is edited.** The day-2 reading of
+the `qa` series contradicts the *inference* run 57 drew from day 1, and the correct place for that is
+a new pre-registration with its own window, not an amendment to a frozen one. See
+[EXP-010](#exp-010--what-does-a-published-but-never-submitted-tagged-url-earn-on-its-own-2026-08-20-run-58).
+
+One consequence is worth stating here even though it changes nothing above: **Reading 2's Fork A
+should not be graded until EXP-010 has reported.** Fork A infers a durable subscriber from tagged
+fetches on ≥ 7 of 14 days; EXP-010 measures what that day-count reaches with no channel at all. If
+the null is loud, Fork A's bar is not a bar. Reading 1 is unaffected — it grades `feed_fetch_bot`
+liveness and needs no null — and its 2026-08-26 date is unchanged.
+
+## EXP-010 — what does a published-but-never-submitted tagged URL earn on its own? (2026-08-20, run 58)
+
+**Pre-registered at 2026-08-20 ~04:30 UTC (14:30 Sydney): before the graded window opens, before any
+submission to any venue has been authorized, and — the part that makes it a control rather than a
+rationalisation — on a series this loop did not create for this purpose and cannot now adjust.**
+
+### The question
+
+[EXP-009](#exp-009--if-a-feed-listing-sent-subscribers-would-tuned-see-them-2026-08-19-run-56)
+Reading 2 Fork A reads *"unsuffixed tagged fetches on ≥ 7 of the 14 days"* as **a durable subscriber
+exists — the first evidence in Tuned's history that a stranger subscribed to a Tuned feed.** Its
+stated logic is that *"a one-off crawl of a newly merged listing produces fetches on one or two days
+and a subscribed client polls daily."*
+
+That logic has a hidden premise: **that the only way a stranger's client comes to hold the tagged URL
+is that the channel gave it to them.** The premise is false for this service, and not by accident.
+`ARRIVAL_TAGS` is public source in a public repository ([`src/index.ts`](../src/index.ts)), the routes
+it applies to are public, and **this loop has no store that is not world-readable** — not the repo,
+not issue #1, not the CI logs. It therefore cannot hold a private campaign tag at all. Run 57's
+[A6](DISTRIBUTION.md) mitigation — never print the *joined* URL, name route and tag separately — is
+worth keeping, but it is a speed bump for a naive link-extractor, not a secret.
+
+So a tagged counter answers *"how often was a tagged URL fetched"*, and the step from there to
+*"the channel sent them"* needs a control: **what does a tagged URL earn when no channel exists?**
+
+### Hypothesis
+
+The `qa` tag is that control, and it is already running. It is published in exactly the same public
+places, at the same transparency cadence, as any real channel tag — and it is **submitted to no venue,
+ever.** Unsuffixed `arrival_fetch:qa` is therefore, by construction, the day-count a
+published-but-never-submitted tagged Tuned URL attracts on its own: the null for Fork A, in Fork A's
+own unit.
+
+**Stated as a falsifiable expectation before the window opens:** the 2026-08-19 burst was a discovery
+event that decays, so the control lands in **Fork N-3 or the low half of N-2** — fetches on 0–3 of
+the 14 days. If it clears 7, Fork A is not a bar and this run's expectation was wrong.
+
+### Baseline (source-linked) — observed, and deliberately *outside* the graded window
+
+From [`ops/metrics/2026-08-19.json`](metrics/2026-08-19.json) and
+[`ops/metrics/2026-08-20.json`](metrics/2026-08-20.json), `generated_at` 2026-08-20T04:06:30.501Z:
+
+| UTC day | `feed_fetch` | `feed_fetch:sportstech` | `arrival_fetch:qa` | `feed_fetch_bot:sportstech` | `arrival_fetch_bot:qa` |
+| --- | --- | --- | --- | --- | --- |
+| 2026-08-19 (counters live from 10:19:44Z — **partial**) | 23 | 23 | **23** | 4 | 2 |
+| 2026-08-20 (read at 04:06:30Z — **partial**) | 1 | 1 | **1** | 0 | 0 |
+
+Three facts, and the third is the one that matters.
+
+**One: on both days, every unsuffixed RSS fetch carried the tag.** 23 of 23, then 1 of 1. The
+unsuffixed name has never once recorded an untagged third-party fetch. Whatever this population is,
+it is not a background rate of feed readers finding Tuned on their own.
+
+**Two: none of it is this loop's.** The `_bot` halves are fully accounted for — two `qa-browser`
+dispatches × two fetches (one tagged each), plus the `/ava/rss.xml` curls from `verify production`
+and `metrics snapshot`. Re-verified this run by opening the files rather than recalling them:
+`vitest.config.mts` runs workerd against a simulated D1 with **no network**;
+[`metrics-snapshot.yml`](../.github/workflows/metrics-snapshot.yml) and
+[`verify-production.yml`](../.github/workflows/verify-production.yml) are the only scheduled fetchers
+of any `rss.xml` and both probe **`/ava/rss.xml` untagged**; the Worker's cron is a Spotify sync that
+makes no request to its own routes.
+
+**Three: run 57's inference is contradicted by day 2, before it could ever be relied on.** Run 57 read
+the day's partial value of 16 and described it as *"roughly one every forty minutes, which is the
+shape of a feed client or an indexer."* The day in fact closed at **23** over the 13.7 hours the
+counters were live — one per ~35.7 minutes, consistent with that reading. The next 4.1 hours then
+produced **1**, where the same rate predicts ~6.9. That is not noise: for a Poisson process at that
+rate, P(X ≤ 1) ≈ 0.008. **The shape is a burst that decayed, which is a crawl or a short-lived agent
+run — not a subscription.**
+
+That distinction is *precisely* the one Fork A exists to make, and this loop got it wrong on its own
+data in under a day. It is the strongest available argument that Fork A needs a measured null rather
+than an argued one.
+
+**And the arithmetic above is a reason to run the experiment, not a substitute for it.** The Poisson
+figure assumes a homogeneous process, and it is compared across two *different parts of the day*
+(13.7 h ending at midnight UTC, against the first 4.1 h after it) — a comparison a diurnal pattern
+alone could produce. **Two partial days cannot settle this**, which is exactly why the graded window
+below is fourteen complete ones and why nothing is being concluded today. What the day-2 reading
+establishes is narrower and sufficient: run 57's cadence claim is **not supported**, and a series
+whose shape is unknown cannot be the basis for reading a fork that turns on shape.
+
+### Change (commit/deploy)
+
+**No counter, name, allowlist entry or behaviour changes.** The control already writes; creating it
+now would make it a treatment. What ships is a correction and a pin:
+
+- [`src/index.ts`](../src/index.ts) — the deployed comment's claims that unsuffixed `feed_fetch` is
+  *"a genuine background rate of third-party fetchers"* and that `arrival_fetch:<tag>` grades an
+  attempt *"because only a link this loop published carries the tag"* are **withdrawn on the data
+  above**, and `qa`'s role as the control is written next to the allowlist that keeps it alive.
+- [`src/metrics.ts`](../src/metrics.ts) — the same withdrawal in the **published** `/api/metrics`
+  note, which is the copy every snapshot in `ops/metrics/` carries and the only description of these
+  numbers a reader outside this loop can see.
+- [`test/arrival.test.ts`](../test/arrival.test.ts) — one test pinning `qa` in `ARRIVAL_TAGS`, because
+  it is the most deletable-looking entry there and removing it would take the null to zero silently,
+  which reads identically to a quiet internet.
+
+**Exposure disclosure, since the control's validity depends on it:** that test adds one occurrence of
+the joined `?src=qa` URL to a file that already contained one. No new file, no new venue, no new
+publication surface. Under the stop conditions below this is the last such addition permitted while
+the window is open.
+
+### Reading — one, on a fixed date, in Fork A's own unit
+
+Read on the complete UTC day **2026-09-04**, from a `schedule` metrics snapshot, over the **14
+complete UTC days 2026-08-21 … 2026-09-03**. The two partial days above are baseline context and are
+**excluded from grading** — a window that included the discovery burst would grade the publication
+event rather than the decay.
+
+**Primary statistic:** `control_days` = the number of days in the window on which unsuffixed
+`arrival_fetch:qa` ≥ 1. Day-count, not volume, because that is the unit Fork A is written in. Total
+volume is reported alongside it and never substituted for it.
+
+- **Fork N-1 — the null is loud.** `control_days` ≥ 7. *Reading:* a tagged URL with **no channel
+  behind it** clears Fork A's bar unaided. Fork A cannot distinguish a subscriber from a publication
+  and is **void as written**; it must be re-derived from this band before any submission is
+  authorized, and A5 in the register reverts to ❌ for every tagged candidate until it is.
+- **Fork N-2 — the null is quiet but real.** `control_days` is 1–6. *Reading:* Fork A's 7/14 bar
+  survives, and `control_days` is the floor a treatment must **exceed**, not merely reach. *Next
+  action:* record the exact band in [DISTRIBUTION.md](DISTRIBUTION.md); a treatment landing inside it
+  grades **Fork B**, not Fork A.
+- **Fork N-3 — the null is silent.** `control_days` = 0 across all 14 days. *Reading:* the 2026-08-19
+  burst was a one-off discovery that decayed to nothing; a published tagged URL attracts nothing
+  durable unaided; Fork A's threshold is validated **by measurement** instead of by argument. *Next
+  action:* Fork A stands exactly as written.
+- **Fork N-4 — inadmissible, not null.** Any of: `qa` is submitted to a venue; `qa` is removed from
+  `ARRIVAL_TAGS`; this loop fetches the tagged URL with a user agent `isBot()` does not match; the
+  joined `?src=qa` URL is published somewhere new during the window; or a snapshot day is missing so
+  `control_days` cannot be counted. *Reading:* **no null is established.** EXP-009 Fork A stays
+  unvalidated and must not be graded as though it were, and this experiment is re-run on a clean
+  window rather than salvaged.
+
+### Stop conditions, stated in advance
+
+- **This authorizes no submission of anything, anywhere.** It is a measurement of a series that
+  already exists. The standing owner decision on third-party submissions is untouched.
+- **`qa` is never submitted to a venue.** The moment it is, it stops being a control and this entry
+  grades Fork N-4.
+- **The control's exposure is neither increased nor decreased during the window.** Existing
+  publications of the joined URL stay where they are — removing them would be tuning the null. No new
+  ones are created.
+- **One reading, on 2026-09-04.** Reading it early is choosing the day; adding a second is choosing
+  the answer. If the series is obviously loud on 2026-08-25 that is not a result, and it does not
+  license acting before the date.
+- **Nothing here may be reported as traffic, demand, subscribers or interest.** The whole point of a
+  control is that it counts things that are *not* demand. Any run reporting `arrival_fetch:qa` as
+  users is inventing a metric.
+
+### Result
+
+**PENDING.** Window opens 2026-08-21 00:00 UTC, closes 2026-09-03 24:00 UTC, read 2026-09-04.
+
+### Decision
+
+**PENDING.** What this experiment has already decided, before its window opens: **EXP-009 Fork A must
+not be graded on its own.** Not because its threshold is wrong — it may well be right — but because
+its argument for that threshold assumed a premise this service does not satisfy, and nobody had
+measured the alternative.

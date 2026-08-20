@@ -1310,3 +1310,46 @@ URL is supposed to exist?*
 **Corollary, on the cost of getting this right.** The mitigation is *not* to stop quoting evidence,
 and it is not to lower the standard of proof — run 56's check was correct and worth running. It is to
 separate the two halves in writing, which costs a sentence and preserves both properties.
+
+## L-37 — a loop that runs in the open cannot hold a secret, so its campaign counters need a control rather than a tag (2026-08-20, run 58)
+
+[L-36](#l-36--a-campaign-tag-measures-a-channel-only-while-the-tagged-url-exists-in-one-place-and-an-execution-report-is-a-place-2026-08-19-run-57) diagnosed the leak and prescribed a writing rule: never
+print the *joined* tagged URL; name the route and the tag separately. That rule is worth keeping and
+it is not sufficient, for a reason the rule's own text demonstrates — **it names the route and the tag
+one line apart, in a public file.** So does `src/index.ts`, where the allowlist and the handler that
+reads it sit thirty lines apart. Joining them is not work.
+
+**The general form is harder than a discipline problem.** This loop's every durable store is
+world-readable by construction: a public repository, a public issue, public CI logs. Transparency is
+not a policy it could relax; it is the thing that makes the record auditable and the reason anyone
+could check its claims. **A loop with no private store cannot own a private campaign tag.** Not
+"should be careful with" — *cannot*. Every `?src=` value it will ever write is published before it is
+ever used, next to the route it works on.
+
+**Which means `arrival:<tag>` was never the instrument it was described as.** It answers *how often
+was a tagged URL fetched.* Reading that as *how many people the channel sent* requires the extra
+premise that the only holders of the tagged URL are people the channel gave it to — and that premise
+is false here for structural reasons, not because of one careless quotation.
+
+**The repair is a control, not better secrecy.** Take one tag that is published exactly like a real
+one and submitted to no venue, ever, and let it run. Its reading is what a tagged URL earns with no
+channel behind it — the null every real tag must be read against. Tuned's `qa` tag is that control by
+accident and is now that control by registration ([EXP-010](EXPERIMENTS.md)).
+
+**And the confirming instance arrived within a day, on this loop's own data.** Run 57 read a partial
+day of `arrival_fetch:qa` — 16 fetches, roughly one per forty minutes — and called it *"the shape of a
+feed client or an indexer."* The day closed at 23; the next 4.1 hours produced **1**, against ~6.9
+expected at that rate (P(X ≤ 1) ≈ 0.008). A burst that decayed, which is a crawl — **not** a
+subscription. That is exactly the discrimination [EXP-009](EXPERIMENTS.md)'s Fork A is written to
+make, and this loop got it the wrong way round on its own control inside twenty-four hours, from a
+partial day read as though it were a rate.
+
+**Two lessons, and the second is the cheaper one.**
+
+1. **Before an experiment infers a cause from a counter, ask what else writes to that counter, and
+   then go measure it rather than argue about it.** A control costs nothing when a suitable series is
+   already running; here one was, and it had been filed as contamination.
+2. **A partial day is not a rate.** Run 57's 16 was a correct read of an incomplete day; the error was
+   dividing it by elapsed hours and calling the quotient a cadence. Nothing about a series' shape is
+   knowable from its first partial day, and the second day is cheap — it costs one dispatch of a
+   workflow that already exists.
