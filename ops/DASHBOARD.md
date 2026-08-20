@@ -18,21 +18,32 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **There is one thing for you to do, and it is a single word.**
+> # **You answered. The executor cannot carry it out, and finishing it takes you about two minutes.**
 >
-> **Reply on [issue #1](https://github.com/in-c0/tuned/issues/1) with A, B or C.** May the executor
-> submit `@sportstech`'s feed to a public RSS directory in your name — **(A)** yes, executor submits ·
-> **(B)** no, you will submit it yourself · **(C)** no, drop it. **No card, no credential, no spend,
-> and "no" costs nothing.** It is the only thing standing between this loop and the first traffic it
-> could ever call human. Full card: [§1](#1-owner-action-required). Asked since **2026-08-19**,
-> unanswered across five runs.
+> **Your "A" is granted and is not being re-asked.** The block is now mechanical: **this executor's
+> GitHub access is scoped to `in-c0/tuned` and to nothing else**, so it holds no account at
+> [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) and cannot open an
+> issue there. That is the operating record's *"unavailable credentials"* stop condition, and a scope
+> boundary is never worked around.
 >
-> **One thing worth knowing before you answer, and it was stated backwards until run 60.** The feed's
-> freshness condition lapses **tomorrow at 14:15 Sydney**. An **A** answered before then is submitted;
-> an **A** answered after it waits — not for a date, but for the next find genuinely worth publishing,
-> which is not scheduled. **There is no penalty for missing it**, nothing breaks, and the executor will
-> not publish anything to hold the window open. Answering tonight or tomorrow morning is simply worth
-> more than tomorrow afternoon.
+> **Fastest finish — open the issue yourself.** One issue from the venue's own template: category
+> **`Sports`**, feed = the route **`/sportstech/rss.xml`** on `justtuned.com` carrying the **`?src=`
+> tag `awesome-rss-feeds`** (join them when you paste; the joined URL is deliberately written nowhere
+> public), and **not** a podcast. Then paste the issue's URL on
+> [issue #1](https://github.com/in-c0/tuned/issues/1). Full card: [§1](#1-owner-action-required).
+>
+> **Everything else is already done and checked this morning:** the feed is fresh (**65.4h**, inside
+> the 72-hour condition), and nothing at the venue mentions Tuned yet — neither its issues nor its
+> README — so this would not be a duplicate.
+>
+> **Two alternatives, both fine.** The venue also has a **Google form** that needs no account, and the
+> executor could submit that unaided if you say so — but a form gives **no receipt and no link**, so a
+> silent outcome could never be told apart from a submission that never arrived, which is the one thing
+> the measurement was built to avoid. Or **drop the candidate**, which still costs nothing.
+>
+> **The clock, stated plainly and not as pressure:** the freshness condition lapses **today at 14:15
+> Sydney**. After that the submission waits for the next find genuinely worth publishing, which is not
+> scheduled. **No penalty, nothing breaks**, and the executor will publish nothing to hold it open.
 >
 > **This headline said *"There is nothing for you to do"* while [STATUS.md](STATUS.md) and the rest of
 > this file said a decision was outstanding.** Written at run 49 on 2026-08-17, false from **2026-08-19
@@ -230,31 +241,39 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
-### **ONE DECISION. No card, no credential, no spend.**
+### **ONE SUBMISSION. No credential to install, no spend. ~2 minutes.**
 
-> **May this executor submit the `@sportstech` feed record to
-> [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) — the feed URL
-> `https://justtuned.com/sportstech/rss.xml`, a title and the `Sports` category, on the venue's own
-> Google form or issue template — or does a human do it?**
+> **You answered A at 2026-08-20 15:04 UTC. It is granted and stands.** What changed is that the
+> executor found it cannot carry A out: **its GitHub access is scoped to `in-c0/tuned` and it holds no
+> identity at [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds)**, so it
+> cannot open an issue there. Checked three ways this run — the repository read returned *"Access
+> denied … Allowed repositories: `in-c0/tuned`"*, the session's repo-attach refused *"cross-tier adds
+> are not supported"*, and no cross-repository token exists among the configured secrets. **That is a
+> credential boundary, which is a mandatory stop and is never routed around.**
 
-**Reply on [issue #1](https://github.com/in-c0/tuned/issues/1) with exactly one of these three.**
-Nothing else is being asked, and the executor will not choose for itself.
+**The preflight is complete and current — this is the part with the clock on it:**
+
+| Precondition | Reading | Source |
+| --- | --- | --- |
+| Feed is fresh (≤72h) | **65.4h ✅**, newest item `2026-08-18T04:15:49Z`. **Lapses 14:15 Sydney today.** | [32420428170](https://github.com/in-c0/tuned/actions/runs/32420428170) |
+| Not a duplicate | **Clear ✅** — no issue at the venue mentions `justtuned`, and neither does its README. | [32420411861](https://github.com/in-c0/tuned/actions/runs/32420411861) · [32420571372](https://github.com/in-c0/tuned/actions/runs/32420571372) |
+| Everything else | A1 partial · A2 ✅ (**your A**) · A3 ✅ · A5 ✅ | [DISTRIBUTION.md](DISTRIBUTION.md) |
 
 | | Response | What happens next |
 | --- | --- | --- |
-| **A** | **"Executor may submit."** | The executor submits the factual record — feed URL, title, `Sports` — under the venue's own template, and [EXP-009](EXPERIMENTS.md) begins grading on its pre-registered forks. |
-| **B** | **"I will submit it."** | The executor submits nothing. The URL must carry the `awesome-rss-feeds` tag as its `?src=` value or the experiment cannot be read — it grades **Fork E**, a real attempt nobody can measure. The tag is named in [DISTRIBUTION.md](DISTRIBUTION.md); per [L-36](LESSONS.md) the joined URL is deliberately not written anywhere public, including here. |
-| **C** | **"Drop the candidate."** | The venue is struck from the register, EXP-009 closes at **Fork D — inadmissible, not null**, and the executor goes back to reading other venues' rules. |
+| **A-1** | **"I'll open the issue."** *(recommended)* | You open one issue from the venue's template: category **`Sports`**, feed = route **`/sportstech/rss.xml`** on `justtuned.com` with **`?src=` tag `awesome-rss-feeds`** (joined when you paste, per [L-36](LESSONS.md)), not a podcast. Paste the resulting URL on [issue #1](https://github.com/in-c0/tuned/issues/1) and the executor records t0 and grades [EXP-009](EXPERIMENTS.md) from there. **This is the only option that produces a link anyone can check later.** |
+| **A-2** | **"Use the Google form instead."** | The venue's form needs **no account and no sign-in** and asks only **Category**, **Feed URL** and **Is this a Podcast?** — no title, no prose. The executor can submit it unaided the moment you say so. **The cost:** no receipt and no link, so a silent outcome could never be told apart from a submission that never arrived. |
+| **C** | **"Drop the candidate."** | Still costs nothing at any hour. The venue leaves the register and EXP-009 closes at **Fork D — inadmissible, not null**. |
 
 | | |
 | --- | --- |
-| **Severity** | **Blocking the loop's single objective, and on a clock as of run 60.** Nothing is at risk, nothing breaks, and **a "no" still costs nothing** — but the freshness condition lapses **2026-08-21 04:15 UTC, 14:15 Sydney tomorrow**, and an **A** answered before that is submitted while an **A** answered after it waits on an unscheduled event. See *"The one thing that does lapse"* below; run 59's card said the opposite and was wrong. |
-| **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* ([§5](#5-blockers-ordered-by-leverage)) — is now **one condition from testable**: A1 partially satisfied, A3 ✅, A5 ✅, A4 ✅ until **2026-08-21 04:15 UTC**. **A2 is the only condition left, and A2 is this decision.** |
-| **Why it needs you** | Submitting is an **outward-facing act at a third party in your name** — a boundary in the operating contract, not something the executor may decide for itself. It is **not** the EXP-002 problem: the venue takes a factual record (URL, title, category), not prose in your voice. Prior Hacker News authorization does not carry to a different venue. |
-| **Exact minimum action** | One comment on issue #1 containing **A**, **B** or **C**. No account, no form, no credential, no spend. |
-| **Observable success check** | A comment by you on issue #1 naming A, B or C. **This card is removed the run after that comment exists** — on the comment, not on the executor's reading of what was meant. |
-| **Blocker age** | **~30 hours.** Opened **2026-08-19 04:30 UTC** (run 55's report), unanswered across runs **55, 56, 57, 58, 59**, re-surfaced at run 60. |
-| **Where surfaced** | Every execution report on [issue #1](https://github.com/in-c0/tuned/issues/1) since run 55, and — as of run 59 — this card, [STATUS.md's canonical card](STATUS.md#owner-action-required), blocker #1 and STATUS's Next action. |
+| **Severity** | **Blocking the loop's single objective, and on a clock.** Nothing is at risk and nothing breaks, but the freshness condition lapses **2026-08-21 04:15:49 UTC, 14:15 Sydney today**; after that the submission waits on the next find genuinely worth publishing, which is not scheduled. **No penalty for missing it**, and the executor will publish nothing to hold it open. |
+| **Blocked outcome** | The first channel of **known-human traffic** in Tuned's history. Blocker #1 — *no arrival is known to be human* ([§5](#5-blockers-ordered-by-leverage)) — now has **every admissibility condition satisfied**. What is left is not a condition; it is an account the executor does not have. |
+| **Why it needs you** | Not authorship — you settled that. **Access.** Posting at a third party's repository needs an identity there, and the executor has one only at `in-c0/tuned`. |
+| **Exact minimum action** | **A-1:** open the issue, paste its URL on issue #1. **A-2 or C:** one comment saying so. No credential to install, no spend. |
+| **Observable success check** | A `plenaryapp/awesome-rss-feeds` issue URL posted on issue #1, or a comment naming **A-2** or **C**. **This card is removed the run after one of those exists.** |
+| **Blocker age** | **New at run 61 (2026-08-20 21:55 UTC).** The authorship question that preceded it is **closed** — asked 2026-08-19 04:30 UTC, answered 2026-08-20 15:04 UTC, age ~35 hours. |
+| **Where surfaced** | This card, [STATUS.md's canonical card](STATUS.md#owner-action-required), blocker #1, STATUS's Next action, [DISTRIBUTION.md](DISTRIBUTION.md), and run 61's report on [issue #1](https://github.com/in-c0/tuned/issues/1). |
 
 **One thing that changed about the decision, worth a sentence before you answer.** Run 58 registered
 EXP-010: a tagged link cannot on its own tell a directory's readers from anyone who assembled the URL
@@ -263,28 +282,21 @@ that problem is by **2026-09-04**. **That is not a reason to wait** — whether 
 allowed at all does not depend on it — but a submission made before then gets read against a
 comparison that does not exist yet.
 
-**One answer covers two venues and commits you to neither.** A second directory, `ooh.directory`, is
-also open on its published rules, and wants the feed's **web page** rather than its RSS file. On an
-"A" it would still not be submitted: its arrival counter is not wired up yet. **Only
-`awesome-rss-feeds` is ready to go the moment you answer.**
+**`ooh.directory` is unaffected and still not ready.** The second directory wants the feed's **web
+page** rather than its RSS file, and its arrival counter is not wired up, so it would not be submitted
+today under any answer. **Only `awesome-rss-feeds` is ready.**
 
-**The one thing that does lapse — corrected at run 60, one run after this card said the opposite.**
-`@sportstech`'s freshness condition lapses **2026-08-21 04:15 UTC, 14:15 Sydney tomorrow.** Run 59 wrote
-that this is *"not a reason to answer quickly"* and that nothing degrades while the decision waits.
-**Right about the executor, wrong about your answer**, because two claims were collapsed into one:
+**Why the executor did not just use the form, since your A allowed it.** Two reasons from this loop's
+own rules rather than from caution. The standing reviewer directive says that when a precondition
+fails — naming *"authentication fails"* explicitly — the executor makes no submission and records the
+exact failure instead of finding another way. And a form leaves **no artifact anyone can point at**,
+which would make a silent result unfalsifiable: *"the maintainer declined"* and *"the form never
+arrived"* would look identical forever. A channel worth testing is worth testing in a way that can come
+back negative and be believed. **If you would rather have the attempt than the receipt, say A-2 and it
+goes out.**
 
-- **True, and unchanged.** The executor must **not** publish anything to hold the window open, and it
-  will not. A publication made to move a number is disqualified by EXP-008's own rules, and the
-  condition decaying is a **pre-registered acceptable outcome**. Nothing is asked of you to prevent it.
-- **False.** That the timing of your answer therefore does not matter. The condition has to hold
-  **before** a submission is made, read from the live site in the same cycle. An **A** before 04:15 UTC
-  is submitted; an **A** after it **waits** — not for a date, but for the next find genuinely worth
-  publishing, which is not scheduled and could be days. **B** carries the same staleness into your own
-  submission. **C** costs nothing at any hour.
-
-**Not a deadline, and no penalty for missing it.** Just one fact you were owed while deciding:
-answering tonight or tomorrow morning is worth strictly more than tomorrow afternoon. The question
-itself is unchanged.
+**Nothing was sent to your phone or inbox this run**, and none is claimed — that channel is not
+authorized, and this card plus [issue #1](https://github.com/in-c0/tuned/issues/1) are the whole ask.
 
 ---
 
