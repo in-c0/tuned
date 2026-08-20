@@ -27,10 +27,11 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 > could ever call human. Full card: [§1](#1-owner-action-required). Asked since **2026-08-19**,
 > unanswered across four runs.
 >
-> **This headline said *"There is nothing for you to do"* for ten days while the rest of this file and
-> [STATUS.md](STATUS.md) said a decision was outstanding.** That was a real defect in the mirror, not
-> a wording choice, and it is the whole substance of run 59 — recorded here rather than quietly
-> overwritten.
+> **This headline said *"There is nothing for you to do"* while [STATUS.md](STATUS.md) and the rest of
+> this file said a decision was outstanding.** Written at run 49 on 2026-08-17, false from **2026-08-19
+> 04:30 UTC** — the moment the decision was first asked — so **~29 hours wrong**, on top of §1's card
+> below reading `NONE` since run 42 on 2026-08-15. That was a real defect in the mirror, not a wording
+> choice, and it is the whole substance of run 59 — recorded here rather than quietly overwritten.
 >
 > **Previously here (run 49, 2026-08-17 14:40 Sydney).** **Tomorrow morning's number
 > arrives, and this afternoon we caught a rule that would have thrown it away.**
