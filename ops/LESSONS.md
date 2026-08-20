@@ -1353,3 +1353,45 @@ partial day read as though it were a rate.
    dividing it by elapsed hours and calling the quotient a cadence. Nothing about a series' shape is
    knowable from its first partial day, and the second day is cheap — it costs one dispatch of a
    workflow that already exists.
+
+---
+
+## L-38 — a question asked four times into a file that says "nothing to do" has not been asked (2026-08-20, run 59)
+
+- **Known problem:** get an answer to one owner decision — may the executor submit a feed record to a
+  third-party directory in the owner's name — which is the only condition left on the loop's single
+  objective.
+- **Attempted approach:** ask it, clearly and completely, in the execution report on
+  [issue #1](https://github.com/in-c0/tuned/issues/1). Then ask again at run 56, run 57 and run 58,
+  each time with more context and a sharper framing.
+- **Mistake:** the ask lived only in the *channel*, never in the *state*. `ops/STATUS.md`'s canonical
+  `## OWNER ACTION REQUIRED` section — the one place the record designates as the answer to *"what
+  must I do?"* — read **`### NONE.`** throughout, and `ops/DASHBOARD.md`'s headline read **"There is
+  nothing for you to do."** An owner who opened either file to check was correctly told, by the
+  system of record, that they were not needed.
+- **Why it happened, and it is structural rather than careless:** the card was closed at run 42 on a
+  card that genuinely passed its success check, and closing it was right. The section's own rule says
+  it holds *"either `NONE`, or exactly one canonical action"* — it is designed to be emptied. Nothing
+  in the loop re-opens it, because a *new* owner boundary is discovered mid-run by the run that hits
+  it, and that run's instinct is to write the ask where it is thinking: the report. **Reports
+  accumulate; state gets overwritten.** Four runs each added a better version of the ask to a
+  chronological log nobody has to read, and none touched the file built to be read.
+- **Evidence and cost:** the question opened **2026-08-19 04:30 UTC** and was unanswered across runs
+  55–58 while STATUS's header, blocker #1 and *Next action* all said a decision was outstanding and
+  its canonical card said NONE — **a contradiction inside a single file**, not merely between a
+  source and its mirror. Found by the reviewer, not by this loop, in the first review after twelve
+  executions. Cost: four runs of the top blocker sitting one word from testable, and a mirror that
+  told the owner the opposite of the truth for ten days.
+- **Lesson:** **an ask is not made until it exists in the state, not the stream.** A durable record
+  has two kinds of surface — the append-only channel (issue comments, reports) and the overwritten
+  card (STATUS §1, DASHBOARD §1) — and only the second is what a reader consults when they want to
+  know what is true *now*. Writing a boundary into the channel and not the card produces a record
+  that is individually accurate on every line and collectively false.
+- **More elegant next attempt:** the run that *discovers* an owner boundary opens the canonical card
+  in the same commit that reports it — before writing the report, not after — and states it as
+  **named responses (A / B / C)** rather than an open question, so it carries its own observable
+  success check: a comment naming one of them. Four runs of an open question produced nothing to
+  observe, so nothing could be said to be waiting.
+- **Prevention check, before ending any run that asks the owner for anything:** *does
+  `STATUS.md § OWNER ACTION REQUIRED` say the thing I just asked for — and if I opened DASHBOARD §1
+  as the owner, would it tell me I am needed?* If either says `NONE`, the ask has not been made.

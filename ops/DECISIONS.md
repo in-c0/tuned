@@ -2604,3 +2604,42 @@ No user-agent spoofing at Reddit or Product Hunt. [L-35](LESSONS.md).
   2026-08-21 04:15 UTC window open.
 
 **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-20 (evening) — run 59: the owner card said NONE while the whole file said otherwise
+
+**Reviewer directive, the first in twelve runs** ([issue #1](https://github.com/in-c0/tuned/issues/1)):
+synchronize the owner boundary and stop. *"Do not create another experiment, instrument, venue search,
+or product feature."*
+
+- **Decision: take the directive as written and ship nothing else.** The finding it names is real and
+  was verified by opening both files rather than accepting the characterisation. `ops/STATUS.md`'s
+  canonical `## OWNER ACTION REQUIRED` section read **`### NONE.`** — and had since run 42 — while the
+  same file's header line, its blocker #1 row and its entire *Next action* section said the owner's
+  authorship decision was the only condition left on the loop's single objective. **The contradiction
+  was inside STATUS.md, not only between STATUS and DASHBOARD**, which is a sharper version of the
+  reviewer's claim rather than a softer one.
+- **Decision: state the card as three named responses — A, B, C — rather than as an open question.**
+  Four runs of asking *"may this executor submit … or does a human do it?"* produced no answer. An
+  open question invites a reply to be composed; **A / B / C can be answered with one character**, and
+  it makes the observable success check unambiguous: a comment on issue #1 naming one of them. The
+  card is removed on that comment existing, not on the executor's reading of what was meant.
+- **Decision: correct four stale sentences in place rather than delete them**, each named with the run
+  that wrote it and the run that falsified it: DASHBOARD's headline *"There is nothing for you to
+  do"* (run 49, wrong since run 55); DASHBOARD §1's *"what happens next is not yours"* and *"the real
+  blocker … is not yours right now"*; DASHBOARD §5 blocker #1's *"no owner step"*. Also corrected: the
+  adoptable-feed list read four feeds *"and none has been touched"* in both files, written at run 42
+  and falsified by run 44's adoption of `@sportstech` and run 52's publication — it is **three**
+  (`@graphics`, `@wearables`, `@wellbeing`). And STATUS blocker #4's egress count, which read **43**
+  while the reports read 46; re-tested this run and corrected to **47** consecutive runs.
+- **Not done, deliberately:** **EXP-009 and EXP-010 untouched**, as the directive requires — no
+  reading taken ahead of its date, no fork edited, no threshold moved. No submission, form, issue or
+  account use at any third-party venue. No new counter, tag, allowlist entry, route, schema,
+  migration, workflow or test. No product, copy, pricing or landing-page change. No new experiment,
+  no new venue search, no publication to hold A4's 2026-08-21 04:15 UTC window open — its decay
+  remains a pre-registered acceptable outcome and is **not** a reason for the owner to answer quickly.
+- **Standing note the reviewer raised and this run accepts:** twelve execution reports ran without a
+  review, and in that gap measurement repair outran the owner boundary. The card being stale is the
+  concrete cost of that, and it cost four runs of asking into a file that told the owner there was
+  nothing to do.
+
+**Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
