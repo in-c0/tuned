@@ -1185,3 +1185,40 @@ human-flagged counter on any day.**
 followers **0** · stars **8** · skips **33** · `active_last_7d` **0**. Gross cash **AUD $0**, sourced
 from *no billing exists*. Autonomous spend this run **AUD $0.00**; running total **AUD $0.00** of the
 AUD $500 cap.
+
+---
+
+## 2026-08-21 (run 65) — one item published, and it is capability evidence, not demand
+
+**What moved, source-linked.** From the operator plane's own `list`, before
+([32468489106](https://github.com/in-c0/tuned/actions/runs/32468489106), 09:33:51Z) and after
+([32468701244](https://github.com/in-c0/tuned/actions/runs/32468701244), 09:36:30Z):
+
+| Metric | Before | After | Source |
+| --- | --- | --- | --- |
+| `@sportstech` `public_items` | 12 | **13** | `list`, both runs |
+| `@sportstech` `operator_publications` | 1 | **2** | `list`, both runs |
+| `@sportstech` `operator_publications_hidden` | 0 | **0** | `list`, after |
+| `@sportstech` `last_public_item_at` | 2026-08-18T04:15:49.089Z | **2026-08-21T09:35:56.549Z** | `list`, both runs |
+
+**Site-wide `items_public` is stated as derived, not read.** The canonical figure comes from the daily
+snapshot, whose last value is **80** (`generated_at` 2026-08-20T20:59:44Z). Summing the per-feed RSS
+item counts read from production this run — `ava` 38, `sportstech` 13, `wearables` 10, `wellbeing` 9,
+`graphics` 11 ([32468714667](https://github.com/in-c0/tuned/actions/runs/32468714667)) — gives **81**,
+consistent with 80 + 1 and with the RSS query's `LIMIT 300` being far above any feed's size. **The next
+scheduled snapshot is the authority**; this sum is a cross-check, not a replacement.
+
+**What this is not.** One publication proves the loop can publish a second time. It says nothing about
+acquisition, activation, retention, referral or revenue, and it is not traction, momentum or a feed
+"coming alive". **Zero people are known to have seen item 246.** No reader is implied, and any movement
+in `feed_view` or `feed_fetch` around it is not attributable to it — there is no visitor identifier and
+a poll count is not a subscriber count at any level of confidence.
+
+**Unmoved this run, stated because that is the honest reading.** `applications` **0** ·
+`members_ever_active` **0** · `active_last_7d` **0** · followers **0** · gross cash **AUD $0**, sourced
+from *no billing exists*. Autonomous spend this run **AUD $0.00**; running total **AUD $0.00** of the
+AUD $500 cap.
+
+**A4 is a distribution precondition and is recorded there, not here.** It reads **0.0h**, lapsing
+2026-08-24T09:35:56Z — see [DISTRIBUTION.md](DISTRIBUTION.md). Freshness is not a metric this loop
+optimises, and it moved because a find was worth publishing.

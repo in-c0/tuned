@@ -275,3 +275,102 @@ it can `disable` an agent, but **there is no action that retracts or hides a pub
 executor cannot. Nothing about this publication needs undoing — but the next one might, and
 discovering that at the moment it is needed would be the wrong time. Recorded as a candidate, not
 started.
+
+## R-2 — one selection cycle, run under the 09:29 UTC directive (2026-08-21, run 65)
+
+**Written before the dispatch, not after it.** The
+[2026-08-21 09:29:32 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5368099748)
+asks for *"exactly one existing @sportstech selection cycle"*, with *"at most one candidate"*, graded
+against [EXP-008](EXPERIMENTS.md)'s six thresholds, and **published only if it is genuinely worth
+publishing independent of the directory test**. A4 lapsed at 2026-08-21T04:15:49Z with the
+submission unmade, so the temptation this section exists to resist is exact and named: publishing
+*something* to restore freshness. If the candidate below did not clear the remit on its own, the
+correct outcome was *publish nothing*, and it stayed free right up to the dispatch.
+
+### The read
+
+**R-2 — `https://arxiv.org/abs/2607.26027`**, read
+[32468312666](https://github.com/in-c0/tuned/actions/runs/32468312666), 2026-08-21T09:32:51Z.
+
+```
+http_status: 200 · read_outcome: "page" · visible_text_chars: 3655
+interstitial_signals: [] · possible_gate_markers: [] · excerpt_truncated: false
+redirected: false · final_url == requested_url
+```
+
+*A Synchronized Multi-IMU Wearable System for Tracking of Joint-Angles in Sports Motion Analysis
+With Reference-Based Validation and Dynamic Task Characterization* — Samarasekera, Rathnayaka,
+Adhikari, Navarathne, Pandukabhaya, Godaliyadda, Ekanayake, Senanayake, Herath, Ratnayake.
+`[Submitted on 28 Jul 2026]`, eess.SP, 11 pages, arXiv v1.
+
+**On the abstract page actually read**, and nothing else: a synchronized, cost-efficient, modular IMU
+wearable platform with an RTC-disciplined microsecond timestamping scheme, an indirect Kalman-filter
+orientation estimator, relative-rotation joint-angle extraction, high-pass drift mitigation and range
+normalization. **Reference-based validation used a standardized seated knee flexion-extension
+protocol, comparing IMU-derived knee trajectories against a markerless vision reference computed from
+YOLOv11**; the method *"reproduced the expected 14-cycle motion and achieved low normalized error."*
+Instrumentation was separately evaluated on a **long-duration (2h 12min) rigid-body elbow hold,
+yielding near-zero drift (r_drift = 1.5×10⁻⁶ deg/min) and a practical noise-limited resolution of
+0.6442°.** It was then demonstrated on a **clean & jerk task with two participants (professional and
+amateur) performing five consecutive lifts**, preserving stage-dependent signatures and rapid
+transients.
+
+### Graded against EXP-008's thresholds, before dispatch
+
+**Threshold 6 — the find is real.** PASS on the read above: `read_outcome: "page"`, no interstitial,
+3655 visible characters, and every clause of the `why` below is a sentence that was on screen. On the
+remit: **athlete sensing** (multi-IMU instrumentation and the validation that says whether it
+measures what it claims), **biomechanics** (knee and elbow joint angles against a reference method
+someone else could repeat), and a **validated implementation with concrete measured results** — a
+drift rate, a resolution figure, a cycle count, a participant count. Not generic fitness advice, not
+a promotional claim, not a vendor benchmark.
+
+**Thresholds 1–4** are capability checks and are verified *after* the dispatch, from production, in
+the execution report: HTTP 201 with an `item_id`; `@sportstech` `public_items` 12 → 13 and
+`operator_publications` 1 → 2 against the pre-dispatch `list`
+([32468489106](https://github.com/in-c0/tuned/actions/runs/32468489106), 09:33:51Z, `public_items=12
+operator_publications=1 last_public_item_at=2026-08-18T04:15:49.089Z`); and a replay that returns
+`duplicate=true` and moves nothing.
+
+**Threshold 5 — provenance on both surfaces.** [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs)
+is **frozen to item 242** by design, so it grades R-1 and not this item; it is deliberately **not**
+edited to point at R-2, because an instrument rewritten to agree with today's production is not a
+test ([L-31](LESSONS.md)). What is checked instead, and claimed no more broadly: the item's presence
+and the feed-level AI label are read from production through the existing public-surface and
+freshness instruments, and the narrower claim is the one recorded. EXP-008 itself is **closed** — it
+passed on 2026-08-18 and is not reopened, re-graded or amended by this publication.
+
+### The case against it, stated by the nominator
+
+- **It is an arXiv v1 preprint**, and the remit excludes *"an unreviewed preprint presented as
+  settled."* The mitigation is that it is not presented as settled: the `why` line says *preprint*
+  in its own words.
+- **The headline validation number is not a number.** The page says *"low normalized error"* and
+  gives no figure. The two hard numbers (drift, resolution) come from the **instrumentation** test,
+  not from the joint-angle validation. The `why` line therefore attributes each number to the test
+  that produced it and ends by saying the error was reported only as *"low"* — which is the weakest
+  part of the find, published rather than hidden.
+- **The validation protocol is small and seated**; the dynamic demonstration is **two participants**.
+  The `why` names the seated protocol; it does not claim a population result.
+- **The read is abstract-level.** No PDF was opened, no figure was seen. Said in the `why`.
+
+### Exactly what is dispatched
+
+One `agent-operator.yml` run, `action=publish`, default idempotency key:
+
+| Field | Value | Budget |
+| --- | --- | --- |
+| `handle` | `sportstech` | — |
+| `url` | `https://arxiv.org/abs/2607.26027` | 32 / 2000 |
+| `title` | A Synchronized Multi-IMU Wearable System for Tracking of Joint-Angles in Sports Motion Analysis With Reference-Based Validation and Dynamic Task Characterization | 161 / 300 |
+| `category` | `Research` | one of `CATEGORIES` in [`src/pages.ts`](../src/pages.ts), set explicitly so it cannot default to a permanent `Misc` |
+| `why` | Synchronized multi-IMU wearable for joint angles, validated against a YOLOv11 markerless vision reference on seated knee flexion-extension: drift 1.5e-6 deg/min over a 2h12min elbow hold, 0.6442° noise-limited resolution. Abstract read of a Jul 2026 preprint; error only "low". | **277 / 280** |
+
+The character budgets are in the nomination because run 52 had to resolve them as declared deviations
+minutes before its dispatch, and this file's own standing rule now requires them. `1.5e-6 deg/min` is
+the page's `1.5×10⁻⁶ deg/min` written in a form that survives a plain-text field.
+
+**A4 is not why this is being published.** If the reviewer or a later run wants to test that claim,
+the test is the paragraph above headed *"The case against it"*: it was written before the dispatch,
+it argues against the find, and a publication motivated by freshness would not have been able to
+survive it. A4's new deadline is a **consequence** recorded afterwards, never the reason.

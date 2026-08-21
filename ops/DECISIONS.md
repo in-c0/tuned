@@ -2783,3 +2783,67 @@ records why five runs of permission work never asked it.
   the reader's missing `href` reporting is recorded as the next candidate, not folded into this run;
   **EXP-009 and EXP-010 byte-untouched**; no phone or inbox notification sent or claimed.
 - **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+---
+
+## 2026-08-21 (run 65) — one selection cycle: `@sportstech` publishes item 246, and A4 reopens as a consequence rather than a motive
+
+**Directive:** the reviewer's [09:29:32 UTC pass](https://github.com/in-c0/tuned/issues/1#issuecomment-5368099748)
+— *"Run exactly one existing @sportstech selection cycle … nominate at most one candidate … and grade it
+against EXP-008's six provenance/quality thresholds. Publish only if it is genuinely worth publishing
+independent of the directory test."* With the fallback branch named in advance: if the candidate is
+rejected, **publish nothing, set the owner action to NONE, record "waiting for a genuine find", and stop.**
+
+- **Decision: publish, and the reason is the find rather than the clock.** A4 had lapsed unused at
+  2026-08-21T04:15:49Z, which is the exact condition under which a loop is most tempted to ship
+  something to make a number move — so the case *against* the candidate was written and committed
+  **before** the dispatch ([EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md), R-2), and *publish nothing*
+  stayed free right up to the moment of dispatch.
+- **The candidate, and the encounter behind it.** `https://arxiv.org/abs/2607.26027` — *A Synchronized
+  Multi-IMU Wearable System for Tracking of Joint-Angles in Sports Motion Analysis With Reference-Based
+  Validation and Dynamic Task Characterization*, submitted 28 Jul 2026. Read at page level from GitHub's
+  network ([32468312666](https://github.com/in-c0/tuned/actions/runs/32468312666)): HTTP 200,
+  `read_outcome: "page"`, **3655** visible characters, `interstitial_signals: []`,
+  `possible_gate_markers: []`, `excerpt_truncated: false`. Every clause of the published `why` is a
+  sentence that was on that screen; nothing is inferred from the title or the venue.
+- **On the remit, and stated no more strongly than the page supports.** Athlete sensing and biomechanics
+  with a validated implementation: IMU-derived knee trajectories compared against a **markerless vision
+  reference computed from YOLOv11** on a standardized seated knee flexion-extension protocol; near-zero
+  drift (**1.5×10⁻⁶ deg/min**) over a **2h 12min** rigid-body elbow hold; **0.6442°** practical
+  noise-limited resolution. **The weakest part is published, not hidden:** the joint-angle validation
+  error is given only as *"low"* with no figure, the protocol is seated, the dynamic demonstration is two
+  participants, and the read was abstract-level — all four are in the nomination and the last two clauses
+  of the 277-character `why`.
+- **Verified from production, not asserted.** `publish` **HTTP 201**, `published=True · duplicate=False ·
+  item_id=246` ([32468656213](https://github.com/in-c0/tuned/actions/runs/32468656213)); replay **HTTP
+  200**, `published=False · duplicate=True · item_id=246`
+  ([32468682426](https://github.com/in-c0/tuned/actions/runs/32468682426)); `list` before
+  ([32468489106](https://github.com/in-c0/tuned/actions/runs/32468489106), `public_items=12
+  operator_publications=1`) and after ([32468701244](https://github.com/in-c0/tuned/actions/runs/32468701244),
+  `public_items=13 operator_publications=2 operator_publications_hidden=0
+  last_public_item_at=2026-08-21T09:35:56.549Z`). Production green throughout
+  ([verify production 32468716844](https://github.com/in-c0/tuned/actions/runs/32468716844)).
+- **Threshold 5's instrument was deliberately not repointed.** `qa/exp008-provenance.spec.mjs` is frozen
+  to item 242; rewriting its constants to match today's production would make it agree by construction,
+  which is not a test ([L-31](LESSONS.md)). It was **run as-is** and passed
+  ([32468743190](https://github.com/in-c0/tuned/actions/runs/32468743190)), which is a regression check —
+  the feed page and its RSS still render, still declare themselves an AI agent's feed, and item 242 is
+  intact — and is **not** claimed as provenance grading for item 246. EXP-008 stays **closed**; it is not
+  reopened, re-graded or amended.
+- **A4 reopens to 2026-08-24T09:35:56Z.** Recorded as a consequence in [DISTRIBUTION.md](DISTRIBUTION.md)
+  and reflected in the owner card. The earlier window expired with nothing submitted and nothing
+  published to save it, which is the outcome those rules were written to produce.
+- **One durable claim falsified by this run's own reading, and corrected in place rather than deleted.**
+  DISTRIBUTION's A4 row said the landing demo resolves to `/ava`. It resolves to `/sportstech`, and has
+  since 2026-08-18 — the demo block is chosen at request time as the feed with the newest public item.
+  Read live: `demoHandle: "sportstech"`, `demoBlockAgeHours: 0`, `demoIsFreshest: true`. [L-42](LESSONS.md).
+  A second stale sentence, in DASHBOARD's headline — that the executor could submit the venue's Google
+  form unaided — was **struck**; it was withdrawn at run 62 and survived in the mirror for three days.
+- **Not done, deliberately:** no submission, form, issue or account use at any venue; the venue was not
+  touched at all this run, and yesterday's duplicate check is cited with its date rather than re-claimed
+  as fresh; no venue search; no second candidate; **EXP-009 and EXP-010 byte-untouched**; no schema,
+  route, counter, allowlist entry, migration or public copy change; no `?src=` tag exercised anywhere, so
+  EXP-010's control window is uncontaminated by this run; no phone or inbox notification sent or claimed.
+- **Rollback path exists and was not needed.** `retract` hides item 246 and `restore` returns it with its
+  original `created_at` (run 53's round trip proved both against this exact feed). Nothing regressed.
+- **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
