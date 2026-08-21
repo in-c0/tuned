@@ -72,7 +72,20 @@ export function validateNomination(n, label) {
   if (!isIsoInstant(prereg.committedAt)) bad("preregistration.committedAt must be an ISO instant");
   if (!PREREG_FORMS.has(prereg.form)) bad(`preregistration.form must be one of ${[...PREREG_FORMS].join(", ")}`);
   if (typeof prereg.verifyWith !== "string" || prereg.verifyWith.trim() === "") bad("preregistration.verifyWith must name the command that checks this entry against git");
-  if ("transcribedAt" in prereg && !isIsoInstant(prereg.transcribedAt)) bad("preregistration.transcribedAt, when present, must be an ISO instant");
+  if ("transcribedAt" in prereg) {
+    if (!isIsoInstant(prereg.transcribedAt)) bad("preregistration.transcribedAt, when present, must be an ISO instant");
+    // Run 66 wrote this field 23 minutes ahead of the clock in its own first draft — the same
+    // defect the loop already recorded once, in a run whose subject was accuracy. A timestamp
+    // nobody can be at yet is not a record of anything.
+    else if (Date.parse(prereg.transcribedAt) > Date.now() + 60_000) {
+      bad(`preregistration.transcribedAt ${prereg.transcribedAt} is in the future`);
+    }
+    // A transcription is made from a commit *after* the publication it describes; one dated
+    // before it is either mis-stamped or is really a pre-registration wearing the wrong label.
+    else if (isIsoInstant(n.publishedAt) && Date.parse(prereg.transcribedAt) < Date.parse(n.publishedAt)) {
+      bad(`preregistration.transcribedAt ${prereg.transcribedAt} precedes publication ${n.publishedAt}`);
+    }
+  }
 
   // The one invariant the whole instrument rests on.
   if (isIsoInstant(prereg.committedAt) && isIsoInstant(n.publishedAt)) {

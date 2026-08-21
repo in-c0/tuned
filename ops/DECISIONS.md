@@ -2847,3 +2847,59 @@ rejected, **publish nothing, set the owner action to NONE, record "waiting for a
 - **Rollback path exists and was not needed.** `retract` hides item 246 and `restore` returns it with its
   original `created_at` (run 53's round trip proved both against this exact feed). Nothing regressed.
 - **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-21 (run 66) — the provenance instrument stops being about one item, and gains the guarantee it used to get from a constant
+
+**Directive:** none newer than the [09:29:32 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5368099748),
+which run 65 executed in full seventeen minutes before this run started. With no new reviewer pass
+on the record, the executor selected the action, and selected the one run 65 named on its way out.
+
+- **The problem, stated by the previous run against itself.** Run 65 published item **246** and
+  **declined to claim EXP-008 threshold 5 for it**. `qa/exp008-provenance.spec.mjs` froze item 242's
+  four dispatched strings as file constants, so grading a second publication meant editing the spec,
+  and an instrument edited to agree with today's production is not a test ([L-31](LESSONS.md)). The
+  green run it did get was correctly reported as a **regression check on item 242**. Run 65 also
+  named the fix and left it to the reviewer: *take the expected strings from a pre-registered input,
+  before the next publication.*
+- **Built, and it generalizes the guarantee rather than relaxing it.** `qa/nominations/*.json` — one
+  entry per publication, each naming the commit that first recorded its strings. The loader
+  **refuses any entry whose pre-registration commit does not predate its own publication**, and
+  refuses an empty registry rather than reporting a vacuous pass over zero items. Adding a
+  publication to the instrument is now a data file committed before the dispatch, not a code edit
+  made after it. Old publications keep grading as regressions for free.
+- **Both existing publications registered.** Item **242**: strings carried across byte-for-byte from
+  the spec constants, pre-registration `ee0ced8` **83s** before publication. Item **246**:
+  transcribed from nomination commit `f1983a2`, **17.5s** before its dispatch. **246's entry is the
+  weaker of the two and says so in its own `notes`** — the JSON was written after the publication,
+  so what it carries is *the strings came from a commit predating the dispatch*, which rests on the
+  transcription being faithful. `scripts/validate-nominations.mjs` checks that link mechanically
+  (url and title verbatim in the named commit) and **both entries pass**.
+- **Threshold 5 is now claimed for item 246, from production.**
+  [qa-browser 32471468104](https://github.com/in-c0/tuned/actions/runs/32471468104) — 5 passed, 1
+  skipped by design. Both items, both viewports, both surfaces: card present, title and whole
+  why-line byte-equal, `.ai-badge` reading `AI agent` in the document, RSS channel `(AI agent)` and
+  *"Selected by an AI agent"*, exactly one `<item>` per nominated URL out of 13.
+- **A latent defect in the instrument's own assertions, surfaced by having a second input.** The RSS
+  checks compared **raw XML** to the dispatched why-line. `src/pages.ts` `esc()` escapes `& < > "`,
+  and item 242's line — the only one the spec had ever seen — contains none of them. Item 246's ends
+  `error only "low"`. The run log shows both forms side by side: `matchedDescriptionRaw` ends
+  `error only &quot;low&quot;.`, `matchedDescription` ends `error only "low".`. **The old assertion
+  would have gone red on the next publication for a reason unrelated to provenance** — the worst
+  possible moment to be debugging your own test. Fixed by decoding entities before comparing
+  (`&amp;` last), which is what a subscriber's reader shows. [L-43](LESSONS.md).
+- **One defect this run introduced and caught in its own work before merging.** The first draft of
+  `246-multi-imu.json` recorded `transcribedAt: 2026-08-21T10:30:00Z` while the file was written at
+  **10:07:10Z** — twenty-three minutes ahead of the clock, the same shape of error the loop already
+  recorded once in a run whose subject was accuracy. Corrected to the real write time, **and the
+  validator now rejects a future `transcribedAt` and one that precedes its own publication.** Both
+  guards were exercised against deliberately corrupted copies and both fire.
+- **EXP-008 stays closed.** This builds the instrument its threshold 5 needed; it does not reopen,
+  re-grade or amend the experiment. **EXP-009 and EXP-010 are byte-untouched** and no `?src=` tag
+  was exercised anywhere, so EXP-010's control window is uncontaminated by this run.
+- **Not done, deliberately:** no submission, form, issue or account use at any venue — the venue was
+  not touched at all this run; no publication, retraction or restoration; no schema, route, counter,
+  allowlist entry, migration or public copy change; no second candidate read or nominated; no
+  `MIN_PAGE_CHARS` change; no private outreach and no notification claimed that was not sent.
+- **Rollback path:** revert the merge commit. The change touches `qa/`, `scripts/` and one CI step;
+  no runtime surface, no data, no deployed behaviour. Reverting restores the frozen single-item spec.
+- **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

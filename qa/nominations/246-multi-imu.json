@@ -9,7 +9,7 @@
     "commit": "f1983a2fc49a152caf52544c5fa06be2cc23d8e1",
     "committedAt": "2026-08-21T09:35:39Z",
     "form": "nomination-markdown",
-    "transcribedAt": "2026-08-21T10:30:00Z",
+    "transcribedAt": "2026-08-21T10:07:10Z",
     "verifyWith": "git show f1983a2 -- ops/EXP-008-CANDIDATES.md"
   },
   "publishedAt": "2026-08-21T09:35:56.549Z",
