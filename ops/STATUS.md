@@ -1,7 +1,11 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-21 19:50 Sydney (09:50 UTC), run 65 — **`@sportstech` published a second
-find, and the window you were waiting on is open again until 2026-08-24 19:35 Sydney** ·
+**Last updated:** 2026-08-21 20:20 Sydney (10:20 UTC), run 66 — **the gap run 65 left open is
+closed: item 246's provenance is now graded from production, not asserted.** The instrument that
+could only grade item 242 now grades every pre-registered publication, and doing so found a defect in
+its own RSS assertion that would have gone red on the next publication for a reason unrelated to
+provenance ([L-43](LESSONS.md)). **Nothing owner-facing changed: A-1 below is unchanged, and the
+window is still open until 2026-08-24 19:35 Sydney (run 65).** ·
 **[OWNER ACTION REQUIRED](#owner-action-required): ONE SUBMISSION, NO SPEND** — **A is granted and is
 not being re-asked.** This executor's GitHub access is scoped to `in-c0/tuned` alone, so it cannot open
 an issue at `plenaryapp/awesome-rss-feeds`; that is a credential boundary and a mandatory stop. It
@@ -858,7 +862,8 @@ to be authorized.
 | **Application path, end to end in production** | **verified working** | EXP-003 [run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499) — real Chromium, both widths, submit intercepted before mutation |
 | **Public no-account surfaces** (demo feed + RSS) | **verified working** | EXP-004 [run 31252271974](https://github.com/in-c0/tuned/actions/runs/31252271974) — `/ava` 200 with 24 items, `/ava/rss.xml` 200 with 38, both widths |
 | Browser QA harness | working, dispatch-only, **reusable** | `qa/`, `exp003-mechanism.yml` (pinned to its own spec) and `qa-browser.yml` (takes a spec as input); screenshots per run |
-| Automated tests | **79 passing**, mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), `test/ingestion.test.ts` (run 37), **`test/operator.test.ts`** (run 38, 28 assertions — every one of them a refusal or a bound) — vitest 4.1.10 |
+| **EXP-008 provenance instrument** | **generalized run 66; threshold 5 now claimed for item 246** | `qa/nominations/*.json` + [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs). One pre-registered entry per publication; the loader refuses any entry whose pre-registration commit does not predate its own publication, and refuses an empty registry rather than passing over zero items. Both items graded green on both surfaces at both viewports from GitHub's network — [qa-browser 32471468104](https://github.com/in-c0/tuned/actions/runs/32471468104), 5 passed / 1 skipped by design. Gated on every PR and push by [`scripts/validate-nominations.mjs`](../scripts/validate-nominations.mjs) |
+| Automated tests | **129 passing** (the "79" here was three runs stale until 66), mutation-checked | `test/metrics.test.ts`, `test/meta.test.ts`, `test/landing.test.ts`, `test/agent-contract.test.ts` (run 36), `test/ingestion.test.ts` (run 37), **`test/operator.test.ts`** (run 38, 28 assertions — every one of them a refusal or a bound) — vitest 4.1.10 |
 | **Ingestion cron observability** | **shipped and read run 37** | 6 counters in `metric_days` via `runIngestion` in `src/index.ts`; [`1297427`](https://github.com/in-c0/tuned/commit/1297427). First reading `cron_run=1`, `spotify_sync_ok=1`, nothing captured, no errors — [EXP-006](EXPERIMENTS.md) graded **QUIET, NOT BROKEN**. Now the standing liveness check |
 | **Agent operator control plane** | **shipped, deployed and verified 503 in production run 38; awaiting one owner secret** | `src/operator.ts`, `/api/operator/*`, [`agent-operator.yml`](../.github/workflows/agent-operator.yml). One owner-scoped `AGENT_OPERATOR_KEY`; per-agent studio tokens never enter GitHub. 503 in production at 00:44:19 UTC ([verify 31758303170](https://github.com/in-c0/tuned/actions/runs/31758303170)) while the secret is absent |
 | **Agent publication contract** (brief → publish → feed → RSS → demo) | **traced and working; blocked only on a credential** | `test/agent-contract.test.ts`, 8 assertions in workerd against a real D1. Nothing in production was written |

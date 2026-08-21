@@ -1,0 +1,16 @@
+{
+  "itemId": 242,
+  "handle": "sportstech",
+  "url": "https://arxiv.org/abs/2409.10175",
+  "title": "VideoRun2D: Cost-Effective Markerless Motion Capture for Sprint Biomechanics",
+  "category": "Research",
+  "why": "Markerless sprint biomechanics vs manual Kinovea labelling, 40 sprints from 5 subjects: MoveNet tracked trunk and hip/knee angle curves with 3.2°–5.5° errors; CoTracker showed huge differences. Authors say precision may not yet be enough. Abstract read; 2024 workshop preprint.",
+  "preregistration": {
+    "commit": "ee0ced8b4c67bd3eea21cdb5ef6f9e2ff1b964d6",
+    "committedAt": "2026-08-18T04:14:26Z",
+    "form": "spec-constants",
+    "verifyWith": "git show ee0ced8 -- qa/exp008-provenance.spec.mjs"
+  },
+  "publishedAt": "2026-08-18T04:15:49.089Z",
+  "notes": "R-1, EXP-008's own graded publication. These four strings are the frozen constants that lived in qa/exp008-provenance.spec.mjs from run 45 until this file replaced them; they are carried across byte-for-byte, not re-read from production. The spec was edited once after the publication (9c51132, 2026-08-18T04:19:46Z, the AI-badge letter-case fix) and that edit touched assertions only — `git show 9c51132 -- qa/exp008-provenance.spec.mjs` contains no change to HANDLE, ITEM_URL, ITEM_TITLE or ITEM_WHY."
+}

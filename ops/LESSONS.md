@@ -1571,3 +1571,39 @@ three days.
 it, not only what it currently is — and if the decider is request-time state, the claim is a reading
 with a date, never a property.* Concretely, for anything derived: write the deciding expression next
 to the verdict, so a later run can see at a glance whether the input could have moved.
+
+## L-43 — a single-instance instrument cannot fail the way its second instance would, so generalizing it is how you find out what it was quietly assuming (2026-08-21, run 66)
+
+`qa/exp008-provenance.spec.mjs` had been green on every run since 2026-08-18. It compared the
+**raw XML** of an RSS `<description>` against the dispatched why-line, byte for byte. That
+assertion is wrong, and it had no way to say so: `src/pages.ts` `esc()` escapes `& < > "` on the
+way into the feed, and item **242**'s why-line — the only string the spec had ever seen — contains
+none of those characters. The test passed for three days on an input chosen, by accident, to hide
+the defect.
+
+Item **246**'s why-line ends `error only "low"`. The moment a second nomination was written down,
+the assertion had a second input, and the defect surfaced in minutes. It would otherwise have
+surfaced as a **red run on the next publication** — and a red provenance instrument immediately
+after publishing something is the worst possible moment to be debugging your own assertion, because
+the two candidate explanations are *"production dropped the provenance"* and *"the test was always
+wrong"*, and the first one is the alarming one.
+
+**The general shape.** A green test over one instance is evidence about that instance, not about
+the property. Every input the instrument has never seen is an assumption it is making silently, and
+freezing a single instance into the file is what makes those assumptions unfalsifiable — the test
+cannot disagree with data it will never be given. This is not the same failure as [L-31](#l-31)
+(*an instrument edited to agree with today's production is not a test*); it is its quieter sibling.
+L-31 is about editing an instrument **after** the fact. This is about an instrument that never had
+to face a second fact at all.
+
+**And it argues against the obvious fix.** The tempting response to "this spec only grades one
+item" is to repoint it at the newer one, which trades an old blind spot for a new one and destroys
+the regression check in the process. The right response is a registry: every instance graded, old
+ones kept as regressions, and the ordering guarantee that made the original honest — expectations
+written down before the thing they grade exists — enforced by the loader instead of by a constant.
+
+**Prevention check:** *when an instrument's expected values are literals in its own source, ask
+what a second instance would contain that the first does not — and if the answer is "characters the
+pipeline transforms", the instrument is asserting on an untested code path.* Concretely: before
+declaring a single-case instrument green, write down one input it has never seen and check whether
+the assertion would still hold.

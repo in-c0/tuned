@@ -38,3 +38,8 @@ jobs:
       # Nothing above this line ever opens a workflow file, so a syntax error in the
       # workflow that verifies production shipped green and disabled itself silently.
       - run: python3 scripts/validate-workflows.py
+      # Same argument, one directory over: `npm test` is scoped to test/**/*.test.ts and the
+      # Playwright suite runs on dispatch only, so nothing else in this pipeline opens
+      # qa/nominations/*.json — the registry EXP-008's provenance instrument grades against.
+      # A back-dated or malformed entry there would weaken the instrument without breaking it.
+      - run: node scripts/validate-nominations.mjs
