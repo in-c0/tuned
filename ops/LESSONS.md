@@ -1535,3 +1535,39 @@ reason at the moment of acting, for the second consecutive run.
   all of them in the same run — starting with anything the same document offers as an alternative.* And
   separately: *when declining something, name every reason it fails, not the most interesting one* — a
   single sufficient reason ends the analysis and hides whether the cheap checks were ever made.
+
+---
+
+## L-42 — a claim about routing goes stale the moment the routing input changes, and nothing re-reads it (2026-08-21, run 65)
+
+**What happened.** [DISTRIBUTION.md](DISTRIBUTION.md)'s A4 row asserted, with a citation to
+[EXP-004](EXPERIMENTS.md), that *"the landing page's demo link resolves to `/ava`, not
+`/sportstech`"* — and used that to grade A4 as still failing for *"the landing page's own demo
+destination"*. It has been false since **2026-08-18**. This run read `demoHandle` off the live
+landing HTML and got **`sportstech`**, with `demoBlockAgeHours: 0` and `demoIsFreshest: true`
+([32468714667](https://github.com/in-c0/tuned/actions/runs/32468714667)).
+
+**Why it was false, and why the citation was not.** EXP-004 read the demo link correctly on the day
+it ran. But `src/index.ts` picks the demo block at request time as **the feed with the newest public
+item** — the run-33 fix, shipped precisely so the landing page could never show a visitor the
+stalest thing Tuned has. So the answer to *"which feed does the demo point at"* is not a fact about
+the page; it is a function of a database column that any publication can change. Item 242 changed it
+on 2026-08-18, and the register went on quoting the old answer for three days, in the row whose
+entire subject is whether a stranger lands somewhere fresh.
+
+**The general shape.** A measured claim about *derived* state has a shelf life equal to the
+stability of its inputs, and the citation that made it true is exactly what makes it look permanent
+afterwards. A dated evidence link is not a preservative — it is a timestamp on a reading that may
+already have expired. This is [L-24](#l-24)'s "the feeds did not stay equally stale, they aged" with
+the aging happening to a *routing decision* rather than to a number, which is harder to notice
+because routing does not visibly drift.
+
+**What made it visible at all was luck, and that is the part worth fixing.** The instrument that
+caught it, `qa/freshness.spec.mjs`, has reported `demoHandle` in its summary since it was written;
+nobody read that field against the register's claim. The evidence was in every freshness run for
+three days.
+
+**Prevention check:** *when a durable file states which surface points where, record what decides
+it, not only what it currently is — and if the decider is request-time state, the claim is a reading
+with a date, never a property.* Concretely, for anything derived: write the deciding expression next
+to the verdict, so a later run can see at a glance whether the input could have moved.

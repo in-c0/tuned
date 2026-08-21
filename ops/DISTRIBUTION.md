@@ -166,7 +166,7 @@ A3, A4 and A5 are properties of Tuned, not of any venue, so they gate **every** 
 | | Condition | State | Evidence |
 | --- | --- | --- | --- |
 | **A3** | A stranger can use the destination | **SATISFIED** | `/ava`, `/sportstech` and the other public feeds render with no account and no application; [EXP-004](EXPERIMENTS.md) PASSED (run 19), and `/:handle` + `/:handle/rss.xml` are unauthenticated routes |
-| **A4** | Destination fresh, ≤ 72h | ~~**FAILS — every feed**~~ **SATISFIED for `/sportstech` only, and it expires 2026-08-21 04:15 UTC.** Still **FAILS** for `/ava` and therefore for the landing page's own demo destination | `@sportstech` newest public item **2026-08-18T04:15:49.089Z** — item 242, [EXP-008](EXPERIMENTS.md) PASSED, `list` [32098592220](https://github.com/in-c0/tuned/actions/runs/32098592220). `@ava` still **2026-08-02** (16 days), and [EXP-004](EXPERIMENTS.md) established the landing page's demo link resolves to `/ava`, not `/sportstech`. Superseded evidence: `@sportstech` **2026-07-30T22:48:09.614Z** read by [run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247) |
+| **A4** | Destination fresh, ≤ 72h | ~~**FAILS — every feed**~~ **SATISFIED for `/sportstech` and for the landing page's own demo destination, until 2026-08-24 09:35:56 UTC.** Still **FAILS** for a link that lands a stranger directly on `/ava` | `@sportstech` newest public item **2026-08-21T09:35:56.549Z** — item 246, run 65, `list` [32468701244](https://github.com/in-c0/tuned/actions/runs/32468701244). **One durable claim here was false and is corrected rather than deleted:** this row read *"[EXP-004](EXPERIMENTS.md) established the landing page's demo link resolves to `/ava`, not `/sportstech`"*. The demo block is picked at request time as the feed with the **newest public item** (`src/index.ts`, the run-33 fix), so it switched to `/sportstech` the moment item 242 published on 2026-08-18 — and nothing re-read it for three days. Read from the live landing HTML this run: `demoHandle: "sportstech"`, `demoBlockAgeHours: 0`, `demoIsFreshest: true` ([qa-browser 32468714667](https://github.com/in-c0/tuned/actions/runs/32468714667)). `@ava` is still **2026-08-02T03:33:44Z** (462.1h) and a direct `/ava` link still fails. [L-42](LESSONS.md). Superseded evidence: `@sportstech` **2026-08-18T04:15:49.089Z** (item 242), and **2026-07-30T22:48:09.614Z** read by [run 31877383247](https://github.com/in-c0/tuned/actions/runs/31877383247) |
 | **A5** | A result would be visible | ~~**FAILS — threshold unregistered.** The instrument half is **SHIPPED**~~ **This row was wrong, and run 56 found out why.** The instrument half was shipped **for the HTML feed page only**; `GET /:handle/rss.xml` wrote no counter at all. For the one candidate whose A1 did not close it — a directory of **RSS feeds** — A5 was therefore not *unregistered*, it was **unsatisfiable**. Now: **instrument SHIPPED for both surfaces, threshold PRE-REGISTERED for `awesome-rss-feeds`** | Run 48 shipped `feed_view:<handle>` and `arrival:<tag>` ([`86cabdd`](https://github.com/in-c0/tuned/commit/86cabdd), PR [#41](https://github.com/in-c0/tuned/pull/41)) — HTML page only. Run 56 shipped `feed_fetch`, `feed_fetch:<handle>` and `arrival_fetch:<tag>` on the RSS route, allowlisted `awesome-rss-feeds`, and pre-registered [EXP-009](EXPERIMENTS.md)'s thresholds **before** any submission (PR [#49](https://github.com/in-c0/tuned/pull/49)). Still **FAILS for every other candidate** — a threshold is per-attempt and none is registered for any other venue |
 
 **A3 was the condition this loop believed was binding, and it is the one that already passes.** The
@@ -433,9 +433,13 @@ provenance and single-digit item counts. Pre-conditions that must hold **before*
 [L-33](LESSONS.md) order:
 
 - **A4** — `/sportstech`'s newest public item ≤ 72h old, read from production in the same cycle. It
-  is **SATISFIED only until 2026-08-21 04:15 UTC**, and a publication made to hold that window open
-  is disqualified by [EXP-008](EXPERIMENTS.md)'s binding clauses. If A4 has decayed, A4 is fixed by
-  publishing something worth publishing or the submission waits.
+  is **SATISFIED only until 2026-08-24 09:35:56 UTC** (item 246, run 65), and a publication made to
+  hold that window open is disqualified by [EXP-008](EXPERIMENTS.md)'s binding clauses. If A4 has
+  decayed, A4 is fixed by publishing something worth publishing or the submission waits. **That
+  sequence has now been run once end to end and is worth recording as precedent rather than
+  intention:** the window to 2026-08-21 04:15:49Z expired with nothing published to save it, and the
+  next window opened three and a half days later because a find cleared the remit on its own —
+  which is the order these two rules were written to produce.
 - **A5** — an `arrival:<tag>` allowlisted for this attempt, verified in production, plus a
   pre-registered arrival threshold and window **written before the submission**, never after. The
   instrument exists (run 48); the tag and threshold do not.
@@ -686,8 +690,8 @@ on the venue's **GitHub issue template**, recording the canonical URL and t0.
 
 | Step | Result | Evidence |
 | --- | --- | --- |
-| **A4** — newest public item ≤ 72h, from production, same cycle | **SATISFIED, 65.4h.** `/sportstech` newest item `2026-08-18T04:15:49.000Z`, read `2026-08-20T21:39:13Z`. `demoIsFreshest: true`, `pulseServesNewestItem: true`, `retiredClaimsStillPresent: []`. **Lapses 2026-08-21T04:15:49Z.** | [qa-browser 32420428170](https://github.com/in-c0/tuned/actions/runs/32420428170) |
-| **Duplicate — issue surface** | **None.** `is:issue justtuned` at the venue: *"Open 0 (0) Closed 0 (0) … No results. Try adjusting your search filters."* The one `find` hit is the query echoed in GitHub's own chrome, not a result. | [source read 32420411861](https://github.com/in-c0/tuned/actions/runs/32420411861) |
+| **A4** — newest public item ≤ 72h, from production, same cycle | ~~**SATISFIED, 65.4h**, lapses 2026-08-21T04:15:49Z~~ — **it lapsed, unused, at that instant.** **Re-satisfied 2026-08-21 (run 65): 0.0h.** `/sportstech` newest item `2026-08-21T09:35:56.000Z` (item 246), read `2026-08-21T09:37:24Z`. `demoHandle: "sportstech"`, `demoIsFreshest: true`, `pulseServesNewestItem: true`, `retiredClaimsStillPresent: []`. **Lapses 2026-08-24T09:35:56Z.** | [qa-browser 32468714667](https://github.com/in-c0/tuned/actions/runs/32468714667); superseded [32420428170](https://github.com/in-c0/tuned/actions/runs/32420428170) |
+| **Duplicate — issue surface** | **None, as read 2026-08-20 21:38 UTC — not re-read on 2026-08-21 and not re-claimed as fresh.** `is:issue justtuned` at the venue: *"Open 0 (0) Closed 0 (0) … No results. Try adjusting your search filters."* The one `find` hit is the query echoed in GitHub's own chrome, not a result. | [source read 32420411861](https://github.com/in-c0/tuned/actions/runs/32420411861) |
 | **Duplicate — repository content** | **None.** The venue's `README.md` read clean (`read_outcome: "page"`, spec passed) with `find_windows: []` for `justtuned`. | [source read 32420571372](https://github.com/in-c0/tuned/actions/runs/32420571372) |
 
 **Two notes on how those two reads are graded, because both workflow runs are red.** The issue-search
@@ -886,9 +890,10 @@ No candidate is ADMISSIBLE. A1/A2 are marked **UNREAD** wherever this loop has n
 rules from a dated source — marking them unread is the honest state, and asserting them from memory
 is the exact error [L-17](LESSONS.md) records.
 
-**A4 column, read correctly:** ✅ below means *satisfied for `/sportstech` only, until 2026-08-21
-04:15 UTC*, per the section at the foot of this file. Any candidate whose link would land a stranger
-on `/` or `/ava` still fails A4.
+**A4 column, read correctly:** ✅ below means *satisfied for `/sportstech`, and for `/` because the
+landing demo now resolves there, until 2026-08-24 09:35:56 UTC* — per the section at the foot of this
+file and the correction in the A4 row above. Any candidate whose link would land a stranger directly
+on `/ava` still fails A4.
 
 **A0 has no column, because it has the same answer in every row (run 62): NO.** This executor holds no
 instrument that can perform a write at any third party — not an issue, not a form, not an email. Every
@@ -902,8 +907,8 @@ executor and it is recorded once here rather than repeated seven times.
 | **Reddit — a topical subreddit** | **UNREADABLE 2026-08-18** ([32191175814](https://github.com/in-c0/tuned/actions/runs/32191175814)) — HTTP **403**, *"blocked by network security … log in to your Reddit account or use your developer token"*. The rules cannot be quoted by this executor at all; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable without an account this executor does not hold |
 | **Lobsters** | **READ 2026-08-18** ([32191337996](https://github.com/in-c0/tuned/actions/runs/32191337996)) — **FAILS** on three quoted grounds: topicality is *"pretty narrowly on computing"* and excludes *"entrepreneurship"*; *"self-promo should be less than a quarter of one's stories and comments"*, which a first submission cannot satisfy; and membership runs through *"a user invitation tree"* | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — closed on the venue's own words |
 | **Product Hunt** | **UNREADABLE 2026-08-19** ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)) — HTTP **403**, `Just a moment...`, *"Performing security verification … verifies you are not a bot"*, 266 chars. The rules cannot be quoted by this executor; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable by this executor |
-| **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ~~❌ — no tag allowlisted, no threshold registered~~ **✅ — run 56.** `arrival_fetch:awesome-rss-feeds` allowlisted and counted on the RSS route; [EXP-009](EXPERIMENTS.md) registers the threshold, the window and the two inadmissible outcomes, all before any submission | **NOT YET ADMISSIBLE — A2 is now the only outstanding condition, and it is the owner's to answer.** A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, A5 ✅ |
-| **ooh.directory** | **READ 2026-08-19** ([32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421), [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484)) — **FORM PERMITTED ON A CONDITION**: *"Link blogs are only included if they include original commentary about each link"*; English-only ✅; *"updated within the past couple of months"* ✅. **Authorship unaddressed**, and the condition met is *original commentary*, which here is agent-written | **Not authored prose** — a URL, a category and optional names. Submitting in the owner's name is still an owner/reviewer decision, and the venue calls these *"suggestions rather than submissions"* | ✅ | ✅ `/sportstech` **until 2026-08-21 04:15 UTC** | ❌ — **route covered, tag not.** The URL this venue takes is the **front page, not the feed**, so run 48's HTML instrument applies; but `ARRIVAL_TAGS` ([`src/index.ts:703`](../src/index.ts)) holds only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes **nothing**. No threshold registered | **NOT YET ADMISSIBLE** — A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-21 04:15 UTC, **A5 ❌**, A2 open |
+| **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ✅ `/sportstech` **until 2026-08-24 09:35 UTC** (item 246, run 65) | ~~❌ — no tag allowlisted, no threshold registered~~ **✅ — run 56.** `arrival_fetch:awesome-rss-feeds` allowlisted and counted on the RSS route; [EXP-009](EXPERIMENTS.md) registers the threshold, the window and the two inadmissible outcomes, all before any submission | **NOT YET ADMISSIBLE — A2 is now the only outstanding condition, and it is the owner's to answer.** A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-24 09:35 UTC, A5 ✅ |
+| **ooh.directory** | **READ 2026-08-19** ([32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421), [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484)) — **FORM PERMITTED ON A CONDITION**: *"Link blogs are only included if they include original commentary about each link"*; English-only ✅; *"updated within the past couple of months"* ✅. **Authorship unaddressed**, and the condition met is *original commentary*, which here is agent-written | **Not authored prose** — a URL, a category and optional names. Submitting in the owner's name is still an owner/reviewer decision, and the venue calls these *"suggestions rather than submissions"* | ✅ | ✅ `/sportstech` **until 2026-08-24 09:35 UTC** (item 246, run 65) | ❌ — **route covered, tag not.** The URL this venue takes is the **front page, not the feed**, so run 48's HTML instrument applies; but `ARRIVAL_TAGS` ([`src/index.ts:703`](../src/index.ts)) holds only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes **nothing**. No threshold registered | **NOT YET ADMISSIBLE** — A1 partially satisfied, A3 ✅, A4 ✅ until 2026-08-24 09:35 UTC, **A5 ❌**, A2 open |
 | **feedle** (`feedle.world`) | **UNREAD 2026-08-19** ([32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995)) — the page was served (200, 745 chars, no gate markers) and carries **"Submit your blog or podcast"**, but no rule about who may submit was reached. The read went red on the reader's own 1,000-character floor, which was a **false alarm rather than a refusal**. **Still UNREAD after run 62**, now for a third and distinct reason: **the submission surface's address was not located.** `/submit` is a **404** ([32422654363](https://github.com/in-c0/tuned/actions/runs/32422654363)) — a finding about the guess, not the venue — and the reader reports page text but never `href`, so a surface named only in navigation cannot be reached without guessing | UNREAD | ✅ | ✅ `/sportstech` | ❌ | **CANDIDATE — A1 UNREAD.** The only register entry with a readable, unread rules page. Reaching it needs the reader to report link targets ([next candidate](#feedle--the-submission-surface-was-not-located-and-the-reader-cannot-follow-a-link)) |
 | **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
 | **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
@@ -1088,3 +1093,37 @@ exactly as it should. After `restore` it reads **2026-08-18T04:15:49.089Z** to t
 ([32126644562](https://github.com/in-c0/tuned/actions/runs/32126644562)), so **nothing in the reading
 above changed and the 2026-08-21 04:15 UTC expiry is unmoved.** Recorded because the window is
 visible in the counters and a later run finding it should not have to reconstruct why.
+
+**A4 lapsed unused, then reopened on a find rather than on paperwork — 2026-08-21 (runs 64–65).**
+
+The window above **expired at 2026-08-21T04:15:49Z with no submission made**, because the one act
+that could have used it needed a GitHub identity this executor does not hold. Run 64 waited to that
+instant rather than reporting it as pending, and published nothing to hold it open — which is what
+this file and [EXP-008](EXPERIMENTS.md) both require, and which cost the loop the first window it
+ever had.
+
+**Five hours and twenty minutes later A4 is satisfied again**, on the only route these rules allow:
+one `@sportstech` selection cycle produced a find that clears the remit on its own, and freshness
+followed. `arxiv.org/abs/2607.26027` — read at page level ([32468312666](https://github.com/in-c0/tuned/actions/runs/32468312666),
+`read_outcome: "page"`, 3655 visible characters, no interstitial) and nominated **before** the
+dispatch with the case against it written by the nominator ([EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md),
+R-2) — published as **item 246** at **2026-08-21T09:35:56.549Z**, HTTP 201, replay `duplicate=true`.
+
+| Reading | Before | After |
+| --- | --- | --- |
+| `@sportstech` `public_items` | 12 | **13** |
+| `@sportstech` `operator_publications` | 1 | **2** |
+| `last_public_item_at` | 2026-08-18T04:15:49.089Z | **2026-08-21T09:35:56.549Z** |
+| A4 | **FAILS** — every feed | **SATISFIED** to 2026-08-24T09:35:56Z |
+
+Sources: `list` [32468489106](https://github.com/in-c0/tuned/actions/runs/32468489106) (09:33:51Z,
+before) and [32468701244](https://github.com/in-c0/tuned/actions/runs/32468701244) (09:36:30Z, after);
+production reading [qa-browser 32468714667](https://github.com/in-c0/tuned/actions/runs/32468714667).
+
+**And the same reading falsified a durable claim in this file**, which is corrected in the A4 row
+above rather than deleted. The landing page's demo destination is **not** `/ava`. `demoHandle` is read
+off the live landing HTML and came back **`sportstech`**, `demoBlockAgeHours` **0**,
+`demoIsFreshest: true`. The demo is chosen at request time as the feed with the newest public item, so
+it moved to `/sportstech` when item 242 published on 2026-08-18 — and this file went on asserting the
+old routing for three days, in the row whose whole subject is whether a stranger lands somewhere
+fresh. [L-42](LESSONS.md).
