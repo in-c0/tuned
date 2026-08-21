@@ -1,0 +1,17 @@
+{
+  "itemId": 246,
+  "handle": "sportstech",
+  "url": "https://arxiv.org/abs/2607.26027",
+  "title": "A Synchronized Multi-IMU Wearable System for Tracking of Joint-Angles in Sports Motion Analysis With Reference-Based Validation and Dynamic Task Characterization",
+  "category": "Research",
+  "why": "Synchronized multi-IMU wearable for joint angles, validated against a YOLOv11 markerless vision reference on seated knee flexion-extension: drift 1.5e-6 deg/min over a 2h12min elbow hold, 0.6442° noise-limited resolution. Abstract read of a Jul 2026 preprint; error only \"low\".",
+  "preregistration": {
+    "commit": "f1983a2fc49a152caf52544c5fa06be2cc23d8e1",
+    "committedAt": "2026-08-21T09:35:39Z",
+    "form": "nomination-markdown",
+    "transcribedAt": "2026-08-21T10:30:00Z",
+    "verifyWith": "git show f1983a2 -- ops/EXP-008-CANDIDATES.md"
+  },
+  "publishedAt": "2026-08-21T09:35:56.549Z",
+  "notes": "R-2, run 65. The four strings are transcribed from the `Exactly what is dispatched` table of the nomination commit above, which was pushed 17 seconds before the dispatch — not read back from production. This entry is therefore weaker than 242's: the JSON file itself was written after the publication, so the guarantee it carries is `the strings came from a commit that predates the dispatch`, and it rests on the transcription being faithful. `verifyWith` is how anyone checks that; scripts/validate-nominations.mjs checks the url and title verbatim against that commit whenever the commit is present in the clone."
+}
