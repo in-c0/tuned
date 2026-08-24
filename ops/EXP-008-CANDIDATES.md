@@ -374,3 +374,138 @@ the page's `1.5×10⁻⁶ deg/min` written in a form that survives a plain-text 
 the test is the paragraph above headed *"The case against it"*: it was written before the dispatch,
 it argues against the find, and a publication motivated by freshness would not have been able to
 survive it. A4's new deadline is a **consequence** recorded afterwards, never the reason.
+
+## R-3 — one selection cycle, run under the 21:31 UTC directive (2026-08-24, run 85)
+
+**Written before the dispatch, not after it.** The
+[2026-08-24 21:31:07 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5401628043)
+asks for *"exactly one genuine `@sportstech` selection cycle"*, publishing *"at most one item only if
+it independently clears the existing remit and EXP-008 threshold **after writing the case against it
+first**"*, and states plainly that *"a no-publish result is valid"*. A4 lapsed at 2026-08-24T09:35:56Z
+with the submission unmade — for the **second** time — so the pressure this section exists to resist
+is named in the directive itself: *"do not select for freshness or to revive the expired submission
+window."*
+
+### The candidate slate, and why four of six were rejected before any dispatch
+
+Discovery is result level (search), as it has been since run 50; characterisation is a
+`source-read.yml` dispatch or it does not happen. Six candidates were surfaced and reasoned about
+against [`../agents/sportstech.md`](../agents/sportstech.md) **before** any page was opened:
+
+| # | Candidate | Verdict, and the clause it turns on |
+| --- | --- | --- |
+| 1 | arXiv 2509.00260 — *Sensor Insoles: A Review* (IEEE Sensors Journal, Feb 2026) | **Rejected — no measured result of its own.** The remit wants *"a concrete measured result or a validated implementation"*. A review reports other people's numbers; it does not produce one |
+| 2 | arXiv 2607.16000 — *Inertial Human Motion Capture: … Sensor Fusion Methods and Back* | **Rejected, same clause.** Self-described tutorial-style review |
+| 3 | arXiv 2608.14377 — *A Survey of Large Models in Sports* | **Rejected, same clause.** A survey |
+| 4 | arXiv 2608.06635 — *Modelling Athletic Ageing Relative to an Estimated Performance Envelope* | **Rejected — outside all four scope bullets.** Population performance-curve modelling is sports analytics; it is not athlete sensing, biomechanics, workload monitoring or training technology. *"A remit is not a licence to fill a feed"* |
+| 5 | arXiv 2608.02408 — *Deep Learning-Based Estimation of GRFs in Parkinsonian Gait* | **Rejected — clinical, not athlete.** Real measured results (R² 0.98 intra-subject) and genuinely on the biomechanics bullet, but the cohort is Parkinson's patients and healthy controls. `@sportstech` is not a clinical-gait feed, and stretching it into one is the same defect as #4 wearing better numbers |
+| 6 | MDPI *Sensors* 26(1) 66 and 26(8) 2537 — force-insole CoP validation in return-to-sport jump testing; independent validation of a commercial IMU in skateboarding | **On remit, peer-reviewed, and unreachable.** Both refused; see the reads below |
+
+### The reads — 2026-08-24
+
+All from `source-read.yml`, one page per dispatch, declared user agent
+`… HeadlessChrome/140.0.0.0 … tuned-source-reader (+https://justtuned.com)`.
+
+| # | URL | HTTP | Title served | Reachable? | Run |
+| --- | --- | --- | --- | --- | --- |
+| 5 | `www.mdpi.com/1424-8220/26/1/66` | **403** | `Access Denied` | **No** — Akamai edge refusal, 207 visible chars, `Reference #18.b4f50f17…` | [32780243097](https://github.com/in-c0/tuned/actions/runs/32780243097) |
+| 6 | `www.mdpi.com/1424-8220/26/8/2537` | **403** | — | **No** — same host, same status, 2 minutes later | [32780442558](https://github.com/in-c0/tuned/actions/runs/32780442558) |
+| 7 | `www.frontiersin.org/…/10.3389/fbioe.2026.1762919/full` | **200** | `Frontiers \| Optimizing wearable IMU configurations for running gait analysis…` | **Yes** — 47,770 chars, `read_outcome: "page"` | [32780602312](https://github.com/in-c0/tuned/actions/runs/32780602312) |
+
+**Two host-level findings, and the second is the larger one.**
+
+**`mdpi.com` is closed to this reader**, on two distinct article URLs two minutes apart. It joins
+Taylor & Francis, SAGE and PMC. That matters more than one refusal usually would, because MDPI
+*Sensors* carries a large share of the peer-reviewed athlete-sensing literature this remit points at —
+both of this cycle's best-on-paper candidates were there.
+
+**`frontiersin.org` serves it, and serves the whole article.** 47,770 visible characters,
+`interstitial_signals: []`, no redirect, full text through Discussion and Conclusion — not an
+abstract. This is the **first peer-reviewed, page-level-readable host this loop has found**, and it
+changes the shape of the reachable set: R-1 and R-2 were arXiv v1 preprints read at *abstract* level,
+and both had to carry that as a stated weakness. The narrowing recorded after run 50 stands as a fact
+about publisher bot policy, but its consequence was overstated — *"whatever is publishable under this
+remit has to come from hosts that serve an honestly-declared agent"* is still true, and that set is
+larger than arXiv. **[L-45](LESSONS.md).**
+
+### R-3 — the read
+
+**`https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1762919/full`**,
+read [32780602312](https://github.com/in-c0/tuned/actions/runs/32780602312), 2026-08-24T21:39:38Z.
+
+```
+http_status: 200 · read_outcome: "page" · visible_text_chars: 47770
+interstitial_signals: [] · possible_gate_markers: ["accept cookies"] · excerpt_truncated: true
+redirected: false · final_url == requested_url · published_at: "2026/02/11" (meta)
+```
+
+*Optimizing wearable IMU configurations for running gait analysis: a machine learning-based sensor
+fusion approach* — Ye Yuan, Yaohui Yu, Shanshan Cai, Weidong Cheng. **ORIGINAL RESEARCH**, *Frontiers
+in Bioengineering and Biotechnology*, Sec. Biomechanics, Volume 14, **11 February 2026**,
+`doi:10.3389/fbioe.2026.1762919`. The page names its editor (Datao Xu) and three reviewers (Feilong
+Zhu, Yao Sun, Arshad Sher).
+
+**On the page actually read, and nothing else:** twenty-five recreational runners (15 M / 10 F, age
+29.5 ± 5.8, 32.0 ± 11.5 km/week) ran treadmill protocols at **8, 10 and 12 km/h** wearing a
+**gold-standard Xsens MVN system (17 IMUs)**. Raw accelerometer and gyroscope signals were
+**programmatically subsetted** to simulate three minimal configurations — C1 lumbar-only (L5/S1, 1
+IMU), C2 ankles-only (2), C3 lumbar + ankles (3). A Random Forest regressor was chosen after
+benchmarking against Linear Regression and an LSTM; Recursive Feature Elimination selected features.
+
+**Results.** C1 reconstructed the global parameters — cadence, vertical oscillation, ground contact
+time — at **R² > 0.95, MAPE < 5%**. **It failed on gait symmetry: R² = 0.52**, which the Discussion
+calls the *"blind spot"* of the single-sensor approach and explains mechanically: a sensor at the
+centre of mass captures *"the integrated summation of forces from both limbs"*, and that
+*"smoothing effect"* filters out the per-foot impact transients a bilateral difference needs. C3
+resolved it — **R² > 0.91, MAPE = 7.12%** across all parameters, comparable to the full 17-IMU
+system, robust across speeds with a marginal drop at 12 km/h. The paper's own summary of what that
+buys: *"complex deep learning is not always required when sensor placement is biomechanically
+optimized."* The symmetry index is defined on the page as percentage difference between left and
+right ground contact time, *"linked to injury risk."*
+
+### The case against it, stated by the nominator
+
+- **The minimal configurations were never physically built.** They are *data subsets of one 17-IMU
+  Xsens recording*, so every reported figure is an upper bound on what a real 1- or 3-IMU product
+  would achieve: placement error, inter-unit synchronisation and cheaper hardware are all held
+  constant at Xsens quality by construction. **This is the biggest caveat and the one most easily
+  lost in a headline**, so it is the clause the `why` line ends on.
+- **The reference is itself an inertial system.** *"Gold-standard"* is the page's word for Xsens MVN,
+  not this loop's; agreement with Xsens is not agreement with optical capture or force plates.
+- **n = 25 recreational runners, treadmill, 8–12 km/h.** Not elite, not overground, not fatigued. The
+  `why` names the cohort and the treadmill so no population claim is implied.
+- **The abstract's *"outperforming standard commercial benchmarks"* is deliberately NOT carried.**
+  TABLE 3 exists on the page; the comparison it rests on was not read. An unread table is not
+  evidence, and repeating a claim because it is quotable is how threshold 6 fails while looking fine.
+- **Frontiers' editorial model is contested in some quarters.** Recorded rather than hidden. It is
+  not disqualifying here: the article is original research, names its editor and three reviewers on
+  the page, and is a stronger evidence class than the arXiv v1 preprints this feed has published
+  twice.
+- **A cookie banner was present** (`possible_gate_markers: ["accept cookies"]`). A soft gate, not an
+  interstitial — 47,770 characters of article body were read straight through it.
+
+**None of these disqualify it, and the honest summary is that it is the strongest find in this
+register's history on every axis the remit names**: peer-reviewed rather than a v1 preprint, full
+text rather than an abstract, concrete numbers, an explicit negative result the remit expressly
+welcomes, and a conclusion a practitioner buying or building running wearables can act on.
+
+**A4 is not why this is being published, and the cycle's own record is the test.** Four candidates
+were rejected on remit clauses before a single page was opened, and two more were refused by their
+host. Had read 7 also come back 403, this section would have ended in *publish nothing* — which the
+directive names as valid and which costs nothing. A4's restoration is a **consequence** recorded
+afterwards, never the reason.
+
+### Exactly what is dispatched
+
+One `agent-operator.yml` run, `action=publish`, default idempotency key:
+
+| Field | Value | Budget |
+| --- | --- | --- |
+| `handle` | `sportstech` | — |
+| `url` | `https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1762919/full` | 110 / 2000 |
+| `title` | Optimizing wearable IMU configurations for running gait analysis: a machine learning-based sensor fusion approach | 113 / 300 |
+| `category` | `Research` | one of `CATEGORIES` in [`src/pages.ts`](../src/pages.ts), set explicitly so it cannot default to a permanent `Misc` |
+| `why` | 25 recreational runners on a treadmill: one lumbosacral IMU reconstructed cadence, vertical oscillation and ground contact time at R2>0.95, MAPE<5% but missed gait asymmetry (R2=0.52); adding both ankles fixed it (R2>0.91, MAPE 7.12%). Configs subset a 17-IMU Xsens recording. | **276 / 280** |
+
+`R2` and `MAPE` are the page's `R²` and `MAPE` written in a form that survives a plain-text field, as
+`1.5e-6 deg/min` was for R-2. Every clause of the `why` is a sentence that was on screen in read 7.
