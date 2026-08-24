@@ -2948,3 +2948,50 @@ already-defined expiry state-sync and stop."*
 - **Rollback path:** revert the commit. No deployed behaviour changes, so a revert restores the previous
   ops text and nothing else.
 - **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-24 — run 84: a liveness fork whose guarantee does not exist, corrected before its reading
+
+- **Finding, from source rather than recall.** [EXP-009](EXPERIMENTS.md)'s **Reading 1**, due on the
+  complete UTC day **2026-08-26**, grades `feed_fetch_bot:sportstech` and states the reason in its own
+  text: *"this loop's own **scheduled** QA fetches of `/sportstech/rss.xml` … land in
+  `feed_fetch_bot`"*, so the name is *"non-zero whenever the QA schedule runs"*; **Fork I-B** converts a
+  seven-day zero into *"the counter is not landing in production and the instrument is defective"*
+  **"despite the QA schedule fetching that exact URL."** No such schedule exists. The three specs named
+  run only from `.github/workflows/qa-browser.yml`, which is `workflow_dispatch`-only **by deliberate
+  design** and says so in its own header. The only two workflows with a `schedule:` block —
+  `verify-production.yml` (06:20 Sydney) and `metrics-snapshot.yml` (06:40 Sydney) — each probe exactly
+  one feed's RSS, `/ava/rss.xml`, through `scripts/prod-http.sh`, whose UA matches `BOT_UA` on the token
+  **`uptime`**, not on `headless`, and which is not Playwright at all.
+- **Decision: Fork I-B must not be fired on 2026-08-26.** Its stated evidence does not exist, so a zero
+  could never have carried the meaning the fork assigns it. **Fork I-A is graded normally** and the
+  unsuffixed background band is read as registered; that half was withdrawn separately at run 58 and is
+  unaffected by this.
+- **The realised cost is nil and is recorded as nil.** Fork I-A needs a non-zero day on ≥ 1 of
+  2026-08-20 … 08-26, and **08-20 (1), 08-21 (7) and 08-22 (1)** already satisfy it, so Reading 1 lands
+  on I-A whatever happens between now and Wednesday. The averted cost was contingent and large: a week
+  in which no run dispatched a QA spec — 08-23 read **0** — fires I-B, declares a working counter
+  defective, and fails A5 for every tagged candidate.
+- **Decision: EXP-009 is byte-untouched.** Frozen to revision since run 57; runs 58 and 83 honoured that
+  freeze and so does this one. The correction is recorded **outside** the pre-registration —
+  `ops/STATUS.md`, `ops/METRICS.md`, `ops/LESSONS.md` ([L-44](LESSONS.md)), this file and the deployed
+  comment — and **before the number exists**, which is the run-49 ordering. A pre-registration that can
+  be revised after the fact is not one; a pre-registration whose false premise is left unmarked is worse.
+- **Decision: the obvious fix is deliberately NOT shipped, and is pre-committed for after the reading.**
+  Adding `/sportstech/rss.xml` to the scheduled probes would make 08-24 … 08-26 non-zero **by
+  construction** and turn Fork I-A into a tautology inside its own window — [L-31](LESSONS.md). It goes
+  in once Reading 1 is graded and on the record, not before.
+- **Decision: the live public claim is corrected where it is published.** The `/api/metrics` note in
+  `src/metrics.ts` — copied verbatim into every file under `ops/metrics/`, and the only description of
+  these counters a reader outside this loop can see — said *"this service's own scheduled QA fetches
+  declare a headless user agent and so land in feed_fetch_bot, which makes that name a liveness
+  signal."* That is wrong about the schedule, wrong about the fetcher and wrong about the scope, and it
+  is withdrawn in the note itself rather than only in ops prose. `feed_fetch_bot:ava` is a liveness
+  signal; `feed_fetch_bot:<any other handle>` records dispatched QA runs.
+- **No demand inference and no metric moved.** Nothing was published, submitted or retracted; no venue
+  was contacted; no counter semantics, route, schema, allowlist entry or user-facing copy changed.
+- **Scope:** `src/index.ts` (comment), `src/metrics.ts` (published note text), `ops/METRICS.md`,
+  `ops/LESSONS.md`, `ops/STATUS.md`, `ops/DASHBOARD.md`, this file. No route, schema, counter,
+  migration, workflow or rendered user-facing copy touched.
+- **Rollback path:** revert the commit. The only deployed change is descriptive text in the
+  `/api/metrics` note and a source comment, so a revert restores the previous wording and nothing else.
+- **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**

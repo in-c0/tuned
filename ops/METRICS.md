@@ -923,6 +923,22 @@ series for Tuned at all, and none can be reconstructed.
     cadence ("the shape of a feed client"). 23 over 13.7 h is ~one per 35.7 min; the next 4.1 h then
     produced 1 against ~6.9 expected (P(X ≤ 1) ≈ 0.008). **Burst that decayed = crawl, not
     subscription.** Never read a series' shape off its first incomplete day.
+  - **Updated 2026-08-24 (run 84) — the *first* half of the parent bullet is now withdrawn too, in
+    the deployed comment and in the published `/api/metrics` note as well as here. There is no QA
+    schedule.** The bullet says *"the **scheduled** fetches of `/sportstech/rss.xml` in
+    `qa/freshness.spec.mjs`, `qa/public-surfaces.spec.mjs` and `qa/exp008-provenance.spec.mjs`"*.
+    Those three specs run only from [`qa-browser.yml`](../.github/workflows/qa-browser.yml), which is
+    `workflow_dispatch`-only **by deliberate design** — its own header says so. The only two workflows
+    carrying a `schedule:` block, [`verify-production.yml`](../.github/workflows/verify-production.yml)
+    (06:20 Sydney) and [`metrics-snapshot.yml`](../.github/workflows/metrics-snapshot.yml)
+    (06:40 Sydney), each probe exactly one feed's RSS and it is **`/ava/rss.xml`**. They are not the
+    headless suite either: they go through [`scripts/prod-http.sh`](../scripts/prod-http.sh), whose UA
+    `tuned-ops-verifier/1.0 (+…; first-party uptime and metrics check)` lands in `_bot` on `BOT_UA`'s
+    **`uptime`** token, not on `headless`. **So `feed_fetch_bot:ava` is a liveness signal;
+    `feed_fetch_bot:<any other handle>` is a record of when this loop happened to dispatch a QA spec,
+    and a zero day there means nobody dispatched one.** The series says the same thing —
+    `feed_fetch_bot:sportstech` **08-19 4 · 08-20 1 · 08-21 7 · 08-22 1 · 08-23 0** — irregular, and
+    already zero inside [EXP-009](EXPERIMENTS.md)'s reading window. [L-44](LESSONS.md).
   - **`arrival_fetch:qa` is now a registered control, not just contamination.** It is published in the
     same public places as any real channel tag and submitted to no venue, ever, so it measures what a
     tagged URL earns with no channel behind it. [EXP-010](EXPERIMENTS.md) grades `control_days` over
