@@ -2903,3 +2903,48 @@ on the record, the executor selected the action, and selected the one run 65 nam
 - **Rollback path:** revert the merge commit. The change touches `qa/`, `scripts/` and one CI step;
   no runtime surface, no data, no deployed behaviour. Reverting restores the frozen single-item spec.
 - **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-24 (run 83) — the A4 window lapsed a second time; the owner card is retired, the authorization is kept, the candidate is paused
+
+**Directive:** the [09:29:41 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5393283082)
+— *"Wait until 09:35:56 UTC, then read issue #1 once. If no qualifying owner URL exists, execute the
+already-defined expiry state-sync and stop."*
+
+- **The read, taken after the instant rather than before it.** Issue #1 at **09:36 UTC**: 163 comments,
+  newest the review itself (`updated_at` 2026-08-24T09:29:41Z). **No owner URL, no comment naming B or
+  C.** An earlier orientation read at 09:35:15 — forty seconds *inside* the window — showed the same
+  three trailing comments (runs 81, 82, the review); both readings agree and the post-expiry one is
+  the authoritative one, because a URL posted in those forty seconds would have qualified.
+- **Decision: the card is retired, not restated.** `OWNER ACTION REQUIRED` reads **NONE** in
+  [STATUS.md](STATUS.md) and [DASHBOARD.md](DASHBOARD.md) §1 for the first time since run 61. The card
+  itself is kept intact beneath the retirement note in both files, marked expired, because it is the
+  card that resumes — deleting it would mean rebuilding a preflight that was correct when taken.
+- **Decision: the owner's `A` is preserved, explicitly.** Granted 2026-08-20 15:04 UTC. What expired is
+  **A4, a precondition**, not the authority to submit. Re-asking a settled authorization because an
+  unrelated condition decayed would spend the owner's attention on a question they already answered.
+- **Decision: `plenaryapp/awesome-rss-feeds` is PAUSED, not dropped.** The owner did not say **C**, and
+  an unanswered card is not a decision. It resumes when a find worth publishing **on its own merits**
+  restores A4 — not scheduled — and A4 plus the duplicate check (last read 2026-08-20 21:38 UTC, now
+  stale) must both be re-read from production before any submission is prepared.
+- **Decision: nothing was published to hold the window open, for the second time.** [EXP-008](EXPERIMENTS.md)'s
+  binding clauses disqualify a publication made to move a number, and A4's decay is a pre-registered
+  acceptable outcome in [EXP-009](EXPERIMENTS.md)'s stop conditions. First lapse 2026-08-21 04:15:49Z;
+  this one 2026-08-24 09:35:56Z.
+- **Decision: EXP-009 is not edited and Fork D is NOT recorded.** The entry has been frozen to revision
+  since run 57, and run 58 set the precedent of honouring that freeze. Fork D reads *"never authorized,
+  never made, or never merged"* as the grading of a **completed** attempt; no attempt was completed, no
+  `t0` exists, and **Reading 2 stays ungraded at Fork D's precondition**. Recording Fork D would convert
+  an owner's silence into an experimental result. EXP-010 is untouched and its 2026-09-04 reading stands.
+- **No demand inference, in either direction.** No submission was made anywhere, so no maintainer,
+  directory or stranger has told this loop anything. A lapsed window is a fact about a publication
+  schedule and an inbox.
+- **No owner notification was sent and none is claimed.** The alert stood on issue #1 from run 61 and
+  was surfaced through run 66; the reviewer's directive forbids repeating it, and repeating an ask whose
+  own precondition has expired would be asking for an inadmissible act.
+- **Scope:** documentation only — `ops/STATUS.md`, `ops/DASHBOARD.md`, `ops/DISTRIBUTION.md`, this file.
+  No runtime surface, route, schema, counter, allowlist entry, migration, workflow or public copy
+  touched; nothing published, retracted or restored; no venue contacted; no agent adopted, created or
+  disabled; no queued item opened.
+- **Rollback path:** revert the commit. No deployed behaviour changes, so a revert restores the previous
+  ops text and nothing else.
+- **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
