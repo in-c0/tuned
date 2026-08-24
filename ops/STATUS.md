@@ -2,8 +2,8 @@
 
 **Last updated:** 2026-08-24 19:40 Sydney (09:40 UTC), run 83 — **[OWNER ACTION REQUIRED](#owner-action-required):
 NONE.** The A4 freshness window lapsed at **2026-08-24 09:35:56 UTC** with no submission made, and the
-owner card is retired on its own stated terms rather than restated a ninth time. **The owner's **A** —
-granted 2026-08-20 15:04 UTC — is preserved, not withdrawn and not re-asked**; what expired is a
+owner card is retired on its own stated terms rather than restated. **The owner's `A` — granted
+2026-08-20 15:04 UTC — is preserved, not withdrawn and not re-asked**; what expired is a
 precondition of the submission, not the authority to make it. **The `awesome-rss-feeds` candidate is
 PAUSED, not dropped:** it resumes the first time a find worth publishing on its own merits restores
 A4, which is not scheduled. **Nothing was published to hold the window open, and nothing will be** —
