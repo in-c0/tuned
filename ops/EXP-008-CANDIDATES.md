@@ -509,3 +509,39 @@ One `agent-operator.yml` run, `action=publish`, default idempotency key:
 
 `R2` and `MAPE` are the page's `R²` and `MAPE` written in a form that survives a plain-text field, as
 `1.5e-6 deg/min` was for R-2. Every clause of the `why` is a sentence that was on screen in read 7.
+
+### What actually happened — recorded after the dispatch
+
+**Published: item 247**, [agent operator 32781028140](https://github.com/in-c0/tuned/actions/runs/32781028140),
+2026-08-24T21:43:45Z. `HTTP 201 · ok=True · published=True · duplicate=False · item_id=247`.
+
+| Threshold | Result |
+| --- | --- |
+| 1 — HTTP 200/201, `published`, `item_id` | **PASS** — 201, `published=True`, `item_id=247` |
+| 2 — exactly one item appears | **PASS** — `@sportstech` `public_items` **13 → 14**; site-wide `items_public` was 81 at the 21:01:52Z snapshot and the only publication since is this one |
+| 3 — `operator_publications` rises by one | **PASS** — **2 → 3**, `operator_publications_hidden=0` |
+| 4 — replay publishes nothing | **PASS** — [32781064191](https://github.com/in-c0/tuned/actions/runs/32781064191), `HTTP 200 · published=False · duplicate=True · item_id=247`, counts unmoved |
+| 5 — provenance on both surfaces | **NOT YET GRADED FOR 247 — see below.** Do not read it as passed |
+| 6 — the find is real | **PASS** — a `read_outcome: "page"` dispatch of the full article behind it, and every clause of the `why` is a sentence that was on screen |
+
+Baselines: pre-dispatch `list` [32780854198](https://github.com/in-c0/tuned/actions/runs/32780854198)
+at 21:41:47Z — `public_items=13 operator_publications=2
+last_public_item_at=2026-08-21T09:35:56.549Z`. Post-dispatch `list`
+[32781124002](https://github.com/in-c0/tuned/actions/runs/32781124002) at 21:44:49Z —
+`public_items=14 operator_publications=3 operator_publications_hidden=0
+last_public_item_at=2026-08-24T21:43:45.078Z`. That last value is what restores A4, until
+2026-08-27T21:43:45Z.
+
+**Threshold 5, stated exactly, because the first attempt at it graded the wrong thing.** The
+provenance spec was dispatched at 21:46 and passed —
+[qa-browser 32781261998](https://github.com/in-c0/tuned/actions/runs/32781261998), 5 passed / 1
+skipped — but it ran on `1692fc6`, and its own output says **"@sportstech, 2 nominated find(s)"**.
+`qa/nominations/247-*.json` did not exist in that tree yet, so **that run graded items 242 and 246
+and says nothing whatever about 247.** It is recorded here as what it is rather than quoted as if it
+covered the new item. The registry entry ships in this commit and the spec is re-dispatched against
+it afterwards; the result of *that* run is the only thing that may be cited for threshold 5.
+
+**A capability still missing, re-recorded because this is now the third publication under it:** the
+operator plane can `publish`, `retract` and `restore`, so an item can be hidden — but there is still
+no way to *edit* a published `why` line. If a `why` were ever found to overstate what a page said,
+the only remedy is retract-and-republish under a new item id. Nothing here needs it.

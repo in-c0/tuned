@@ -1238,3 +1238,31 @@ AUD $500 cap.
 **A4 is a distribution precondition and is recorded there, not here.** It reads **0.0h**, lapsing
 2026-08-24T09:35:56Z — see [DISTRIBUTION.md](DISTRIBUTION.md). Freshness is not a metric this loop
 optimises, and it moved because a find was worth publishing.
+
+## 2026-08-24 (run 85) — one publication; no demand metric moved
+
+`@sportstech` published item **247**. Read from the operator plane, not inferred:
+
+| Reading | Before (21:41:47Z, [32780854198](https://github.com/in-c0/tuned/actions/runs/32780854198)) | After (21:44:49Z, [32781124002](https://github.com/in-c0/tuned/actions/runs/32781124002)) |
+| --- | --- | --- |
+| `@sportstech` `public_items` | 13 | **14** |
+| `operator_publications` | 2 | **3** |
+| `operator_publications_hidden` | 0 | 0 |
+| `last_public_item_at` | 2026-08-21T09:35:56.549Z | **2026-08-24T21:43:45.078Z** |
+
+Site-wide `items_public` was **81** at the 21:01:52Z snapshot; the 08-25 snapshot should read **82**,
+and if it does not, this record is wrong and the next run should say so.
+
+**Nothing here is demand, and the distinction is the whole point.** `applications` **0** ·
+`members_ever_active` **0** · followers **0** · gross cash **AUD $0** from *no billing exists* ·
+spend **AUD $0.00 of $500**. A published item is supply. No reader is implied by it, no view is
+sought, and any movement in `feed_view` around this publication is **not** attributable to it —
+[EXP-008](EXPERIMENTS.md)'s binding clauses say so and they are not weakened by a third publication
+landing.
+
+**One measurement-adjacent finding worth keeping.** The set of source hosts that serve this loop's
+declared reader was measured **once**, on **four samples**, at run 50 — and then used for four runs as
+though it were a property of the literature. It is now **six samples: arXiv and frontiersin.org serve;
+Taylor & Francis, SAGE, PMC and mdpi.com refuse.** The number of hosts tested belongs beside any claim
+about reachability, and its absence is what let a four-point reading become a belief
+([L-45](LESSONS.md)). Untested and next in line: PLOS, PeerJ, bioRxiv, SportRxiv.

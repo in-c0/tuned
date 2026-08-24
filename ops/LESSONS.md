@@ -1662,3 +1662,49 @@ the assertion would still hold.
   for a `schedule:` block that requests that exact route, and paste the matching line beside the
   claim.* Concretely: `grep -n "schedule:" -A2 .github/workflows/*.yml` and then grep those files for
   the route. If no line comes back, the word "scheduled" may not appear in the description.
+
+## L-45 — the reachable corpus was never selected on merit, and nobody had checked how far the refusal actually reached (2026-08-24, run 85)
+
+- **Known problem:** run 50 pointed the page-level reader at four hosts carrying on-remit material.
+  Taylor & Francis and SAGE returned Cloudflare bot checks; PMC returned a reCAPTCHA interstitial at
+  HTTP 200; arXiv served the page. [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) recorded the
+  conclusion honestly: *"whatever is publishable under this remit has to come from hosts that serve
+  an honestly-declared agent, or from nowhere."*
+- **Attempted approach:** that sentence was then treated, for four runs and two publications, as
+  though the set it describes were **arXiv**. R-1 and R-2 were both arXiv v1 preprints read at
+  abstract level, and each had to carry *"unreviewed preprint"* and *"abstract read"* as stated
+  weaknesses in its own `why` line.
+- **Mistake:** nobody had tested a fifth host. The set of hosts that serve a declared agent was
+  measured once, on four samples, and never re-opened — so a fact about **four publishers** silently
+  became a belief about **the literature**.
+- **Why it happened:** the four refusals were real, the reasoning from them was sound, and the
+  conclusion was written in the register in a form general enough to reuse without re-deriving. The
+  failure mode is not a false claim; it is a **true claim whose sample size stopped being visible**.
+  Every subsequent cycle inherited "arXiv or nothing" as a premise rather than as a reading with a
+  denominator of four. It also had a self-confirming shape: each cycle searched arXiv because arXiv
+  was known to work, which produced arXiv candidates, which confirmed that arXiv was where the
+  candidates were.
+- **Evidence and cost:** this run's two best candidates on paper were peer-reviewed MDPI *Sensors*
+  papers, and **`mdpi.com` refused the reader twice** — HTTP 403, `Access Denied`, an Akamai edge
+  refusal, on two distinct articles two minutes apart
+  ([32780243097](https://github.com/in-c0/tuned/actions/runs/32780243097),
+  [32780442558](https://github.com/in-c0/tuned/actions/runs/32780442558)). Had the cycle stopped
+  there it would have confirmed the belief a third time. It did not stop there.
+  **`frontiersin.org` served the whole article** — 47,770 visible characters, `read_outcome: "page"`,
+  `interstitial_signals: []`, full text through Discussion and Conclusion
+  ([32780602312](https://github.com/in-c0/tuned/actions/runs/32780602312)). The realised cost is not
+  hypothetical: **two publications carried avoidable weaknesses**. Neither had to be an unreviewed
+  preprint, and neither had to be characterised from an abstract, because a peer-reviewed host that
+  serves full text to this exact user agent existed the whole time and was never asked.
+- **Lesson:** **a capability boundary measured on a handful of samples is a reading, not a map, and
+  it decays the moment it starts being quoted instead of re-run.** The tell is a conclusion that has
+  outlived every one of the observations underneath it: "the hosts refuse us" was four hosts. When
+  the loop finds itself repeatedly reaching for the same source, the question is not whether that
+  source is good — it is *when did we last check whether it was the only one*.
+- **More elegant next attempt:** a refusal recorded in the register should carry the **count of hosts
+  tested** beside it, so a reader sees `4 tested, 1 serving` rather than a qualitative narrowing. And
+  a selection cycle that lands on the same host as the previous two should spend one dispatch on a
+  host that has never been tried — the marginal cost is ~2 minutes and the upside is a whole corpus.
+- **Prevention check:** *before writing "this class of source is unreachable", count the members of
+  the class actually dispatched against, and put the number in the sentence.* If the number is under
+  five, the sentence says "the N hosts tried so far", never "the hosts".

@@ -2995,3 +2995,48 @@ already-defined expiry state-sync and stop."*
 - **Rollback path:** revert the commit. The only deployed change is descriptive text in the
   `/api/metrics` note and a source comment, so a revert restores the previous wording and nothing else.
 - **Autonomous spend this run: AUD $0.00. Running total: AUD $0.00 of the AUD $500 cap.**
+
+## 2026-08-24 — run 85: one selection cycle, one publication, and the reachable set turns out to have been four hosts
+
+**Directive.** The [21:31 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5401628043):
+run exactly one genuine `@sportstech` selection cycle; publish at most one item, only if it clears
+the remit and EXP-008 independently, and only after writing the case against it first; a no-publish
+result is valid; do not add the scheduled feed probe this cycle; preserve EXP-009/010; no external
+venue write, feature, copy rewrite, billing, paid spend or new experiment.
+
+**Decision.** Run the cycle end to end, and — the one judgement call inside it — **spend a dispatch
+on a host that had never been tried** rather than going straight to arXiv, where the previous two
+publications came from.
+
+**Why that mattered more than the publication.** The two strongest candidates on remit were
+peer-reviewed MDPI *Sensors* papers and `mdpi.com` refused the reader twice (HTTP 403, `Access
+Denied`, Akamai edge, two distinct articles two minutes apart). Stopping there would have confirmed
+"arXiv or nothing" for a third time. `frontiersin.org` instead returned **HTTP 200 and 47,770 visible
+characters**, `read_outcome: "page"`, full text through Discussion and Conclusion. Run 50's narrowing
+was a true reading with a denominator of **four hosts** that had been quoted for four runs as though
+it described the literature — and the belief was self-confirming, because each cycle searched the
+host it already knew worked. **The realised cost was two publications carrying avoidable weaknesses:**
+R-1 and R-2 were both arXiv v1 preprints read at *abstract* level, and neither had to be.
+[L-45](LESSONS.md).
+
+**Shipped.** Item **247** — *Optimizing wearable IMU configurations for running gait analysis: a
+machine learning-based sensor fusion approach*, Front. Bioeng. Biotechnol., 11 Feb 2026. The case
+against it was committed at [`1692fc6`](https://github.com/in-c0/tuned/commit/1692fc6), 21:43:26Z,
+**19.078 seconds before** the dispatch at 21:43:45.078Z. Four candidates were rejected on remit
+clauses before any page was opened; two more were refused by their host.
+
+**Scope.** No source file, route, schema, counter, migration, workflow or rendered user-facing copy
+was changed by this run. What changed: one published item (additive, reversible), the nomination
+registry, and ops records.
+
+**Rollback path.** `retract` item 247 through `agent-operator.yml` — the capability exists and is
+exercised by nobody else. That hides the item and restores `public_items` to 13; the ops commits
+revert independently. No data handling, secret, route or schema is touched, so there is nothing else
+to undo.
+
+**Boundaries honoured.** No venue contacted, no form submitted, no account used, no real channel tag
+exercised anywhere (QA used `?src=qa`; the operator publishes carry no tag). EXP-009 and EXP-010
+byte-untouched. The scheduled `/sportstech/rss.xml` probe was **not** added, per the directive and
+per [L-31](LESSONS.md). No demand inferred in either direction.
+
+Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

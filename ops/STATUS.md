@@ -1,22 +1,69 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-24 20:14 Sydney (10:14 UTC), run 84 — **[OWNER ACTION REQUIRED](#owner-action-required):
-NONE.** **EXP-009's Reading 1, due 2026-08-26, rests on a QA schedule that does not exist; the
-premise is withdrawn where it is published and Fork I-B must not be fired.** Nothing in
-[EXPERIMENTS.md](EXPERIMENTS.md) was edited — the freeze holds — and Reading 1 still lands on Fork
-I-A, which three days already satisfy. Carried forward from run 83, unchanged: the A4 freshness
-window lapsed at **2026-08-24 09:35:56 UTC** with no submission made, and the
-owner card is retired on its own stated terms rather than restated. **The owner's `A` — granted
-2026-08-20 15:04 UTC — is preserved, not withdrawn and not re-asked**; what expired is a
-precondition of the submission, not the authority to make it. **The `awesome-rss-feeds` candidate is
-PAUSED, not dropped:** it resumes the first time a find worth publishing on its own merits restores
-A4, which is not scheduled. **Nothing was published to hold the window open, and nothing will be** —
-[EXP-008](EXPERIMENTS.md)'s binding clauses disqualify a publication made to move a number, and this
-is the second window to lapse unused under that rule (the first at 2026-08-21 04:15:49Z).
-**[EXP-009](EXPERIMENTS.md) is byte-untouched** — frozen to revision since run 57, and its Reading 2
-stays ungraded at **Fork D's precondition**: no submission was authorized-and-made, so nothing about
-demand may be inferred from this lapse in either direction ·
+**Last updated:** 2026-08-25 07:47 Sydney (2026-08-24 21:47 UTC), run 85 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **One `@sportstech` selection cycle ran and published one find — item 247 — and the larger
+result is the host it came from.** Six candidates were graded against the remit; four were rejected
+before a page was opened, and the two best-on-paper were peer-reviewed MDPI *Sensors* papers that
+**`mdpi.com` refused** (HTTP 403, twice). **`frontiersin.org` served the full article** — 47,770
+characters, `read_outcome: "page"`, Discussion and Conclusion included. That is the **first
+peer-reviewed, page-level-readable host this loop has found**, and it retires the working belief that
+the reachable set is arXiv: it was four hosts tested, never re-opened, and two publications carried
+avoidable *"unreviewed preprint"* and *"abstract read"* weaknesses because of it ([L-45](LESSONS.md)).
+**A4 is restored as a consequence, not a motive** — `@sportstech`'s newest public item is
+**2026-08-24T21:43:45.078Z**, so A4 holds until **2026-08-27T21:43:45Z** — and the
+`awesome-rss-feeds` candidate is **un-paused** with the owner's `A` (2026-08-20 15:04 UTC) still
+preserved. Carried forward from run 84 and unchanged: **[EXP-009](EXPERIMENTS.md) is byte-untouched**,
+Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B must not be fired** ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The two best candidates were peer-reviewed and unreachable. The third host had been serving full text all along, and nobody had asked it.
+>
+> The [21:31 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5401628043) asked for
+> one genuine `@sportstech` selection cycle, at most one publication, the case against the find
+> written first, and said plainly that **a no-publish result is valid**. The cycle ran, and what it
+> turned up about the loop's own reach outranks what it published.
+>
+> **Four candidates were rejected before any page was opened.** Three — *Sensor Insoles: A Review*,
+> an inertial-mocap tutorial review, and *A Survey of Large Models in Sports* — carry no measured
+> result of their own, and the remit wants *"a concrete measured result or a validated
+> implementation"*. A fourth models athletic ageing, which is sports analytics rather than any of the
+> remit's four scope bullets. A fifth had real numbers (deep-learning GRF estimation, R² 0.98) and was
+> **still** rejected: the cohort is Parkinson's patients and healthy controls, and `@sportstech` is
+> not a clinical-gait feed.
+>
+> **Then `mdpi.com` refused the reader twice** — HTTP 403, `Access Denied`, an Akamai edge refusal,
+> two distinct articles two minutes apart. Both of this cycle's best-on-paper candidates were there:
+> force-insole centre-of-pressure validation in return-to-sport jump testing, and an independent
+> validation of a commercial IMU in skateboarding. Peer-reviewed, squarely on remit, and
+> unencounterable. MDPI joins Taylor & Francis, SAGE and PMC.
+>
+> **A fourth dispatch is what makes this a finding rather than a third confirmation.**
+> `frontiersin.org` returned HTTP 200 and **47,770 visible characters** —
+> `interstitial_signals: []`, no redirect, full text through Discussion and Conclusion, not an
+> abstract ([32780602312](https://github.com/in-c0/tuned/actions/runs/32780602312)).
+>
+> **What that costs, stated against our own interest.** Run 50's narrowing was true and its
+> denominator was **four hosts**. It was then quoted for four runs as though it described the
+> literature, and the shape was self-confirming: each cycle searched arXiv because arXiv was known to
+> work, which produced arXiv candidates, which confirmed arXiv was where candidates were. R-1 and R-2
+> were both arXiv v1 preprints read at **abstract** level, and both had to carry that in their own
+> `why` lines. **Neither had to.** [L-45](LESSONS.md).
+>
+> **What was published, and the case against it is in the register above the dispatch, not below it.**
+> Item **247** — *Optimizing wearable IMU configurations for running gait analysis*, Front. Bioeng.
+> Biotechnol., 11 Feb 2026, original research with its editor and three reviewers named on the page.
+> 25 recreational runners, treadmill at 8–12 km/h, a gold-standard 17-IMU Xsens reference. One
+> lumbosacral IMU reconstructed cadence, vertical oscillation and ground contact time at
+> **R² > 0.95, MAPE < 5%** — and **failed on gait symmetry at R² = 0.52**, which three sensors then
+> fix (**R² > 0.91, MAPE = 7.12%**). The negative result is the part the remit expressly welcomes.
+> **The biggest caveat is not a quibble and it is the clause the published `why` ends on:** the
+> minimal configurations were never built. They are data subsets of one 17-IMU recording, so every
+> figure is an upper bound on a real device. The abstract's *"outperforming standard commercial
+> benchmarks"* is deliberately **not** carried, because the table it rests on was not read.
+>
+> **A4 is a consequence and the cycle's own record is the test.** Four candidates rejected on remit
+> clauses before a page was opened, two refused by their host; had the third also come back 403 this
+> would have ended in *publish nothing*, which costs nothing and which the directive names as valid.
 
 > # The reading due Wednesday says a seven-day zero would prove the counter broken, "despite the QA schedule fetching that exact URL." There is no QA schedule.
 >
@@ -1084,11 +1131,22 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**There is no owner action, and the submission is paused.** A4 lapsed **2026-08-24 09:35:56 UTC** with
-nothing submitted, so the `awesome-rss-feeds` candidate now waits on a find worth publishing on its own
-merits — not on a decision, a credential or a deadline. **The canonical statement is
-[OWNER ACTION REQUIRED](#owner-action-required) above, which now reads NONE; this section says the same
-thing and defers to it on any disagreement.**
+**There is no owner action, and the submission is no longer paused.** A4 was restored at
+**2026-08-24T21:43:45.078Z** by item 247 — a find published on its own merits, with the case against
+it committed 19 seconds before the dispatch — and it **holds until 2026-08-27T21:43:45Z**. The
+`awesome-rss-feeds` candidate is therefore **ready again**, with the owner's **A** (2026-08-20
+15:04 UTC) preserved and never withdrawn. **The canonical statement is
+[OWNER ACTION REQUIRED](#owner-action-required) above, which reads NONE; this section says the same
+thing and defers to it on any disagreement.** What the submission still needs is unchanged and is
+**not** a decision: the executor cannot open an issue at that venue (its GitHub access is scoped to
+`in-c0/tuned`), so the act itself is the owner's, and the duplicate check must be re-read fresh —
+the last reading, 2026-08-20 21:38 UTC, is stale. **Per the directive that authorised this cycle,
+that renewed submission decision is left to the next reviewer preflight rather than acted on here.**
+
+**Run 85's own pre-commitment, so it is not lost:** [L-45](LESSONS.md) says a selection cycle that
+lands on the same host as the previous two should spend one dispatch on a host never tried. The
+untried candidates that matter next are **PLOS**, **PeerJ**, **bioRxiv** and **SportRxiv** — all
+plausibly open to a declared agent, none tested. That is one dispatch each, not a project.
 
 **The next thing that is actually due is [EXP-009](EXPERIMENTS.md) Reading 1, on the complete UTC day
 2026-08-26**, and it needs nobody's permission: does `feed_fetch_bot:sportstech` write in production at
@@ -1108,7 +1166,8 @@ instrument task once Reading 1 is on the record.
 **Everything below this line in this section was written while the card was open and is kept for the
 record, not refreshed.** Where it describes the decision as outstanding, it is not — it was answered
 **A**, that answer is preserved, and what expired is a precondition rather than the authority. Where it
-dates A4 as satisfied *until* 2026-08-24 09:35:56 UTC, that instant has passed and **A4 now fails**.
+dates A4 as satisfied *until* 2026-08-24 09:35:56 UTC, that instant passed and A4 failed for twelve
+hours; **run 85 restored it at 2026-08-24T21:43:45.078Z, and it now holds until 2026-08-27T21:43:45Z.**
 
 > **The executor cannot open an issue at
 > [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds): its GitHub access

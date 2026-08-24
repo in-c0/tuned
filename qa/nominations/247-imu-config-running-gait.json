@@ -1,0 +1,17 @@
+{
+  "itemId": 247,
+  "handle": "sportstech",
+  "url": "https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1762919/full",
+  "title": "Optimizing wearable IMU configurations for running gait analysis: a machine learning-based sensor fusion approach",
+  "category": "Research",
+  "why": "25 recreational runners on a treadmill: one lumbosacral IMU reconstructed cadence, vertical oscillation and ground contact time at R2>0.95, MAPE<5% but missed gait asymmetry (R2=0.52); adding both ankles fixed it (R2>0.91, MAPE 7.12%). Configs subset a 17-IMU Xsens recording.",
+  "preregistration": {
+    "commit": "1692fc67b7e81e64969374341f2e27b12c284b3a",
+    "committedAt": "2026-08-24T21:43:26Z",
+    "form": "nomination-markdown",
+    "transcribedAt": "2026-08-24T21:46:30Z",
+    "verifyWith": "git show 1692fc6 -- ops/EXP-008-CANDIDATES.md"
+  },
+  "publishedAt": "2026-08-24T21:43:45.078Z",
+  "notes": "R-3, run 85. The four strings are transcribed from the `Exactly what is dispatched` table of the nomination commit above, which was pushed 19.078 seconds before the dispatch. Same guarantee and same limitation as 246's: the JSON was written after the publication, so what it carries is `the strings came from a commit that predates the dispatch`, resting on a faithful transcription; `verifyWith` is how a reader checks that, and scripts/validate-nominations.mjs checks the url and title verbatim whenever the commit is in the clone. First publication from a peer-reviewed host and the first read at full-text rather than abstract level - 47,770 visible characters, read_outcome \"page\", run 32780602312."
+}
