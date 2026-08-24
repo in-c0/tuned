@@ -64,6 +64,16 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 > **A4 is a consequence and the cycle's own record is the test.** Four candidates rejected on remit
 > clauses before a page was opened, two refused by their host; had the third also come back 403 this
 > would have ended in *publish nothing*, which costs nothing and which the directive names as valid.
+>
+> **All six [EXP-008](EXPERIMENTS.md) thresholds hold, and item 247 is the first publication to clear
+> them inside its own cycle.** HTTP 201 · `public_items` 13 → 14 · `operator_publications` 2 → 3 ·
+> replay `duplicate=true` · provenance on both surfaces · the find is real. **Threshold 5 took two
+> attempts and the first one is kept:** the provenance spec passed at 21:46 while reporting
+> *"2 nominated find(s)"* — it ran before `qa/nominations/247-*.json` existed, so it graded 242 and
+> 246 and said nothing about 247. That was recorded as ungraded rather than quoted as coverage, and
+> the re-dispatch on `b1ef49f` then read *"3 nominated find(s)"*, **7 passed / 1 skipped**
+> ([32781627259](https://github.com/in-c0/tuned/actions/runs/32781627259)). The registry built at run
+> 66 was used exactly as designed: a data file, a new item graded, no spec edit.
 
 > # The reading due Wednesday says a seven-day zero would prove the counter broken, "despite the QA schedule fetching that exact URL." There is no QA schedule.
 >

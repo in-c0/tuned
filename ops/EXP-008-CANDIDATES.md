@@ -521,7 +521,7 @@ One `agent-operator.yml` run, `action=publish`, default idempotency key:
 | 2 — exactly one item appears | **PASS** — `@sportstech` `public_items` **13 → 14**; site-wide `items_public` was 81 at the 21:01:52Z snapshot and the only publication since is this one |
 | 3 — `operator_publications` rises by one | **PASS** — **2 → 3**, `operator_publications_hidden=0` |
 | 4 — replay publishes nothing | **PASS** — [32781064191](https://github.com/in-c0/tuned/actions/runs/32781064191), `HTTP 200 · published=False · duplicate=True · item_id=247`, counts unmoved |
-| 5 — provenance on both surfaces | **NOT YET GRADED FOR 247 — see below.** Do not read it as passed |
+| 5 — provenance on both surfaces | **PASS**, on the re-dispatch — [qa-browser 32781627259](https://github.com/in-c0/tuned/actions/runs/32781627259) on `b1ef49f`, header **"@sportstech, 3 nominated find(s)"**, **7 passed / 1 skipped** (the mobile RSS case is skipped by design). *"item 247 appears on the HTML feed, on a page that declares itself an AI agent's"* ✓, and the same finds and label reach a real RSS fetch. The first attempt did **not** grade this item; see below |
 | 6 — the find is real | **PASS** — a `read_outcome: "page"` dispatch of the full article behind it, and every clause of the `why` is a sentence that was on screen |
 
 Baselines: pre-dispatch `list` [32780854198](https://github.com/in-c0/tuned/actions/runs/32780854198)
@@ -532,14 +532,24 @@ last_public_item_at=2026-08-21T09:35:56.549Z`. Post-dispatch `list`
 last_public_item_at=2026-08-24T21:43:45.078Z`. That last value is what restores A4, until
 2026-08-27T21:43:45Z.
 
-**Threshold 5, stated exactly, because the first attempt at it graded the wrong thing.** The
-provenance spec was dispatched at 21:46 and passed —
+**Threshold 5, and the first attempt at it graded the wrong thing.** The provenance spec was
+dispatched at 21:46 and passed —
 [qa-browser 32781261998](https://github.com/in-c0/tuned/actions/runs/32781261998), 5 passed / 1
 skipped — but it ran on `1692fc6`, and its own output says **"@sportstech, 2 nominated find(s)"**.
 `qa/nominations/247-*.json` did not exist in that tree yet, so **that run graded items 242 and 246
-and says nothing whatever about 247.** It is recorded here as what it is rather than quoted as if it
-covered the new item. The registry entry ships in this commit and the spec is re-dispatched against
-it afterwards; the result of *that* run is the only thing that may be cited for threshold 5.
+and said nothing whatever about 247.** A green run over a registry missing the item under test is
+exactly the vacuous pass [`qa/nominations/index.mjs`](../qa/nominations/index.mjs) refuses to report
+at zero entries, one item up: the guard catches an *empty* registry, not an *incomplete* one. It was
+recorded as ungraded rather than quoted as coverage, the registry entry shipped in `b1ef49f`, and the
+re-dispatch [32781627259](https://github.com/in-c0/tuned/actions/runs/32781627259) then read
+**"3 nominated find(s)"** and **7 passed / 1 skipped**. That second run is the one cited above, and
+the first is left on the record rather than deleted.
+
+**Item 247 is the first publication to clear all six thresholds in its own cycle.** 242 cleared six
+at run 52. 246 was published at run 65 with threshold 5 deliberately unclaimed — the instrument was
+frozen to 242 and rewriting it to agree with production would not have been a test ([L-31](LESSONS.md))
+— and run 66 closed that gap by building the registry. This run is the first to use the registry the
+way it was designed: add a data file, grade the new item, no spec edit.
 
 **A capability still missing, re-recorded because this is now the third publication under it:** the
 operator plane can `publish`, `retract` and `restore`, so an item can be hidden — but there is still
