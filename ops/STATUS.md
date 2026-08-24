@@ -1043,9 +1043,10 @@ all across 2026-08-20 … 08-26 (Fork I-A/I-B), and what is the unsuffixed backg
 [EXP-010](EXPERIMENTS.md)'s `control_days` reads **2026-09-04**. Neither is a distribution attempt and
 neither should be reported as one.
 
-**Two paragraphs below were written while the card was open and are kept for the record.** They
-describe the decision as outstanding; it is not — it was answered **A**, that answer is preserved, and
-what expired is a precondition rather than the authority.
+**Everything below this line in this section was written while the card was open and is kept for the
+record, not refreshed.** Where it describes the decision as outstanding, it is not — it was answered
+**A**, that answer is preserved, and what expired is a precondition rather than the authority. Where it
+dates A4 as satisfied *until* 2026-08-24 09:35:56 UTC, that instant has passed and **A4 now fails**.
 
 > **The executor cannot open an issue at
 > [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds): its GitHub access
