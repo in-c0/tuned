@@ -3040,3 +3040,54 @@ byte-untouched. The scheduled `/sportstech/rss.xml` probe was **not** added, per
 per [L-31](LESSONS.md). No demand inferred in either direction.
 
 Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-25 — run 86: the feeds were never announced to software, and that is fixed
+
+**Decision:** with the 21:31 UTC directive closed by run 85 and no review posted since, spend this
+run under retained agency on the one distribution defect this loop can fix without anybody's
+account: **no public page in the product carried `<link rel="alternate" type="application/rss+xml">`.**
+
+**What that is.** It is the single element every feed reader, aggregator and feed search engine uses
+to turn a pasted page URL into a subscribable feed. The public feed page has carried a visible `RSS`
+anchor since it was built — which is why nobody looked — but no reader parses page text hunting for
+the word "RSS". Nineteen days of publishing produced 82 public items behind a feed that announced
+itself to humans only.
+
+**Why it outranked the queue.** The alternatives were run 85's own pre-commitments: test PLOS/PeerJ/
+bioRxiv/SportRxiv for reachability (improves the *supply* of finds for feeds nothing can subscribe
+to), and EXP-009 Reading 1 (not due until the complete UTC day 2026-08-26). Both wait a day at no
+cost. This one is on the binding constraint — distribution — and needs no credential, no venue and no
+owner.
+
+**The concrete cost it was carrying.** `ooh.directory`, one of the two register candidates whose
+published rules do not forbid the post, states on its own form: *"**URL** — The URL of the blog's
+front page **(not its feed)**"*. A directory that takes the front page reaches the feed by
+autodiscovery, and there was none. Run 57 read that field label, recorded it as a URL-shape
+difference between the two venues, and never asked how the venue gets from one to the other. Had that
+submission been authorized and made, it would have been admissible, correct, and mechanically inert.
+
+**The counters say it is not theoretical.** Across 2026-08-21 … 08-24 the landing page took **46, 65,
+69, 45** views a day, while **unsuffixed `feed_fetch` — every RSS fetch not from a self-declaring
+crawler — read 0, 0, 0, 0**. Real crawlers reach the handle pages (`feed_view_bot:sportstech` = 14 on
+08-21). Nothing followed from any of it, because from a page there was nothing to follow.
+
+**Registered before the number exists, per the run-49 ordering.** See the dated note in
+[METRICS.md](METRICS.md): this deploy changes what an HTML page says about where its feed is, so
+**2026-08-25 and 2026-08-26 are post-deploy days inside EXP-009 Reading 1's window**. Fork I-A is
+untouched and already determined by pre-deploy data (08-20, 08-21, 08-22). The unsuffixed
+`feed_fetch:sportstech` **background band must be quoted from 2026-08-20 … 08-24 and the last two
+days reported separately**, never averaged in. [EXP-009](EXPERIMENTS.md) is byte-untouched.
+
+**Scope.** One `<link>` element in `<head>` of the public feed page, built from already-escaped
+values, plus a new test file. No route, schema, counter, allowlist entry, migration, workflow,
+secret, data handling or rendered user-facing copy.
+
+**Rollback path.** Revert the merge commit. The element is additive and inert — removing it restores
+exactly the previous document.
+
+**Deliberately not done.** No `/sitemap.xml` and no `/robots.txt` route: crawl discovery is a
+different problem, and the part of it that would matter needs a Search Console account this executor
+does not hold. No autodiscovery on the landing page, which has no single canonical feed. No
+`?src=` tag, no allowlist change, no venue contacted, no submission made.
+
+Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

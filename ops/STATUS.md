@@ -1,7 +1,56 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-25 07:47 Sydney (2026-08-24 21:47 UTC), run 85 — **[OWNER ACTION REQUIRED](#owner-action-required):
-NONE.** **One `@sportstech` selection cycle ran and published one find — item 247 — and the larger
+**Last updated:** 2026-08-25 08:40 Sydney (2026-08-24 22:40 UTC), run 86 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **Every public page in this product told software the site has no feed, and that is fixed.**
+No page carried `<link rel="alternate" type="application/rss+xml">` — the one element a feed reader,
+aggregator or feed search engine uses to get from a page URL to a subscribable feed. The visible
+`RSS` anchor is why nobody looked: it made the product *look* feed-enabled to every human who
+reviewed the page, and no reader parses page text for the word "RSS". **`ooh.directory`, one of the
+two open register candidates, takes the front page and says *"(not its feed)"* on its own form** —
+so a submission there would have been admissible, correct and mechanically inert. Counters agree it
+is not theoretical: 2026-08-21 … 08-24 the landing page took **46 · 65 · 69 · 45** views a day while
+unsuffixed `feed_fetch` read **0 · 0 · 0 · 0** ([L-46](LESSONS.md)). **[EXP-009](EXPERIMENTS.md) is
+byte-untouched, Fork I-A is already determined by pre-deploy days and Fork I-B must not be fired;
+the background band is quoted from 08-20 … 08-24 only, with 08-25/08-26 reported separately as
+post-deploy** — registered in [METRICS.md](METRICS.md) before the number exists ·
+**Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The product has published RSS for nineteen days and never once told a machine the feeds exist.
+>
+> A public feed page carries a visible `RSS` link a person can click. It carried nothing at all in
+> `<head>`. **`<link rel="alternate" type="application/rss+xml">` is how every feed reader, feed
+> search engine and blog directory resolves a pasted page URL into a feed**, and it was absent from
+> every page this service serves — so a person who pasted `justtuned.com/<handle>` into their reader
+> was told there is no feed here, and so was every crawler that ever loaded one.
+>
+> **The concrete cost is in the distribution register, written there by this loop.**
+> [`ooh.directory`](DISTRIBUTION.md) is one of only two candidates whose published rules do not
+> forbid the post, and its form's field label — quoted verbatim by run 57 — reads
+> ***"URL — The URL of the blog's front page (not its feed)"***. A directory that stores the front
+> page reaches the feed by autodiscovery. Run 57 filed that label as a *URL-shape difference between
+> the two venues* and never asked how the venue gets from one to the other. **A5 was answered on the
+> counter; nobody asked whether the mechanism works at all.** [L-46](LESSONS.md) — and it is
+> [L-35](LESSONS.md) one layer out for the second time.
+>
+> **The counters say the door was being tried.** Landing views 2026-08-21 … 08-24: **46 · 65 · 69 ·
+> 45**. Unsuffixed `feed_fetch`, every RSS fetch not from a self-declaring crawler: **0 · 0 · 0 · 0**.
+> Real crawlers reach the handle pages — `feed_view_bot:sportstech` was **14** on 08-21. Nothing
+> followed from any of it, because from a page there was nothing to follow.
+>
+> **Shipped, and it is one element.** `<link rel="alternate" type="application/rss+xml" title="…"
+> href="/<handle>/rss.xml">` in `<head>` of the public feed page, from already-escaped values, plus
+> [`test/discovery.test.ts`](../test/discovery.test.ts) — five tests that fail on the pre-change code,
+> and that check the advertised href by **following it and requiring a feed back**, not by matching a
+> string. No route, schema, counter, allowlist entry, migration, workflow, secret or rendered copy.
+>
+> **Deliberately not shipped:** `/sitemap.xml` and `/robots.txt` (crawl discovery is a different
+> problem and the half that would matter needs a Search Console account this executor does not hold);
+> autodiscovery on the landing page, which has no single canonical feed; and any submission, tag or
+> allowlist change. **Nothing was submitted and no venue was contacted.**
+
+<!-- run 85's card, kept as written -->
+
+**Run 85 (2026-08-25 07:47 Sydney):** **One `@sportstech` selection cycle ran and published one find — item 247 — and the larger
 result is the host it came from.** Six candidates were graded against the remit; four were rejected
 before a page was opened, and the two best-on-paper were peer-reviewed MDPI *Sensors* papers that
 **`mdpi.com` refused** (HTTP 403, twice). **`frontiersin.org` served the full article** — 47,770
@@ -1140,6 +1189,27 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
   the lesson is [L-17](LESSONS.md).
 
 ## Next action
+
+**Run 86 changed one thing on this list and it is worth stating first: `ooh.directory`'s mechanism now
+works.** That venue takes the front page *"(not its feed)"*, and until this run the front page
+announced no feed. Its A5 still **FAILS** for an unrelated and unchanged reason — `ARRIVAL_TAGS` holds
+only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes nothing — and **nothing was shipped
+for it**, per [L-33](LESSONS.md): no tag is added for a venue whose A2 is unanswered. What changed is
+that the defect underneath A5 is gone, not the grade.
+
+**The band caveat below is binding and is registered in [METRICS.md](METRICS.md).** When
+[EXP-009](EXPERIMENTS.md) Reading 1 is graded on the complete UTC day **2026-08-26**: Fork I-A is
+already determined by pre-deploy days and is graded normally; **Fork I-B must not be fired**; and the
+unsuffixed `feed_fetch:sportstech` **background band is quoted from 2026-08-20 … 08-24 only**, with
+**08-25 and 08-26 reported separately and labelled post-autodiscovery**. A non-zero post-deploy day is
+evidence the discovery path works, not evidence of a pre-existing noise floor; a zero on both is not
+evidence it failed. **Do not average the two regimes.**
+
+**Still pre-committed and still not done, in order:** the scheduled `/sportstech/rss.xml` probe, which
+is [L-31](LESSONS.md) before Reading 1 and is the next instrument task after it; and one dispatch each
+at **PLOS, PeerJ, bioRxiv and SportRxiv**, run 85's [L-45](LESSONS.md) pre-commitment.
+
+**Everything from here to the end of this section predates run 86 and is kept as written.**
 
 **There is no owner action, and the submission is no longer paused.** A4 was restored at
 **2026-08-24T21:43:45.078Z** by item 247 — a find published on its own merits, with the case against

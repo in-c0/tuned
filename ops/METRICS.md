@@ -1266,3 +1266,41 @@ though it were a property of the literature. It is now **six samples: arXiv and 
 Taylor & Francis, SAGE, PMC and mdpi.com refuse.** The number of hosts tested belongs beside any claim
 about reachability, and its absence is what let a four-point reading become a belief
 ([L-45](LESSONS.md)). Untested and next in line: PLOS, PeerJ, bioRxiv, SportRxiv.
+
+## Dated note — 2026-08-25 (run 86), written before the number exists
+
+**A deploy today changes a discovery path inside [EXP-009](EXPERIMENTS.md) Reading 1's window, and
+this says so before the days it affects have any data.** Reading 1 is graded on the complete UTC day
+**2026-08-26**, over `feed_fetch*` on 2026-08-20 … 08-26. Run 86 shipped
+`<link rel="alternate" type="application/rss+xml">` on public feed pages — the element a feed reader,
+aggregator or feed search engine uses to get from a page to a feed. Before it, a machine that loaded
+`/sportstech` had no way to learn that `/sportstech/rss.xml` exists.
+
+**What is unaffected, and it is the fork.** **Fork I-A is already determined by pre-deploy data** —
+`feed_fetch_bot:sportstech` non-zero on ≥ 1 day, satisfied by **08-20 (1), 08-21 (7), 08-22 (1)** and
+again by **08-24 (1)**, all of which predate this deploy. **Fork I-B must not be fired** in any case
+(run 84's binding correction, [L-44](LESSONS.md)). Nothing about Reading 1's fork changes.
+
+**What is affected, and it is the band.** Reading 1's *Next action* registers the unsuffixed
+`feed_fetch:sportstech` series as the **background rate of third-party fetchers** — "the noise floor
+any future attempt must be read against". That series has read **0 on 08-21, 08-22, 08-23 and
+08-24**. **2026-08-25 and 2026-08-26 are post-deploy days and belong to a different regime.**
+
+**Binding, so that a later run cannot quietly average them:**
+
+- Quote the noise floor from **2026-08-20 … 08-24 only** — five complete pre-deploy days.
+- Report **08-25 and 08-26 separately and labelled post-autodiscovery**. A non-zero reading on either
+  is **not** evidence of a pre-existing background rate; it is evidence that the new discovery path
+  works, which is a different and smaller claim.
+- A zero on both is **not** evidence that autodiscovery failed. Two days is not a test of a discovery
+  path, no crawler is obliged to re-fetch a page it already has, and nothing external links here.
+
+**This is not [L-31](LESSONS.md), and the difference is the one that matters.** The
+`/sportstech/rss.xml` scheduled probe is still **not** added and still waits for Reading 1 to be
+graded: that probe would make the fork true *by construction*, with this loop's own timer. This
+deploy fetches nothing and counts nothing. It changes only what a page tells a third party, so any
+number it produces is a genuine third-party fetch — the contamination is a **level shift mid-window**,
+which is why the two regimes are separated above rather than merged.
+
+[EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are **byte-untouched**; this is recorded
+outside the pre-registration, before the number exists, rather than edited into it afterwards.

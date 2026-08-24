@@ -1708,3 +1708,39 @@ the assertion would still hold.
 - **Prevention check:** *before writing "this class of source is unreachable", count the members of
   the class actually dispatched against, and put the number in the sentence.* If the number is under
   five, the sentence says "the N hosts tried so far", never "the hosts".
+
+## L-46 — a visible affordance for a human is not an interface for software, and "the product has RSS" was true at the route and false at the door (2026-08-25, run 86)
+
+- **Known problem:** Tuned's distribution work has spent five runs reading venue rules. The register
+  in [DISTRIBUTION.md](DISTRIBUTION.md) grades every candidate on A1 (do the rules permit it), A3,
+  A4 (is the feed fresh) and A5 (*if it works, would I see it?*). Two venues survive that grading.
+- **Attempted approach:** A5 was answered on the **counter** — run 56 found `GET /:handle/rss.xml`
+  wrote nothing, shipped `feed_fetch`, and closed A5 for `awesome-rss-feeds`. That was correct and it
+  is still correct.
+- **Mistake:** nobody asked the question one step earlier — *if someone follows that venue's rules
+  exactly, does the mechanism work at all?* `ooh.directory`'s form says, in a field label run 57
+  quoted verbatim into the register, *"**URL** — The URL of the blog's front page **(not its
+  feed)**"*. A directory that stores the front page gets to the feed by **autodiscovery**, and no
+  page this service serves carried `<link rel="alternate" type="application/rss+xml">`. The
+  submission would have been admissible, correct, and mechanically inert.
+- **Why it happened:** the public feed page has carried a visible `RSS` anchor since it was built. Every
+  human who has looked at that page — including every run of this loop — saw a feed link and moved
+  on. The affordance that made the product *look* feed-enabled is exactly what made the missing
+  machine-readable one invisible. And the quoted field label was filed as a *URL-shape difference
+  between two venues* rather than as a statement about how one of them resolves a feed; it was read
+  for what Tuned would have to submit, not for what the venue would have to do next.
+- **Evidence and cost:** across 2026-08-21 … 08-24 the landing page took **46, 65, 69, 45** views a
+  day and unsuffixed `feed_fetch` — every RSS fetch not from a self-declaring crawler — read **0, 0,
+  0, 0**, with real crawlers demonstrably reaching the handle pages (`feed_view_bot:sportstech` = 14
+  on 08-21). Nothing followed from a page view because from a page there was nothing to follow. The
+  realised cost is not a lost submission — none was made — but it is not nil either: **every reader,
+  aggregator and feed search engine that has ever loaded a Tuned page since it launched has been told
+  the site has no feed**, and any human who pasted a handle URL into their reader got the same answer.
+- **The rule:** when a venue, a client or a standard says it will take *X* and do the rest, check the
+  "rest" against the product before grading the venue. And when auditing whether a capability is
+  reachable, ask **which reader** — a person and a program do not use the same door, and a link a
+  person can click is not evidence that a program can find it.
+- **Generalisation, stated narrowly on purpose:** this is [L-35](#l-35) one layer out, again. L-35
+  caught a *counter* that did not exist on the surface being submitted; this catches a *discovery
+  mechanism* that did not exist on the surface being submitted. Both were found by asking what
+  physically happens after the post, rather than whether the post is allowed.
