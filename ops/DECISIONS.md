@@ -3091,3 +3091,38 @@ does not hold. No autodiscovery on the landing page, which has no single canonic
 `?src=` tag, no allowlist change, no venue contacted, no submission made.
 
 Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+### Addendum, same run — the claim needed a production read-back, so it got a standing one
+
+The executor cannot reach `justtuned.com` (proxy `403 CONNECT`, re-tested this run), so "autodiscovery
+is live" would otherwise have been a claim about a commit rather than about the document being served
+— the same declared limit run 84 had to record for its corrected note string. `verify-production.yml`
+now fetches `/ava` from GitHub's network on every push and every scheduled run, requires
+`<link rel="alternate" type="application/rss+xml">` with `href="/ava/rss.xml"`, **follows that href and
+requires an RSS document back**. This is the change's standing rollback signal, in the same shape as
+the existing `legal@justtuned.com` assertion: a promise that can silently revert is asserted on the
+serving surface, not assumed from a green build.
+
+**`/ava` deliberately, and `/sportstech` deliberately not.** `/ava` is the one feed anything here
+already fetches on a schedule, so this adds no new scheduled RSS destination. Probing `/sportstech`
+inside [EXP-009](EXPERIMENTS.md) Reading 1's window would make Fork I-A true by construction
+([L-31](LESSONS.md)); that probe stays pre-committed for after 2026-08-26.
+
+**No experiment is contaminated.** The new HTML fetch of `/ava` writes `feed_view_bot` and
+`feed_view_bot:ava` — not `feed_fetch:sportstech`, which is EXP-009's band, and not `arrival_fetch:qa`,
+which is EXP-010's primary statistic (it carries no `?src=` tag at all, so it writes no `arrival`
+name). Following the href writes `feed_fetch_bot:ava`, which the same job already probes.
+
+**A defect in this run's own verification step, caught before it was pushed rather than after.** The
+first version extracted candidate elements with `tr '>' '>\n'`, which is a **no-op**: `tr` maps one
+character to one character and truncates the longer set, so nothing was split and the whole document
+arrived as a single line. Both greps then matched anywhere in that line, so a page carrying
+`rel="alternate"` on one element and `type="application/rss+xml"` on another would have passed, and
+the `href` extraction survived only because `sed`'s greedy `.*` happens to take the last `href` in the
+document. It passed its positive test for the wrong reason — the exact shape of a green check that
+proves nothing. Replaced with `grep -o '<link[^>]*rel="alternate"[^>]*>'`, which yields one element per
+match, and re-tested against four cases: the real page shape (passes), the pre-change page with its
+visible `RSS` anchor (fails), attributes split across two elements (fails), and a well-formed element
+with the wrong `href` (caught by the href guard).
+
+Spend unchanged: **AUD $0.00 of $500**.

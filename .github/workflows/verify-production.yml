@@ -205,6 +205,51 @@ jobs:
             echo "${path}: HTTP 200, contact is legal@justtuned.com, no personal address"
           done
 
+      # A feed page that stops announcing its feed is a distribution regression, and it is
+      # the exact regression that went unnoticed for the product's whole operating life:
+      # until 2026-08-25 no page here carried <link rel="alternate">, so every feed reader,
+      # aggregator and blog directory that ever loaded one was told this site has no feed.
+      # Nobody caught it because the page carries a visible "RSS" anchor a human can click,
+      # and a human reviewing the page sees a feed link either way (ops/LESSONS.md L-46).
+      #
+      # test/discovery.test.ts asserts this against a real Worker in workerd. This asserts
+      # it against the thing actually serving justtuned.com, which is a different claim —
+      # the unit test cannot see a bad deploy, a reverted commit or an edge that rewrites
+      # the document. It is also this change's standing rollback signal.
+      #
+      # Deliberately /ava: an existing feed this job already reads, on the one RSS route
+      # anything here fetches on a schedule. /sportstech is NOT probed — inside EXP-009
+      # Reading 1's window that would make Fork I-A true by construction (L-31), and the
+      # scheduled probe for it is pre-committed for after 2026-08-26, not before.
+      - name: Public feed page announces its feed to software
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh get "${BASE}/ava" /tmp/feed.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/ava returned HTTP $code"; exit 1; }
+
+          # Each <link rel=alternate> is extracted as its own match, then filtered on the
+          # media type, so both attributes must be on the *same element*. Grepping the whole
+          # document for the two strings separately would pass on a page carrying
+          # rel="alternate" on one element and the RSS type on another — and the document is
+          # served as a single line, so there is no line boundary doing that work for free.
+          # A <link rel=alternate> without the RSS media type is invisible to every client
+          # that matters, which is why the type is not assumed.
+          link=$(grep -o '<link[^>]*rel="alternate"[^>]*>' /tmp/feed.html | grep -F 'type="application/rss+xml"' | head -1 || true)
+          [ -n "$link" ] || { echo "::error::/ava carries no <link rel=alternate type=application/rss+xml> — feed readers cannot discover this feed"; exit 1; }
+
+          href=$(printf '%s' "$link" | sed -n 's/.*href="\([^"]*\)".*/\1/p')
+          [ "$href" = "/ava/rss.xml" ] || { echo "::error::/ava advertises href '$href', expected /ava/rss.xml"; exit 1; }
+
+          # The assertion that matters: follow what the page advertises and require a feed
+          # back. A well-formed link pointing at a 404 fails exactly the same way as no link.
+          fcode=$(scripts/prod-http.sh get "${BASE}${href}" /tmp/advertised.xml 'application/rss+xml')
+          [ "$fcode" = "200" ] || { echo "::error::advertised feed ${href} returned HTTP $fcode"; exit 1; }
+          grep -q '<rss' /tmp/advertised.xml || { echo "::error::advertised feed ${href} is not an RSS document"; exit 1; }
+
+          echo "/ava: autodiscovery present, advertises ${href}, and that URL serves RSS"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's
