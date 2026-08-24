@@ -3126,3 +3126,22 @@ visible `RSS` anchor (fails), attributes split across two elements (fails), and 
 with the wrong `href` (caught by the href guard).
 
 Spend unchanged: **AUD $0.00 of $500**.
+
+**Verified in production, and this is a read-back of the served document rather than of a commit
+stamp.** [verify production 32784804177](https://github.com/in-c0/tuned/actions/runs/32784804177) on
+`653f09d`, vantage `BASE: https://justtuned.com` — **the public zone, not the Worker origin**. Step
+*"Wait for the expected commit to be serving"* passed at 22:29:03Z, then step *"Public feed page
+announces its feed to software"* printed at 22:29:06Z:
+
+> `/ava: autodiscovery present, advertises /ava/rss.xml, and that URL serves RSS`
+
+*Public availability* is **skipped**, which is its healthy state: it fires only when
+`zone_blocked == true`, so a skip means justtuned.com itself answered every check above. All other
+standing signals green — site up, `/api/metrics` refuses unauthenticated callers,
+`/api/operator/agents` refuses unauthenticated callers, funnel pulse refuses a foreign caller, public
+pages render. The earlier run [32784600802](https://github.com/in-c0/tuned/actions/runs/32784600802)
+on `28d9c65` was also green but ran the **old** workflow and did not assert autodiscovery; it is not
+cited as evidence for it.
+
+Executor egress unchanged: `curl` to `justtuned.com` still returns `CONNECT tunnel failed, response
+403`. Every production statement here is from Actions.
