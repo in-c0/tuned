@@ -35,9 +35,9 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 > **Said plainly, and against our own interest: this costs us nothing on Wednesday.** The counter has
 > already written on three days inside the window, so the measurement lands on *"the counter works"*
 > whatever else happens, and the find does not change its answer. What it prevents is the other branch:
-> a quiet week — and three of the last five days were one button-press away from that — would have had
-> us declare a perfectly healthy counter broken, and shut down a distribution route on the strength of
-> it.
+> a quiet week would have had us declare a perfectly healthy counter broken, and shut down a
+> distribution route on the strength of it. That was not far off: of the five days with data, **two
+> would have read zero if one button-press had not happened, and one already read zero**.
 >
 > **What we did about it.** Corrected the wrong description everywhere it is actually published,
 > including on the live site. Wrote down, *before Wednesday's number exists*, that the "seven days of

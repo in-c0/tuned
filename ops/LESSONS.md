@@ -1646,9 +1646,9 @@ the assertion would still hold.
   **The realised cost this run is nil, and saying otherwise would overstate it:** Fork I-A needs
   non-zero on ≥ 1 day of 08-20 … 08-26 and three of those days already qualify, so Reading 1 lands on
   I-A regardless. The cost was **contingent** and it was large: a week in which no run happened to
-  dispatch a QA spec — three of the last five days came close — would have produced a seven-day zero,
-  fired Fork I-B, and had the loop declare a working counter defective and fail A5 for every tagged
-  candidate on the strength of it.
+  dispatch a QA spec would have produced a seven-day zero, fired Fork I-B, and had the loop declare a
+  working counter defective and fail A5 for every tagged candidate on the strength of it. Of the five
+  days with data, **two would have read zero had a single dispatch not happened, and one already did**.
 - **Lesson:** **"our own traffic guarantees this counter is non-zero" is a claim about a scheduler,
   not about a user agent.** Before a zero is allowed to mean *broken*, name the timer, open the file
   it lives in, and check that the URL it requests is the one being graded. A signal whose floor is

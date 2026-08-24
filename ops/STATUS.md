@@ -46,9 +46,10 @@ demand may be inferred from this lapse in either direction ·
 > **Stated against our own interest: the realised cost is nil.** Fork I-A needs non-zero on ≥ 1 day of
 > 08-20 … 08-26, and 08-20, 08-21 and 08-22 already clear it. **Reading 1 lands on I-A on Wednesday
 > whatever happens next**, and this find changes its outcome not at all. What it changes is the
-> contingent case, which was not small: a week in which no run dispatched a QA spec — three of the last
-> five days came within one dispatch of it — would have fired I-B, declared a working counter
-> defective, and failed A5 for every tagged candidate on the strength of it.
+> contingent case, which was not small. A week in which no run dispatched a QA spec fires I-B, declares
+> a working counter defective, and fails A5 for every tagged candidate on the strength of it — and the
+> five days with data read **4 · 1 · 7 · 1 · 0**, so **two of them would have been zero had a single
+> dispatch not happened, and one already was**.
 >
 > **Binding, and narrower than it sounds.** **Fork I-B is unfalsifiable as written and must not be
 > fired on 2026-08-26**, because its stated evidence does not exist; Fork I-A is graded normally, and
