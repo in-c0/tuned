@@ -1607,3 +1607,58 @@ what a second instance would contain that the first does not — and if the answ
 pipeline transforms", the instrument is asserting on an untested code path.* Concretely: before
 declaring a single-case instrument green, write down one input it has never seen and check whether
 the assertion would still hold.
+
+## L-44 — a liveness signal needs a scheduler, and "the QA schedule" was three dispatch-only specs (2026-08-24, run 84)
+
+- **Known problem:** [EXP-009](EXPERIMENTS.md)'s Reading 1, due on the complete UTC day 2026-08-26,
+  asks whether the RSS counter writes at all. It grades `feed_fetch_bot:sportstech` **because** —
+  in its own words — *"this loop's own scheduled QA fetches of `/sportstech/rss.xml` … land in
+  `feed_fetch_bot`"*, so that name is *"non-zero whenever the QA schedule runs"*. Fork I-B fires
+  when it is zero across seven days *"despite the QA schedule fetching that exact URL."*
+- **Attempted approach:** at run 56 the loop checked *which bucket* its own traffic lands in — it
+  opened `qa/playwright.config.mjs`, confirmed the `HeadlessChrome` user agent, confirmed `isBot()`
+  matches it, and corrected the fork from the unsuffixed name to the `_bot` one. That correction is
+  right and stands.
+- **Mistake:** it never checked whether the schedule it was invoking **exists**. It does not.
+  - The three specs EXP-009 names — `qa/freshness.spec.mjs`, `qa/public-surfaces.spec.mjs`,
+    `qa/exp008-provenance.spec.mjs` — run only from
+    [`qa-browser.yml`](../.github/workflows/qa-browser.yml), which is `workflow_dispatch`-only **by
+    deliberate design**. The workflow says so in its own header, and gives the reason: *"Dispatch-only
+    on purpose: these are experiments, not gates. Running them on every push would put recurring
+    headless traffic through production's own funnel counters for no additional evidence."*
+  - The only two workflows with a `schedule:` block —
+    [`verify-production.yml`](../.github/workflows/verify-production.yml) (06:20 Sydney) and
+    [`metrics-snapshot.yml`](../.github/workflows/metrics-snapshot.yml) (06:40 Sydney) — each probe
+    exactly one feed's RSS, and it is **`/ava/rss.xml`**, not `/sportstech/rss.xml`.
+  - Those probes are not the headless suite either. They go through
+    [`scripts/prod-http.sh`](../scripts/prod-http.sh), whose UA is
+    `tuned-ops-verifier/1.0 (+…; first-party uptime and metrics check)`. It lands in `_bot` — but on
+    `BOT_UA`'s `uptime` token, not on `headless`, and not from Playwright.
+- **Why it happened:** the sentence bundled three separable claims — *this traffic is bot-flagged*,
+  *this traffic recurs on a timer*, and *this traffic reaches this handle* — and run 56 verified the
+  first, which is the one a config file answers. The other two are answered by workflow triggers and
+  by a URL literal in a probe line, and neither was opened. The bundling is what hid it: the
+  correction felt like a completed audit of the claim because part of the claim really had been
+  audited.
+- **Evidence and cost:** the counter's own series, `feed_fetch_bot:sportstech` on
+  [`ops/metrics/`](metrics/): **08-19 4 · 08-20 1 · 08-21 7 · 08-22 1 · 08-23 0**. Irregular, and
+  already zero on a day inside the reading window — the signature of ad-hoc dispatch, not of a timer.
+  **The realised cost this run is nil, and saying otherwise would overstate it:** Fork I-A needs
+  non-zero on ≥ 1 day of 08-20 … 08-26 and three of those days already qualify, so Reading 1 lands on
+  I-A regardless. The cost was **contingent** and it was large: a week in which no run happened to
+  dispatch a QA spec would have produced a seven-day zero, fired Fork I-B, and had the loop declare a
+  working counter defective and fail A5 for every tagged candidate on the strength of it. Of the five
+  days with data, **two would have read zero had a single dispatch not happened, and one already did**.
+- **Lesson:** **"our own traffic guarantees this counter is non-zero" is a claim about a scheduler,
+  not about a user agent.** Before a zero is allowed to mean *broken*, name the timer, open the file
+  it lives in, and check that the URL it requests is the one being graded. A signal whose floor is
+  produced by the observer's own discretionary actions cannot distinguish *the instrument failed*
+  from *the observer was busy* — and that is the one distinction a liveness fork exists to make.
+- **More elegant next attempt:** a fork that turns silence into a verdict should carry, in the
+  pre-registration, the workflow file and cron line that guarantee the non-silence — the same way a
+  nomination carries its pre-registration commit. If that field cannot be filled in, the fork is not
+  gradeable and should not be written.
+- **Prevention check:** *for any counter described as a liveness signal, grep the workflow directory
+  for a `schedule:` block that requests that exact route, and paste the matching line beside the
+  claim.* Concretely: `grep -n "schedule:" -A2 .github/workflows/*.yml` and then grep those files for
+  the route. If no line comes back, the word "scheduled" may not appear in the description.

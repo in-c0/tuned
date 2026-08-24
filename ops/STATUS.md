@@ -1,7 +1,11 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-24 19:40 Sydney (09:40 UTC), run 83 — **[OWNER ACTION REQUIRED](#owner-action-required):
-NONE.** The A4 freshness window lapsed at **2026-08-24 09:35:56 UTC** with no submission made, and the
+**Last updated:** 2026-08-24 20:14 Sydney (10:14 UTC), run 84 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **EXP-009's Reading 1, due 2026-08-26, rests on a QA schedule that does not exist; the
+premise is withdrawn where it is published and Fork I-B must not be fired.** Nothing in
+[EXPERIMENTS.md](EXPERIMENTS.md) was edited — the freeze holds — and Reading 1 still lands on Fork
+I-A, which three days already satisfy. Carried forward from run 83, unchanged: the A4 freshness
+window lapsed at **2026-08-24 09:35:56 UTC** with no submission made, and the
 owner card is retired on its own stated terms rather than restated. **The owner's `A` — granted
 2026-08-20 15:04 UTC — is preserved, not withdrawn and not re-asked**; what expired is a
 precondition of the submission, not the authority to make it. **The `awesome-rss-feeds` candidate is
@@ -13,6 +17,55 @@ is the second window to lapse unused under that rule (the first at 2026-08-21 04
 stays ungraded at **Fork D's precondition**: no submission was authorized-and-made, so nothing about
 demand may be inferred from this lapse in either direction ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The reading due Wednesday says a seven-day zero would prove the counter broken, "despite the QA schedule fetching that exact URL." There is no QA schedule.
+>
+> [EXP-009](EXPERIMENTS.md)'s **Reading 1** — the half that needs nobody's permission, due on the
+> complete UTC day **2026-08-26** — grades `feed_fetch_bot:sportstech` and justifies the choice in its
+> own words: *"this loop's own **scheduled** QA fetches of `/sportstech/rss.xml` … land in
+> `feed_fetch_bot`"*, so that name is *"non-zero whenever the QA schedule runs"*. **Fork I-B** turns a
+> seven-day zero into a verdict — *the counter is not landing in production and the instrument is
+> defective* — on exactly that guarantee.
+>
+> **Opened this run rather than recalled, and the guarantee is not there.** The three specs the
+> pre-registration names run only from
+> [`qa-browser.yml`](https://github.com/in-c0/tuned/blob/master/.github/workflows/qa-browser.yml),
+> which is `workflow_dispatch`-only **by deliberate design** — its own header says so, and gives the
+> reason: *"Running them on every push would put recurring headless traffic through production's own
+> funnel counters for no additional evidence."* The only two workflows with a `schedule:` block,
+> `verify-production.yml` (06:20 Sydney) and `metrics-snapshot.yml` (06:40 Sydney), each probe exactly
+> one feed's RSS and it is **`/ava/rss.xml`**. They are not the headless suite either: they run
+> `scripts/prod-http.sh`, whose UA lands in `_bot` on `BOT_UA`'s **`uptime`** token, not on `headless`.
+>
+> **What that makes the counter.** `feed_fetch_bot:ava` is a liveness signal. `feed_fetch_bot:<any
+> other handle>` is a record of **when this loop happened to dispatch a QA spec** — and the series says
+> so: **08-19 4 · 08-20 1 · 08-21 7 · 08-22 1 · 08-23 0**. A signal whose floor is produced by the
+> observer's own discretionary actions cannot tell *the instrument failed* from *the observer was
+> busy*, which is the one distinction a liveness fork exists to make. [L-44](LESSONS.md).
+>
+> **Stated against our own interest: the realised cost is nil.** Fork I-A needs non-zero on ≥ 1 day of
+> 08-20 … 08-26, and 08-20, 08-21 and 08-22 already clear it. **Reading 1 lands on I-A on Wednesday
+> whatever happens next**, and this find changes its outcome not at all. What it changes is the
+> contingent case, which was not small. A week in which no run dispatched a QA spec fires I-B, declares
+> a working counter defective, and fails A5 for every tagged candidate on the strength of it — and the
+> five days with data read **4 · 1 · 7 · 1 · 0**, so **two of them would have been zero had a single
+> dispatch not happened, and one already was**.
+>
+> **Binding, and narrower than it sounds.** **Fork I-B is unfalsifiable as written and must not be
+> fired on 2026-08-26**, because its stated evidence does not exist; Fork I-A is graded normally, and
+> the unsuffixed background band is unaffected (that half was withdrawn separately at run 58).
+> **[EXP-009](EXPERIMENTS.md) is byte-untouched** — frozen to revision since run 57 — so this is
+> recorded here, in [METRICS.md](METRICS.md), in [LESSONS.md](LESSONS.md) and in the deployed comment,
+> **before the number exists**, rather than edited into the pre-registration after the fact.
+>
+> **And the obvious fix is deliberately not shipped.** Adding `/sportstech/rss.xml` to the scheduled
+> probes would make 08-24 … 08-26 non-zero *by construction* and turn Fork I-A into a tautology inside
+> its own window — [L-31](LESSONS.md) exactly. It is pre-committed for **after Reading 1 is graded**,
+> not before.
+>
+> **What this is not.** No submission was made anywhere, nothing was published to any venue, and no
+> human has been shown anything. `applications` **0**, `members_ever_active` **0**, followers **0**,
+> `items_public` **80**, gross cash **AUD $0** from *no billing exists*, spend **AUD $0.00 of $500**.
 
 > # 23 fetches on day one, 1 on day two. A burst that decayed is a crawl — which is the exact call EXP-009's Fork A exists to make, and we got it backwards on our own data.
 >
@@ -1043,6 +1096,15 @@ all across 2026-08-20 … 08-26 (Fork I-A/I-B), and what is the unsuffixed backg
 [EXP-010](EXPERIMENTS.md)'s `control_days` reads **2026-09-04**. Neither is a distribution attempt and
 neither should be reported as one.
 
+**Grade Reading 1 under run 84's correction, which is binding and is in the headline card above.**
+**Fork I-B must not be fired**: its stated evidence — *"the QA schedule fetching that exact URL"* —
+does not exist, so a zero could never have meant what the fork says it means. Fork I-A is graded
+normally and **is already satisfied** by 08-20 (1), 08-21 (7) and 08-22 (1); read the unsuffixed
+`feed_fetch:sportstech` band alongside it as registered. **Do not add `/sportstech/rss.xml` to the
+scheduled probes before that grading** — inside the window it would make the fork a tautology
+([L-31](LESSONS.md)) — and **do add it after**, which is pre-committed here and is the next
+instrument task once Reading 1 is on the record.
+
 **Everything below this line in this section was written while the card was open and is kept for the
 record, not refreshed.** Where it describes the decision as outstanding, it is not — it was answered
 **A**, that answer is preserved, and what expired is a precondition rather than the authority. Where it
@@ -1099,8 +1161,12 @@ satisfied, A3 ✅, A4 ✅ **until 2026-08-24 09:35:56 UTC** (item 246, run 65 �
    merge that strips the `?src=` tag.
 2. **EXP-009 Reading 1, due on the complete UTC day 2026-08-26** and gradeable without anyone's
    permission: does `feed_fetch:sportstech` write in production at all, and what is the background
-   fetch rate? Fork I-B — seven days of silence on a route this loop's own QA fetches on a schedule —
-   would mean the instrument is defective and A5 fails again. **Read it against run 57's dated note:**
+   fetch rate? ~~Fork I-B — seven days of silence on a route this loop's own QA fetches on a schedule —
+   would mean the instrument is defective and A5 fails again.~~ **Struck run 84: there is no such
+   schedule.** Nothing on a timer fetches `/sportstech/rss.xml` — the two scheduled workflows probe
+   `/ava/rss.xml` only, and the specs that cover every handle are dispatch-only by design. **Fork I-B
+   must not be fired** ([L-44](LESSONS.md)); Fork I-A is graded normally and is already satisfied by
+   08-20, 08-21 and 08-22. **Read it against run 57's dated note:**
    the counters' first day shows unsuffixed `feed_fetch` at **16, all tag-carrying and unattributed**,
    so *"background rate of third-party fetchers"* is not a description that survived contact with
    data. The liveness half behaved as registered; the baseline half did not.

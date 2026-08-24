@@ -772,10 +772,25 @@ app.get("/:handle/rss.xml", async (c) => {
   // never be read as human traffic. Every fetch of an RSS URL is a machine; what the split
   // separates is a self-declaring crawler from a feed reader that does not self-declare.
   //
-  // This loop's own scheduled QA fetches of this route land in `feed_fetch_bot`, not in the
-  // unsuffixed name: qa/playwright.config.mjs sets a `HeadlessChrome` user agent for every
-  // spec and every APIRequestContext, which isBot() matches. So `feed_fetch_bot:<handle>` is
-  // the liveness signal — it is non-zero whenever the QA schedule is running.
+  // This loop's own automated fetches of this route land in `feed_fetch_bot`, not in the
+  // unsuffixed name. **But "the QA schedule" this comment used to invoke does not exist**, and
+  // the correction matters: a liveness signal with no scheduler behind it cannot be read the
+  // way a silent one was going to be read (L-44).
+  //
+  // What is actually scheduled: verify-production.yml (06:20 Sydney) and metrics-snapshot.yml
+  // (06:40 Sydney), both through scripts/prod-http.sh, whose UA
+  // `tuned-ops-verifier/1.0 (+…; first-party uptime and metrics check)` matches BOT_UA on the
+  // token `uptime` — not on `headless`, and not from Playwright at all. Each probes exactly one
+  // feed: `/ava/rss.xml`. Nothing on a schedule fetches any other handle's RSS.
+  //
+  // The three headless specs that do fetch every handle — qa/freshness.spec.mjs,
+  // qa/public-surfaces.spec.mjs, qa/exp008-provenance.spec.mjs — run only from qa-browser.yml,
+  // which is `workflow_dispatch`-only by deliberate design; its own header gives the reason,
+  // that recurring headless traffic through production's funnel counters buys no evidence.
+  //
+  // So `feed_fetch_bot:ava` is a liveness signal, and `feed_fetch_bot:<any other handle>`
+  // records how often this loop happened to dispatch a QA spec. A zero day on those names
+  // means nobody dispatched one — never, on its own, that the counter is broken.
   //
   // Unsuffixed `feed_fetch:<handle>` was described here, on the deploy that introduced it, as
   // "a genuine background rate of third-party fetchers". **Its first two days of data say
