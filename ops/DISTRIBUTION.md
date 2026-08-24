@@ -1186,3 +1186,40 @@ throughout) · A3 ✅ · A4 ✅ · A5 ✅** — the same state it held on 2026-0
 
 **The duplicate check is stale and must be re-read before any submission.** Last read 2026-08-20
 21:38 UTC. A four-day-old duplicate reading is exactly the kind of claim [L-42](LESSONS.md) is about.
+
+---
+
+## 2026-08-25 (run 86) — a mechanism defect under `ooh.directory`, found in this register's own quote
+
+**No grade in the table above changes.** `ooh.directory` still reads **A5 ❌** for the reason already
+recorded — the URL it takes is the **front page**, so run 48's HTML instrument applies to the route,
+but `ARRIVAL_TAGS` holds only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes nothing.
+**Nothing was shipped for that tag**, per [L-33](LESSONS.md): no A5 threshold and no allowlist entry
+for a venue whose A2 is unanswered. Its A2 is unanswered.
+
+**What was wrong sits one layer below A5, and it was quoted into this file by run 57 and read for the
+wrong thing.** The form's field label:
+
+> **URL** — The URL of the blog's front page **(not its feed)**
+
+That was filed as a *URL-shape difference between the two open candidates* — `awesome-rss-feeds` takes
+`/sportstech/rss.xml`, `ooh.directory` takes `/sportstech` — and the register's procedure moved on to
+whether the route counted. **The question never asked is how a directory that stores a front page
+gets to the feed.** It is `<link rel="alternate" type="application/rss+xml">`, and until run 86 **no
+page this service serves carried one.** A submission to `ooh.directory` would have been admissible
+under A1, correct in every field, and mechanically inert: the venue would have had a URL and no feed.
+
+**Shipped this run:** autodiscovery on `/:handle`, pointing at that handle's own `rss.xml`, with a
+test that follows the advertised href and requires a feed back. **Consequence for this register:** the
+*mechanism* under `ooh.directory` now works; its **A5 grade is unchanged and still fails**, and its A2
+is still open. **No venue was contacted, no form submitted, no account used and no real channel tag
+exercised** by this run.
+
+**Procedural amendment, and it applies to every future candidate.** The A-conditions grade whether a
+post is *permitted* (A1), *fresh* (A4) and *visible to us* (A5). Add, before A5 is graded: **if
+someone follows this venue's stated rules exactly, does the mechanism work end to end on Tuned's
+side?** A5 asks *would I see it*. This asks *would it work*. `ooh.directory` passed the first question's
+ancestor for six days while failing this one. [L-46](LESSONS.md).
+
+**The duplicate check for `awesome-rss-feeds` remains stale** — last read 2026-08-20 21:38 UTC — and
+must be re-read before any submission. Unchanged by this run.

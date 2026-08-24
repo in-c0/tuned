@@ -625,7 +625,19 @@ export function publicPage(creator: Creator, items: Item[]): string {
     <form id="follow-form"><input type="email" id="follow-email" required placeholder="you@..."><button class="btn primary">Follow</button></form>
     <div class="status" id="follow-out"></div>
   </dialog>`;
-  return layout(`${creator.name} — ${BRAND}`, creator.accent, body, CLIENT_JS);
+  // RSS autodiscovery. The page already carries a visible "RSS" link for a human who is
+  // looking for one; this is the same URL in the one place a *machine* looks for it.
+  //
+  // Nothing announced these feeds to software. Every feed reader, aggregator and feed
+  // search engine resolves a pasted page URL to a feed through exactly this element, and
+  // one of the two distribution candidates whose published rules do not forbid the post —
+  // ooh.directory — takes the front page and says "(not its feed)" in as many words. Given
+  // /sportstech it would have found nothing to subscribe to, and neither would a person who
+  // pasted the same URL into their reader. The counters agree that this is not theoretical:
+  // across 2026-08-21..08-24 the landing page took 45-69 views a day while *unsuffixed*
+  // feed_fetch — every RSS fetch not from a self-declaring crawler — read 0, 0, 0, 0.
+  const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">`;
+  return layout(`${creator.name} — ${BRAND}`, creator.accent, body, CLIENT_JS, head);
 }
 
 export function studioPage(creator: Creator, items: Item[]): string {
