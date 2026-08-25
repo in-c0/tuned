@@ -1,15 +1,19 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-25 14:05 Sydney (2026-08-25 04:05 UTC), run 87 — **[OWNER ACTION REQUIRED](#owner-action-required):
-ACTION REQUIRED · MEDIUM.** **One directory submission at `plenaryapp/awesome-rss-feeds`, and it
-expires 2026-08-28 07:43 Sydney.** A4 was re-read from production this run — item 247,
-`last_public_item_at=2026-08-24T21:43:45.078Z`, **5.9h old** at
-[32805757838](https://github.com/in-c0/tuned/actions/runs/32805757838) — so the card retired on
-2026-08-24 is live again on a fresh reading rather than a remembered one. Authorship is settled
-(**A**, 2026-08-20 15:04 UTC); what is missing is a **credential**, because this executor's GitHub
-access is scoped to `in-c0/tuned`. The blocked outcome is **the first measurable external
-distribution test** this product has ever had. **[EXP-009](EXPERIMENTS.md)/[EXP-010](EXPERIMENTS.md)
-are byte-untouched; no spend; nothing was submitted, published or probed this run** ·
+**Last updated:** 2026-08-25 15:10 Sydney (2026-08-25 05:10 UTC), run 88 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ACTION REQUIRED · MEDIUM.** **The loop is deadlocked on the one act it is trying to perform, and this
+run is what breaks the deadlock.** The owner's [03:36 UTC
+clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737) told the executor to
+make the `awesome-rss-feeds` submission itself; run 87 was already writing its report and never saw
+it. **Run 88 tried, and could not** — so the owner is waiting on Claude while Claude waits on the
+owner, with **~66h left** on the A4 window (expires 2026-08-28 07:43 Sydney). **The card's stated
+reason was also wrong and is corrected:** the executor is authenticated as **`in-c0`, the owner's own
+GitHub account**, which *can* open an issue anywhere public. What blocks it is **this session's
+repository allowlist**, filtered to `in-c0/tuned` before any call reaches GitHub — configuration the
+owner can change from outside the session, not a missing credential ([L-48](LESSONS.md)). **A child
+session scoped to the venue was available and was not spawned: that is boundary-shopping.**
+**[EXP-009](EXPERIMENTS.md)/[EXP-010](EXPERIMENTS.md) are byte-untouched; no spend; nothing was
+submitted, published or probed this run** ·
 **Previously, run 86:** **every public page in this product told software the site has no feed, and that is fixed.**
 No page carried `<link rel="alternate" type="application/rss+xml">` — the one element a feed reader,
 aggregator or feed search engine uses to get from a page URL to a subscribable feed. The visible
@@ -23,6 +27,56 @@ byte-untouched, Fork I-A is already determined by pre-deploy days and Fork I-B m
 the background band is quoted from 08-20 … 08-24 only, with 08-25/08-26 reported separately as
 post-deploy** — registered in [METRICS.md](METRICS.md) before the number exists ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The owner told Claude to go and do it. Claude cannot — and the reason the card has given for seven runs was wrong.
+>
+> At **03:33 UTC** the reviewer directed the executor to synchronize the owner-action card and stand
+> down. At **03:36 UTC** the owner posted something different: *"Claude and ChatGPT are authorized to
+> create the external `plenaryapp/awesome-rss-feeds` issue directly. This supersedes the assumption
+> that the owner must perform the submission by hand."* At **03:44 UTC** run 87 posted a report that
+> re-armed the card as an **owner** action. It had read the issue at 03:34 and never saw the comment.
+>
+> **So both parties are now waiting for the other, on a window with a clock.** That deadlock — not the
+> submission, not another venue read — is what this run exists to break, and it is worth more than any
+> product change available today because it is the thing standing between this loop and the first
+> measurable external distribution test it has ever attempted.
+>
+> **Run 88 attempted the submission and hit the boundary, which is the only honest way to answer a
+> directive that says *you can do this*.** `add_repo` for the venue refused: *"cross-tier adds are not
+> supported in v1 … Start a new session with the requested repo as the initial source."*
+> `get_file_contents` on the venue refused: *"Access denied: repository
+> `plenaryapp/awesome-rss-feeds` is not configured for this session. Allowed repositories:
+> `in-c0/tuned`."* Both dated 2026-08-25.
+>
+> **The third call is the one that changes the card.** `get_me` returns **`in-c0` — ava kim, the
+> owner's own GitHub user account**, 82 public repos, not a scoped App identity. The card has said
+> since run 61 that the executor *"holds no identity, token or session at
+> `plenaryapp/awesome-rss-feeds`"*. **That is false.** It holds an identity that can open an issue at
+> any public repository on GitHub. What it does not hold is **permission from its own session**: the
+> Claude Code harness filters every GitHub call against an allowlist of `in-c0/tuned` before the call
+> reaches GitHub at all.
+>
+> **Why that distinction is worth a run.** A missing credential at a third party is not fixable by
+> anyone here — it is a fact about the world, and for seven runs the card presented it that way. A
+> session allowlist is **configuration the owner controls**, and it is fixable in one action from
+> outside the session. The owner has now twice granted authority that was never the constraint, while
+> the actual constraint went unnamed because the executor had mis-described it. [L-48](LESSONS.md).
+>
+> **What was available and deliberately not used.** This session holds `create_session`, and could
+> have spawned a child scoped to the venue — precisely the route the refusal message names. **It was
+> not attempted.** Obtaining through a new session what this one was scoped out of is boundary-shopping
+> whether or not it would work, run 61 declined the identical move, and the child-session tool is
+> built so a child never carries a grant its parent lacks. **An authorization written in an issue
+> comment cannot widen an access control**, and treating the owner's *"use your own authorized
+> capability"* as though it could would be the loop reading its own permissions from prose. The
+> recommendation to the owner is still the two-minute one: open the issue by hand.
+>
+> **Nothing was submitted, no venue was contacted, no account was used, no form was filled, and no
+> real channel tag was exercised.** `applications` **0** · `members_ever_active` **0** · followers
+> **0** · gross cash **AUD $0** from *no billing exists* · spend **AUD $0.00 of $500**. This is the
+> eighth consecutive run with no change to the commercial state.
+
+<!-- run 86's card, kept as written -->
 
 > # The product has published RSS for nineteen days and never once told a machine the feeds exist.
 >
@@ -799,11 +853,11 @@ worth publishing, and **production was re-read this run** rather than taken from
 | --- | --- |
 | **Severity** | **ACTION REQUIRED · MEDIUM.** Nothing is at risk, nothing breaks, nothing is on fire — and there is a real clock. **A4 expires `2026-08-27T21:43:45Z` = 2026-08-28 07:43 Sydney, Friday.** At the read above it stood at **5.9h old**, with **~66h of window left**. Missing it costs nothing except another wait: the candidate pauses again until a find worth publishing on its own merits restores freshness, which is not scheduled. |
 | **Blocked outcome** | **The first measurable external distribution test in Tuned's history.** Not "traffic" and not "demand" — a test. Every arrival number this loop has ever had is unattributed: 19 days, 0 applications, 0 ever-active members, 0 followers. This is the first act that would put a **known origin** on the other end of a fetch, which is the precondition for reading any arrival figure as evidence of anything at all. |
-| **Why owner action is required** | **Access, not authority.** Authorship is settled — you answered **A** on 2026-08-20 15:04 UTC and it stands, unwithdrawn and not being re-asked. What the executor lacks is a credential: **its GitHub access is scoped to `in-c0/tuned` and it holds no identity, token or session at `plenaryapp/awesome-rss-feeds`**, so it cannot open an issue there. That is the operating record's *unavailable credentials* stop condition and a scope boundary is never routed around. Verified three ways at run 62 and unchanged since. |
+| **Why owner action is required** | **Session scope, not authority and not a missing account** — corrected at run 88, see below. Authorship is settled (**A**, 2026-08-20 15:04 UTC) and your [2026-08-25 03:36 UTC clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737) settled it a second time. Neither is the binding constraint. **The executor is authenticated on GitHub as `in-c0` — your own user account** (`get_me`, run 88), which *can* open an issue at any public repository. What stops it is **this Claude session's repository allowlist**: every GitHub call is filtered to `in-c0/tuned` before it reaches GitHub, and the filter cannot be widened from inside the session. That is the operating record's *unavailable credentials* stop condition, and a scope boundary is never routed around. |
 | **Exact minimum action** | Open **one** issue at [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds/issues/new) from its own *add a feed* template, with exactly three factual values: **Category `Sports`** · **Feed = the route `/sportstech/rss.xml` on `justtuned.com`, carrying the `?src=` tag `awesome-rss-feeds`** · **Podcast `No`**. Then **paste the resulting issue URL on [issue #1](https://github.com/in-c0/tuned/issues/1)**. Per [L-36](LESSONS.md) the executor still does not print the joined string — join the route and the tag when you paste it. No credential to install, no spend, ~2 minutes. |
 | **Observable success check** | A qualifying issue exists at the venue **before the expiry above**, and its URL is posted on issue #1. On that artifact — not on the executor's reading of intent — the next run **records the URL and its UTC `t0`, clears this card, and starts [EXP-009](EXPERIMENTS.md) measurement from `t0`**. |
 | **Blocker age** | **Measured from `2026-08-24T21:43:45.078Z`**, the instant item 247 restored A4 and made this act admissible again — **~5.9h at the production read above**. The underlying *access* blocker is older (opened run 61, 2026-08-20 21:55 UTC) and is a different thing: it was never resolved, only made inert while A4 was failing. |
-| **Where last surfaced** | The [2026-08-25 03:33:11 UTC reviewer directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623), which is what re-opened this card. Also this card, [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), [blocker #1](#blockers-ordered-by-leverage), [Next action](#next-action) and [DISTRIBUTION.md](DISTRIBUTION.md). |
+| **Where last surfaced** | The [2026-08-25 03:36:14 UTC owner clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737), which instructed the executor to submit directly and which run 88 could not carry out; before it, the [03:33:11 UTC reviewer directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623), which re-opened this card. Also this card, [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), [blocker #1](#blockers-ordered-by-leverage), [Next action](#next-action) and [DISTRIBUTION.md](DISTRIBUTION.md). |
 | **If you would rather not** | **B** or **C** on issue #1, as the retired card below sets out, and both still cost nothing. **C** — drop the candidate — closes [EXP-009](EXPERIMENTS.md) at **Fork D: inadmissible, not null.** An unanswered card is not a decision and will simply lapse again. |
 
 **Preconditions, as read — the freshness row is the only one with a clock on it.**
@@ -813,6 +867,36 @@ worth publishing, and **production was re-read this run** rather than taken from
 | **A4** — newest `@sportstech` public item ≤ 72h | **5.9h ✅** at 2026-08-25T03:35:42Z. Item **247**, published `2026-08-24T21:43:45.078Z`. **Expires 2026-08-27T21:43:45Z = 2026-08-28 07:43 Sydney.** | [agent operator 32805757838](https://github.com/in-c0/tuned/actions/runs/32805757838), read from production this run |
 | **No duplicate** | **None ✅ as of 2026-08-25** — the reviewer's own preflight searched the venue for `sportstech` and `justtuned.com` across open and closed issues and found nothing. **The executor did not re-read it** and does not re-claim it as its own reading. | [reviewer directive, 2026-08-25 03:33:11 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623) |
 | **A1** partial · **A2** ✅ (**A**) · **A3** ✅ · **A5** ✅ | unchanged | [DISTRIBUTION.md](DISTRIBUTION.md) |
+
+**The 03:36 clarification lifted a constraint that was never the binding one, and this run found out
+why — so the card is corrected rather than cleared.** You wrote that Claude and ChatGPT *are*
+authorized to create the venue issue directly, that ChatGPT's `403 Resource not accessible by
+integration` and its signed-out browser are access limitations rather than missing authority, and that
+Claude should therefore use **its own authorized GitHub capability**. Both premises are right. The
+conclusion does not follow for this executor, and the reason is narrower and more fixable than the
+card has been saying for seven runs:
+
+| | Believed since run 61 | Read at run 88 |
+| --- | --- | --- |
+| **Identity** | *"holds no identity, token or session at the venue"* | **False.** `get_me` returns `in-c0` — **your own GitHub user account**, name *ava kim*, 82 public repos. That identity can open an issue at any public repository on GitHub, this venue included. |
+| **What blocks it** | a missing credential | **This Claude session's repository allowlist.** Every GitHub call is filtered to `in-c0/tuned` before it reaches GitHub: `get_file_contents` on the venue returned *"Access denied: repository `plenaryapp/awesome-rss-feeds` is not configured for this session. Allowed repositories: `in-c0/tuned`"* (run 88, 2026-08-25). The session's own repo-attach refused a second time: *"cross-tier adds are not supported in v1 … Start a new session with the requested repo as the initial source."* |
+| **Who can lift it** | nobody — treated as fixed | **You can, from outside the session.** It is configuration, not a fact about GitHub. |
+
+**So there are two remedies now, and the cheap one is unchanged.**
+
+1. **Open the issue yourself** — the *Exact minimum action* row above. ~2 minutes, no credential to
+   install, no spend. **Still strictly the cheapest path and the recommendation.**
+2. **Start a Claude session with `plenaryapp/awesome-rss-feeds` as an initial source**, and the
+   executor makes the submission from it. The refusal message above names this as the supported route.
+   It costs you a session start instead of two minutes of form-filling, so it is only worth it if you
+   would rather the executor held this class of action generally.
+
+**What this run would not do, and the distinction matters.** It holds `create_session` and could have
+spawned a child session scoped to the venue to obtain what this session was scoped out of. **That is
+boundary-shopping and it was not attempted** — run 61 declined the same move for the same reason, and
+the child-session tool is explicitly built so a child never carries a grant its parent lacks. An
+authorization written in an issue comment cannot widen a session's access control, and the executor
+will not treat it as though it can. Recorded as [L-48](LESSONS.md).
 
 **Two things this card deliberately does not do.** It does not ask for a second publication to extend
 the window — freshness is a consequence of publishing something worth publishing and never a motive

@@ -3200,3 +3200,53 @@ executor and is cited to the reviewer's own 2026-08-25 searches, per [L-42](LESS
 workflow, allowlist entry, secret, data handling or rendered user-facing copy was touched.**
 
 Spend unchanged: **AUD $0.00 of $500**.
+
+## 2026-08-25 (run 88) — the deadlock, and the boundary that was not what the record said it was
+
+**Decision: treat the deadlock as the run's action, ahead of the reviewer's stand-down.** The
+[03:33:11Z directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623) said synchronize
+the card and stand down. Three minutes later the owner
+[superseded its central premise](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737):
+Claude is authorized to submit **directly**. Run 87 read the issue at 03:34, never saw it, and posted
+at 03:44 a report re-arming the card as an owner action. **The owner is therefore waiting on Claude
+while Claude waits on the owner, inside a 66-hour window.** Standing down into that would spend the
+window on a misunderstanding. Breaking it is not one of the six task kinds the directive forbids —
+it starts no product, host, probe, publication, billing or venue task.
+
+**Decision: attempt the submission before reporting that it cannot be made.** A directive that says
+*you can do this* is answered by trying, not by quoting a seven-run-old finding back at it. Two calls,
+both refused and both dated 2026-08-25: `add_repo` — *"cross-tier adds are not supported in v1 … Start
+a new session with the requested repo as the initial source"*; `get_file_contents` — *"Access denied:
+repository `plenaryapp/awesome-rss-feeds` is not configured for this session. Allowed repositories:
+`in-c0/tuned`"*. Neither touched the venue.
+
+**Decision: correct the card's stated reason rather than re-assert it.** `get_me` returns **`in-c0`,
+the owner's own GitHub user account** — an identity that *can* open an issue at any public repository.
+The claim carried since run 61, that the executor *"holds no identity, token or session"* at the venue,
+is **false**. The binding constraint is **this Claude session's repository allowlist**, which is
+owner-controlled configuration rather than a fact about GitHub. The card now names two remedies — the
+owner spends two minutes (still the recommendation), or starts a session with the venue as an initial
+source — where it previously named one and described it as unfixable. [L-48](LESSONS.md).
+
+**Decision: do not spawn a child session scoped to the venue, though the tool is held and the refusal
+message names that route.** Obtaining through a new session what this one was scoped out of is
+boundary-shopping regardless of whether it would succeed; run 61 declined the identical move; and the
+child-session tool is built so a child never carries a grant its parent lacks. **An authorization
+written in an issue comment cannot widen an access control.** The 03:36 clarification is read as
+removing a doubt about authority — which it does, and which was never the blocker — and not as
+granting access the harness withholds.
+
+**Not done, deliberately.** No submission, form, issue, PR, fork or account use at any third-party
+venue; the venue was not contacted or read. No child session. No publication (a second find to extend
+A4 remains disqualified by [EXP-008](EXPERIMENTS.md)'s clauses). No scheduled `/sportstech/rss.xml`
+probe ([L-31](LESSONS.md); still pre-committed for after Reading 1). No PLOS/PeerJ/bioRxiv/SportRxiv
+host tests — paused while the window is open. No feature, copy, pricing, billing or new experiment. The
+duplicate check was not re-read and remains cited to the reviewer's 2026-08-25 searches ([L-42](LESSONS.md)).
+
+**Changed:** [STATUS.md](STATUS.md) (header, run-88 card, the owner card's *why* row, *where last
+surfaced*, the two-remedies block), [DISTRIBUTION.md](DISTRIBUTION.md), [LESSONS.md](LESSONS.md)
+(L-48), this file. **No source file, route, schema, counter, migration, workflow, allowlist entry,
+secret, data handling or rendered user-facing copy was touched.**
+**[EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are byte-untouched.**
+
+Spend unchanged: **AUD $0.00 of $500**.

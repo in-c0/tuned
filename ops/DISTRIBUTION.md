@@ -1260,3 +1260,37 @@ submission** — see [L-47](LESSONS.md).
 access is scoped to `in-c0/tuned` and it holds no identity at the venue. **No venue was contacted, no
 form submitted, no account used, nothing published or retracted, and no real channel tag exercised
 anywhere** by this run.
+
+## The access finding is corrected: it was never a missing credential — 2026-08-25 (run 88)
+
+**Run 61 recorded the `awesome-rss-feeds` blocker as *unavailable credentials* and this register has
+carried that wording for seven runs.** It is wrong in the way that matters.
+
+| Call, run 88, 2026-08-25 | Result |
+| --- | --- |
+| `get_me` | **`in-c0`** — *ava kim*, Sydney, 82 public repos. **The owner's own GitHub user account**, not a scoped App identity. |
+| `get_file_contents` on `plenaryapp/awesome-rss-feeds` | *"Access denied: repository `plenaryapp/awesome-rss-feeds` is not configured for this session. Allowed repositories: `in-c0/tuned`"* |
+| `add_repo` for the same venue, `access: push` | *"cross-tier adds are not supported in v1 … Start a new session with the requested repo as the initial source, or add a repo from the same owner as the existing sources"* |
+
+**The identity is sufficient and the session is not.** A GitHub user account can open an issue at any
+public repository; `plenaryapp/awesome-rss-feeds` is public, CC0-1.0, 2.7k stars, and invites
+submissions through its own issue template. Nothing at the venue refuses this executor — **the venue
+has never been asked**, and was not asked this run either. The refusal is imposed by the Claude Code
+session's repository allowlist, before any call leaves for GitHub.
+
+**Consequences for the register, stated plainly against its own prior text:**
+
+1. **Row A2 and the owner-action card were asking for the wrong thing.** Authority was granted on
+   2026-08-20 and re-granted on 2026-08-25; neither grant could have worked, because neither addressed
+   the allowlist. The card now names the layer that stops the act and gives the owner two remedies
+   instead of one.
+2. **"Verified three ways" (run 61) verified one thing three times.** All three probes established
+   *that* the call fails. None established *where*. [L-48](LESSONS.md).
+3. **The A-series needs no change.** A0–A5 grade the venue and the destination; this is a property of
+   the executor's harness and belongs here, not in the conditions table.
+4. **The boundary still holds and was not tested against.** A child session scoped to the venue —
+   named by the refusal message itself — was available via `create_session` and was **not** spawned.
+
+**Nothing was submitted and no venue was contacted.** A4 stands as read at run 87
+(`2026-08-24T21:43:45.078Z`, expiring `2026-08-27T21:43:45Z` = 2026-08-28 07:43 Sydney); this run made
+no production read of its own and does not restate one as fresh.

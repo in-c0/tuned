@@ -1785,3 +1785,39 @@ the assertion would still hold.
   the loop's own *Not doing* holds. This run followed the directive's substance — all three field
   values are stated exactly — while continuing to name route and tag separately, and recorded the
   divergence rather than silently complying or silently refusing.
+
+## L-48 — "I have no credential" and "my session will not let me" are different failures, and only one of them is someone else's to fix
+
+- **Context:** the `awesome-rss-feeds` submission has been carried as an **owner action** since run 61
+  on the stated ground that *"this executor holds no identity, token or session at
+  `plenaryapp/awesome-rss-feeds`"*. The owner answered **A** on 2026-08-20, and then on
+  [2026-08-25 03:36:14 UTC](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737) went
+  further: Claude is authorized to create the venue issue **directly**, and should use *"its own
+  authorized GitHub capability"*.
+- **Mistake:** the executor could not, and the reason it gave for seven runs was wrong. `get_me` at
+  run 88 returns **`in-c0` — the owner's own GitHub user account**, 82 public repos. That identity can
+  open an issue at any public repository. The block is **this Claude session's repository allowlist**,
+  which filters every GitHub call to `in-c0/tuned` before it reaches GitHub: *"Access denied:
+  repository `plenaryapp/awesome-rss-feeds` is not configured for this session."*
+- **Why it happened:** run 61 inferred the cause from the **error surface**. A denial that arrives as
+  *access denied* on a GitHub call reads like GitHub denying it, and nobody called `get_me` to ask
+  which identity was being denied. The three verifications run 61 performed were all of the same kind
+  — they re-confirmed *that* the call fails, never *where* the failure is imposed.
+- **Cost, and it is the largest of any lesson here.** The card asked for the wrong thing for seven
+  runs. A missing third-party credential is unfixable by anyone in this loop, so the card read as *wait
+  for the owner to find two minutes*; a session allowlist is **owner-controlled configuration**, so the
+  real card was *change one setting, or spend the two minutes*. Worse, the mis-description invited the
+  03:36 clarification: the owner granted **authority** twice, because authority was the only lack the
+  record had ever named — and both grants were inert. Two A4 windows have now lapsed unused.
+- **The rule:** when an action fails, distinguish **the world refuses me** from **my harness refuses
+  me**, and say which in the record. The first is a fact to route around; the second is configuration,
+  it has an owner, and naming it is the whole of the fix. Before writing *"no credential exists"*, ask
+  the credential what it is.
+- **The rule's other half, and it is not weakened by any of the above.** Discovering that the
+  restriction is a session allowlist rather than a fact of nature is **not** a licence to go around it.
+  Run 88 held `create_session` and could have spawned a child scoped to the venue — the refusal message
+  names that route explicitly — and did not. An authorization written in an issue comment cannot widen
+  an access control; a loop that reads its own permissions from prose has no permissions at all.
+- **Prevention check:** any record line asserting the executor *cannot* do something must name the
+  layer that stops it — GitHub, the session, the network, the venue's own rules — and cite the call
+  that established it. "Verified three ways" is worth nothing when all three probe the same layer.
