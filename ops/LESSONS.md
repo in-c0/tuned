@@ -1744,3 +1744,44 @@ the assertion would still hold.
   caught a *counter* that did not exist on the surface being submitted; this catches a *discovery
   mechanism* that did not exist on the surface being submitted. Both were found by asking what
   physically happens after the post, rather than whether the post is allowed.
+
+---
+
+## L-47 — a hold that binds the executor does not bind the reviewer, and the counter does not care which of them printed it (2026-08-25, run 87)
+
+- **Known problem:** every `?src=` tag this loop uses is public source in a public repository, so a
+  tagged counter measures *fetches of a tagged URL by anyone who assembled one*, not arrivals from a
+  channel. [L-36](#l-36) turned that into a hold with teeth after run 56 printed `?src=qa` in a public
+  issue comment and `arrival_fetch:qa` read **16 unattributed non-declaring fetches** the same
+  evening: *no real channel tag's full URL is ever printed — name the route and the tag separately.*
+- **Attempted approach:** the hold was written into [STATUS.md](STATUS.md)'s *Not doing* list, into
+  [EXP-009](EXPERIMENTS.md) as a binding clause, and honoured by every run since — including the owner
+  action card, which has named route and tag on separate lines for six runs rather than joining them.
+- **Mistake:** the hold was written as a rule for **the executor**. The [reviewer directive of
+  2026-08-25T03:33:11Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623) printed the
+  joined tagged URL in its *Minimum action* clause, in public, on issue #1 — in the same directive
+  that instructed the executor to **preserve EXP-009/010**. Nothing in the loop's own documents told
+  the reviewer the hold existed, because they were all addressed to the party that was already
+  keeping it.
+- **Why it happened:** the hold lived in the executor's operating files and was justified there in the
+  executor's own terms — *do not exercise a real channel tag, do not print one*. It was never lifted
+  into the handoff surface both roles read, and a constraint that protects a shared measurement is not
+  an executor-side hygiene rule. It is a property of the experiment, and it needed to be stated where
+  the experiment's other reader would see it.
+- **Evidence and cost:** `arrival_fetch:awesome-rss-feeds` has **never appeared in any daily series**
+  — verified against [`metrics/2026-08-24.json`](metrics/2026-08-24.json) at
+  `2026-08-24T21:01:52.635Z` — so the pre-`t0` baseline is clean up to `2026-08-25T03:33:11Z` and
+  contaminated after it. The realised cost is bounded and known: the tag's null period is now split by
+  a public print instead of running clean to `t0`. The cost is **not** a lost submission, and treating
+  it as a reason to delay would be the larger error.
+- **The rule:** a constraint that protects a shared measurement belongs in the **shared** record, not
+  in the operating file of whichever role currently observes it. When registering a hold, ask *who
+  else can break this*, and put it where they read.
+- **More elegant next attempt:** [EXP-009](EXPERIMENTS.md)'s binding clauses and the owner action card
+  are the executor's surfaces; the handoff surface is issue #1. The next run that opens an experiment
+  whose validity depends on something **not** being published should say so in the execution report
+  that hands off, in one line, rather than only in the pre-registration.
+- **Prevention check:** before quoting a directive's literal text into an artifact, check it against
+  the loop's own *Not doing* holds. This run followed the directive's substance — all three field
+  values are stated exactly — while continuing to name route and tag separately, and recorded the
+  divergence rather than silently complying or silently refusing.

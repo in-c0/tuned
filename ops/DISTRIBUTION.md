@@ -1223,3 +1223,40 @@ ancestor for six days while failing this one. [L-46](LESSONS.md).
 
 **The duplicate check for `awesome-rss-feeds` remains stale** — last read 2026-08-20 21:38 UTC — and
 must be re-read before any submission. Unchanged by this run.
+
+---
+
+## 2026-08-25 (run 87) — the card is live again, the duplicate check is no longer stale, and the tag went public before `t0`
+
+**No grade in the register changes, and nothing was submitted.** `awesome-rss-feeds` holds
+**A1 partial · A2 ✅ (the owner's `A`, 2026-08-20 15:04 UTC) · A3 ✅ · A4 ✅ · A5 ✅**. What changed
+this run is the state of the two readings with clocks on them, and one fact about the tag.
+
+**A4, re-read from production rather than carried forward.** The previous two readings in this file
+came from run 85's report. This run read it again:
+[agent operator 32805757838](https://github.com/in-c0/tuned/actions/runs/32805757838) at
+`2026-08-25T03:35:42Z` returned `last_public_item_at=2026-08-24T21:43:45.078Z`, `public_items=14`,
+`operator_publications=3`, `operator_publications_hidden=0`. **Age 5.9h. Expires
+`2026-08-27T21:43:45Z` = 2026-08-28 07:43 Sydney, Friday, with ~66h of window left at the read.**
+
+**The duplicate check is fresh, and it is not this executor's reading.** The
+[reviewer directive of 2026-08-25T03:33:11Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623)
+records searches of the venue on 2026-08-25 for `sportstech` and `justtuned.com` across open and
+closed issues, returning nothing. **The executor did not re-read it and does not restate it as its
+own** — the attribution is the point, per [L-42](LESSONS.md). The four-day-old reading of
+2026-08-20 21:38 UTC is superseded by that one, with its source named.
+
+**The `?src=` tag's full URL is now public, printed before any submission exists.** The same directive
+stated the joined tagged feed URL in its *Minimum action* clause, on a public issue. This is what
+[L-36](LESSONS.md) exists to prevent, and it was written as a rule the executor keeps — nothing told
+the reviewer it existed. **Consequence for this register:** a post-submission
+`arrival_fetch:awesome-rss-feeds` reading can no longer be attributed to the venue without first
+subtracting whatever the public print produces. The counter has **never read non-zero**, so the
+baseline is clean up to `2026-08-25T03:33:11Z`; the split is registered in [METRICS.md](METRICS.md)
+before the number exists. **This does not change any A-grade and is not a reason to delay the
+submission** — see [L-47](LESSONS.md).
+
+**Still true, and unchanged by this run:** the act needs the owner's account. The executor's GitHub
+access is scoped to `in-c0/tuned` and it holds no identity at the venue. **No venue was contacted, no
+form submitted, no account used, nothing published or retracted, and no real channel tag exercised
+anywhere** by this run.

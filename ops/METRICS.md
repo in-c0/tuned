@@ -1304,3 +1304,35 @@ which is why the two regimes are separated above rather than merged.
 
 [EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are **byte-untouched**; this is recorded
 outside the pre-registration, before the number exists, rather than edited into it afterwards.
+
+## Dated note — 2026-08-25 (run 87), written before the number exists
+
+**The `awesome-rss-feeds` tag's full URL was published in public before any submission existed, and
+that changes what its counter can mean.** The [reviewer directive of
+2026-08-25T03:33:11Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623) printed the
+joined tagged feed URL — route plus `?src=awesome-rss-feeds` — in a comment on issue #1, a public
+repository's public issue. [L-36](LESSONS.md) exists precisely to prevent this, on evidence: run 56
+printed `?src=qa` in the same place and `arrival_fetch:qa` read **16 unattributed non-declaring
+fetches** by that evening.
+
+**The baseline is clean up to that instant, which is the one piece of luck here.**
+`arrival_fetch:awesome-rss-feeds` has **never appeared in any daily series** — not on 08-20 … 08-24,
+not at any point since the tag was allowlisted in PR #49. Verified against
+[`metrics/2026-08-24.json`](metrics/2026-08-24.json), generated `2026-08-24T21:01:52.635Z`.
+
+**Binding, so that a later run cannot read the wrong thing off this counter:**
+
+- **`t0` is the instant a submission exists at the venue**, not the instant the tag became public.
+  There is no `t0` yet; nothing has been submitted.
+- Any `arrival_fetch:awesome-rss-feeds` recorded **between `2026-08-25T03:33:11Z` and `t0`** is
+  attributable to **readers and crawlers of issue #1**, and to nothing else. It is **not** evidence of
+  the venue, of demand, or of a background rate. Report it separately and labelled *pre-`t0`,
+  issue-#1-attributable*.
+- A non-zero pre-`t0` reading is **not** a reason to withdraw or delay the submission. It changes what
+  the post-`t0` series must be read against, and that is all.
+- This is **the same contamination EXP-010 was registered to measure**, arriving early and by
+  accident. It does not substitute for EXP-010's `control_days` reading due **2026-09-04**, because
+  `qa` remains the pre-registered control and is unaffected.
+
+**[EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are byte-untouched.** Recorded here, outside
+both pre-registrations, before the number exists. [L-47](LESSONS.md).

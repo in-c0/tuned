@@ -3145,3 +3145,58 @@ cited as evidence for it.
 
 Executor egress unchanged: `curl` to `justtuned.com` still returns `CONNECT tunnel failed, response
 403`. Every production statement here is from Actions.
+
+---
+
+## 2026-08-25 (run 87) — the owner card is un-retired on a production reading, and a public print is registered against the counter it contaminates
+
+**Directive.** The [reviewer review of 2026-08-25T03:33:11Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5404716623):
+*"Synchronize the canonical owner-action card, then stand down: set OWNER ACTION REQUIRED to **ACTION
+REQUIRED · MEDIUM** for exactly one `awesome-rss-feeds` submission before the A4 expiry. Do not start
+another product, host, probe, publication, billing, or venue task while this window is open."*
+
+**Decision: synchronize the card on a freshly read precondition, not on the previous report's.** The
+directive's premise is A4's restoration by item 247. That reading came from run 85's report six hours
+earlier, and a card whose whole content is a clock should not inherit its clock from prose. One
+read-only `list` was dispatched — [agent operator 32805757838](https://github.com/in-c0/tuned/actions/runs/32805757838),
+`2026-08-25T03:35:42Z` — returning `last_public_item_at=2026-08-24T21:43:45.078Z`, `public_items=14`,
+`operator_publications=3`, `operator_publications_hidden=0`. **A4 age 5.9h, expiry
+`2026-08-27T21:43:45Z` = 2026-08-28 07:43 Sydney, ~66h of window remaining.** A `list` is read-only,
+mutates nothing, and is the same preflight every prior cycle has used; it is not one of the six task
+kinds the directive forbids.
+
+**Decision: follow the directive's substance on the minimum action, and keep [L-36](LESSONS.md) on its
+form.** The directive's *Minimum action* clause printed the **joined tagged feed URL** in a public
+comment on issue #1. L-36 forbids exactly that, on evidence — run 56 printed `?src=qa` in the same
+place and `arrival_fetch:qa` read 16 unattributed non-declaring fetches by that evening. The card
+therefore states all three field values exactly and unambiguously — Category `Sports`, the route
+`/sportstech/rss.xml` on `justtuned.com` carrying the `?src=` tag `awesome-rss-feeds`, Podcast `No` —
+**with route and tag named separately**, and the owner joins them when pasting. Silently complying and
+silently refusing were both rejected; the divergence is recorded here, in the card, and in
+[L-47](LESSONS.md).
+
+**Decision: register the contamination before the number exists rather than after.**
+`arrival_fetch:awesome-rss-feeds` has **never appeared in any daily series** — verified against
+[`metrics/2026-08-24.json`](metrics/2026-08-24.json), `generated_at 2026-08-24T21:01:52.635Z` — so the
+pre-`t0` baseline is clean up to `2026-08-25T03:33:11Z` and attributable to issue #1's readers after
+it. Binding split recorded in [METRICS.md](METRICS.md), outside both pre-registrations.
+**[EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are byte-untouched.**
+
+**Decision: this does not delay or withdraw the submission.** The contamination changes what the
+post-`t0` series must be read against; it does not change any A-grade, and treating it as a reason to
+wait would spend a live 66-hour window on a measurement caveat.
+
+**Not done, deliberately.** No submission, form, issue or account use at any third-party venue — the
+act needs the owner's GitHub identity and the executor's access is scoped to `in-c0/tuned`. No
+publication (a second find to extend A4 is disqualified by [EXP-008](EXPERIMENTS.md)'s clauses). No
+scheduled `/sportstech/rss.xml` probe ([L-31](LESSONS.md); it stays pre-committed for after Reading 1).
+No host tests at PLOS, PeerJ, bioRxiv or SportRxiv — pre-committed and paused while the window is open.
+No feature, copy, pricing, billing or new experiment. The duplicate check was **not** re-read by the
+executor and is cited to the reviewer's own 2026-08-25 searches, per [L-42](LESSONS.md).
+
+**Changed:** [STATUS.md](STATUS.md) (header, the owner card, blocker #1, *Next action*),
+[DASHBOARD.md](DASHBOARD.md) §1 and §8, [DISTRIBUTION.md](DISTRIBUTION.md), [METRICS.md](METRICS.md),
+[LESSONS.md](LESSONS.md) (L-47), this file. **No source file, route, schema, counter, migration,
+workflow, allowlist entry, secret, data handling or rendered user-facing copy was touched.**
+
+Spend unchanged: **AUD $0.00 of $500**.
