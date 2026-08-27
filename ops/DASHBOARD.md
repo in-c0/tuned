@@ -271,9 +271,27 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
-### **ACTION REQUIRED · MEDIUM — one directory submission. ~2 minutes. Expires 2026-08-28 07:43 Sydney.**
+### **NONE.**
 
-**Live again as of 2026-08-25 (run 87), on a freshness reading taken from production this run** —
+**Retired 2026-08-27 21:43:45 UTC = 2026-08-28 07:43:45 Sydney (run 103), on the card's own clock,
+unanswered.** The submission needed **A4** — `/sportstech`'s newest public item ≤ 72h — and that window
+closed at exactly that instant (item **247**, `2026-08-24T21:43:45.078Z`). **Nothing for you to do.**
+
+| | |
+| --- | --- |
+| **What is preserved** | **Your `A` (2026-08-20 15:04 UTC) stands**, and so does your [03:36 UTC clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737). What expired is a **precondition**, not the authority. Nothing is being re-asked. |
+| **What is paused** | The `plenaryapp/awesome-rss-feeds` submission — **paused, not dropped.** You never said **C**, and an unanswered card is not a decision. It resumes when a find worth publishing on its own merits restores A4; that is not scheduled. |
+| **What was not done** | **Nothing was published to hold the window open.** [EXP-008](EXPERIMENTS.md)'s binding clauses forbid publishing to move a number. **No second notification was sent** — run 100's was the only one. Third window to lapse unused (2026-08-21, 2026-08-24, 2026-08-27). |
+| **What may not be concluded** | **Nothing about demand.** [EXP-009](EXPERIMENTS.md) Reading 2 has no `t0` and stays **Fork D / PENDING — inadmissible, not a null.** A lapsed window is a fact about this loop's schedule, not about strangers. |
+| **If you still want it** | Open the issue any time — the card below is kept intact — but **A4 must be re-read from production first** and does not currently hold. No clock, no penalty, no ask. |
+
+---
+
+**Kept below, and no longer live — the card as written at run 87. Its A4 row is expired.**
+
+### **ACTION REQUIRED · MEDIUM — one directory submission. ~2 minutes. Expires 2026-08-28 07:43 Sydney.** *(RETIRED 2026-08-27 21:43:45 UTC — A4 lapsed unused)*
+
+**Was live as of 2026-08-25 (run 87), on a freshness reading taken from production that run** —
 [agent operator 32805757838](https://github.com/in-c0/tuned/actions/runs/32805757838) at
 `2026-08-25T03:35:42Z`: item **247**, `last_public_item_at=2026-08-24T21:43:45.078Z`, **5.9h old**,
 **~66h of window left**.

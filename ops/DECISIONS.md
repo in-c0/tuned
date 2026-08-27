@@ -3303,3 +3303,55 @@ touched.** **[EXP-010](EXPERIMENTS.md) is byte-untouched**, and its `control_day
 2026-09-04 is unaffected.
 
 Spend unchanged: **AUD $0.00 of $500**.
+
+## 2026-08-27 (21:43:45 UTC) — run 103: the third window closed unused, and the card retires with the authorization intact
+
+**Decision: retire [OWNER ACTION REQUIRED](STATUS.md#owner-action-required) to NONE on the card's own
+clock, and preserve the owner's `A`.** A4 — `/sportstech`'s newest public item ≤ 72h — lapsed at
+**`2026-08-27T21:43:45Z`** (item 247, published `2026-08-24T21:43:45.078Z`) with no submission made.
+Executed per the [2026-08-27 21:31 UTC reviewer directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5445464485),
+whose retirement branch fires at *"the first cycle after 07:43:45 Sydney"* with no qualifying URL. The
+check ran first and read negative: **no qualifying external venue issue URL exists on issue #1** —
+the two newest comments are run 102's own stand-down report and the directive itself.
+
+**What is preserved, and this is the point of the entry.** The owner's **A** (2026-08-20 15:04 UTC)
+and the [2026-08-25 03:36:14 UTC clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737)
+**both stand.** What expired is a *precondition* of the submission, never the authority to make it.
+The `plenaryapp/awesome-rss-feeds` candidate is **PAUSED, not dropped** — the owner never answered
+**C**, and an unanswered card is not a decision. It resumes the first time a find worth publishing on
+its own merits restores A4, which is not scheduled.
+
+**Decision: record [EXP-009](EXPERIMENTS.md) Reading 2 as Fork D / PENDING — inadmissible, not a
+demand null.** No submission was authorized-and-made, so there is no `t0` and nothing in Reading 2 is
+gradeable. **A lapsed window is a fact about this loop's schedule, not about strangers**, and it is
+not evidence in either direction. No pre-`t0` fetch becomes venue evidence; no poll becomes a
+subscriber. EXPERIMENTS.md is left **byte-untouched** this run — its Reading 1 grading already states
+this exact status in *Result*, and re-writing a pre-registration to restate what it already says is
+the manufactured activity this loop holds against itself. Same discipline as the run-83 retirement.
+
+**Third lapse.** 2026-08-21T04:15:49Z, 2026-08-24T09:35:56Z, 2026-08-27T21:43:45Z. **Nothing was
+published to hold any of them open** — [EXP-008](EXPERIMENTS.md)'s binding clauses disqualify a
+publication made to move a number, and A4's decay is a pre-registered acceptable outcome in EXP-009's
+stop conditions. **No second owner notification was sent**; run 100's out-of-band escalation was the
+only one, and the two directives since forbade another.
+
+**What is unchanged beneath the retirement.** The access boundary opened 2026-08-20 21:55 UTC (run 61)
+and re-diagnosed at run 88 — this session's repository allowlist filters every GitHub call to
+`in-c0/tuned` — is **untouched and was not routed around**. No child session was spawned to obtain
+what this one was scoped out of; that is boundary-shopping ([L-48](LESSONS.md)). Direct egress to
+`justtuned.com` from the executor is still **403 CONNECT** (re-tested this run), so production reads
+remain workflow-mediated — blocker #4, unchanged since run 1.
+
+**Consequence for the queue.** The pause on new product, host, probe, publication, billing and venue
+work was a consequence of the open card and **lifts with the window**; the standing holds in
+STATUS *Not doing* are unaffected and still bind. Next live candidates, none needing permission: the
+scheduled `/sportstech/rss.xml` probe ([L-31](LESSONS.md), unblocked since run 99 and still wanting
+its own decision), `feedle`'s unread A1, and the run-49 unattributed console 404.
+
+**Changed:** [STATUS.md](STATUS.md) (header, owner card → NONE with the live card demoted to RETIRED,
+blocker #1 state, *Next action*), [DASHBOARD.md](DASHBOARD.md) (§1 mirror), [DISTRIBUTION.md](DISTRIBUTION.md)
+(A4 row → lapsed, third), this file. **No source file, route, schema, counter, migration, workflow,
+allowlist entry, secret, data handling or rendered user-facing copy was touched. EXPERIMENTS.md and
+METRICS.md byte-untouched.**
+
+Spend unchanged: **AUD $0.00 of $500**.
