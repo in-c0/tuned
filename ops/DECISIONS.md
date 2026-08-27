@@ -3400,3 +3400,59 @@ should not be collapsed into one story without evidence.
 **Changed:** [STATUS.md](STATUS.md) (header finding), this file. **Documentation only. No source file,
 route, schema, counter, migration, workflow, allowlist entry, secret or user-facing copy touched.
 EXPERIMENTS.md and METRICS.md byte-untouched. No demand inference. AUD $0.00 of $500.**
+
+## 2026-08-27 — run 104: the reader was taught to report addresses, and feedle's A1 is graded
+
+- **Directive** ([22:03:27 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5445751249)):
+  resolve Feedle A1 end to end — smallest bounded source-reader change that exposes the actual
+  navigation link target, then one read of the published submission/rules surface, then grade. Taken
+  as correct and executed to its end.
+- **Decision: report `href`, bounded by the `find` literal, rather than extract a page's links.**
+  `ops/DISTRIBUTION.md` had already prescribed exactly this at run 62 (*"reporting the `href` of links
+  whose text matches the `find` literal would close it"*), so the design question was only how far to
+  widen it. Matching on **both** the label and the path was the one addition: a label can be an icon,
+  an image, or worded differently from its URL, and either side alone leaves a real target
+  unreachable. Everything else stayed narrow — one page per dispatch, no link following, no link graph
+  without a needle. **A reader that returns every `href` on request is a crawler's front half**, and
+  this loop needs to read rules, not to crawl.
+- **Decision: the unit test is a hand-written fixture, not a live read.** This function's output is a
+  URL the *next* dispatch gets pointed at, so a misreported `href` sends that read to the wrong
+  address and the 404 that returns looks exactly like *the venue has no such surface* — run 62's
+  mistake, one layer deeper and wearing an instrument's authority. 13 cases, no browser. Shipped in
+  PR [#64](https://github.com/in-c0/tuned/pull/64) (`33ba76d`); `check` green
+  ([33121255933](https://github.com/in-c0/tuned/actions/runs/33121255933)), 147 tests.
+- **Finding, and it retires a two-run misdiagnosis.** The submission surface is **not hosted on
+  `feedle.world`**: it is `https://tally.so/r/mJ11E7`, a form at a third-party host. Run 62's `/submit`
+  **404** was therefore not a near miss — no path at the venue's own domain was ever going to reach
+  it. Guessing was not merely unlucky, it was **unfalsifiable**, and each 404 arrived looking like a
+  fact about the venue. [L-49](LESSONS.md).
+- **Decision: read the form, and stop before touching it.** The standing hold names *"no submission,
+  **form**, issue or account use"*, and the clarifying sentence beside it draws the line at
+  **submitting** — *"reading a venue's published rules is not activity at that venue"*. The reviewer
+  directed a read of *"Feedle's published submission/rules surface"*, which is that page. It was
+  opened GET-only: **no field focused, no field filled, nothing advanced, no account.** Recorded here
+  because the distinction is fine and a later run should not have to re-derive which side of it this
+  fell on.
+- **Grade: A1 PARTIALLY SATISFIED** ([full reasoning](DISTRIBUTION.md)). Form permitted (a URL, not
+  authored prose); **self-submission explicitly invited**, which is the clause that closed Lobsters;
+  and **authorship addressed but unresolved** — *"Dear Internet creator … **your** blog or podcast …
+  promote **authors**"*, against an agent-curated attention feed that is neither a blog nor a podcast.
+  **Not FAILED**: nothing on the page prohibits this. The verdict is that the venue describes a
+  submitter Tuned may or may not be, and guessing which is precisely the inference the acceptance
+  criteria forbid.
+- **Consequence: the authorship question now stands behind three venues, not two**, and at feedle it
+  is sharper than silence. One owner answer still covers all three. **A0 binds** — nothing submitted.
+- **No A5 written** ([L-33](LESSONS.md)): A1 is not satisfied, and feedle is a **search index** rather
+  than a curated list, so a directory-shaped threshold would grade the wrong thing.
+- **`MIN_PAGE_CHARS` was not lowered**, and the form read is **red** at 661 characters — the second
+  legitimate page to trip the floor. The standing rule holds: *a false alarm is overruled in the
+  register, on the evidence, with the run kept red.* The reading survived because evidence is emitted
+  **before** the assertions, which is the ordering run 47 paid for.
+- **Numbering note:** the session that pushed `0c14053` at 22:04:58Z also called itself run 103, so
+  this entry is **104**. Two cycles fired inside three minutes again.
+- **Provenance defect, recorded not fixed:** `1bedef2` and `0c14053` were both pushed to `master`
+  carrying `(#64)` in their subject — a **predicted** PR number. GitHub then issued **#64** to this
+  run's PR, which is a different change. Two commits now cite a pull request that does not describe
+  them. Cheap to avoid (do not write a PR number until GitHub has issued it) and not worth a history
+  rewrite.
+- Spend: **AUD $0.00 of $500** — unchanged; this run cost nothing.

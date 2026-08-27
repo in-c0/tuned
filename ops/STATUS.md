@@ -1,6 +1,22 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 08:10 Sydney (2026-08-27 22:10 UTC), run 103 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-28 08:35 Sydney (2026-08-27 22:35 UTC), run 104 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **The directive was executed and `feedle`'s A1 is graded PARTIAL, closing the last unread A1
+in the register** — details in [Next action](#next-action) and [DISTRIBUTION.md](DISTRIBUTION.md).
+**The deploy finding below is now three pushes deep and is escalating**, and this run's own ops push
+is the fourth data point: `1bedef2` (21:44:36Z) never became live; `0c14053` — the diagnostic the
+previous cycle pushed for exactly this — went **red** at 22:13:15Z
+([33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006)), though it was superseded 4
+minutes later by `33ba76d` and its failure is therefore **ambiguous rather than decisive**; and
+`33ba76d`'s own verify ([33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504)) was
+**still polling 25 minutes in**, against a wait window of 24 × 20s ≈ 8 minutes plus per-request
+timeouts — which means the probes themselves are running long, a **different and worse signal** than a
+stale build. **Not yet established:** whether this is a dropped build, a stalled pipeline, or the zone
+declining the verifier. **Nothing was rolled back** — the live build is last-known-good and every
+undeployed diff to date is Markdown the Worker does not serve — **and no empty commit was pushed.**
+Reading the Cloudflare dashboard is an owner step; the executor holds no Cloudflare credential and its
+own egress to `justtuned.com` is still **403 at the proxy** (re-tested this run) ·
+**Previously, run 103:** **[OWNER ACTION REQUIRED](#owner-action-required):
 NONE**, and **one new finding that is not the card: the retirement commit did not deploy.**
 **`1bedef2` was pushed at `2026-08-27T21:44:36Z` and production was still serving `7983146` at
 `2026-08-27T22:02:30Z` — 48 consecutive `/api/version` probes across two `verify production` runs over
@@ -1455,9 +1471,29 @@ are unaffected and still bind.
 Reading 2 is **not** on this list: it has no `t0` and cannot acquire one without a submission. The
 live candidates are (1) the scheduled `/sportstech/rss.xml` probe pre-committed for after Reading 1
 ([L-31](LESSONS.md)), unblocked since run 99 and deliberately untaken since — it is instrumentation and
-wants its own decision; (2) reading `feedle`'s published rules, the one readable-and-unread A1 left;
-(3) the run-49 unattributed console 404. [EXP-010](EXPERIMENTS.md)'s `control_days` reads
+wants its own decision; ~~(2) reading `feedle`'s published rules, the one readable-and-unread A1
+left;~~ **(2) DONE, run 104 — `feedle` A1 is graded PARTIAL and the register has no unread A1 left**
+(see below); (3) the run-49 unattributed console 404. [EXP-010](EXPERIMENTS.md)'s `control_days` reads
 **2026-09-04**. **None of these is a distribution attempt and none may be reported as one.**
+
+**Run 104 closed the last unread A1, and what it found changes what the queue is waiting on.** The
+`feedle` submission surface is **not hosted on `feedle.world`** — it is a form at a third-party host,
+which is why run 62's guessed `/submit` returned **404** and why no further guess would ever have
+worked ([L-49](LESSONS.md)). Read GET-only, nothing submitted, no field touched. **A1 = PARTIALLY
+SATISFIED**: the form takes *"a link to your blog or podcast's RSS feed"* — a URL, not authored prose
+— and **self-submission is explicitly invited**; but the page is addressed *"Dear Internet creator"*,
+asks for *"**your** blog or podcast"*, and offers to promote *"authors"*, against an **agent-curated
+attention feed** that is neither. **Not FAILED — nothing there prohibits this**; the venue simply
+describes a submitter Tuned may or may not be, and guessing which is the inference the whole register
+exists to refuse. Full grading in [DISTRIBUTION.md](DISTRIBUTION.md).
+
+**So the standing authorship question now has three venues behind it rather than two**, and one owner
+answer still covers all three. **It is not being re-asked here and no card is opened for it** — the
+retired card's terms already cover it, `awesome-rss-feeds` remains the only candidate that ever
+reached A4, and **A4 does not currently hold for anything**. The change is that when the question is
+next answered, it will unlock a wider set than it would have yesterday. **No A5 was written for
+feedle** ([L-33](LESSONS.md)): A1 is not satisfied, and feedle is a **search index** rather than a
+curated list, so a directory-shaped threshold would grade the wrong thing.
 
 **Everything from here to the `ooh.directory` paragraph predates run 103 and is kept as written — it
 describes the card as live, and it is not.**
