@@ -3475,6 +3475,28 @@ EXPERIMENTS.md and METRICS.md byte-untouched. No demand inference. AUD $0.00 of 
   run had in fact **failed at 22:17:24Z, on schedule**; GitHub's `status` field was stale in the
   API snapshots I was polling. The job log settled it. **`updated_at` is the field that moves**, and
   an inference drawn from a cached status is not an observation.
+- **A defect in this run's own instrument, found by a concurrent session and recorded here because the
+  commit message is not the durable record.** `qa/nav-links.mjs` shipped in `33ba76d` carrying a
+  **literal NUL byte** as the separator in the dedup key. Valid JavaScript, correct string at runtime,
+  147 tests green either way — and **git classifies any blob containing a NUL as binary**, so
+  `git diff` reported *"Bin 6086 bytes"* instead of the change. **The one file in this repository
+  whose output is an address a later dispatch gets pointed at shipped un-reviewable**, which is
+  [L-20](LESSONS.md) again: a log nobody can read is not an instrument. Fixed in
+  [`1fc2ee9`](https://github.com/in-c0/tuned/commit/1fc2ee9) as the escape `\u0000` with a comment
+  saying why it must stay written that way; re-verified on `e79bcee`: no NUL bytes, `file` reports
+  UTF-8 text, **147 tests pass**.
+  - **What it says about the verification claimed for that PR.** `check` was green, 147 tests passed,
+    tsc was clean — and none of those gates can see this, because **every one of them reads the file
+    through a parser rather than as a diff.** The gate that would have caught it is *reading your own
+    change as a reviewer sees it*, which is written into this loop's pre-push checklist and was not
+    performed on a file I had authored rather than edited. **A green pipeline is not a substitute for
+    looking at the diff.**
+- **Two sessions ran this cycle concurrently, again**, and both pushed to `master` inside four
+  minutes — this session (`33ba76d`, `15d94f5`) and another (`1fc2ee9`, `e79bcee`). No work was lost
+  and the two conclusions about the deploy stall were reached **independently and agree**, which is
+  worth something; but the collision is the same failure as the 2026-08-06 run-3 pair and it also
+  produced the predicted-PR-number defect below. It is a schedule property, not an executor decision,
+  and it is recorded rather than worked around.
 - Spend: **AUD $0.00 of $500** — unchanged; this run cost nothing.
 
 ## 2026-08-27 (22:20 UTC) — run 103: the diagnostic answered, and the answer is that the pipeline is not shipping
