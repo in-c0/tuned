@@ -1,6 +1,26 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 07:45 Sydney (2026-08-27 21:45 UTC), run 103 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-28 08:10 Sydney (2026-08-27 22:10 UTC), run 103 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE**, and **one new finding that is not the card: the retirement commit did not deploy.**
+**`1bedef2` was pushed at `2026-08-27T21:44:36Z` and production was still serving `7983146` at
+`2026-08-27T22:02:30Z` — 48 consecutive `/api/version` probes across two `verify production` runs over
+~18 minutes** ([33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612) push,
+[33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422) dispatch), against a normal
+build-to-deploy of ~48s–2min. **The site is healthy and this is not an outage:** every one of those 48
+probes returned **HTTP 200 with a valid commit stamp**, which is a liveness reading, not a failure —
+what is stale is the *build*, not the service. **`check` is green on `1bedef2`**
+([33119534600](https://github.com/in-c0/tuned/actions/runs/33119534600)), so the build command is not
+the defect. **Nothing was rolled back, and rolling back would be wrong:** the live build is the
+last-known-good one, and the undeployed diff is **four Markdown files under `ops/` that the Worker does
+not serve**, so production content is unaffected in every user-facing respect. **No empty commit was
+pushed to kick the pipeline.** This matches the **2026-08-12 dropped-build pattern** (blocker 0), where
+one commit was never picked up, 72 probes read the previous build, and the **next real push deployed in
+61 seconds** — so the commit carrying this very paragraph is the diagnostic: if it deploys, one build
+was dropped; if it does not, the pipeline is broken and only the owner can read the Cloudflare
+dashboard. **Watch, second night running:** the `2026-08-27` 20:20/20:40 UTC scheduled
+`verify production` and `metrics snapshot` had still not fired at 21:36 UTC, past their historical
+20:46–21:01 band; the 2026-08-26 pair landed ~3h15m late and green ·
+**[OWNER ACTION REQUIRED](#owner-action-required):
 NONE.** **A4 lapsed at `2026-08-27T21:43:45Z` (2026-08-28 07:43 Sydney) with no submission made, and
 the card is retired on its own stated terms — the third window to close unused.** **The owner's `A`,
 granted 2026-08-20 15:04 UTC, is preserved, not withdrawn and not re-asked**; what expired is a

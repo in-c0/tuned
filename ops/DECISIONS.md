@@ -3355,3 +3355,48 @@ allowlist entry, secret, data handling or rendered user-facing copy was touched.
 METRICS.md byte-untouched.**
 
 Spend unchanged: **AUD $0.00 of $500**.
+
+## 2026-08-27 (22:10 UTC) — run 103: the retirement commit did not deploy, and the next commit is the diagnostic
+
+**Finding, not a decision to change anything.** `1bedef2` (the card retirement) was pushed at
+`2026-08-27T21:44:36Z`. Production was **still serving `7983146`** at `2026-08-27T22:02:30Z` —
+**48 consecutive `/api/version` probes** across two `verify production` runs
+([33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612), push, failed;
+[33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422), dispatch, failed) over
+~18 minutes, against a normal build-to-deploy of ~48s–2min.
+
+**Read the failure correctly: the service is up, the build is stale.** Every one of those 48 probes
+returned **HTTP 200 with a valid commit stamp**. The workflow fails *closed* — it treats an
+unverifiable deploy as a failed deploy and skips the health steps rather than run them against an
+unknown version — so a red run here means *"the expected build never became live"*, **not** *"the site
+is down"*. `check` is **green** on `1bedef2`
+([33119534600](https://github.com/in-c0/tuned/actions/runs/33119534600)), so `npm ci && npm run check`
+— the exact Workers Builds build command — is not the defect.
+
+**Decision: do not roll back.** The live build is the **last-known-good** one, and the undeployed diff
+is **four Markdown files under `ops/`, which the Worker does not serve**. There is no regression, and
+"rolling back" to the commit already being served is a no-op dressed as an action.
+
+**Decision: do not push an empty commit to kick the pipeline.** That is a standing prohibition, and it
+also destroys the evidence — a no-op commit that deploys proves nothing about whether `1bedef2` was
+dropped or the pipeline is broken.
+
+**Decision: record the finding, and let the recording commit be the diagnostic.** This is the
+**2026-08-12 dropped-build pattern** (blocker 0): one commit was never picked up, 72 probes over 32
+minutes read the previous build, and the **next real push deployed in 61 seconds** — the escalation
+written at 22:09 that day was falsified by its own next push two minutes later. That precedent is
+why this entry is a finding rather than an escalation. **If the commit carrying this paragraph
+deploys, one build was dropped and the pipeline is intact. If it does not, the pipeline is broken**,
+and diagnosing it needs the Cloudflare dashboard, which this executor holds no credentials for and
+will not acquire.
+
+**Watch, second night running.** The `2026-08-27` 20:20 UTC `verify production` and 20:40 UTC
+`metrics snapshot` schedules had still not fired at **21:36 UTC**, past their historical 20:46–21:01
+band. The 2026-08-26 pair landed **~3h15m late and green**, so *late* is the established failure mode
+rather than *missed* — but this is now two consecutive nights and it is recorded as a pattern forming,
+**not** as a defect established. It is a separate system from Cloudflare Workers Builds and the two
+should not be collapsed into one story without evidence.
+
+**Changed:** [STATUS.md](STATUS.md) (header finding), this file. **Documentation only. No source file,
+route, schema, counter, migration, workflow, allowlist entry, secret or user-facing copy touched.
+EXPERIMENTS.md and METRICS.md byte-untouched. No demand inference. AUD $0.00 of $500.**
