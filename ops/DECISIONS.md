@@ -3455,4 +3455,24 @@ EXPERIMENTS.md and METRICS.md byte-untouched. No demand inference. AUD $0.00 of 
   run's PR, which is a different change. Two commits now cite a pull request that does not describe
   them. Cheap to avoid (do not write a PR number until GitHub has issued it) and not worth a history
   rewrite.
+- **Deploy escalation, established this run rather than suspected.** The previous cycle pushed
+  `0c14053` as a diagnostic: *"if it deploys, one build was dropped; if it does not, the pipeline is
+  broken."* It did not deploy, and neither did `33ba76d` after it. The decisive reading is
+  `33ba76d`'s verify ([33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504)), because
+  nothing superseded it while it ran: **24 consecutive `/api/version` probes over 8 minutes
+  (22:09:23–22:17:24Z), all HTTP 200 with a valid commit stamp, all serving `7983146`** — the
+  2026-08-27 03:42 UTC build, ~18.5 hours old. **The 2026-08-12 dropped-build pattern therefore does
+  not fit**: there, one build was skipped and the next push landed in 61 seconds. **Three consecutive
+  pushes have now not landed.** The site is healthy — 200 on every probe — and what is stale is the
+  build, not the service. **No rollback** (the live build is last-known-good; the undeployed diffs are
+  Markdown the Worker does not serve) and **no empty commit** (prohibited, and it would destroy the
+  evidence). Telling a stuck queue from a disconnected Git integration from a failing Cloudflare-side
+  build needs the Cloudflare dashboard; the executor holds no Cloudflare credential and its egress to
+  `justtuned.com` is still 403 at the proxy. **Owner step, escalated out of band this run.**
+- **A reading corrected before it was committed, worth one line because it is the class of error this
+  loop is built to catch.** Mid-run I read `33ba76d`'s verify as *"still polling 25 minutes in"* and
+  began to conclude that the probes themselves were running long — a worse and different finding. The
+  run had in fact **failed at 22:17:24Z, on schedule**; GitHub's `status` field was stale in the
+  API snapshots I was polling. The job log settled it. **`updated_at` is the field that moves**, and
+  an inference drawn from a cached status is not an observation.
 - Spend: **AUD $0.00 of $500** — unchanged; this run cost nothing.

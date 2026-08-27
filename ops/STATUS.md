@@ -3,19 +3,27 @@
 **Last updated:** 2026-08-28 08:35 Sydney (2026-08-27 22:35 UTC), run 104 — **[OWNER ACTION REQUIRED](#owner-action-required):
 NONE.** **The directive was executed and `feedle`'s A1 is graded PARTIAL, closing the last unread A1
 in the register** — details in [Next action](#next-action) and [DISTRIBUTION.md](DISTRIBUTION.md).
-**The deploy finding below is now three pushes deep and is escalating**, and this run's own ops push
-is the fourth data point: `1bedef2` (21:44:36Z) never became live; `0c14053` — the diagnostic the
-previous cycle pushed for exactly this — went **red** at 22:13:15Z
-([33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006)), though it was superseded 4
-minutes later by `33ba76d` and its failure is therefore **ambiguous rather than decisive**; and
-`33ba76d`'s own verify ([33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504)) was
-**still polling 25 minutes in**, against a wait window of 24 × 20s ≈ 8 minutes plus per-request
-timeouts — which means the probes themselves are running long, a **different and worse signal** than a
-stale build. **Not yet established:** whether this is a dropped build, a stalled pipeline, or the zone
-declining the verifier. **Nothing was rolled back** — the live build is last-known-good and every
-undeployed diff to date is Markdown the Worker does not serve — **and no empty commit was pushed.**
-Reading the Cloudflare dashboard is an owner step; the executor holds no Cloudflare credential and its
-own egress to `justtuned.com` is still **403 at the proxy** (re-tested this run) ·
+**The deploy finding below is no longer one dropped build — three consecutive commits have now failed
+to deploy, and the previous cycle's own diagnostic is one of them.** `1bedef2` (21:44:36Z), `0c14053`
+(22:05:04Z, pushed expressly to test this) and `33ba76d` (22:09:14Z) each went **red**
+([33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612),
+[33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422),
+[33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006),
+[33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504)). **The decisive reading is
+`33ba76d`'s**, because nothing superseded it while it ran: **24 consecutive `/api/version` probes
+across 8 minutes, 22:09:23–22:17:24Z, every one HTTP 200 with a valid commit stamp, and every one
+serving `7983146`** — the build from **2026-08-27 03:42 UTC**, then **~18.5 hours old**. So the
+2026-08-12 dropped-build hypothesis the previous cycle was testing **does not survive**: that pattern
+was one build skipped and the next push landing in 61 seconds, and here **the next push did not land
+either, nor the one after it**. **The site is healthy and this is not an outage** — 200 on every probe
+is a liveness reading; what is stale is the *build*, by roughly 19 hours and counting. `check` is
+green on all three commits, so the build command is not the defect. **Nothing was rolled back** — the
+live build is last-known-good and every undeployed diff to date is Markdown the Worker does not serve
+— **and no empty commit was pushed to kick the pipeline.** **What this loop cannot do next is the
+whole of the escalation:** distinguishing a stuck queue from a disconnected Git integration from a
+failing Cloudflare-side build requires the Cloudflare dashboard, the executor holds no Cloudflare
+credential, and its own egress to `justtuned.com` is still **403 at the proxy** (re-tested this run).
+**This is an owner step.** ·
 **Previously, run 103:** **[OWNER ACTION REQUIRED](#owner-action-required):
 NONE**, and **one new finding that is not the card: the retirement commit did not deploy.**
 **`1bedef2` was pushed at `2026-08-27T21:44:36Z` and production was still serving `7983146` at
