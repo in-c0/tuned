@@ -29,6 +29,15 @@ name: source read
 # the clause sits further down. It is never asserted: a rules page that does not contain the word is
 # a reading about that venue, not a failure of this workflow. See qa/find-windows.mjs.
 #
+# Run 103 gave `find` a second job, for a failure one layer earlier than a missed clause: a page the
+# reader can open whose *rules* live behind a link it cannot resolve. feedle.world names "Submit your
+# blog or podcast" in its chrome; run 62 could read that text and not the address behind it, because
+# the reader extracted `innerText` and never `href`, so reaching the surface meant guessing a path.
+# The guess (`/submit`) returned 404 — a finding about the guess, not the venue. The read now also
+# reports the resolved targets of links whose label or path carries the `find` literal. Bounded by
+# that literal on purpose: a reader that returns every href on request is a crawler's front half,
+# and this one still opens exactly one page per dispatch and follows nothing. See qa/nav-links.mjs.
+#
 # Bounded by construction: dispatch-only, read-only permissions, no secrets in scope, exactly one
 # page per run, no link following, https-only, credentials in a URL refused, at most six quoted
 # windows per read, and Tuned's own hosts refused outright so this can never become untracked
@@ -41,7 +50,7 @@ on:
         description: "Absolute https:// URL of ONE candidate source page to open and report"
         required: true
       find:
-        description: "Optional LITERAL text to locate on the page (case-insensitive, not a pattern)"
+        description: "Optional LITERAL text to locate on the page, and to resolve link targets for (case-insensitive, not a pattern)"
         required: false
 
 permissions:

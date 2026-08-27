@@ -36,6 +36,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { findWindows } from "./find-windows.mjs";
+import { matchLinks } from "./nav-links.mjs";
 
 const ARTIFACTS = path.join(process.cwd(), "artifacts");
 fs.mkdirSync(ARTIFACTS, { recursive: true });
@@ -43,9 +44,15 @@ fs.mkdirSync(ARTIFACTS, { recursive: true });
 const SOURCE_URL = process.env.SOURCE_URL ?? "";
 
 // Optional. A LITERAL string to locate on the page — never a pattern — reported as bounded windows
-// alongside the excerpt. Empty means "not asked", which is a different reading from "asked and not
-// found"; find-windows.mjs keeps those apart.
+// alongside the excerpt, and (since run 103) as the resolved targets of any links that carry it.
+// Empty means "not asked", which is a different reading from "asked and not found";
+// find-windows.mjs and nav-links.mjs both keep those apart.
 const SOURCE_FIND = (process.env.SOURCE_FIND ?? "").trim();
+
+// A ceiling on how many anchors are pulled out of the DOM before matching. Not a bound on the
+// reading — matchLinks caps what is reported — but on the array crossing the page/Node boundary, so
+// a link farm cannot turn one read into a memory event. Reported when it bites.
+const MAX_ANCHORS_SCANNED = 2_000;
 
 // Announce what this is, truthfully. Tuned's doctrine is explicit provenance; a reader that lies
 // about being an agent to get past a filter would be the same defect as a fabricated find. A site
@@ -270,6 +277,25 @@ test.describe("source read — open one candidate page and report what is actual
     // bigger EXCERPT_CHARS.
     const find = findWindows(normalized, SOURCE_FIND);
 
+    // Where the page points, for the links the read was already asking about. Run 62 could reach
+    // feedle's document and not its submission surface, because that surface is named in navigation
+    // and this reader extracted text and never `href` — so the only way to open it was to guess an
+    // address, and the guess returned a 404 that says nothing about the venue. `a.href` is the DOM's
+    // resolved absolute URL, not the raw attribute, so a relative target comes back as something a
+    // later dispatch can actually be given. Bounded by the needle and never followed: resolving an
+    // address and visiting it stay two acts, and the second is another dispatch with its own record.
+    const anchors = await page
+      .$$eval(
+        "a[href]",
+        (as, cap) => as.slice(0, cap).map((a) => ({ text: a.innerText || a.textContent || "", href: a.href })),
+        MAX_ANCHORS_SCANNED,
+      )
+      .catch(() => null);
+    const links = matchLinks(anchors ?? [], SOURCE_FIND);
+    // Same distinction the text extraction draws above: "this page has no links" and "the reader
+    // could not read them" are different findings and must not arrive looking alike.
+    const linkStatus = anchors === null ? "extraction-failed" : "read";
+
     const evidence = {
       requested_url: SOURCE_URL,
       final_url: finalUrl,
@@ -294,6 +320,15 @@ test.describe("source read — open one candidate page and report what is actual
       find_total_occurrences: find.total,
       find_windows_truncated: find.truncated,
       find_windows: find.windows,
+      // Reported, never asserted, for the same reason as `find` above: a rules page that carries no
+      // link matching the literal is a reading about that venue, not a failure of this instrument.
+      link_status: linkStatus,
+      anchors_scanned: anchors?.length ?? 0,
+      anchors_scan_capped: (anchors?.length ?? 0) >= MAX_ANCHORS_SCANNED,
+      find_links_total: links.total,
+      find_links_truncated: links.truncated,
+      find_links_skipped_non_http: links.skipped_non_http,
+      find_links: links.links,
       read_by: READER_UA,
     };
 
