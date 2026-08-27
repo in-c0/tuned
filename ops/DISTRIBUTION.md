@@ -877,10 +877,108 @@ candidates are the footer's **Terms** and the unlocated submission surface itsel
 `/terms`** is the precise next read — recorded rather than spent, because A0 above means no answer it
 returns could authorize this executor to submit anyway.
 
-**A small instrument gap, recorded and not fixed this run.** `source-read.spec.mjs` extracts
+~~**A small instrument gap, recorded and not fixed this run.** `source-read.spec.mjs` extracts
 `body.innerText()` and never reads `href`. Reporting the `href` of links whose text matches the `find`
 literal would close it, is bounded, and is a **next candidate** — not folded into a run whose one
-action was the capability audit above.
+action was the capability audit above.~~ **Built and spent, run 104 — see immediately below.** The
+prescription was right and the reason it mattered was wrong: the gap was not that the address was
+*hard to guess*, it was that the address **was not on this venue's domain at all**.
+
+---
+
+## feedle A1 is graded, and the surface was never where seven runs of guessing could reach it — 2026-08-27 (run 104)
+
+**Two GET-only dispatches. Nothing submitted, no field filled, no account touched, no form advanced.**
+
+| # | Page | HTTP | `read_outcome` | Run |
+| --- | --- | --- | --- | --- |
+| 1 | `feedle.world/faq`, `find: "submit"` | **200**, 2,977 chars, `excerpt_truncated: false` | **`page`** ✅ | [33121327162](https://github.com/in-c0/tuned/actions/runs/33121327162) |
+| 2 | the resolved target, `find: "submit"` | **200**, **661 chars**, `excerpt_truncated: false` | `interstitial` — **below the 1,000 floor** | [33121476484](https://github.com/in-c0/tuned/actions/runs/33121476484) |
+
+**Dispatch 1 resolved the address the register has been unable to reach since run 57**, and the answer
+explains why every attempt failed:
+
+```
+"find_links": [ { "text": "Submit your blog or podcast",
+                  "href": "https://tally.so/r/mJ11E7", "matched": "text" } ]
+"anchors_scanned": 15,  "find_links_total": 1,  "link_status": "read"
+```
+
+**The submission surface is not hosted on `feedle.world`.** It is a form at a third-party form host.
+Run 62's `/submit` **404** was therefore not a near miss and not a bad guess — **no path at
+`feedle.world` was ever going to reach it**, and a reader that reports text but never `href` could
+have been pointed at that domain indefinitely. This is the sharpest available statement of why
+[L-34](LESSONS.md)'s shape recurs: *the reader could reach the document and not the clause* has a
+second form, **the reader could read the label and not the address**, and the second one is invisible
+from inside the venue's own URL space. [L-49](LESSONS.md).
+
+**Dispatch 2 read the form's published text whole** — `excerpt_truncated: false` at 661 characters
+means the entire visible page is in the run log and nothing sits below the window. Quoted at the
+minimum that carries the rule, dated **2026-08-27 22:12:42 UTC**:
+
+> *"Dear Internet creator, We are happy to add your blog or podcast to our search engine as soon as we
+> can. In order to do so, we would like you to make sure that your content is not already indexed by
+> our servers. A simple search should be more than enough. Once you have done the check, and cannot
+> find your content, please, fill out the field below: A link to your blog or podcast's RSS feed \*
+> Your Mastodon/Fediverse/Bluesky/Threads account (optional, if you have one) We would love to promote
+> authors who are also on the Fediverse via our account on Mastodon."*
+
+### A1 — PARTIALLY SATISFIED
+
+Three clauses clear, one does not, and the one that does not is the same question the owner has been
+holding since run 55.
+
+**Clear.**
+
+1. **The form is a URL, not authored prose** — "*a link to your blog or podcast's RSS feed*", plus one
+   optional social handle. The EXP-002 defect (the executor writing the owner's voice) **does not
+   arise**, exactly as at `awesome-rss-feeds`.
+2. **Self-submission is explicitly invited** — "*please, fill out the field below*", addressed to the
+   party whose feed it is. This is the clause that closed Lobsters (*"self-promo should be less than a
+   quarter of one's stories"*), and here it points the other way: submitting one's own feed is the
+   venue's intended use, not a tolerated exception.
+3. **The stated precondition is performable and GET-only** — "*make sure that your content is not
+   already indexed … a simple search should be more than enough*". One search read, no form contact.
+   **Not performed this run**, because A1 is not satisfied and [L-33](LESSONS.md) forbids building
+   toward a gate that has not opened.
+
+**Does not clear — and it is not silence this time, which makes it worse rather than better.**
+
+The page opens **"Dear Internet creator"**, asks for **"your** blog or podcast", and closes by wanting
+to promote **"authors"**. At `awesome-rss-feeds` and `ooh.directory` authorship was *unaddressed*, and
+[L-17](LESSONS.md)'s *silence is not permission* carried the verdict. Here the venue **does** address
+it — it addresses the **creator of the content**, and names the artifact it expects (**a blog or a
+podcast**). Tuned's `/sportstech` is neither: it is an **agent-curated attention feed**, whose items
+are observed and selected by an agent and published with provenance. Whether that is *"your blog or
+podcast"*, and whether its owner is the *"author"* feedle wants to promote, is **not answered on the
+page and cannot be answered by this executor.**
+
+So the verdict is **PARTIAL, not SATISFIED** — and note what it is *not*: it is not FAILED. Nothing on
+the page prohibits this. The gap is that the venue describes a submitter Tuned may or may not be, and
+guessing which would be exactly the inference the acceptance criteria forbid — *never inferred from
+the existence of a submit link*, and equally never inferred from a warm greeting.
+
+### Three consequences, recorded rather than acted on
+
+1. **The authorship question now has three venues behind it, not two.** It was `awesome-rss-feeds`
+   (run 55), then `ooh.directory` (run 57). feedle joins on a **different footing**: the first two are
+   silent, feedle is *addressed to creators*. One answer still covers all three, and the answer is not
+   this executor's to give. **A0 binds**: no submission, form, issue or account use at any third-party
+   venue until the owner or reviewer answers it.
+2. **No A5 was written**, per the directive and per [L-33](LESSONS.md). feedle's model is a **search
+   index**, not a curated list (run 62's FAQ quotation), so a threshold written against directory
+   shape would grade the wrong thing. It stays unwritten until A1 clears.
+3. **The 1,000-character floor tripped a second legitimate page and was not lowered.** 661 characters
+   is a real form, and dispatch 2 is **red**. This is the second false alarm (`feedle.world` at 745
+   was the first) and the standing rule holds unchanged: *a false alarm is overruled in the register,
+   on the evidence, with the run kept red.* The reading survives the red run because the evidence is
+   emitted **before** the assertions — the ordering run 47 paid for. A floor tuned down until nothing
+   trips it reintroduces the run-50 defect, where a reCAPTCHA page reported `1 passed`.
+
+**One incidental confirmation the instrument was built for.** Dispatch 2 reported
+`find_links_total: 0` with `anchors_scanned: 2` and `link_status: "read"` — *asked, and this page has
+no such link*, which is a reading about the form, distinct from *the reader could not read its links*.
+The same distinction `find` draws for text, now drawn for addresses.
 
 ---
 
@@ -942,7 +1040,7 @@ executor and it is recorded once here rather than repeated seven times.
 | **Product Hunt** | **UNREADABLE 2026-08-19** ([32214495616](https://github.com/in-c0/tuned/actions/runs/32214495616)) — HTTP **403**, `Just a moment...`, *"Performing security verification … verifies you are not a bot"*, 266 chars. The rules cannot be quoted by this executor; resolving A1 here is an **owner action** | Owner-authored only | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** — A1 unresolvable by this executor |
 | **awesome-rss-feeds** (`plenaryapp`) | **READ 2026-08-19** ([32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407)) — **FORM PERMITTED**: *"There are two ways to add any category, country or feed in the repository"*, via Google form or *"an issue with one of the given templates to add new feeds"*. **Authorship unaddressed** — no self-promotion clause either way, and silence is not permission | **Not authored prose** — a feed URL, title and category. The EXP-002 defect does not arise; submitting in the owner's name is still an owner/reviewer decision | ✅ | ~~✅ `/sportstech` **until 2026-08-24 09:35 UTC** (item 246, run 65)~~ **❌ — LAPSED 2026-08-24 09:35:56 UTC, unused (run 83)** | ~~❌ — no tag allowlisted, no threshold registered~~ **✅ — run 56.** `arrival_fetch:awesome-rss-feeds` allowlisted and counted on the RSS route; [EXP-009](EXPERIMENTS.md) registers the threshold, the window and the two inadmissible outcomes, all before any submission | **PAUSED, NOT DROPPED — A4 lapsed 2026-08-24 09:35:56 UTC with no submission made (run 83).** A2 is **answered and preserved** (owner's **A**, 2026-08-20 15:04 UTC); A1 partially satisfied; A3 ✅; **A4 ❌ — expired**; A5 ✅. **Resumes when a publication worth making on its own merits restores A4**, at which point the act still needs the owner's account. No demand inference from the lapse |
 | **ooh.directory** | **READ 2026-08-19** ([32307232421](https://github.com/in-c0/tuned/actions/runs/32307232421), [32307374484](https://github.com/in-c0/tuned/actions/runs/32307374484)) — **FORM PERMITTED ON A CONDITION**: *"Link blogs are only included if they include original commentary about each link"*; English-only ✅; *"updated within the past couple of months"* ✅. **Authorship unaddressed**, and the condition met is *original commentary*, which here is agent-written | **Not authored prose** — a URL, a category and optional names. Submitting in the owner's name is still an owner/reviewer decision, and the venue calls these *"suggestions rather than submissions"* | ✅ | ~~✅ `/sportstech` **until 2026-08-24 09:35 UTC** (item 246, run 65)~~ **❌ — LAPSED 2026-08-24 09:35:56 UTC, unused (run 83)** | ❌ — **route covered, tag not.** The URL this venue takes is the **front page, not the feed**, so run 48's HTML instrument applies; but `ARRIVAL_TAGS` ([`src/index.ts:703`](../src/index.ts)) holds only `qa` and `awesome-rss-feeds`, so `?src=ooh-directory` writes **nothing**. No threshold registered | **NOT YET ADMISSIBLE** — A1 partially satisfied, A3 ✅, **A4 ❌ — lapsed 2026-08-24 09:35:56 UTC (run 83)**, **A5 ❌**, A2 open |
-| **feedle** (`feedle.world`) | **UNREAD 2026-08-19** ([32307293995](https://github.com/in-c0/tuned/actions/runs/32307293995)) — the page was served (200, 745 chars, no gate markers) and carries **"Submit your blog or podcast"**, but no rule about who may submit was reached. The read went red on the reader's own 1,000-character floor, which was a **false alarm rather than a refusal**. **Still UNREAD after run 62**, now for a third and distinct reason: **the submission surface's address was not located.** `/submit` is a **404** ([32422654363](https://github.com/in-c0/tuned/actions/runs/32422654363)) — a finding about the guess, not the venue — and the reader reports page text but never `href`, so a surface named only in navigation cannot be reached without guessing | UNREAD | ✅ | ✅ `/sportstech` | ❌ | **CANDIDATE — A1 UNREAD.** The only register entry with a readable, unread rules page. Reaching it needs the reader to report link targets ([next candidate](#feedle--the-submission-surface-was-not-located-and-the-reader-cannot-follow-a-link)) |
+| **feedle** (`feedle.world`) | ~~**UNREAD**~~ **READ 2026-08-27 — PARTIALLY SATISFIED** ([33121327162](https://github.com/in-c0/tuned/actions/runs/33121327162) resolved the address, [33121476484](https://github.com/in-c0/tuned/actions/runs/33121476484) read the surface). **FORM PERMITTED**: *"a link to your blog or podcast's RSS feed"* — a URL, not authored prose — and **self-submission is explicitly invited**: *"please, fill out the field below"*. **Authorship addressed and unresolved**, which is a different failure from the silence at the two venues above: the page opens *"Dear Internet creator"*, asks for *"**your** blog or podcast"* and offers to promote *"authors"*, and Tuned's `/sportstech` is an **agent-curated attention feed**, not a blog or a podcast. **Three runs of `/submit`-guessing could never have worked: the surface is not hosted on `feedle.world` at all**, and the reader that finally reached it had to report `href` | **OPEN — same question as the two venues above, on a sharper footing.** Not authored prose; the EXP-002 defect does not arise. Whether an agent-curated feed is *"your blog or podcast"* is the owner's to answer | ✅ | ✅ `/sportstech` | ❌ — **not written, per [L-33](LESSONS.md)**: A1 is not satisfied. feedle is a **search index**, not a curated list, so a directory-shaped threshold would grade the wrong thing | **NOT YET ADMISSIBLE — A1 PARTIAL, A2 open, A5 ❌.** The candidate is now *readable and graded* rather than unreachable ([full grading](#feedle-a1-is-graded-and-the-surface-was-never-where-seven-runs-of-guessing-could-reach-it--2026-08-27-run-104)) |
 | **Paid acquisition** | n/a | n/a | ✅ | ✅ `/sportstech` | ❌ | **INADMISSIBLE** *and* owner-gated — no ad account exists (an auth boundary) and any spend must be requested in issue #1 against the AUD $500 cap, of which **$0.00** is spent |
 | **Tuned's own public RSS** | n/a — it is Tuned's surface | n/a | ✅ | ✅ `/sportstech` | ❌ | Not a channel; it is a destination. Listed so it is not mistaken for reach |
 

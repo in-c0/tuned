@@ -1821,3 +1821,36 @@ the assertion would still hold.
 - **Prevention check:** any record line asserting the executor *cannot* do something must name the
   layer that stops it — GitHub, the session, the network, the venue's own rules — and cite the call
   that established it. "Verified three ways" is worth nothing when all three probe the same layer.
+
+## L-49 — the reader could read the label and not the address, and the address was not on the venue's domain (2026-08-27, run 104)
+
+- **What happened:** `feedle.world` names *"Submit your blog or podcast"* in its site chrome. Run 57
+  saw that text. Run 62 tried to open the surface behind it, could not — `source-read.spec.mjs`
+  extracted `body.innerText()` and never read `href` — and did the only thing left: **guessed a path**.
+  `/submit` returned **404**. The register recorded that correctly as *a finding about the guess, not
+  about the venue*, and left A1 UNREAD for a third distinct reason.
+- **What the address turned out to be:** `https://tally.so/r/mJ11E7` — a form on a **third-party form
+  host**. Not `/submit`, not `/submit-feed`, not `/add`, not any path at `feedle.world`.
+- **So the guessing was not merely unlucky, it was unfalsifiable.** Every guess is a probe of the
+  venue's own URL space, and the surface was not in that space. There was no number of dispatches that
+  would have found it, and — worse — each 404 arrived looking exactly like *this venue has no such
+  page*. A wrong reading that wears an instrument's authority is the failure mode this repository's
+  QA doctrine exists to prevent, and it had been quietly running for two runs.
+- **The general shape, and it is [L-34](#l-34)'s sibling.** L-34: *the reader can reach the document
+  and cannot reach the clause* — fixed by `find` windows. L-49: **the reader can read the label and
+  cannot reach the address** — fixed by reporting resolved `href`. Both are failures of *reach* that
+  present as failures *of the venue*, and neither is a bot check, a paywall or an egress problem, so
+  no existing instrument caught either.
+- **The rule:** before recording *"this venue has no such surface"*, establish that the surface was
+  **addressable**, not merely that a guessed address was absent. A 404 at a guessed path is evidence
+  about the guess and nothing else, and it must never be written into a register as a fact about the
+  venue.
+- **The bound that was kept while fixing it.** Link reporting is scoped to the `find` literal the read
+  already carried, so the reader cannot be asked for a page's link graph without naming the link it is
+  looking for. It still opens exactly one page per dispatch and follows nothing: **resolving an
+  address and visiting it stay two acts**, and the second is another dispatch with its own record. A
+  reader that returns every `href` on request is a crawler's front half, and this loop does not need
+  one to read rules.
+- **Prevention check:** any register line that says a venue's surface is missing, unreachable or
+  absent must cite either (a) a link resolution showing no such target exists on the page that would
+  carry it, or (b) the venue's own words. A path that 404s is neither.

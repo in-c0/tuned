@@ -1,6 +1,30 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 08:10 Sydney (2026-08-27 22:10 UTC), run 103 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-28 08:35 Sydney (2026-08-27 22:35 UTC), run 104 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **The directive was executed and `feedle`'s A1 is graded PARTIAL, closing the last unread A1
+in the register** — details in [Next action](#next-action) and [DISTRIBUTION.md](DISTRIBUTION.md).
+**The deploy finding below is no longer one dropped build — three consecutive commits have now failed
+to deploy, and the previous cycle's own diagnostic is one of them.** `1bedef2` (21:44:36Z), `0c14053`
+(22:05:04Z, pushed expressly to test this) and `33ba76d` (22:09:14Z) each went **red**
+([33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612),
+[33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422),
+[33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006),
+[33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504)). **The decisive reading is
+`33ba76d`'s**, because nothing superseded it while it ran: **24 consecutive `/api/version` probes
+across 8 minutes, 22:09:23–22:17:24Z, every one HTTP 200 with a valid commit stamp, and every one
+serving `7983146`** — the build from **2026-08-27 03:42 UTC**, then **~18.5 hours old**. So the
+2026-08-12 dropped-build hypothesis the previous cycle was testing **does not survive**: that pattern
+was one build skipped and the next push landing in 61 seconds, and here **the next push did not land
+either, nor the one after it**. **The site is healthy and this is not an outage** — 200 on every probe
+is a liveness reading; what is stale is the *build*, by roughly 19 hours and counting. `check` is
+green on all three commits, so the build command is not the defect. **Nothing was rolled back** — the
+live build is last-known-good and every undeployed diff to date is Markdown the Worker does not serve
+— **and no empty commit was pushed to kick the pipeline.** **What this loop cannot do next is the
+whole of the escalation:** distinguishing a stuck queue from a disconnected Git integration from a
+failing Cloudflare-side build requires the Cloudflare dashboard, the executor holds no Cloudflare
+credential, and its own egress to `justtuned.com` is still **403 at the proxy** (re-tested this run).
+**This is an owner step.** ·
+**Previously, run 103:** **[OWNER ACTION REQUIRED](#owner-action-required):
 NONE**, and **one new finding that is not the card: the retirement commit did not deploy.**
 **`1bedef2` was pushed at `2026-08-27T21:44:36Z` and production was still serving `7983146` at
 `2026-08-27T22:02:30Z` — 48 consecutive `/api/version` probes across two `verify production` runs over
@@ -1455,9 +1479,29 @@ are unaffected and still bind.
 Reading 2 is **not** on this list: it has no `t0` and cannot acquire one without a submission. The
 live candidates are (1) the scheduled `/sportstech/rss.xml` probe pre-committed for after Reading 1
 ([L-31](LESSONS.md)), unblocked since run 99 and deliberately untaken since — it is instrumentation and
-wants its own decision; (2) reading `feedle`'s published rules, the one readable-and-unread A1 left;
-(3) the run-49 unattributed console 404. [EXP-010](EXPERIMENTS.md)'s `control_days` reads
+wants its own decision; ~~(2) reading `feedle`'s published rules, the one readable-and-unread A1
+left;~~ **(2) DONE, run 104 — `feedle` A1 is graded PARTIAL and the register has no unread A1 left**
+(see below); (3) the run-49 unattributed console 404. [EXP-010](EXPERIMENTS.md)'s `control_days` reads
 **2026-09-04**. **None of these is a distribution attempt and none may be reported as one.**
+
+**Run 104 closed the last unread A1, and what it found changes what the queue is waiting on.** The
+`feedle` submission surface is **not hosted on `feedle.world`** — it is a form at a third-party host,
+which is why run 62's guessed `/submit` returned **404** and why no further guess would ever have
+worked ([L-49](LESSONS.md)). Read GET-only, nothing submitted, no field touched. **A1 = PARTIALLY
+SATISFIED**: the form takes *"a link to your blog or podcast's RSS feed"* — a URL, not authored prose
+— and **self-submission is explicitly invited**; but the page is addressed *"Dear Internet creator"*,
+asks for *"**your** blog or podcast"*, and offers to promote *"authors"*, against an **agent-curated
+attention feed** that is neither. **Not FAILED — nothing there prohibits this**; the venue simply
+describes a submitter Tuned may or may not be, and guessing which is the inference the whole register
+exists to refuse. Full grading in [DISTRIBUTION.md](DISTRIBUTION.md).
+
+**So the standing authorship question now has three venues behind it rather than two**, and one owner
+answer still covers all three. **It is not being re-asked here and no card is opened for it** — the
+retired card's terms already cover it, `awesome-rss-feeds` remains the only candidate that ever
+reached A4, and **A4 does not currently hold for anything**. The change is that when the question is
+next answered, it will unlock a wider set than it would have yesterday. **No A5 was written for
+feedle** ([L-33](LESSONS.md)): A1 is not satisfied, and feedle is a **search index** rather than a
+curated list, so a directory-shaped threshold would grade the wrong thing.
 
 **Everything from here to the `ooh.directory` paragraph predates run 103 and is kept as written — it
 describes the card as live, and it is not.**
