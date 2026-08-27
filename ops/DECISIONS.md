@@ -3476,3 +3476,52 @@ EXPERIMENTS.md and METRICS.md byte-untouched. No demand inference. AUD $0.00 of 
   API snapshots I was polling. The job log settled it. **`updated_at` is the field that moves**, and
   an inference drawn from a cached status is not an observation.
 - Spend: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-08-27 (22:20 UTC) — run 103: the diagnostic answered, and the answer is that the pipeline is not shipping
+
+**The prediction in this run's 22:10 UTC entry was tested and falsified** (that entry is no longer
+directly above this one — a concurrent session's entry landed between them; see the second finding at
+the end). It said: *"if the commit carrying this paragraph deploys, one build was dropped and the
+pipeline is intact."* It did not deploy. **Three
+consecutive commits never became live**, across ~33 minutes and **72 `/api/version` probes**:
+
+| commit | pushed | `verify production` | outcome |
+| --- | --- | --- | --- |
+| `1bedef2` (docs) | `21:44:36Z` | [33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612) push · [33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422) dispatch | **failure** — never live |
+| `0c14053` (docs) | `22:05:04Z` | [33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006) | **failure** — never live |
+| `33ba76d` (**source**) | `22:09:14Z` | [33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504) | **failure** — never live |
+
+**This is no longer the 2026-08-12 dropped-build pattern.** That one recovered on the next real push
+in 61 seconds. Three pushes have now failed to land, the third carrying **actual source changes**
+(`qa/`, `test/`, `src`-adjacent), not documentation — so "Workers Builds ignores docs-only commits" is
+ruled out as an explanation. **Escalated from finding to blocker.**
+
+**Production is healthy and this is not an outage — the distinction is the whole point.** All 72
+probes returned **HTTP 200 with a valid 40-hex commit stamp**, never `<no build stamp>`. The service
+is up and serving `7983146`, the last-known-good build, live since `2026-08-27T03:43Z`. What is frozen
+is the *build*, not the site.
+
+**Decision: no rollback, and the reasoning is not "it is only documentation".** The live build **is**
+the rollback target. Reverting anything would leave production byte-identical and would delete the
+record of why. **Decision: no empty commit, no close-and-reopen, no re-run beyond the one dispatch
+already spent.** **Decision: escalate to the owner** — `check` is green on every one of these heads
+([33119534600](https://github.com/in-c0/tuned/actions/runs/33119534600)), so `npm ci && npm run check`
+is not the defect and the failure is on the **Cloudflare Workers Builds** side. This executor holds no
+Cloudflare credentials **by design** (the Git-based pipeline exists precisely so it never does), so
+reading *Workers & Pages → `attention-feed` → Builds* for a failed, stuck or disconnected build is an
+**owner step and an auth boundary**, not something to route around. Notified out of band at 22:20 UTC.
+
+**Consequence to state plainly: until this clears, nothing this loop writes can reach production.**
+Every future directive that ends in "deploy and verify" is blocked at the last step, and a green
+`check` will keep saying the code is fine while the site keeps serving August 27th.
+
+**Second finding, recorded because it is an operating hazard rather than a curiosity: two executor
+sessions ran concurrently on `master` tonight.** The 21:31 UTC review triggered this run via
+`issue_comment`; the ordinary `0 22 * * *` cron then started **another** session, which pushed
+`33ba76d` at `22:09:14Z` and `1fc2ee9` after it — real source changes, from
+`session_0174ECEP5TMRMoYisp3Hj3Rb`, while this session was mid-run. Previous double-fires (runs 100,
+102) were harmless because the second session found the cycle's work already done and stood down. This
+one did not: **both sessions pushed to `master` within five minutes of each other.** No conflict
+resulted, but nothing prevented one. Recorded as a real coordination gap.
+
+**Documentation only. AUD $0.00 of $500. No demand inference.**
