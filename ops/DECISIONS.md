@@ -3250,3 +3250,56 @@ secret, data handling or rendered user-facing copy was touched.**
 **[EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are byte-untouched.**
 
 Spend unchanged: **AUD $0.00 of $500**.
+
+## 2026-08-27 (run 99) — EXP-009 Reading 1 is graded on schedule, and a pre-registration is written into rather than edited
+
+**Decision: grade Reading 1 from the scheduled snapshot the pre-registration named, write only its
+*Result* and *Decision* sections, and leave every other byte of [EXP-009](EXPERIMENTS.md) untouched.**
+
+**Why this and not something else.** The [2026-08-27 03:34 UTC reviewer
+directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5434034959) named it as the single
+action, and it was the only thing available that could be completed *and* graded without anyone's
+permission: the owner card has ~18h left and is not the executor's to discharge, Reading 2 has no
+`t0`, and product, copy, pricing and instrumentation work are all under standing holds. Eleven
+consecutive runs have changed nothing about the commercial state; this is the one thing in that
+stretch that was scheduled to happen and did.
+
+**The reading.** Source: [`346f442`](https://github.com/in-c0/tuned/commit/346f442),
+`generated_at` `2026-08-27T00:01:39.681Z`, workflow run
+[33025396417](https://github.com/in-c0/tuned/actions/runs/33025396417), event `schedule`.
+**Fork I-A passes** — `feed_fetch_bot:sportstech` = `1, 7, 1, 0, 3, 1, 0` across 2026-08-20 … 08-26,
+non-zero on five of seven days. **Fork I-B not fired** (withdrawn run 84, [L-44](LESSONS.md)). Band:
+`1, 0, 0, 0, 0` pre-autodiscovery, `16, 0` post, kept in separate regimes per the run-86 clause; the
+pre-deploy `1` carried `?src=qa`, so the third-party floor is `0, 0, 0, 0, 0`. Of 08-25's 16, one is
+**pre-`t0`, issue-#1-attributable** per the run-87 clause and fifteen carried no allowlisted tag.
+**Reading 2 stays at Fork D.**
+
+**What was decided beyond the arithmetic, and it is the part worth keeping.** The value of this
+reading is not "the counter works" — it is that **Fork E now has something to be read against.** Fork
+E covers a maintainer normalising `?src=` off a merged URL, and its fallback is
+`feed_fetch:sportstech` *against its Reading-1 band*. That band did not exist before today. A fork
+whose evidence is undefined is not a fork, and one of the five was in that state until this run.
+
+**Two corrections made in the open rather than quietly.** (1) The run-86 clause called 08-20 … 08-24
+*"five complete pre-deploy days"*; autodiscovery went live in 08-24's last ~95 minutes, so it is four
+complete and one near-complete. The values are `0` either way. (2) Run 98 asked whether the missed
+2026-08-26 schedule meant a broken read path. It did not — both workflows fired ~3h15m late and green,
+and **the delay is what made this reading gradeable**, since a 20:40Z snapshot would have held an
+incomplete 08-26. The defect and the enabling condition were the same event.
+
+**Not done, deliberately.** No submission, form, issue or account use at any third-party venue; no
+venue contacted or read; no child session. No publication (a second find to extend A4 stays
+disqualified by [EXP-008](EXPERIMENTS.md)'s clauses). No scheduled `/sportstech/rss.xml` probe — it was
+pre-committed for *after* Reading 1 and is now unblocked, but it is not this run's action and adding a
+timer to a route immediately after grading it deserves its own decision. No real channel tag exercised;
+no joined tagged URL printed ([L-36](LESSONS.md)). No product, copy, pricing, billing, instrumentation
+or new experiment. The owner card was **kept, not retired**, per the directive.
+
+**Changed:** [EXPERIMENTS.md](EXPERIMENTS.md) (EXP-009 *Result* + *Decision* only),
+[METRICS.md](METRICS.md) (graded reading + workflow-recovery note), [STATUS.md](STATUS.md) (header,
+run-99 card, owner-card clock line, *Next action* item 2), this file. **No source file, route, schema,
+counter, migration, workflow, allowlist entry, secret, data handling or rendered user-facing copy was
+touched.** **[EXP-010](EXPERIMENTS.md) is byte-untouched**, and its `control_days` reading due
+2026-09-04 is unaffected.
+
+Spend unchanged: **AUD $0.00 of $500**.

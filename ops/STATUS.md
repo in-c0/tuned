@@ -1,32 +1,96 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-25 15:10 Sydney (2026-08-25 05:10 UTC), run 88 — **[OWNER ACTION REQUIRED](#owner-action-required):
-ACTION REQUIRED · MEDIUM.** **The loop is deadlocked on the one act it is trying to perform, and this
-run is what breaks the deadlock.** The owner's [03:36 UTC
-clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737) told the executor to
-make the `awesome-rss-feeds` submission itself; run 87 was already writing its report and never saw
-it. **Run 88 tried, and could not** — so the owner is waiting on Claude while Claude waits on the
-owner, with **~66h left** on the A4 window (expires 2026-08-28 07:43 Sydney). **The card's stated
-reason was also wrong and is corrected:** the executor is authenticated as **`in-c0`, the owner's own
-GitHub account**, which *can* open an issue anywhere public. What blocks it is **this session's
-repository allowlist**, filtered to `in-c0/tuned` before any call reaches GitHub — configuration the
-owner can change from outside the session, not a missing credential ([L-48](LESSONS.md)). **A child
-session scoped to the venue was available and was not spawned: that is boundary-shopping.**
-**[EXP-009](EXPERIMENTS.md)/[EXP-010](EXPERIMENTS.md) are byte-untouched; no spend; nothing was
-submitted, published or probed this run** ·
-**Previously, run 86:** **every public page in this product told software the site has no feed, and that is fixed.**
-No page carried `<link rel="alternate" type="application/rss+xml">` — the one element a feed reader,
-aggregator or feed search engine uses to get from a page URL to a subscribable feed. The visible
-`RSS` anchor is why nobody looked: it made the product *look* feed-enabled to every human who
-reviewed the page, and no reader parses page text for the word "RSS". **`ooh.directory`, one of the
-two open register candidates, takes the front page and says *"(not its feed)"* on its own form** —
-so a submission there would have been admissible, correct and mechanically inert. Counters agree it
-is not theoretical: 2026-08-21 … 08-24 the landing page took **46 · 65 · 69 · 45** views a day while
-unsuffixed `feed_fetch` read **0 · 0 · 0 · 0** ([L-46](LESSONS.md)). **[EXP-009](EXPERIMENTS.md) is
-byte-untouched, Fork I-A is already determined by pre-deploy days and Fork I-B must not be fired;
-the background band is quoted from 08-20 … 08-24 only, with 08-25/08-26 reported separately as
-post-deploy** — registered in [METRICS.md](METRICS.md) before the number exists ·
+**Last updated:** 2026-08-27 13:35 Sydney (2026-08-27 03:35 UTC), run 99 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ACTION REQUIRED · MEDIUM, and it expires today at 2026-08-28 07:43 Sydney (`2026-08-27T21:43:45Z`),
+~18h from this line.** **[EXP-009](EXPERIMENTS.md) Reading 1 is graded — the first pre-registered
+reading this loop has closed on schedule, and it closed as registered rather than as hoped.**
+**Fork I-A passes:** `feed_fetch_bot:sportstech` reads **`1, 7, 1, 0, 3, 1, 0`** across
+2026-08-20 … 08-26, non-zero on five of seven days, from scheduled snapshot
+[`346f442`](https://github.com/in-c0/tuned/commit/346f442) (`generated_at` `2026-08-27T00:01:39.681Z`).
+The route writes in production, so **a submission that sent traffic would now be visible** — which is
+exactly what was *unsatisfiable* when EXP-009 was registered. **Fork I-B was not fired** (withdrawn
+run 84, [L-44](LESSONS.md)). **The band is recorded in two regimes and never averaged:** unsuffixed
+`feed_fetch:sportstech` is **`1, 0, 0, 0, 0`** pre-autodiscovery and **`16, 0`** post — and the
+pre-deploy `1` carried `?src=qa`, this loop's own control tag, so the **third-party** floor is
+`0, 0, 0, 0, 0`. Of 08-25's 16, **one** carried the venue tag and is **pre-`t0`,
+issue-#1-attributable** (excluded from Reading 2); the other **15 carried no allowlisted tag**, and
+every other feed took fetches the same day and none the next. **Polls, not people — no subscriber
+count is derived and none can be.** **Reading 2 stays at Fork D:** no submission, no `t0`, nothing
+about demand or about the venue decided. **The 2026-08-26 schedule miss is closed too — delayed
+~3h15m, not dropped, both workflows green, and the delay is what made this reading gradeable.**
+**No code shipped; EXP-009's question, forks and stop conditions are byte-untouched (only *Result* and
+*Decision* were written); [EXP-010](EXPERIMENTS.md) untouched; no spend; nothing submitted, published
+or probed** ·
+**Previously, run 88:** the loop was **deadlocked on the one act it is trying to perform** — the owner
+told Claude to make the submission, Claude tried and hit its **session repository allowlist**, and
+**the card's stated reason had been wrong for seven runs**: the executor is authenticated as `in-c0`,
+the owner's own GitHub account, which *can* open an issue anywhere public. The blocker is
+configuration the owner controls from outside the session, not a missing credential
+([L-48](LESSONS.md)). **A child session scoped to the venue was available and was deliberately not
+spawned — that is boundary-shopping.** Full card below ·
+**Previously, run 86:** **every public page in this product told software the site has no feed, and
+that is fixed** — no page carried `<link rel="alternate" type="application/rss+xml">`, the one element
+a feed reader or aggregator uses to get from a page URL to a subscribable feed. The visible `RSS`
+anchor is why nobody looked ([L-46](LESSONS.md)). **Its band clause governed the reading above and was
+honoured;** run 99 corrects only its arithmetic — 08-24 is near-complete, not complete, because
+autodiscovery went live in its last ~95 minutes ·
 **Head:** [`master`](https://github.com/in-c0/tuned/commits/master)
+
+> # The first pre-registered reading this loop has closed on schedule says the instrument works. It says nothing about whether anybody wants this.
+>
+> **[EXP-009](EXPERIMENTS.md) Reading 1 was due on the complete UTC day 2026-08-26 and is graded
+> today, from the scheduled snapshot the pre-registration named, on the days it named, against the
+> threshold it fixed before any of the numbers existed.** That is worth stating on its own, because
+> eleven consecutive runs have now changed nothing about the commercial state and this is the one
+> thing in that stretch that was *supposed* to happen and did.
+>
+> **Fork I-A passes.** `feed_fetch_bot:sportstech` reads **`1, 7, 1, 0, 3, 1, 0`** across
+> 2026-08-20 … 08-26 — non-zero on five of seven days against a threshold of one. The RSS route writes
+> in production. When EXP-009 was registered, `GET /:handle/rss.xml` was the only public route in the
+> Worker with **no `track()` call at all**, which made A5 for this venue not *unregistered* but
+> **unsatisfiable**: a merged listing that sent a hundred subscribers would have been indistinguishable
+> from one nobody opened. That is no longer true. **Fork I-B was not fired** — it was withdrawn in run
+> 84 on the ground that no schedule fetches this route ([L-44](LESSONS.md)), and the two zero days mean
+> no QA run was dispatched by hand, never a broken counter.
+>
+> **The band, and the reason it is quoted in two pieces.** Unsuffixed `feed_fetch:sportstech` is
+> **`1, 0, 0, 0, 0`** pre-autodiscovery (08-20 … 08-24) and **`16, 0`** post (08-25, 08-26). The
+> [run-86 clause](METRICS.md) forbade averaging them and it is honoured. **The pre-deploy `1` is not a
+> third party**: 08-20 also reads `arrival_fetch:qa` **1** and site-wide `feed_fetch` **1**, so it is
+> one event carrying this loop's own published control tag. Read as third-party arrivals the pre-deploy
+> floor is **`0, 0, 0, 0, 0`** — and *that* is the concrete gain, because
+> [EXP-009](EXPERIMENTS.md) Fork E (a maintainer normalises `?src=` off the merged URL) falls back to
+> reading this series against its band, and until today the band did not exist.
+>
+> **What the 16 is not.** One of it carried the venue tag and is **pre-`t0`, issue-#1-attributable**
+> under the [run-87 clause](METRICS.md) — the tag's URL was printed in a public comment before any
+> submission existed — and it is excluded from anything Reading 2 grades. **The other fifteen carried
+> no allowlisted tag.** Every other feed took fetches on 08-25 (`ava` 2, `graphics` 2, `wearables` 2,
+> `wellbeing` 1) and **every handle read zero on 08-26**. Site-wide on one day and none the next is the
+> shape of a sweep, not a subscription — but two days is not a test of a discovery path, and this is
+> **not** a claim that autodiscovery worked. **These are polls of a file. There is no visitor
+> identifier. No subscriber count is derived from any of it and none can be.**
+>
+> **Reading 2 remains at Fork D — never authorized, never made, never merged — so nothing about demand
+> or about the venue is decided, and the [owner card below](#owner-action-required) is still the only
+> thing standing between this loop and its first external distribution test.** It expires with A4 at
+> **`2026-08-27T21:43:45Z` (2026-08-28 07:43 Sydney)**, ~18h from this line.
+>
+> **The 2026-08-26 schedule miss is also closed, and it cuts the opposite way from how it looked.**
+> Both workflows fired **~3h15m late and green** — GitHub queued the `schedule` event late; nothing was
+> dropped and no data was lost, since `daily` is cumulative from D1. **The delay is what made this
+> reading gradeable**: a snapshot at the scheduled 20:40Z would have held an incomplete 08-26, and
+> crossing midnight UTC is what captured the complete day. Run 98's escalation test stands — if the
+> 08-27 schedules also miss, one outlier becomes a pattern.
+>
+> **Nothing was submitted, published or probed; no venue was contacted, no account used, no real
+> channel tag exercised; no code shipped.** Only EXP-009's *Result* and *Decision* were written — its
+> question, hypothesis, baseline, change, both readings, every fork and its stop conditions are
+> **byte-untouched**, and [EXP-010](EXPERIMENTS.md) is untouched entirely. `applications` **0** ·
+> `members_ever_active` **0** · followers **0** · gross cash **AUD $0** from *no billing exists* ·
+> spend **AUD $0.00 of $500**.
+
+<!-- run 88's card, kept as written -->
 
 > # The owner told Claude to go and do it. Claude cannot — and the reason the card has given for seven runs was wrong.
 >
@@ -842,6 +906,13 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ### **ACTION REQUIRED · MEDIUM — one directory submission, before 2026-08-28 07:43 Sydney.**
 
+**Clock, read 2026-08-27 03:35 UTC (run 99): ~18h of window left.** The card is unchanged and is
+**kept, not retired** — the reviewer's [2026-08-27
+directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5434034959) holds it until the first
+cycle *after* expiry, at which point it retires **with the owner's `A` authorization preserved**, not
+revoked. Nothing below was re-read this run; the `~66h` figure in the Severity row is a dated
+2026-08-25 reading and is left as written rather than silently refreshed.
+
 **Un-retired 2026-08-25 (run 87) on a freshly read precondition, not on a memory of one.** The card
 retired 2026-08-24 09:35:56 UTC because A4 lapsed. Item 247 restored A4 as a consequence of being
 worth publishing, and **production was re-read this run** rather than taken from the previous report:
@@ -1438,17 +1509,19 @@ satisfied, A3 ✅, A4 ✅ **until 2026-08-24 09:35:56 UTC** (item 246, run 65 �
    done**. A null result must stay separable from an inadmissible one: a maintainer who never merges
    it is **not** evidence that nobody wanted Tuned — that is EXP-009 Fork D, and Fork E covers a
    merge that strips the `?src=` tag.
-2. **EXP-009 Reading 1, due on the complete UTC day 2026-08-26** and gradeable without anyone's
-   permission: does `feed_fetch:sportstech` write in production at all, and what is the background
-   fetch rate? ~~Fork I-B — seven days of silence on a route this loop's own QA fetches on a schedule —
-   would mean the instrument is defective and A5 fails again.~~ **Struck run 84: there is no such
-   schedule.** Nothing on a timer fetches `/sportstech/rss.xml` — the two scheduled workflows probe
-   `/ava/rss.xml` only, and the specs that cover every handle are dispatch-only by design. **Fork I-B
-   must not be fired** ([L-44](LESSONS.md)); Fork I-A is graded normally and is already satisfied by
-   08-20, 08-21 and 08-22. **Read it against run 57's dated note:**
-   the counters' first day shows unsuffixed `feed_fetch` at **16, all tag-carrying and unattributed**,
-   so *"background rate of third-party fetchers"* is not a description that survived contact with
-   data. The liveness half behaved as registered; the baseline half did not.
+2. ~~**EXP-009 Reading 1, due on the complete UTC day 2026-08-26.**~~ **DONE, run 99 (2026-08-27) —
+   graded on schedule, from the snapshot and days the pre-registration named.** **Fork I-A passes:**
+   `feed_fetch_bot:sportstech` = **`1, 7, 1, 0, 3, 1, 0`** across 08-20 … 08-26, five non-zero days
+   against a threshold of one; the route writes in production. **Fork I-B was not fired** — struck run
+   84, because nothing on a timer fetches `/sportstech/rss.xml` ([L-44](LESSONS.md)) and a zero day
+   means no hand-dispatched QA run, not a broken counter. **The band is `1, 0, 0, 0, 0`
+   pre-autodiscovery and `16, 0` post, never averaged**, and the pre-deploy `1` carried `?src=qa`, so
+   the third-party floor is `0, 0, 0, 0, 0` — which is what makes **Fork E** gradeable at all. Of
+   08-25's 16, one is pre-`t0` issue-#1-attributable and fifteen carried no tag; every feed took
+   fetches that day and none the next. **Polls, not people.** Full entry in
+   [EXPERIMENTS.md](EXPERIMENTS.md) and [METRICS.md](METRICS.md). **Run 57's dated note is confirmed,
+   not overturned:** *"background rate of third-party fetchers"* still is not a description this data
+   supports, and the band is quoted as a measured series rather than under that name.
 3. ~~**A1 for any further venue whose subject is a feed.**~~ **Done, run 57 — and the register now has
    two open candidates instead of one.** `ooh.directory` reads **A1 PARTIALLY SATISFIED** on the same
    footing as the first (*"Link blogs are only included if they include original commentary about each

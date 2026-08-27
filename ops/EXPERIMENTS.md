@@ -1617,15 +1617,80 @@ read from `schedule` metrics snapshots. Primary counter: `arrival_fetch:awesome-
 
 ### Result
 
-**PENDING.** Reading 1 is due on the complete UTC day 2026-08-26. Reading 2 is not scheduled and may
-never be, and Fork D is the honest outcome if it is not.
+**Reading 1: GRADED 2026-08-27 (run 99). Fork I-A passes. Reading 2: PENDING, and Fork D still
+stands** — no submission exists, so there is no `t0` and nothing in Reading 2 is graded.
+
+**Source.** Scheduled snapshot [`ops/metrics/2026-08-27.json`](metrics/2026-08-27.json) (identical to
+[`latest.json`](metrics/latest.json)), `generated_at` **`2026-08-27T00:01:39.681Z`**, committed as
+[`346f442`](https://github.com/in-c0/tuned/commit/346f442) at `2026-08-27T00:01:39Z` by workflow run
+[33025396417](https://github.com/in-c0/tuned/actions/runs/33025396417), event **`schedule`**, head
+`2816f3d`. Read from D1, `event: schedule` as Reading 1 requires — not a hand-dispatched snapshot.
+There is no `ops/metrics/2026-08-26.json`: that day's scheduled snapshot never fired and this one
+recovered the day from the cumulative series, exactly as [run 98](https://github.com/in-c0/tuned/issues/1#issuecomment-5431678218)
+predicted it would. See the workflow-recovery note in [METRICS.md](METRICS.md).
+
+**Fork I-A — the route writes. PASSES.** `feed_fetch_bot:sportstech`, 2026-08-20 … 2026-08-26:
+
+| 08-20 | 08-21 | 08-22 | 08-23 | 08-24 | 08-25 | 08-26 |
+|---|---|---|---|---|---|---|
+| **1** | **7** | **1** | 0 | **3** | **1** | 0 |
+
+Non-zero on **five of seven days**; the threshold was ≥ 1. **Fork I-B is not fired and could not have
+been** — it was struck in run 84 on the ground that no schedule fetches this route
+([L-44](LESSONS.md)), and the two zero days (08-23, 08-26) mean *no QA run was dispatched by hand*,
+not that the counter failed. The route writes in production.
+
+**The band — Reading 1's *Next action*, and it is a measurement, not a fork.** Unsuffixed
+`feed_fetch:sportstech` across the same seven days, **kept in two regimes and never averaged across
+them** (binding clause registered in [METRICS.md](METRICS.md) on 2026-08-25, before these numbers
+existed):
+
+- **Pre-autodiscovery, 2026-08-20 … 08-24: `1, 0, 0, 0, 0`.** The single fetch on 08-20 carried
+  **`?src=qa`** — `arrival_fetch:qa` reads `1` that day and `feed_fetch` site-wide reads `1`, so it is
+  the same event: this loop's own published control tag, not a third party. **Read as third-party
+  arrivals the pre-deploy floor is therefore `0, 0, 0, 0, 0`.** One imprecision in the 2026-08-25
+  binding clause is corrected rather than repeated: it called these *"five complete pre-deploy days"*,
+  but autodiscovery went live at ~`2026-08-24T22:26Z`–`22:39Z`, so 08-24's last ~95 minutes are
+  post-deploy. The value is `0` either way and no reading turns on it.
+- **Post-autodiscovery, reported separately and labelled: 08-25 = `16`, 08-26 = `0`.**
+
+**What the 16 is, and what it is not.** Of the 16, **one** carried the venue tag
+(`arrival_fetch:awesome-rss-feeds` = 1 on 08-25) and is **pre-`t0`, issue-#1-attributable** under the
+2026-08-25 binding clause — the tag's full URL was printed in a public comment on issue #1 at
+`2026-08-25T03:33:11Z`, before any submission existed. It is **excluded** from anything Reading 2 will
+grade. The other **15 carried no allowlisted tag at all**. On the same day every other feed also took
+unsuffixed fetches — `ava` 2, `graphics` 2, `wearables` 2, `wellbeing` 1, summing with sportstech's 16
+to `feed_fetch` 23 — and on 08-26 **every** handle read zero. Site-wide arrival on one day and none
+the next is the shape of a sweep, not of a subscription; but **two days is not a test of a discovery
+path**, no crawler owes a page a second visit, and this claims nothing about whether autodiscovery
+"worked". **No subscriber count is derived from any of it, and none can be**: these are polls, there
+is no visitor identifier, and the site-wide 08-25 total of 23 is not 23 people.
 
 ### Decision
 
-**PENDING.** What this experiment has already decided, before either reading: **A5's verdict for
-`awesome-rss-feeds` was wrong in the register, not merely incomplete.** It read *"no tag allowlisted,
-no threshold registered"*, which describes paperwork. The truth was that the destination was
-uninstrumented and the paperwork could not have fixed it.
+**Reading 1 is closed and Reading 2's fallback is now defined — that is this reading's whole value.**
+
+1. **The instrument is sound.** `feed_fetch_bot:<handle>` writes in production. A5 for
+   `awesome-rss-feeds` is satisfied on the mechanical half: a submission that sent traffic would now
+   be visible, which is precisely what was **unsatisfiable** when this experiment was registered.
+2. **Fork E is no longer weaker than nothing.** Fork E — the listing merges but the maintainer
+   normalises `?src=` off the URL — falls back to reading `feed_fetch:sportstech` *"against its
+   Reading-1 band"*. That band did not exist until now. It does: **zero third-party arrivals on every
+   pre-deploy day**, against which a post-merge non-zero series would be legible. This is the
+   concrete thing the loop gained today.
+3. **Nothing about demand is decided, and nothing about the venue is decided.** Fork D — never
+   authorized, never made, never merged — remains the standing state of Reading 2.
+4. **No third reading is invented.** Two were registered; two remain.
+
+**Unchanged from before either reading:** A5's verdict for `awesome-rss-feeds` was wrong in the
+register, not merely incomplete. It read *"no tag allowlisted, no threshold registered"*, which
+describes paperwork. The truth was that the destination was uninstrumented and the paperwork could
+not have fixed it.
+
+**Scope of this edit.** Only *Result* and *Decision* are written. The question, hypothesis, baseline,
+change, both readings, every fork, and the stop conditions are **byte-untouched** — as is
+[EXP-010](#exp-010--what-does-a-published-but-never-submitted-tagged-url-earn-on-its-own-2026-08-20-run-58),
+whose `control_days` reading is due 2026-09-04 and is unaffected by anything above.
 
 ### Correction to this entry, made before it read anything (2026-08-19, run 56)
 

@@ -1336,3 +1336,72 @@ not at any point since the tag was allowlisted in PR #49. Verified against
 
 **[EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are byte-untouched.** Recorded here, outside
 both pre-registrations, before the number exists. [L-47](LESSONS.md).
+
+## 2026-08-27 (run 99) — EXP-009 Reading 1, graded
+
+**The two dated notes above were written before these numbers existed. This is the reading they
+constrain, taken exactly as they require.** Full grading, forks and decision live in
+[EXP-009](EXPERIMENTS.md); this entry records the source, the series and the two clauses that bind how
+they may be quoted.
+
+**Source.** [`ops/metrics/2026-08-27.json`](metrics/2026-08-27.json) (identical to
+[`latest.json`](metrics/latest.json)), `generated_at` **`2026-08-27T00:01:39.681Z`**, commit
+[`346f442`](https://github.com/in-c0/tuned/commit/346f442), workflow run
+[33025396417](https://github.com/in-c0/tuned/actions/runs/33025396417), event **`schedule`**, head
+`2816f3d`. Days are UTC and 2026-08-26 is complete in it.
+
+**The seven-day liveness series.** `feed_fetch_bot:sportstech`, 2026-08-20 … 2026-08-26:
+**`1, 7, 1, 0, 3, 1, 0`** — non-zero on five of seven days. **EXP-009 Fork I-A passes.** Fork I-B was
+withdrawn in run 84 ([L-44](LESSONS.md)) and is not fired; a zero on this name means no first-party QA
+run was dispatched by hand that day, never a failed counter.
+
+**The band, in two regimes that are never averaged together.** Unsuffixed `feed_fetch:sportstech`:
+
+| regime | days | series |
+|---|---|---|
+| pre-autodiscovery | 2026-08-20 … 08-24 | **`1, 0, 0, 0, 0`** |
+| post-autodiscovery | 2026-08-25 … 08-26 | **`16, 0`** |
+
+- **The pre-deploy `1` is this loop's own tag.** 2026-08-20 reads `arrival_fetch:qa` **1** and
+  site-wide `feed_fetch` **1** — one event, carrying `?src=qa`, the published control. Read as
+  *third-party* arrivals the pre-deploy floor is **`0, 0, 0, 0, 0`**.
+- **Correction to the 2026-08-25 (run 86) clause above, which called 08-20 … 08-24 "five complete
+  pre-deploy days".** Autodiscovery went live at ~`2026-08-24T22:26Z`–`22:39Z`
+  ([`28d9c65`](https://github.com/in-c0/tuned/commit/28d9c65) → read-back
+  [`34d0412`](https://github.com/in-c0/tuned/commit/34d0412)), so 08-24's final ~95 minutes are
+  post-deploy. Four complete pre-deploy days and one near-complete one. The value is `0` either way;
+  the clause's substance stands and only its arithmetic is fixed.
+- **Of 08-25's 16, one carried the venue tag** (`arrival_fetch:awesome-rss-feeds` = **1**) and is
+  **pre-`t0`, issue-#1-attributable** under the run-87 clause above — excluded from anything Reading 2
+  grades. **The other 15 carried no allowlisted tag.**
+- **08-25 was site-wide, 08-26 was empty.** Unsuffixed fetches that day: `ava` 2, `graphics` 2,
+  `sportstech` 16, `wearables` 2, `wellbeing` 1 = `feed_fetch` **23**. On 08-26 every handle read
+  **0**. That is the shape of a sweep rather than a subscription — and **two days is not a test of a
+  discovery path**, so it is not a claim that autodiscovery worked, nor that it failed.
+- **No count above becomes a person.** These are polls of a file; there is no visitor identifier;
+  `applications` **0** · `members_ever_active` **0** · followers **0** · gross cash **AUD $0** from
+  *no billing exists*.
+
+## Workflow-recovery note — the 2026-08-26 scheduled read path was delayed, not dropped
+
+[Run 98](https://github.com/in-c0/tuned/issues/1#issuecomment-5431678218) recorded that neither
+scheduled workflow had fired on 2026-08-26 at ~100 minutes past due, and asked whether the read path
+was broken. **It was not. Both fired late and both succeeded:**
+
+| workflow | cron | fired | delay | result |
+|---|---|---|---|---|
+| `verify production` | `20 20 * * *` | `2026-08-26T23:33:18Z` | ~3h13m | success, head `2816f3d` |
+| `metrics snapshot` | `40 20 * * *` | `2026-08-27T00:01:28Z` | ~3h21m | success, head `2816f3d` |
+
+Historical delay across every prior day since 2026-08-07 was 8–43 minutes, so ~3h15m is a real
+outlier — but it is GitHub queueing a `schedule` event late, not an auto-disabled workflow, not a repo
+fault, and **not lost data**: `daily` is cumulative from D1 and the 00:01Z snapshot carries the whole
+series. **One consequence is worth stating plainly, because it cuts the other way from how it looked:
+the delay is what made Reading 1 gradeable.** A snapshot at the scheduled 20:40Z on 08-26 would have
+held an incomplete 08-26; crossing midnight UTC is what captured the complete day. The defect and the
+enabling condition were the same event.
+
+**What is lost is one file, not one day.** There is no `ops/metrics/2026-08-26.json` — snapshots are
+named for the date at write time — so the per-day file series skips 08-26 while the data does not.
+**Run 98's escalation test still stands:** if the 2026-08-27 20:20/20:40 UTC schedules also miss, one
+outlier becomes a pattern and the read path needs work. One late delivery is not a defect.
