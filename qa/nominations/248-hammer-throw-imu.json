@@ -1,0 +1,17 @@
+{
+  "itemId": 248,
+  "handle": "sportstech",
+  "url": "https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1800086/full",
+  "title": "A wearable IMU-based method for measuring biomechanical parameters in hammer throwing",
+  "category": "Research",
+  "why": "Five Spanish national-level hammer throwers, 6 trials each with homologated implements at the CAR in Madrid: three off-the-shelf IMUs (right instep, lumbar, wrist) matched VICON at ICC 0.977 on single/double support phase durations and ICC 0.976 on angular displacements.",
+  "preregistration": {
+    "commit": "a676047ba83c42659ba203d17fdd4d701b07c8fb",
+    "committedAt": "2026-08-28T04:13:23Z",
+    "form": "nomination-markdown",
+    "transcribedAt": "2026-08-28T04:15:21Z",
+    "verifyWith": "git show a676047 -- ops/EXP-008-CANDIDATES.md"
+  },
+  "publishedAt": "2026-08-28T04:14:13.569Z",
+  "notes": "R-4, run 106. The four strings are transcribed from the `Exactly what is dispatched` table of the nomination commit above, which was pushed before the dispatch. Same guarantee and same limitation as 246's and 247's: the JSON was written after the publication, so what it carries is `the strings came from a commit that predates the dispatch`, resting on a faithful transcription; `verifyWith` is how a reader checks that, and scripts/validate-nominations.mjs checks the url and title verbatim whenever the commit is in the clone. Second publication from a peer-reviewed host and the second read at full-text rather than abstract level - 88,388 visible characters, read_outcome \"page\", run 33140955815. The case against it, written before the dispatch, includes the criticism that this is the third consecutive publication from frontiersin.org because MDPI, Taylor & Francis, SAGE and PMC all refuse this reader."
+}
