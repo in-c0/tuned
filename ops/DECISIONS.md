@@ -3547,3 +3547,78 @@ one did not: **both sessions pushed to `master` within five minutes of each othe
 resulted, but nothing prevented one. Recorded as a real coordination gap.
 
 **Documentation only. AUD $0.00 of $500. No demand inference.**
+
+## 2026-08-28 (03:36 UTC) — run 105: the deploy stall gets an owner-action card, and the count on the record was wrong
+
+**The reviewer's [03:34:40 UTC directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5448072304)
+was executed as its whole scope:** one new **HIGH** owner-action card in
+[STATUS.md](STATUS.md#owner-action-required), mirrored to
+[DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), then stop. No code, no route, no schema, no
+counter, no workflow, no dispatch, no distribution step, no outbound alert.
+
+**The defect the card fixes is not the pipeline — it is that nobody was asked.** The stall was found
+at run 103 (2026-08-27 22:05 UTC) and restated at run 104, but in **report prose only**. The
+canonical owner-facing surface — STATUS's `OWNER ACTION REQUIRED` and its DASHBOARD mirror — read
+**NONE** for all three runs, because the card that had just retired was the *submission* card and
+nothing replaced it. **For ~5h51m the loop's own owner dashboard told the owner there was nothing to
+do while the single thing blocking every future deployment sat unasked.** A finding that lives only
+in prose is [L-20](LESSONS.md) in a new place: an instrument nobody reads is not an instrument, and
+that includes the owner-facing one.
+
+**The count is corrected upward, not overturned.** Run 104's addendum and the reviewer's directive
+both say **five** consecutive undeployed commits. The correct figure is **seven commits and eight
+`verify production` failures**, `2026-08-27T21:44:36Z → 22:31:40Z`:
+
+| commit | pushed | `verify production` | result |
+| --- | --- | --- | --- |
+| `1bedef2` | 21:44:36Z | [33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612) push · [33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422) dispatch | **failure** ×2 |
+| `0c14053` | 22:05:04Z | [33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006) | **failure** |
+| `33ba76d` | 22:09:14Z | [33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504) | **failure** |
+| `1fc2ee9` | 22:18:56Z | [33121996462](https://github.com/in-c0/tuned/actions/runs/33121996462) | **failure** |
+| `15d94f5` | 22:19:52Z | [33122058109](https://github.com/in-c0/tuned/actions/runs/33122058109) | **failure** |
+| `e79bcee` | 22:20:58Z | [33122133950](https://github.com/in-c0/tuned/actions/runs/33122133950) | **failure** |
+| `697c5c6` | 22:23:28Z | [33122301809](https://github.com/in-c0/tuned/actions/runs/33122301809) | **failure** |
+
+`e79bcee` and `697c5c6` went red *after* run 104's addendum was written, which is why it read five.
+Last green deploy: `7983146`, [33037183013](https://github.com/in-c0/tuned/actions/runs/33037183013),
+`2026-08-27T03:43:41Z` — **23h52m** before this entry.
+
+**Decision: no fresh production probe this run, and the staleness of the reading is printed rather
+than hidden.** The directive's stop condition forbids further workflow dispatches, and direct egress
+to `justtuned.com` is **403 CONNECT** — re-tested this run at `2026-08-28T03:35:22.811Z`,
+`connect_rejected`, *"gateway answered 403 to CONNECT"* (blocker #4, standing). So *"production is
+still serving `7983146`"* is a **carried-forward reading from `2026-08-27T22:31:40Z`**, ~5 hours old,
+and both the card and the STATUS header say so in those words. **An inference from a cached status is
+not an observation** — the same rule this loop wrote for itself at run 103.
+
+**Decision: no second out-of-band alert.** One was sent at 2026-08-27 22:20 UTC. A second would carry
+the same ask and the same dashboard step, and the reviewer's stop condition names outbound
+notifications explicitly. What was missing was never a second alert; it was a card.
+
+**Decision: no rollback, restated because the card makes it visible.** The live build **is** the
+rollback target. Every undeployed diff to date is Markdown under `ops/` that the Worker does not
+serve, so a revert would leave production byte-identical and delete the record of why. **No empty kick
+commit, no close-and-reopen, no re-run beyond the one dispatch already spent, and no Cloudflare
+setting touched** — configuring a deployment integration is an owner act, and this executor would be
+changing state it has no way to read.
+
+**The card asks for a reading, not a fix.** The minimum owner action is *open Workers & Pages →
+`attention-feed` → Builds and paste three things: Git connection state, latest build timestamp and
+status, error or log link.* It explicitly asks the owner **not** to reconnect, re-authorize or retry
+first — a stuck queue, a disconnected integration and a failing Cloudflare-side build are three
+different faults with three different fixes, and each one is distinguishable only until someone
+changes the state.
+
+**An executor error this run, recorded because the commit message is not the durable record.** Between
+writing these three files and committing them, this session ran `git reset --hard 697c5c6 --` while
+trying to move off a detached HEAD onto `master`. The `--` did not scope it to paths; it discarded the
+entire working tree, and all three edits were lost. **No committed work was destroyed** — nothing had
+been staged or pushed, and `origin/master` was untouched — and the edits were reproduced from context
+before the commit below. The lesson is narrow and worth having: **`git reset --hard` has no place in a
+"switch branches" sequence**; `git checkout master` had already refused the switch *correctly*, and
+the refusal was the safeguard that got overridden. `git stash` or committing first are the moves that
+preserve the tree. [L-20](LESSONS.md)'s sibling: a destructive command run to clear a warning is the
+warning working.
+
+**No demand inference. `feedle` A1 stays PARTIAL. All commercial readings stay zero. Documentation
+only. Spend: AUD $0.00 of $500 — unchanged; this run cost nothing.**

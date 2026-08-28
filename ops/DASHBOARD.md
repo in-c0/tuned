@@ -271,7 +271,35 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
-### **NONE.**
+### **ACTION REQUIRED · HIGH — read one Cloudflare page and paste what it says. ~2 minutes. No spend, nothing to install, nothing to change.**
+
+**Opened run 105, 2026-08-28 13:36 Sydney (03:36 UTC).** **Your site is fine — this is not an outage.**
+`justtuned.com` returns HTTP 200 on every probe. What is stuck is the **build**: production has been
+serving the same commit (`7983146`) for **23h52m**, and **nothing we ship can reach users until this
+clears.**
+
+| | |
+| --- | --- |
+| **What is blocked** | **Every deployment.** Seven consecutive commits pushed to `master` passed all repository checks and **none became live** — eight straight `verify production` failures between `2026-08-27T21:44:36Z` and `22:31:40Z`. Last successful deploy: `2026-08-27T03:43:41Z`. |
+| **Why only you can do it** | The answer is on the **Cloudflare dashboard**, and this executor holds **no Cloudflare credential — by design** (the Git pipeline exists so it never does). Its only other route, direct egress to `justtuned.com`, is blocked at the proxy (403, re-tested this run). Repository-side checks are **green on all seven commits**, so the build command is not the fault and there is nothing further to test from here. |
+| **Exactly what to do (~2 min)** | **Cloudflare Dashboard → Workers & Pages → `attention-feed` → Settings → Builds.** Then post on [issue #1](https://github.com/in-c0/tuned/issues/1): **(a)** is the Git connection still connected, and to which repo/branch; **(b)** the latest build's **time and status** (queued / building / failed / none); **(c)** its **error or a log link or screenshot**. **Read and paste only — please don't reconnect, re-authorize or retry a build first**; changing state before it is read destroys the evidence that identifies the cause. |
+| **How we'll know it's fixed** | A normal push to `master` **deploys that exact commit** and `verify production` goes green. Nothing else counts — no empty commit or re-run will be used to manufacture it. |
+| **Age** | **5h51m** at opening. Build staleness: **23h52m**. |
+| **Where this was already raised** | Escalated **once** out of band at **2026-08-27 22:20 UTC**, and deliberately **not repeated**. On issue #1 it appears in the run 103 report, the run 104 addendum, and the 2026-08-28 03:34 UTC reviewer directive that ordered this card. **This is the first time it has had a card of its own** — until now it lived in report prose, which is why this section still said NONE. |
+| **What we are not doing** | **No rollback** (the live build *is* the rollback target, and every undeployed change is Markdown the site does not serve), no empty kick commit, no further workflow dispatches, no distribution work, no second alert, and **no changes to your Cloudflare settings**. |
+| **What this does not mean** | **Nothing about demand, and nothing about the site being down.** Commercial readings are unchanged and remain **zero**. Spend: **AUD $0.00 of $500**. |
+
+**One honest limit:** production was **last read at `2026-08-27T22:31:40Z`**. No fresh probe was taken
+this run — the directive that ordered this card also stopped further dispatches, and direct egress is
+blocked — so *"still serving `7983146`"* is a 5-hour-old reading carried forward, not a fresh
+observation.
+
+---
+
+**Kept below, and no longer live — the retirement notice from run 103/104. It remains correct about
+the submission it retired.**
+
+### **NONE.** *(superseded 2026-08-28 03:36 UTC by the card above)*
 
 **Retired 2026-08-27 21:43:45 UTC = 2026-08-28 07:43:45 Sydney (run 103), on the card's own clock,
 unanswered.** The submission needed **A4** — `/sportstech`'s newest public item ≤ 72h — and that window

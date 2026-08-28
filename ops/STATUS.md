@@ -1,6 +1,25 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 08:35 Sydney (2026-08-27 22:35 UTC), run 104 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-28 13:36 Sydney (03:36 UTC), run 105 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ACTION REQUIRED · HIGH.** **The deploy stall now has an owner-action card of its own, which is the
+whole of this run.** For three runs it lived only in report prose while the canonical card read
+**NONE**, so the loop's own owner-facing surface was telling the owner there was nothing to do while
+the single thing blocking every future deployment sat unasked. **The count on the record was also
+wrong and is corrected here: seven consecutive commits and eight `verify production` failures**
+(`2026-08-27T21:44:36Z → 22:31:40Z`), not five — `e79bcee` and `697c5c6` failed after run 104's
+addendum was written. The finding is unchanged and stronger. **Production is healthy and this is not
+an outage:** every probe during the stall returned HTTP 200 with a valid commit stamp, serving
+`7983146` from `2026-08-27T03:43:41Z` — **23h52m stale** at the time of writing. **`check` is green on
+all seven heads**, so the build command is not the defect and there is nothing left to test on the
+repository side; reading *Workers & Pages → `attention-feed` → Builds* needs the Cloudflare dashboard,
+which this executor holds no credential for **by design**, and its only other vantage is 403 CONNECT
+(re-tested `2026-08-28T03:35:22.811Z`). **Stated rather than papered over: no fresh production probe
+was taken this run** — the same directive that ordered this card forbade further dispatches — so
+*"still serving `7983146`"* is a 5-hour-old reading carried forward, not an observation made at 03:36
+UTC. **Nothing was rolled back, no empty kick commit was pushed, no second out-of-band alert was
+sent, and no distribution work was done.** Documentation only; AUD $0.00 of $500; no demand inference;
+`feedle` A1 stays **PARTIAL** and all commercial readings stay **zero**. ·
+**Previously, run 104:** **[OWNER ACTION REQUIRED](#owner-action-required):
 NONE.** **The directive was executed and `feedle`'s A1 is graded PARTIAL, closing the last unread A1
 in the register** — details in [Next action](#next-action) and [DISTRIBUTION.md](DISTRIBUTION.md).
 **The deploy finding below is no longer one dropped build — three consecutive commits have now failed
@@ -962,7 +981,36 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **NONE.**
+### **ACTION REQUIRED · HIGH — read one Cloudflare page and paste what it says. ~2 minutes. No spend, no credential to install, nothing to change.**
+
+**Opened run 105, 2026-08-28 13:36 Sydney (03:36 UTC). Blocker age at opening: 5h51m** since the first
+undeployed push (`2026-08-27T21:44:36Z`). **Production is healthy and this is not an outage** — it is
+serving `7983146` and returning HTTP 200 on every probe. What is frozen is the **build**: production
+has been running the same commit for **23h52m**, and **nothing this loop writes can reach users until
+this clears.**
+
+| | |
+| --- | --- |
+| **Blocked outcome** | **Every deployment.** `master` accepts pushes, `check` passes, and the commit never becomes live. **Seven consecutive commits and eight consecutive `verify production` failures**, `2026-08-27T21:44:36Z → 22:31:40Z`: `1bedef2` ([33119534612](https://github.com/in-c0/tuned/actions/runs/33119534612) push, [33120243422](https://github.com/in-c0/tuned/actions/runs/33120243422) dispatch), `0c14053` ([33121020006](https://github.com/in-c0/tuned/actions/runs/33121020006)), `33ba76d` ([33121318504](https://github.com/in-c0/tuned/actions/runs/33121318504)), `1fc2ee9` ([33121996462](https://github.com/in-c0/tuned/actions/runs/33121996462)), `15d94f5` ([33122058109](https://github.com/in-c0/tuned/actions/runs/33122058109)), `e79bcee` ([33122133950](https://github.com/in-c0/tuned/actions/runs/33122133950)), `697c5c6` ([33122301809](https://github.com/in-c0/tuned/actions/runs/33122301809)). **Correction to the count on the record:** run 104's addendum and the reviewer's directive both say **five**; the last two commits' runs landed after that report was written. The correct figure is **seven commits, eight runs** — the finding is unchanged and stronger, not overturned. Last green deploy: `7983146`, [33037183013](https://github.com/in-c0/tuned/actions/runs/33037183013), `2026-08-27T03:43:41Z`. |
+| **Owner-only reason** | **Distinguishing a stuck queue from a disconnected Git integration from a failing Cloudflare-side build needs the Cloudflare dashboard, and this executor holds no Cloudflare credential — by design.** The Git-based pipeline exists precisely so the executor never holds one, and that is not a gap to route around. Its only other vantage, direct egress to `justtuned.com`, is **403 CONNECT at the proxy** — re-tested this run, `2026-08-28T03:35:22.811Z`, `connect_rejected`, *"gateway answered 403 to CONNECT"* (blocker #4, standing). **`check` is green on every one of the seven heads** ([33119534600](https://github.com/in-c0/tuned/actions/runs/33119534600)), so `npm ci && npm run check` is not the defect and there is nothing on the repository side left to test. |
+| **Exact minimum action** | **Cloudflare Dashboard → Workers & Pages → `attention-feed` → Settings → Builds.** Post on [issue #1](https://github.com/in-c0/tuned/issues/1): **(a)** the Git connection state — connected or disconnected, and which repository and branch; **(b)** the most recent build's **timestamp and status** (queued / building / failed / none at all); **(c)** its **error message or a log link or screenshot**. **Read and paste only.** Do not reconnect, re-authorize, change build settings or retry a build — the reading is what unblocks the diagnosis, and changing state before it is read destroys the evidence. |
+| **Success check for clearing this card** | A **normal substantive push to `master` deploys its exact commit**: `/api/version` returns that commit's 40-hex stamp and `verify production` goes green. The card clears on that observation, not on a settings change or an assurance. **No empty commit, no close-and-reopen, and no re-run beyond the one dispatch already spent** will be used to produce it. |
+| **Blocker age** | **5h51m** at opening (first undeployed push `2026-08-27T21:44:36Z` → `2026-08-28T03:36Z`). **Production build staleness: 23h52m** (last green deploy `2026-08-27T03:43:41Z`). Both figures are computed from the timestamps above, not estimated. |
+| **Where it was last surfaced** | Escalated **once out of band at 2026-08-27 22:20 UTC** (run 103), and **not repeated** — a second notification would carry the same ask and the same dashboard step. On [issue #1](https://github.com/in-c0/tuned/issues/1) it was stated in [run 103's report](https://github.com/in-c0/tuned/issues/1#issuecomment-5445891274), [run 104's addendum](https://github.com/in-c0/tuned/issues/1#issuecomment-5445967783) (five commits) and the [reviewer directive of 2026-08-28 03:34:40Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5448072304) that ordered this card written. In the repository it stands at [DECISIONS.md](DECISIONS.md) 2026-08-27 22:20 UTC and 2026-08-28 03:36 UTC, the run-103 and run-104 header blocks at the top of this file, and [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required). **This card is the first time it has had an owner-action card of its own** — until now it lived in report prose, which is why the canonical card still read NONE. |
+| **What is deliberately not being done** | **No rollback** — the live build *is* the rollback target, and every undeployed diff to date is Markdown the Worker does not serve, so reverting would leave production byte-identical and delete the record of why. **No empty kick commit, no close-and-reopen, no further workflow dispatch, no distribution work, and no second out-of-band alert**, per the reviewer's stop condition. **No Git reconnection or build-setting change** — configuring a deployment integration is an owner act, and this executor would be changing state it cannot read. |
+| **What may not be concluded from this** | **Nothing about demand, and nothing about the site being down.** All 72 probes taken during the stall returned **HTTP 200 with a valid commit stamp**. Commercial readings are unchanged and remain **zero**; `feedle` A1 stays **PARTIAL**; spend stays **AUD $0.00 of $500**. |
+
+**Freshness limit, stated rather than papered over:** production was **last read at `2026-08-27T22:31:40Z`**,
+and **no fresh probe was taken this run** — the directive that ordered this card also forbade further
+workflow dispatches, and direct egress is 403. So "still serving `7983146`" is a **5-hour-old reading
+carried forward**, not an observation made at 03:36 UTC. The next unforced reading is tonight's
+scheduled `verify production`.
+
+---
+
+**Kept below, and no longer the live card — the retirement notice as written at run 103/104.**
+
+### **NONE.** *(superseded 2026-08-28 03:36 UTC by the card above; this notice remains correct about the submission it retired)*
 
 **Retired 2026-08-27 21:43:45 UTC (2026-08-28 07:43:45 Sydney) on the card's own clock, unanswered.**
 The submission it asked for needed **A4** — `/sportstech`'s newest public item ≤ 72h — and that window
