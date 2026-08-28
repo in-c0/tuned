@@ -4,6 +4,15 @@
 export const BRAND = "Tuned";
 export const TAGLINE = "follow attention, not content";
 
+/** The one origin a crawler or an unfurler should name, out of the three that serve this Worker.
+ *
+ * `wrangler.jsonc` routes both `justtuned.com` and `www.justtuned.com` as custom domains and
+ * leaves `workers_dev` on, so the identical document answers on three hosts. `rssFeed` is passed
+ * the *request* origin, which is right for a feed a client already holds the URL of; it is wrong
+ * for a canonical, whose whole job is to say which of several equivalent URLs is the page. Fixed
+ * here rather than derived from the request for that reason. */
+export const SITE_ORIGIN = "https://justtuned.com";
+
 export interface Creator {
   id: number;
   handle: string;
@@ -424,6 +433,51 @@ ${js ? `<script>${js}</script>` : ""}
 </html>`;
 }
 
+/** What a public page says about itself to everything that is not a browser.
+ *
+ * Run 86 gave these pages `<link rel="alternate">`, so a feed reader can now find the feed. It
+ * did not give them anything else: until this, a public feed page's whole `<head>` was a title,
+ * an icon and that link. Pasted into Slack, Discord, Mastodon, X, LinkedIn or iMessage — which
+ * is what a distribution link *is* — the URL unfurled as bare text, because every one of those
+ * clients reads Open Graph and there was none to read. In a search result the snippet was
+ * whatever a crawler chose to scrape. And with three origins serving the identical document
+ * (see SITE_ORIGIN), nothing said which URL is the page.
+ *
+ * Everything emitted here is derived from values already rendered on the page. No count, no
+ * claim about usage, and no adjective the page cannot support — this is the surface most likely
+ * to be quoted back, so it states what the feed *is* and nothing about how it is doing.
+ *
+ * `summary` rather than `summary_large_image`: the only image this service owns is a 512x512
+ * icon, and the large card promises a banner it would have to stretch that icon to fill.
+ */
+function socialHead(o: {
+  /** Path only, leading slash, no query — the canonical URL is built from SITE_ORIGIN. */
+  path: string;
+  title: string;
+  description: string;
+  /** Defaults to `description`. Split only where a page already had two reviewed strings. */
+  ogDescription?: string;
+}): string {
+  const url = `${SITE_ORIGIN}${o.path}`;
+  return `<link rel="canonical" href="${esc(url)}">
+<meta name="description" content="${esc(o.description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${esc(BRAND)}">
+<meta property="og:title" content="${esc(o.title)}">
+<meta property="og:description" content="${esc(o.ogDescription ?? o.description)}">
+<meta property="og:url" content="${esc(url)}">
+<meta property="og:image" content="${esc(SITE_ORIGIN)}/icon-512.png">
+<meta name="twitter:card" content="summary">`;
+}
+
+/** Cut to a length a search result and a chat card will both show, on a word boundary. */
+function clip(s: string, max: number): string {
+  const t = s.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max - 1);
+  return cut.slice(0, Math.max(cut.lastIndexOf(" "), 1)).trimEnd() + "…";
+}
+
 function favicon(domain: string): string {
   return `https://icons.duckduckgo.com/ip3/${esc(domain)}.ico`;
 }
@@ -636,7 +690,25 @@ export function publicPage(creator: Creator, items: Item[]): string {
   // pasted the same URL into their reader. The counters agree that this is not theoretical:
   // across 2026-08-21..08-24 the landing page took 45-69 views a day while *unsuffixed*
   // feed_fetch — every RSS fetch not from a self-declaring crawler — read 0, 0, 0, 0.
-  const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">`;
+  // The rest of what a machine reads. The description is assembled from what the page already
+  // says out loud — the handle line is rendered verbatim above — plus the agent disclosure the
+  // badge carries in its own title attribute, so an unfurled card cannot present an agent feed
+  // as a person's. The bio comes last because it is the part most likely to be clipped.
+  const agentNote =
+    creator.kind === "agent"
+      ? " An AI agent's attention feed, registered and supervised by a human member."
+      : "";
+  const bio = creator.bio?.trim() ? ` ${creator.bio.trim()}` : "";
+  const description = clip(
+    `What @${creator.handle} is paying attention to — a live feed of what ${creator.name} is watching, reading and listening to, newest first, with RSS.${agentNote}${bio}`,
+    300
+  );
+  const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">
+${socialHead({
+    path: `/${creator.handle}`,
+    title: `${creator.name} — ${BRAND}`,
+    description,
+  })}`;
   return layout(`${creator.name} — ${BRAND}`, creator.accent, body, CLIENT_JS, head);
 }
 
@@ -812,9 +884,15 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     if (res.ok) { out.textContent = "Application received. Every member — human or AI — is reviewed personally; you'll hear back by email. The demo below is live meanwhile."; e.target.style.display = "none"; }
     else { out.textContent = "That didn't work — check the email?"; out.classList.add("err"); btn.disabled = false; }
   });`;
-  const head = `<meta name="description" content="${esc(BRAND)} — ${esc(TAGLINE)}. A live page of what someone is actually watching, reading and listening to.">
-<meta property="og:title" content="${esc(BRAND)} — ${esc(TAGLINE)}">
-<meta property="og:description" content="Follow what people pay attention to — not what they post.">`;
+  // Both strings below are the reviewed copy this page already carried, unchanged. What it did
+  // not carry is a canonical, an og:url or a card image — so it named none of the three origins
+  // as the page, and unfurled without one.
+  const head = socialHead({
+    path: "/",
+    title: `${BRAND} — ${TAGLINE}`,
+    description: `${BRAND} — ${TAGLINE}. A live page of what someone is actually watching, reading and listening to.`,
+    ogDescription: "Follow what people pay attention to — not what they post.",
+  });
   return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body, js, head);
 }
 

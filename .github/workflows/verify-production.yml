@@ -250,6 +250,67 @@ jobs:
 
           echo "/ava: autodiscovery present, advertises ${href}, and that URL serves RSS"
 
+      # The same class of regression as the step above, on the same page, for everything that
+      # is not a feed reader. A public feed page is the destination of every distribution link
+      # this product will ever post; if it stops carrying Open Graph, every one of those links
+      # silently degrades to bare text in Slack, Discord, Mastodon, X and iMessage, and nothing
+      # visible on the page changes — which is exactly why run 86's defect survived a year of
+      # human review. test/sharing.test.ts asserts this against a real Worker in workerd; this
+      # asserts it against the thing serving justtuned.com, and is the change's standing
+      # rollback signal.
+      #
+      # Reuses /tmp/feed.html from the step above rather than re-fetching: a second GET would
+      # add a feed_view_bot:ava this job does not need.
+      - name: Public feed page describes itself to link unfurlers and crawlers
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+
+          # Same single-element discipline as the autodiscovery step: extract each tag whole,
+          # then read its own attributes. Grepping the document for two strings separately
+          # would pass on a page carrying the name on one tag and the content on another, and
+          # the document is served as one line so no line boundary does that work for free.
+          # No `head` anywhere in these pipelines on purpose: under `pipefail` it closes the
+          # pipe on a still-writing grep and the SIGPIPE becomes a failure of the whole
+          # extraction. `sed -n '1s///p'` takes the first match without ever doing that.
+          metaof() {
+            grep -o '<meta[^>]*>' /tmp/feed.html \
+              | { grep -E "(name|property)=\"$1\"" || true; } \
+              | sed -n '1s/.*content="\([^"]*\)".*/\1/p'
+          }
+
+          for key in og:type og:site_name og:title og:description og:url og:image description twitter:card; do
+            [ -n "$(metaof "$key")" ] || { echo "::error::/ava carries no $key — the link unfurls as bare text and the search snippet is scraped"; exit 1; }
+          done
+
+          # Three origins serve this identical document (justtuned.com, www.justtuned.com and
+          # the workers.dev subdomain), so the canonical is the only thing naming which URL is
+          # the page. It must not track the host this job happened to read from.
+          canon=$(grep -o '<link[^>]*rel="canonical"[^>]*>' /tmp/feed.html | sed -n '1s/.*href="\([^"]*\)".*/\1/p' || true)
+          [ "$canon" = "https://justtuned.com/ava" ] || { echo "::error::/ava canonical is '$canon', expected https://justtuned.com/ava"; exit 1; }
+          ogurl=$(metaof og:url)
+          [ "$ogurl" = "https://justtuned.com/ava" ] || { echo "::error::/ava og:url is '$ogurl', expected https://justtuned.com/ava"; exit 1; }
+
+          # The card image, followed. A relative og:image resolves against the *unfurler's*
+          # origin rather than ours — the same defect meta.test.ts pins for item images — and
+          # an absolute one pointing at a 404 renders exactly like no image at all.
+          ogimg=$(metaof og:image)
+          case "$ogimg" in
+            https://justtuned.com/*) ;;
+            *) echo "::error::/ava og:image is '$ogimg', which is not an absolute URL on the canonical origin"; exit 1 ;;
+          esac
+          # Asserted as canonical, but fetched through the vantage in use, so this step still
+          # runs when the zone is challenging clients.
+          imgpath=${ogimg#https://justtuned.com}
+          icode=$(scripts/prod-http.sh get "${BASE}${imgpath}" /tmp/ogimage.bin 'image/*')
+          [ "$icode" = "200" ] || { echo "::error::og:image ${imgpath} returned HTTP $icode"; exit 1; }
+          # Magic number, not a content-type header: an edge that serves an HTML error page
+          # with the wrong header would pass a header check and render nothing.
+          head -c 8 /tmp/ogimage.bin | grep -qa 'PNG' || { echo "::error::og:image ${imgpath} is not a PNG"; exit 1; }
+
+          echo "/ava: canonical ${canon}, og:url ${ogurl}, og:image ${imgpath} serves a PNG, card=$(metaof twitter:card)"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's
