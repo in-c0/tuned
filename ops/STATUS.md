@@ -1,8 +1,21 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 13:36 Sydney (03:36 UTC), run 105 — **[OWNER ACTION REQUIRED](#owner-action-required):
-ACTION REQUIRED · HIGH.** **The deploy stall now has an owner-action card of its own, which is the
-whole of this run.** For three runs it lived only in report prose while the canonical card read
+**Last updated:** 2026-08-28 13:55 Sydney (03:55 UTC), run 105 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **The deploy stall is over, and the card written to escalate it was cleared ~19 minutes later
+by its own stated success check.** The commit that *carried* the card,
+[`b5e58f6`](https://github.com/in-c0/tuned/commit/b5e58f6) (pushed `03:41:44Z`), **deployed normally**:
+`verify production` [33139639332](https://github.com/in-c0/tuned/actions/runs/33139639332) went
+**green in 54 seconds**, and that job is an **identity** check — it polls `/api/version` until the
+**expected commit stamp** is the one serving. **The whole ~6h backlog is live**, `1bedef2` … `697c5c6`
+included, and **no owner action was taken or is needed**: no kick commit, no re-run, no dispatch, no
+Cloudflare setting touched, and the dashboard reading was never supplied. **What is not known is why
+it stalled and why it cleared** — a fault that resolves without a diagnosis can recur, and the next
+occurrence will look identical from here (green `check`, healthy site, stale build). **The owner was
+alerted at 03:47 UTC and stood down at 03:55 UTC**; the retraction is recorded rather than quietly
+dropped, and the sequencing lesson beneath it is that this run's own watcher failed silently
+(`$GITHUB_TOKEN` is unset in the executor environment, so every poll failed and looked like *"still
+running"*). **The rest of the run stands as written below.**
+**Its original framing, and still the reason the card existed:** For three runs it lived only in report prose while the canonical card read
 **NONE**, so the loop's own owner-facing surface was telling the owner there was nothing to do while
 the single thing blocking every future deployment sat unasked. **The count on the record was also
 wrong and is corrected here: seven consecutive commits and eight `verify production` failures**
@@ -981,7 +994,42 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **ACTION REQUIRED · HIGH — read one Cloudflare page and paste what it says. ~2 minutes. No spend, no credential to install, nothing to change.**
+### **NONE — the card below was opened and cleared inside the same run, on its own stated success check.**
+
+**Retired 2026-08-28 03:55 UTC (13:55 Sydney), ~19 minutes after it was written.** The commit that
+*carried* the card — [`b5e58f6`](https://github.com/in-c0/tuned/commit/b5e58f6), pushed `03:41:44Z` —
+**deployed normally**: `verify production`
+[33139639332](https://github.com/in-c0/tuned/actions/runs/33139639332) went **green in 54 seconds**
+(`03:41:44Z → 03:42:38Z`). **That is the card's own success check, met exactly as written**, and it is
+an identity check rather than a timing one: the workflow polls `/api/version` until the **expected
+commit stamp** is the one serving, a discipline added precisely because an earlier version passed on
+whatever was already live. **The ~6h backlog is live and there is nothing for the owner to do.**
+
+| | |
+| --- | --- |
+| **What cleared it** | Not an intervention. **No empty kick commit, no re-run, no dispatch, no Cloudflare setting touched, and no owner action** — the dashboard reading was never supplied and is no longer needed. The one commit this run was directed to make deployed on its own. |
+| **What is now live** | `b5e58f6`, which contains every commit in the stalled backlog (`1bedef2` … `697c5c6`). The stall left **no undeployed work** behind it. |
+| **The stall, for the record** | **Seven commits, eight `verify production` failures, `2026-08-27T21:44:36Z → 22:31:40Z`**, then a ~5h quiet gap with no pushes, then a normal 54-second deploy. Last green before it: `7983146`, `2026-08-27T03:43:41Z`. Peak build staleness ≈ **24h**. |
+| **What is NOT known, and matters** | **Why it stalled, and why it cleared.** Nothing this loop did explains either. A fault that resolves without a diagnosis **can recur**, and the next occurrence will look identical from here: green `check`, healthy site, stale build. **The Cloudflare Builds reading would still explain it** — it is now **optional and diagnostic, not blocking**, and it is not being asked for. |
+| **Correction issued** | The owner was alerted at **03:47 UTC** on the card, and a **stand-down** was sent at **03:55 UTC** as soon as the green run was read. Two notifications on one subject, the second retracting the ask in the first. **The cost of the first is accepted** — the alternative was a real ~6h deployment blocker going unreported — but see the lesson below. |
+| **What may not be concluded** | **Nothing about demand.** Commercial readings remain **zero**; `feedle` A1 stays **PARTIAL**; EXP-009 Reading 2 stays **Fork D / PENDING**; spend stays **AUD $0.00 of $500**. |
+
+**The lesson is about sequencing, not about the alert.** The green run was already knowable ~4 minutes
+after the push; this run notified the owner at 03:47 and read the result at 03:54, because the watcher
+it armed to catch exactly this was **silently broken** — it polled the GitHub API with
+`$GITHUB_TOKEN`, which is **not set in the executor environment**, so every poll failed, matched
+nothing, and timed out looking indistinguishable from *"still running"*. **A watcher that cannot fail
+loudly is not a watcher** — [L-20](LESSONS.md) again, in the one place that would have prevented the
+retracted alert. **Rule for next time: a push that is itself the diagnostic must have its result read
+through the same path used to read every other run — the Actions API via the GitHub tool — before
+anything is escalated on the assumption that it failed.**
+
+---
+
+**Kept below, and no longer live — the HIGH card exactly as written at 03:36 UTC, before its own
+success check was met. Every reading in it was true when written.**
+
+### **ACTION REQUIRED · HIGH — read one Cloudflare page and paste what it says. ~2 minutes. No spend, no credential to install, nothing to change.** *(CLEARED 2026-08-28 03:55 UTC — `b5e58f6` deployed green; no owner action was taken or is needed)*
 
 **Opened run 105, 2026-08-28 13:36 Sydney (03:36 UTC). Blocker age at opening: 5h51m** since the first
 undeployed push (`2026-08-27T21:44:36Z`). **Production is healthy and this is not an outage** — it is

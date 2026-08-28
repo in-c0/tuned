@@ -3622,3 +3622,64 @@ warning working.
 
 **No demand inference. `feedle` A1 stays PARTIAL. All commercial readings stay zero. Documentation
 only. Spend: AUD $0.00 of $500 — unchanged; this run cost nothing.**
+
+## 2026-08-28 (03:55 UTC) — run 105, second entry: the card cleared itself 19 minutes after it was written
+
+**The stall is over, and nothing anyone did ended it.** The commit that *carried* the HIGH card —
+[`b5e58f6`](https://github.com/in-c0/tuned/commit/b5e58f6), pushed `2026-08-28T03:41:44Z` — **deployed
+normally**. `verify production`
+[33139639332](https://github.com/in-c0/tuned/actions/runs/33139639332) went **green in 54 seconds**
+(`03:41:44Z → 03:42:38Z`), against eight consecutive failures that each burned ~8 minutes.
+
+**This is a deploy, not a timing inference, and the distinction is one this repository already paid
+for.** `verify production` polls `/api/version` until the **expected commit stamp** — `github.sha` —
+is the one serving. The workflow's own header records why: an earlier version waited for
+`/api/metrics` to stop 404-ing, which passed on the first attempt against whatever was already live
+once every build had the route, *"and proved nothing but the sleep before it."* Identity is checked
+here. So `b5e58f6` **is** the running Worker, and the entire stalled backlog (`1bedef2` … `697c5c6`)
+went live inside it. **No undeployed work remains.**
+
+**The card is retired on its own stated success check, met verbatim:** *"a normal substantive push to
+`master` deploys its exact commit … the card clears on that observation, not on a settings change or
+an assurance."* It cleared on the observation. **No empty kick commit, no re-run, no dispatch, no
+Cloudflare setting touched, and no owner action** — the dashboard reading was never supplied.
+
+**What is not known, and is the part worth carrying forward.** **Why it stalled for ~6 hours and why
+it cleared are both unexplained.** Nothing this loop did accounts for either. The shape was: seven
+commits red across 47 minutes (`21:44:36Z → 22:31:40Z`), then a **~5h gap with no pushes at all**,
+then a normal 54-second deploy on the first push after the gap. **A fault that resolves without a
+diagnosis can recur**, and the next occurrence is indistinguishable from here at the moment it starts:
+green `check`, HTTP 200, valid commit stamp, stale build. **The Cloudflare Builds reading is therefore
+downgraded, not withdrawn** — it is **optional and diagnostic**, no longer blocking, and it is not
+being asked for. **Explicitly not concluded: that the gap caused the recovery.** Two pushes in the red
+run were minutes apart and one was ~5h later; that is consistent with a queue draining, with a
+transient Cloudflare-side fault, and with several other stories. **It is a sequence, not a mechanism.**
+
+**A retracted owner alert, recorded rather than quietly dropped.** The owner was notified at
+**03:47 UTC** that deploys were blocked and asked for a ~2-minute dashboard reading; a **stand-down
+was sent at 03:55 UTC** as soon as the green run was read. **Two notifications on one subject, the
+second retracting the first.** The first is not regretted on its own terms — a real ~6h deployment
+blocker with no owner-facing card is exactly what this loop should escalate, and the alternative was
+silence — but the sequencing was avoidable, and that is the lesson:
+
+- **The green result was knowable ~4 minutes after the push. It was read at 03:54.** The watcher armed
+  to catch precisely this **failed silently**: it polled the GitHub REST API with `$GITHUB_TOKEN`,
+  which is **not set in the executor environment**. Every poll failed, matched nothing, and the
+  watcher timed out — **a null result that looks exactly like *"still running."*** The escalation was
+  then written on the assumption that this push had failed like the seven before it, which was a
+  guess, not a reading.
+- **Rule adopted: a push that is itself the diagnostic must have its result read through the same path
+  used for every other run in this repository — the Actions API via the GitHub tool — before anything
+  is escalated on the assumption that it failed.** Convenience paths that can fail closed and quiet
+  are not evidence. **[L-20](LESSONS.md) again, in the one place that would have prevented the
+  retraction:** an instrument whose failure is silent is not an instrument, and this time the loop
+  built the broken one itself, mid-run, to watch its own work.
+
+**One thing the recovery does not vindicate.** The card was still correct to write, and the reviewer's
+*"the canonical owner card is incorrectly still NONE"* was still the right finding: for ~6h the
+owner-facing surface said there was nothing to do while every deployment was blocked. **That defect
+was real and is fixed independently of the pipeline recovering.** A card that clears quickly is not a
+card that should not have existed.
+
+**No demand inference. `feedle` A1 stays PARTIAL. All commercial readings stay zero. Documentation
+only. Spend: AUD $0.00 of $500 — unchanged.**

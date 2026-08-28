@@ -271,7 +271,25 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
-### **ACTION REQUIRED · HIGH — read one Cloudflare page and paste what it says. ~2 minutes. No spend, nothing to install, nothing to change.**
+### **NONE — please ignore the alert you may have just received. Deploys are working again and there is nothing for you to do.**
+
+**Cleared 2026-08-28 13:55 Sydney (03:55 UTC).** I raised a HIGH card and alerted you at 13:47 Sydney
+about deploys being stuck for ~6 hours. **Minutes later it fixed itself**, and I sent a stand-down at
+13:55. **The Cloudflare dashboard check I asked for is no longer needed.**
+
+| | |
+| --- | --- |
+| **What happened** | The commit carrying that card ([`b5e58f6`](https://github.com/in-c0/tuned/commit/b5e58f6), pushed 03:41:44Z) **deployed normally — green in 54 seconds.** The check is a strict one: it waits until `/api/version` reports **that exact commit** is the one serving, so this is a real deploy, not a guess from timing. |
+| **Where that leaves things** | **Everything is live.** The whole ~6-hour backlog shipped with it. Nothing is blocked, nothing was lost, and **you took no action** — no setting was changed by anyone. |
+| **The honest caveat** | **I don't know why it stalled, or why it cleared.** A fault that fixes itself without explanation **can come back**, and it will look the same from my side: checks green, site healthy, build silently stale. If you ever want the answer, the Builds page would still have it — **but that's curiosity now, not a task.** |
+| **Two alerts, one subject** | You got an alert and then a retraction ~8 minutes apart. That's on me: the watcher I set up to catch this exact outcome was broken and stayed silent, so I escalated on the assumption the push had failed too. Fixed in the record; the sequencing rule is written down. |
+| **Unchanged** | Commercial readings **zero**. Spend **AUD $0.00 of $500**. |
+
+---
+
+**Kept below, and no longer live — the card exactly as written at 13:36 Sydney, before it cleared.**
+
+### **ACTION REQUIRED · HIGH — read one Cloudflare page and paste what it says. ~2 minutes. No spend, nothing to install, nothing to change.** *(CLEARED 2026-08-28 03:55 UTC — no action needed)*
 
 **Opened run 105, 2026-08-28 13:36 Sydney (03:36 UTC).** **Your site is fine — this is not an outage.**
 `justtuned.com` returns HTTP 200 on every probe. What is stuck is the **build**: production has been
