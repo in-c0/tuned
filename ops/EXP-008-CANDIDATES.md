@@ -555,3 +555,116 @@ way it was designed: add a data file, grade the new item, no spec edit.
 operator plane can `publish`, `retract` and `restore`, so an item can be hidden — but there is still
 no way to *edit* a published `why` line. If a `why` were ever found to overstate what a page said,
 the only remedy is retract-and-republish under a new item id. Nothing here needs it.
+
+---
+
+## R-4 — the fourth `@sportstech` selection cycle, 2026-08-28 (run 106)
+
+**Written before the dispatch, and the slate below was reasoned out before either page was opened.**
+
+**No reviewer directive authorised this cycle.** The [03:34:40 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5448072304)
+was executed in full at run 105, and its own acceptance criteria say the loop *"then resumes the
+smallest diagnosis or distribution step"* once a normal `master` push deploys its exact commit —
+which `b5e58f6` and `5be4fb5` both did, green in 54s and 52s. So the choice of cycle is the
+executor's, and the pressure to be resisted has to be named by the executor too.
+
+**A4 is failing right now, and it was read from production this run rather than carried forward:**
+`list` [33140863235](https://github.com/in-c0/tuned/actions/runs/33140863235) at
+**2026-08-28T04:07:02Z** returned `last_public_item_at=2026-08-24T21:43:45.078Z` — **78.4 hours**
+against a 72-hour bar, the third lapse. That is exactly the condition [EXP-008](EXPERIMENTS.md)'s
+binding clauses exist to stop the loop from publishing its way out of. **A no-publish result was the
+expected outcome**, and the only honest test of whether this cycle selected for merit is whether the
+rejections turn on clauses that have nothing to do with freshness. Four of six do.
+
+### The candidate slate, and why four of six were rejected before any dispatch
+
+Discovery is result level (search), as it has been since run 50; characterisation is a
+`source-read.yml` dispatch or it does not happen. Six candidates were surfaced and reasoned about
+against [`agents/sportstech.md`](agents/sportstech.md) **before** any page was opened:
+
+| # | Candidate | Verdict, and the clause it turns on |
+| --- | --- | --- |
+| 1 | `fspor.2026.1933614` — *Editorial: Biomechanics, technology, and athletic performance: pathways to sustainable health* | **Rejected — no measured result of its own.** An editorial frames other people's work. Same clause that killed three reviews and a survey on 2026-08-24 |
+| 2 | `fpubh.2026.1829967` — waist IMU, daily activity recognition and energy-expenditure class in university students, CNN-LSTM 93.8% | **Rejected — not athlete sensing.** Real numbers, wrong feed: the cohort is students performing daily-living activities and the outcome is activity class, not athletic load, technique or performance. Identical to the Parkinsonian-gait rejection on 2026-08-24 — *"a remit is not a licence to fill a feed"* |
+| 3 | `fspor.2026.1784684` — tennis serve lower–upper body kinetic chain, IMUs plus portable force plate | **Rejected — self-described conceptual framework.** Its own title offers *"a conceptual field-based framework … measurement coverage, new performance indices, and applied implications"*. The remit wants a concrete measured result or a validated implementation; new indices proposed are neither. **Recorded as a title-level rejection and therefore reversible** — if its page carries a validation cohort with numbers, it re-enters on a later cycle |
+| 4 | `fbioe.2025.1714473` — improved running gait parameter estimation from a single foot-mounted IMU | **Rejected — near-repeat of the item published four days ago.** Item 247 is running gait, IMU, sensor fusion. A second running-gait IMU paper is the feed finding one theme rather than making one selection, and the selection is the whole contribution |
+| 5 | `fbioe.2026.1791337` — onshore swimming motion measurement with wearable inertial sensors | **Read, then rejected.** See below |
+| 6 | `fbioe.2026.1800086` — wearable IMU-based method for biomechanical parameters in hammer throwing | **Read, and published.** See below |
+
+### The reads — 2026-08-28
+
+Both from `source-read.yml`, one page per dispatch, declared user agent
+`… HeadlessChrome/140.0.0.0 … tuned-source-reader (+https://justtuned.com)`.
+
+| # | URL | HTTP | Title served | Reachable? | Run |
+| --- | --- | --- | --- | --- | --- |
+| 8 | `frontiersin.org/…/10.3389/fbioe.2026.1800086/full` | **200** | `Frontiers \| A wearable IMU-based method for measuring biomechanical parameters in hammer throwing` | **Yes** — 88,388 chars, `read_outcome: "page"`, `interstitial_signals: []` | [33140955815](https://github.com/in-c0/tuned/actions/runs/33140955815) |
+| 9 | `frontiersin.org/…/10.3389/fbioe.2026.1791337/full` | **200** | `Frontiers \| Onshore human swimming motion measurement and dynamic analysis using wearable inertial sensors` | **Yes** — 96,248 chars, `read_outcome: "page"`, `interstitial_signals: []` | [33140980791](https://github.com/in-c0/tuned/actions/runs/33140980791) |
+
+Both carry `possible_gate_markers: ["accept cookies"]`, which is a soft gate — the page was served
+and the article body was read. Neither is an interstitial.
+
+**Read 9 was rejected on what the paper says about itself.** The swimming framework validates 17
+IMUs against a Vicon Vero optical system and reports *"good validity (Spearman's correlation >0.75),
+reliability (ICC >0.75), and accuracy (NRMSE <25%) for most body segments"* — on remit, peer
+reviewed, and genuinely a validation study. It loses to read 8 on one sentence in its own abstract:
+*"lower limb and trunk motions deviate from typical in-water patterns due to restricted downward
+swing on the onshore trainer."* The measurement is of people simulating swimming on a dry-land
+trainer, and the paper states that the motion is not the sport's motion. Its stated destination
+also drifts off remit — *"swimming robot development"*. **Rejecting it is not a criticism of the
+work**; it is the feed choosing the find whose result transfers to what an athlete actually does.
+
+### The case against read 8, written by the nominator
+
+Stated first, before the case for it, because that is the order that keeps this honest.
+
+1. **n = 5, six trials each.** Two women and three men. The ICCs are precise about this pipeline's
+   agreement with VICON on these five throwers and say nothing dependable about anyone else.
+2. **It is agreement, not accuracy.** VICON is the reference, and the comparison was run at a
+   high-performance centre — the exact facility the system is pitched as removing the need for.
+   *"Without access to specialized high-performance centres or biomechanics laboratories"* is a
+   claim the validation setting cannot itself test.
+3. **Most of the paper is a parameter catalogue, not a hypothesis.** Of nine tables, one (TABLE 5)
+   is the agreement statistics; the rest describe phase durations, azimuths and orbit tilt for five
+   athletes. That is closer to a case series than to a study with something at stake.
+4. **This is the third consecutive publication from `frontiersin.org`, and the second in five days
+   from the same journal and section.** A reader could fairly say the agent has found one host
+   rather than one subject. **The reason is host access, not editorial preference** — MDPI, Taylor &
+   Francis, SAGE and PMC all refuse this reader, and between them they carry most of the
+   peer-reviewed athlete-sensing literature the remit points at. Recorded as a real weakness of the
+   selection rather than explained away: the reachable set is narrower than the remit's subject
+   matter, and it shows.
+5. **Published 21 July 2026 — five weeks old.** Nothing in the remit requires recency, and item 247
+   was published from a February 2026 paper, so this is consistent rather than novel. It is still
+   not news, and *"watch"* implies currency.
+6. **Frontiers' editorial process is contested in general.** The venue is not by itself evidence of
+   rigour, and the `why` line rests on the paper's stated numbers rather than on where it appeared.
+
+**What survives all six.** It is peer-reviewed original research (`ORIGINAL RESEARCH article`, Sec.
+Biomechanics, Volume 14 — not a preprint, review, editorial or survey); the cohort is national-level
+athletes throwing homologated implements in regular training, which is the athlete-sensing and
+training-technology bullets simultaneously; it reports a concrete measured result against a gold
+standard, ICC 0.977 and 0.976; and it states its own limit in its own discussion — *"the data
+obtained using IMUs represent only a subset of the information that can be obtained from a hammer
+throw using current 3D photogrammetry techniques"* — which is the kind of stated negative the remit
+expressly admits.
+
+**Had read 8 come back an interstitial, this cycle would have ended in *publish nothing* and A4
+would still be failing.** That is what makes freshness a consequence here rather than a motive.
+
+### Exactly what is dispatched
+
+One `agent-operator.yml` run, `action=publish`, default idempotency key:
+
+| Field | Value | Budget |
+| --- | --- | --- |
+| `handle` | `sportstech` | — |
+| `url` | `https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1800086/full` | 110 / 2000 |
+| `title` | A wearable IMU-based method for measuring biomechanical parameters in hammer throwing | 85 / 300 |
+| `category` | `Research` | one of `CATEGORIES` in [`src/pages.ts`](../src/pages.ts), set explicitly so it cannot default to a permanent `Misc` |
+| `why` | Five Spanish national-level hammer throwers, 6 trials each with homologated implements at the CAR in Madrid: three off-the-shelf IMUs (right instep, lumbar, wrist) matched VICON at ICC 0.977 on single/double support phase durations and ICC 0.976 on angular displacements. | **271 / 280** |
+
+Every clause of the `why` is a sentence that was on screen in read 8. `CAR` is the page's own
+`High-Performance Sports Centre (CAR) in Madrid`, and `matched VICON at ICC 0.977 … ICC 0.976` is
+its `Validation against a VICON motion capture system showed excellent agreement for phase durations
+(ICC = 0.977) and angular displacements (ICC = 0.976)` written for a plain-text field.
