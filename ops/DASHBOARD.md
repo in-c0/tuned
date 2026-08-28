@@ -271,6 +271,29 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
+### **ACTION REQUIRED · HIGH — one issue at a public GitHub repo, about two minutes. It's the only thing left between Tuned and its first real audience.**
+
+**Opened 2026-08-28 19:35 Sydney (09:35 UTC).** You already said yes to this on **20 August**. I have
+never been able to do it, and I still can't — **not because anything is wrong with the submission, but
+because my GitHub access is scoped to `in-c0/tuned` and the venue is someone else's repository.** I
+re-tested that this morning and got the same refusal as eight days ago.
+
+**Everything else is checked and green, this morning, from production:**
+
+| | |
+| --- | --- |
+| **What to do** | Open **one** issue at [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) using its *add new feeds* template. Three fields: **Category `Sports`**; **Feed URL** = the route **`/sportstech/rss.xml`** on **`justtuned.com`** with the `?src=` tag **`awesome-rss-feeds`** — please join those two yourself when you paste, since anything that fetches the joined link moves the very counter I'm going to measure; **Podcast: `No`**. Then paste the issue URL on [issue #1](https://github.com/in-c0/tuned/issues/1). That's all — no body text to write, nothing to follow up. |
+| **Why it's worth two minutes** | It is **the first time Tuned's feed would be put in front of strangers.** 22 days, 107 runs, **0 applications, 0 active members, 0 followers, $0**. I can keep improving the product indefinitely and none of those numbers can move, because nobody has ever been shown it. |
+| **Checked before asking** | **Freshness ✅ 5.3 hours old** — the feed published a new find this morning, so it isn't a dead link ([evidence](https://github.com/in-c0/tuned/actions/runs/33159736495)). **No duplicate ✅** — I searched the venue's open *and* closed issues at 09:32 UTC; **zero results** for `justtuned` ([evidence](https://github.com/in-c0/tuned/actions/runs/33159738434)). Their rules permit this submission. |
+| **The clock** | **Closes Monday 2026-08-31, 14:14 Sydney.** After that the feed counts as stale for directory purposes and it's inadmissible again until some future find happens to restore it. **Three earlier windows already lapsed** — on 21 Aug, 24 Aug and 27 Aug — largely because this card kept quietly retiring itself before you saw it. That's my defect, and it's written up. |
+| **If you'd rather not** | Say so on issue #1 and I'll close it out honestly as *inadmissible, never tested* rather than let it lapse silently a fourth time. **A fourth lapse is an acceptable outcome** — I will not publish anything just to hold the window open. |
+| **Second remedy, if you prefer** | Start a Claude session with **`plenaryapp/awesome-rss-feeds` as an initial source** and I'll submit from it. The refusal message names this route. **I did not do this myself on purpose** — spinning up a second session to get around my own access scope is exactly the kind of shortcut I shouldn't take. |
+| **What this does not mean** | **Nothing about demand, either way.** Three lapsed windows say something about my access, not about whether anyone wants Tuned. Commercial readings **zero**; spend **AUD $0.00 of $500**. |
+
+---
+
+**Superseded — the run-105 card, kept as history.**
+
 ### **NONE — please ignore the alert you may have just received. Deploys are working again and there is nothing for you to do.**
 
 **Cleared 2026-08-28 13:55 Sydney (03:55 UTC).** I raised a HIGH card and alerted you at 13:47 Sydney

@@ -3743,3 +3743,47 @@ run reports `campaignTagsExercised: 0`; no landing, copy, pricing or positioning
 publication; no owner notification, because nothing here needs a decision.
 
 **Spend: AUD $0.00 of $500, unchanged.**
+
+## 2026-08-28 09:35 UTC (run 107) — the submission was attempted, refused at the session boundary, and escalated to the owner instead of recorded and dropped
+
+**Directive:** [reviewer, `2026-08-28T09:29:09Z`](https://github.com/in-c0/tuned/issues/1#issuecomment-5450853462)
+— execute exactly one deduplicated `plenaryapp/awesome-rss-feeds` submission: re-read A4, search the
+venue's open and closed issues, and if both pass, create one `Sports` feed issue and record `t0`.
+
+**Decision: execute every admissible step, refuse the one remedy that would have completed it, and
+raise the owner card with an out-of-band notification.**
+
+**What was done, in the directive's own order:**
+
+1. **A4 re-read from production** — `5.29h`, expires `2026-08-31T04:14:13Z`
+   ([33159736495](https://github.com/in-c0/tuned/actions/runs/33159736495), `09:31:47Z`).
+2. **Duplicate check re-read** — `Open 0 (0) · Closed 0 (0)`, both states covered by one query
+   ([33159738434](https://github.com/in-c0/tuned/actions/runs/33159738434), `09:32:45Z`). The
+   eight-day-stale check named by the reviewer is now fresh.
+3. **The write was attempted and refused** — `add_repo`, `09:30:25Z`: *"cross-tier adds are not
+   supported in v1 … Start a new session with the requested repo as the initial source"*.
+
+**The decision that mattered is what was not done.** The refusal names its own remedy, and a session
+scoped to the venue was available via `create_session`. **It was not spawned.** A repository allowlist
+is an access control; provisioning a second session to obtain what this one was scoped out of is
+boundary-shopping, and it is refused whether the loop is impatient, whether a reviewer directive
+asks for the outcome, or whether the owner has authorized the *act* — **authorization and access are
+different things, and only the owner can change the second** ([L-48](LESSONS.md)). This is the
+operating record's **unavailable-credentials** mandatory stop, and the directive's own stop condition
+names it: *"Stop on … authentication/permission denial … Record the exact obstruction without
+bypassing controls."*
+
+**The second decision, and the one that changes behaviour:** the owner card was raised to **ACTION
+REQUIRED · HIGH** and the owner was notified out of band. **Run 106 declined to notify on the test
+"nothing here needs a decision from you", and that test is wrong for this blocker** — the decision was
+given on 2026-08-20; what is needed is two minutes of account access inside a window that closes
+**2026-08-31 14:14 Sydney**. Three windows have already lapsed unused while the card read `NONE`.
+[L-50](LESSONS.md) records the general rule: **notify on the deadline of the blocked window, not on
+the state of the card.**
+
+**Reversibility:** every change this run is Markdown. No code, route, schema, counter, allowlist entry,
+migration, workflow or user-facing copy was touched; nothing was published, submitted or retracted; no
+venue was contacted; no real channel tag was exercised; [EXP-009](EXPERIMENTS.md) and
+[EXP-010](EXPERIMENTS.md) are byte-untouched.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**

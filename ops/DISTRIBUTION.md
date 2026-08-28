@@ -1392,3 +1392,61 @@ session's repository allowlist, before any call leaves for GitHub.
 **Nothing was submitted and no venue was contacted.** A4 stands as read at run 87
 (`2026-08-24T21:43:45.078Z`, expiring `2026-08-27T21:43:45Z` = 2026-08-28 07:43 Sydney); this run made
 no production read of its own and does not restate one as fresh.
+
+## The fourth window opens with every condition fresh and the same layer still stopping the act — 2026-08-28 (run 107)
+
+**The [reviewer directive of 09:29:09Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5450853462)
+ordered the submission executed** — re-read A4, search the venue's open and closed issues, and if both
+pass, create one `Sports` feed issue and record `t0`. **Both preconditions were re-read from
+production this run and both pass. The write is still refused at the session boundary.**
+
+| Step | Result, read this run | Evidence |
+| --- | --- | --- |
+| **A4** — newest public item ≤ 72h | **SATISFIED, 5.29h.** `last_public_item_at=2026-08-28T04:14:13.569Z`, `public_items=15`, `operator_publications=4`, `operator_publications_hidden=0`, `owner: @ava · active 1/12`. **Expires `2026-08-31T04:14:13Z` = 2026-08-31 14:14 Sydney.** | [agent operator 33159736495](https://github.com/in-c0/tuned/actions/runs/33159736495), `09:31:47Z` |
+| **Duplicate — issue surface, open *and* closed** | **NONE.** `is:issue justtuned` at the venue: **`Open 0 (0)` · `Closed 0 (0)`**, *"No results. Try adjusting your search filters."* `find_total_occurrences: 1`, and that one occurrence is **GitHub's own echo of the query in its search box** — *"Issues Search Issues is:issue justtuned Search results"* — not a result. | [source read 33159738434](https://github.com/in-c0/tuned/actions/runs/33159738434), `09:32:45Z` |
+| **Coverage of both states, checked rather than assumed** | The read resolved the two filter links by `href`: `…?q=is%3Aissue%20justtuned%20state%3Aopen` and `…state%3Aclosed`, both labelled `0`. **One query covered both states**, and `justtuned` is a superset of both the bare host and the tagged feed URL, so a zero here excludes every spelling of the submission. | same run, `find_links` |
+
+**The duplicate run is red and the reading stands, on the same overrule run 61 recorded.** It failed
+`read_outcome == "page"` on **`only 735 visible characters, below the 1000 floor`** — GitHub's
+zero-result page is genuinely that short, `possible_gate_markers: []`, HTTP 200, title *"Issues ·
+plenaryapp/awesome-rss-feeds · GitHub"*. **This is the known false-alarm class, not an unread page:
+the substance the check exists to guarantee is quoted verbatim above.** `MIN_PAGE_CHARS` is not
+lowered — a floor that is relaxed to make one expected case green stops catching the unexpected ones.
+
+### The refusal, re-tested rather than inherited
+
+`add_repo` for `plenaryapp/awesome-rss-feeds`, `access: push`, **2026-08-28 09:30:25Z**:
+
+> *"cross-tier adds are not supported in v1: requested `plenaryapp/awesome-rss-feeds` but session
+> already has repos from owner(s) [in-c0]. Start a new session with the requested repo as the initial
+> source, or add a repo from the same owner as the existing sources"*
+
+**Byte-for-byte the run-88 refusal, eight days later.** Nothing about the boundary has decayed,
+and nothing about it is going to. Three things follow, and none of them is new — they are re-confirmed
+because a directive asked the loop to act as though they had changed:
+
+1. **The remedy the error names was again not taken.** A session scoped to the venue is exactly the
+   thing the allowlist exists to prevent, and reaching for it because the loop is impatient is
+   boundary-shopping ([L-48](LESSONS.md) §4). **The refusal is respected, not routed around.**
+2. **The venue has still never been contacted.** No form, no issue, no account, no draft left
+   anywhere. Every reading above is of a public page from GitHub's network.
+3. **Nothing is owed by the venue and nothing is wrong with the submission.** A1 partial, A2 ✅,
+   A3 ✅, A4 ✅, A5 ✅, duplicate clean. **The submission is correct and unmakeable by this executor.**
+
+### What actually changed this run, and it is not a grade
+
+**The owner card.** [STATUS.md](STATUS.md) reads **ACTION REQUIRED · HIGH** for the first time on this
+subject since run 87, and the owner was notified out of band. **The reason is a sequencing defect in
+how this loop surfaces the card, not a new fact about the venue:** the card retires itself whenever A4
+decays, so it has read `NONE` through most of the hours in which the act was possible, and **three
+windows have now lapsed unused** (`2026-08-21T04:15:49Z`, `2026-08-24T09:35:56Z`,
+`2026-08-27T21:43:45Z`). Run 106 closed with *"no owner notification, because nothing here needs a
+decision from you"* — true of decisions, and the wrong test, because what was needed was not a
+decision but two minutes of account access inside a window with a deadline. **The window, not the
+card, is the thing with a clock.** [L-50](LESSONS.md).
+
+**No grade in the register changes. `awesome-rss-feeds` holds A1 partial · A2 ✅ · A3 ✅ · A4 ✅
+(until `2026-08-31T04:14:13Z`) · A5 ✅**, and [EXP-009](EXPERIMENTS.md) Reading 2 stays **Fork D /
+PENDING — inadmissible, not a demand null**. No other candidate was touched, nothing was published,
+no real channel tag was exercised, and no demand is inferred from the three lapses in either
+direction.

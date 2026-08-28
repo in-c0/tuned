@@ -1465,3 +1465,36 @@ already: **every run reads `ops/metrics/latest.json`'s `generated_at`, and a val
 hours old now means dispatch a snapshot rather than quote a stale one.** No workflow change is
 shipped for this: adding a redundant schedule to work around a delivery fault nobody has diagnosed
 would hide the next occurrence rather than catch it.
+
+## 2026-08-28 (run 107) — the pre-`t0` boundary re-read, and a background band that is not demand
+
+**Two snapshots bracket the reviewer directive that re-published the joined tagged URL on issue #1 at
+`2026-08-28T09:29:09Z`**, so the pre-`t0` contamination boundary can be stated from readings rather
+than from reasoning:
+
+| Reading | `generated_at` | `arrival_fetch:awesome-rss-feeds`, 2026-08-28 |
+| --- | --- | --- |
+| Last snapshot **before** the directive | `2026-08-28T04:26:59.682Z` | **absent (0)** |
+| First snapshot **after** it (+3m55s) | `2026-08-28T09:33:04.047Z` | **absent (0)** |
+
+**The boundary is unchanged and remains exactly what run 87 registered:** the only tagged fetch ever
+recorded is **`arrival_fetch:awesome-rss-feeds` = 1 on 2026-08-25**, which is **pre-`t0` and
+issue-#1-attributable**, never venue traffic, and **not counted** in any EXP-009 grade. Today's
+directive is the **second** time a reviewer has printed the joined URL publicly ([L-47](LESSONS.md)
+covers the first, `2026-08-25T03:33:11Z`); it has produced no tagged fetch in the four minutes
+measured, and the standing rule stands: **any `arrival_fetch:awesome-rss-feeds` between
+`2026-08-25T03:33:11Z` and `t0` is issue-#1-attributable and is reported separately.**
+
+**A background band moved and is recorded without a story.** Unsuffixed `feed_fetch` — every RSS fetch
+not from a self-declaring crawler — reads **08-27: 2 · 08-28: 5** (`feed_fetch:sportstech` identical on
+both days, so all of it is `/sportstech`), against **0 on 08-21 … 08-24**. **None of it carries a
+tag.** Per this file's own withdrawn description, unsuffixed `feed_fetch` is **not** established as a
+third-party human band, and per the standing rule **a fetch count is not demand and does not become a
+number of people**: a single feed reader polling on a schedule produces exactly this shape. It is
+logged because it is the counter EXP-009 will read, and its pre-submission level must be on the record
+**before** a submission exists — not because it means anything yet.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `active_last_7d` **0** · `active_last_28d` **0** ·
+`followers` **0** · `items_public` **83** · gross cash **AUD $0**, from *no billing exists*. Spend
+**AUD $0.00 of $500**, unchanged.

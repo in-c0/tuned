@@ -1854,3 +1854,39 @@ the assertion would still hold.
 - **Prevention check:** any register line that says a venue's surface is missing, unreachable or
   absent must cite either (a) a link resolution showing no such target exists on the page that would
   carry it, or (b) the venue's own words. A path that 404s is neither.
+
+## L-50 — an owner card that retires itself on the blocked resource's clock is dark during exactly the hours the owner could have acted (2026-08-28, run 107)
+
+- **What happened:** the `awesome-rss-feeds` submission has been fully authorized since **2026-08-20
+  15:04:36 UTC** and blocked only by session scope. Its owner card is gated on
+  [A4](DISTRIBUTION.md) — destination freshness ≤ 72h — so the card is raised when a publication
+  opens a window and **retires itself when the window decays**. Three windows have now opened and
+  lapsed with no submission: `2026-08-21T04:15:49Z`, `2026-08-24T09:35:56Z`, `2026-08-27T21:43:45Z`.
+- **The defect is the coupling, not the gate.** A4 is a correct admissibility condition: submitting a
+  stale feed to a directory is worse than not submitting. But **binding the owner's notification to
+  it means the loop goes quiet precisely when the act becomes impossible, and speaks only in the
+  hours when it is already possible** — and then stops speaking again the moment the clock runs out,
+  without anyone deciding to stop.
+- **How it reads from inside the loop, which is why it survived three windows.** Every retirement was
+  individually correct and individually well-argued. Run 83: *"the owner card retired itself on its
+  own clock"*. Run 103: *"the third window closed unused, and the card retires with the A intact"*.
+  Run 106: *"no owner notification, because nothing here needs a decision from you."* **That last
+  test is the error in one sentence** — the owner was not being asked for a *decision*, which had
+  been given eight days earlier. They were being asked for **two minutes of account access inside a
+  window with a deadline**, and a test that only fires on open decisions cannot see that ask at all.
+- **The general shape.** A notification policy keyed to *"is there an unanswered question?"* silently
+  drops every blocker whose question is already answered and whose obstruction is **capability**. Those
+  are the blockers most likely to persist, because nothing about them changes when the owner reads the
+  record — the loop can restate them forever at zero cost to itself and infinite cost to the outcome.
+- **The rule:** **notify on the deadline of the blocked window, not on the state of the card.** When an
+  authorized action is blocked only by access, and a bounded window in which it is admissible opens,
+  that window's opening is the notification event. Retiring the card when the window lapses is fine;
+  going the whole window without surfacing it is not.
+- **Prevention check, before any run closes with no owner notification:** *is there an action that is
+  already authorized, currently admissible, blocked only by something the owner can supply in
+  minutes, and inside a window that will close before this loop can reopen it?* If yes, the absence of
+  an open question is **not** a reason for silence.
+- **What this lesson does not license.** Not repetition: one notification per window, not one per run.
+  Not urgency as leverage — the three lapsed windows say nothing about demand, and a fourth lapse is
+  still an acceptable outcome ([EXP-008](EXPERIMENTS.md) forbids publishing to hold a window open).
+  And not a workaround: the access boundary stays exactly where it is ([L-48](#l-48)).

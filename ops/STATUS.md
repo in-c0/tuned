@@ -1,7 +1,19 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 13:55 Sydney (03:55 UTC), run 105 — **[OWNER ACTION REQUIRED](#owner-action-required):
-NONE.** **The deploy stall is over, and the card written to escalate it was cleared ~19 minutes later
+**Last updated:** 2026-08-28 19:35 Sydney (09:35 UTC), run 107 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ACTION REQUIRED · HIGH.** **One issue, at a public GitHub repository, ~2 minutes — and it is the only
+thing standing between Tuned and the first time its feed is put in front of strangers.** The
+[reviewer directive of 09:29:09Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5450853462)
+ordered this submission executed. **Every precondition was re-read from production this run and all of
+them pass** — A4 **5.29h** ([33159736495](https://github.com/in-c0/tuned/actions/runs/33159736495),
+`09:31:47Z`), duplicate check **clean** on `Open 0 (0) · Closed 0 (0)`
+([33159738434](https://github.com/in-c0/tuned/actions/runs/33159738434), `09:32:45Z`), A2 answered
+**`A`** since 2026-08-20. **The executor still cannot make the write**: its GitHub scope is
+`in-c0/tuned` and the venue is someone else's repository — re-tested `09:30:25Z`, *"cross-tier adds
+are not supported in v1"*. The remedy that error names (**start a second session scoped to the
+venue**) is **boundary-shopping and was refused**. **This is the fourth window and the first three
+lapsed unused; it closes 2026-08-31 14:14 Sydney.** **Previously, run 105 — [OWNER ACTION
+REQUIRED](#owner-action-required): NONE.** **The deploy stall is over, and the card written to escalate it was cleared ~19 minutes later
 by its own stated success check.** The commit that *carried* the card,
 [`b5e58f6`](https://github.com/in-c0/tuned/commit/b5e58f6) (pushed `03:41:44Z`), **deployed normally**:
 `verify production` [33139639332](https://github.com/in-c0/tuned/actions/runs/33139639332) went
@@ -993,6 +1005,35 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 > this one is right.
 
 ## OWNER ACTION REQUIRED
+
+### **ACTION REQUIRED · HIGH — open one issue at a public GitHub repository. ~2 minutes. No spend, no credential to install, nothing to configure.**
+
+**Opened run 107, 2026-08-28 19:35 Sydney (09:35 UTC), on the [reviewer directive of
+09:29:09Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5450853462), which ordered exactly
+this submission.** Every precondition was re-read from production **this run** rather than inherited,
+and all of them pass. **The only thing missing is an account this executor does not hold.**
+
+**This is the fourth open window. The first three lapsed unused** — 2026-08-21T04:15:49Z,
+2026-08-24T09:35:56Z, 2026-08-27T21:43:45Z. **This one closes 2026-08-31 14:14 Sydney
+(`2026-08-31T04:14:13Z`), ~66h from opening.** After that the submission is inadmissible again under
+[A4](DISTRIBUTION.md) until some future find restores it, and no publication will be made to hold it
+open ([EXP-008](EXPERIMENTS.md)'s binding clauses).
+
+| | |
+| --- | --- |
+| **Blocked outcome** | **The first measurable external distribution test in Tuned's history.** 22 days, 107 runs, **0 applications · 0 activated members · 0 followers · AUD $0**. Every commercial reading is zero, and the loop has never once put its feed in front of strangers. [EXP-009](EXPERIMENTS.md) Reading 2 has stood at **Fork D / PENDING — inadmissible, not a demand null** since run 57, because no attempt exists to grade. **Nothing in the funnel can be learned until one does.** |
+| **Owner-only reason** | **Access, not authorship, and not a missing decision.** Your **`A`** of [2026-08-20 15:04:36 UTC](https://github.com/in-c0/tuned/issues/1) stands and is preserved — the executor is *authorized* to submit and simply *cannot*. Its GitHub scope is `in-c0/tuned`; the venue is someone else's repository. **Re-tested this run, 2026-08-28 09:30:25Z**, and the refusal is a platform limit rather than a missing token: `add_repo` → *"cross-tier adds are not supported in v1: requested `plenaryapp/awesome-rss-feeds` but session already has repos from owner(s) [in-c0]"*. It names its own remedy — *"Start a new session with the requested repo as the initial source"* — and **that remedy was not taken and will not be**: provisioning a second session to obtain what this one was scoped out of is boundary-shopping, and an authorization written in an issue comment cannot widen an access control ([L-40](LESSONS.md), [L-48](LESSONS.md)). |
+| **Exact minimum action** | Open **one** issue at [`plenaryapp/awesome-rss-feeds`](https://github.com/plenaryapp/awesome-rss-feeds) from its own *add new feeds* template, with exactly three values:<br>• **Category:** `Sports`<br>• **Feed URL:** the route **`/sportstech/rss.xml`** on **`justtuned.com`**, carrying the `?src=` tag **`awesome-rss-feeds`** — **join the route and the tag yourself when you paste.** Per [L-36](LESSONS.md) the joined string is deliberately not written here, because anything that fetches it increments the exact counter [EXP-009](EXPERIMENTS.md) grades.<br>• **Podcast:** `No`<br>Then **paste the resulting issue URL on [issue #1](https://github.com/in-c0/tuned/issues/1)**. The executor records `t0` from GitHub's immutable `created_at` and grades from there. **Nothing else is needed from you** — no body text to write, no account to create, no reply to manage. |
+| **Preconditions, all re-read from production this run** | **A4 — SATISFIED, 5.29h.** `last_public_item_at=2026-08-28T04:14:13.569Z`, `public_items=15`, `operator_publications=4`, read [33159736495](https://github.com/in-c0/tuned/actions/runs/33159736495) at `09:31:47Z`. **Duplicate — CLEAN, read `09:32:45Z`** ([33159738434](https://github.com/in-c0/tuned/actions/runs/33159738434)): `is:issue justtuned` at the venue returns **`Open 0 (0) · Closed 0 (0)`**, *"No results. Try adjusting your search filters."* The one `justtuned` occurrence is **GitHub's own echo of the query in its search box**, not a result, and the run resolved the `state:open` and `state:closed` filter links so both states are covered by the single read. **A1** partial (form permitted, authorship unaddressed) · **A2 ✅** · **A3 ✅** · **A5 ✅**. |
+| **Success check for clearing this card** | **An issue URL at the venue, posted on issue #1.** Not an intention, not a settings change. The card clears on that observation. |
+| **Blocker age** | **7d 11h 40m** — the access boundary was opened 2026-08-20 21:55 UTC (run 61) and has never been closed. Your authorization is 4 hours older than the boundary and has been waiting the whole time. |
+| **Why this is being surfaced now when it was not last run** | Run 106 closed with *"no owner notification, because nothing here needs a decision from you"* — **correct on the letter and wrong in effect.** Three windows have now lapsed unused while the card read `NONE`, and a card that retires itself whenever A4 decays is a card the owner never sees during the only hours it can be acted on. **The window, not the card, is the thing with a deadline.** |
+| **What is deliberately not being done** | **No submission by any route.** No child session spawned, no second venue, no form, no account use, no impersonation, no second publication to extend the window, and **no real channel tag exercised anywhere** ([L-36](LESSONS.md)). No code, route, schema, counter, allowlist entry, migration or workflow touched. |
+| **What may not be concluded from this** | **Nothing about demand, in either direction.** Three lapsed windows are a fact about this loop's access, not about whether anyone wants Tuned. Commercial readings remain zero; spend remains **AUD $0.00 of $500**. |
+
+---
+
+**Kept below, and no longer live — the run-105 card, retired on its own success check.**
 
 ### **NONE — the card below was opened and cleared inside the same run, on its own stated success check.**
 
