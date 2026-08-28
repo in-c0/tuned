@@ -668,3 +668,44 @@ Every clause of the `why` is a sentence that was on screen in read 8. `CAR` is t
 `High-Performance Sports Centre (CAR) in Madrid`, and `matched VICON at ICC 0.977 … ICC 0.976` is
 its `Validation against a VICON motion capture system showed excellent agreement for phase durations
 (ICC = 0.977) and angular displacements (ICC = 0.976)` written for a plain-text field.
+
+### What actually happened — recorded after the dispatch
+
+**Published: item 248**, [agent operator 33141221709](https://github.com/in-c0/tuned/actions/runs/33141221709),
+2026-08-28T04:14:13Z. `HTTP 201 · ok=True · published=True · duplicate=False · item_id=248`.
+
+| Threshold | Result |
+| --- | --- |
+| 1 — HTTP 200/201, `published`, `item_id` | **PASS** — 201, `published=True`, `item_id=248` |
+| 2 — exactly one item appears | **PASS** — `@sportstech` `public_items` **14 → 15**, and the provenance run read `cardsOnFeed: 15` off the live feed page |
+| 3 — `operator_publications` rises by one | **PASS** — **3 → 4**, `operator_publications_hidden=0` |
+| 4 — replay publishes nothing | **PASS** — [33141289139](https://github.com/in-c0/tuned/actions/runs/33141289139), `HTTP 200 · published=False · duplicate=True · item_id=248` |
+| 5 — provenance on both surfaces | **PASS on the first attempt** — [qa-browser 33141345668](https://github.com/in-c0/tuned/actions/runs/33141345668) on `961f57f`, header **"@sportstech, 4 nominated find(s)"**, **9 passed / 1 skipped** (the mobile RSS case is skipped by design). `publishedItemPresent: true`, `noteMatchesDispatched: true`, `aiBadgePresent: true` |
+| 6 — the find is real | **PASS** — a `read_outcome: "page"` dispatch of the full article, 88,388 visible characters, and every clause of the `why` is a sentence that was on screen |
+
+Baselines: pre-dispatch `list` [33141193861](https://github.com/in-c0/tuned/actions/runs/33141193861)
+at 04:13:36Z — `public_items=14 operator_publications=3
+last_public_item_at=2026-08-24T21:43:45.078Z`. Post-dispatch `list`
+[33141249807](https://github.com/in-c0/tuned/actions/runs/33141249807) at 04:14:47Z —
+`public_items=15 operator_publications=4 operator_publications_hidden=0
+last_public_item_at=2026-08-28T04:14:13.569Z`. That last value restores A4 until
+2026-08-31T04:14:13Z.
+
+**The ordering is checkable rather than asserted.** `a676047` is authored **2026-08-28T04:13:23Z**
+and the publication is **04:14:13.569Z** — **+50.569s**. `scripts/validate-nominations.mjs` reports
+`transcription OK: url and title verbatim in a676047; why verbatim: yes`, which is a stronger link
+than item 247 could offer and much stronger than 246's, whose pre-registration commit is not in a
+shallow clone at all.
+
+**Threshold 5 passed on the first attempt, which is new.** Run 85 needed a second dispatch because
+`qa/nominations/247-*.json` did not exist in the tree the first run checked out, so a green result
+graded items 242 and 246 and said nothing about 247 — the vacuous pass the empty-registry guard does
+not catch. This run pushed `961f57f` (the registry entry) **before** dispatching the spec, and the
+header read **"4 nominated find(s)"** rather than three. That is the registry used the way run 66
+designed it: add a data file, grade the new item, no spec edit, and the earlier three keep grading as
+regressions for free.
+
+**One reading this run does not claim.** `thirdPartyConsoleErrors: []` and
+`firstPartyConsoleErrors: []` on the `@sportstech` feed page at both viewports. That is **not** a
+resolution of the run-49 unattributed console 404, which was seen on a different surface; it is one
+page coming back clean and is recorded as that.

@@ -329,7 +329,7 @@ closed at exactly that instant (item **247**, `2026-08-24T21:43:45.078Z`). **Not
 | **What is paused** | The `plenaryapp/awesome-rss-feeds` submission — **paused, not dropped.** You never said **C**, and an unanswered card is not a decision. It resumes when a find worth publishing on its own merits restores A4; that is not scheduled. |
 | **What was not done** | **Nothing was published to hold the window open.** [EXP-008](EXPERIMENTS.md)'s binding clauses forbid publishing to move a number. **No second notification was sent** — run 100's was the only one. Third window to lapse unused (2026-08-21, 2026-08-24, 2026-08-27). |
 | **What may not be concluded** | **Nothing about demand.** [EXP-009](EXPERIMENTS.md) Reading 2 has no `t0` and stays **Fork D / PENDING — inadmissible, not a null.** A lapsed window is a fact about this loop's schedule, not about strangers. |
-| **If you still want it** | Open the issue any time — the card below is kept intact — but **A4 must be re-read from production first** and does not currently hold. No clock, no penalty, no ask. |
+| **If you still want it** | Open the issue any time — the card below is kept intact. ~~**A4 must be re-read from production first** and does not currently hold.~~ **Updated 2026-08-28 14:14 Sydney (run 106): A4 holds again until 2026-08-31 14:14 Sydney**, restored by **item 248** — a peer-reviewed hammer-throw IMU study that cleared the remit on its own, with the case against it committed 50 seconds before it went out. It was read from production, not carried forward. Still **no clock, no penalty, no ask** — the fourth window may lapse unused like the first three, and that is fine. |
 
 ---
 

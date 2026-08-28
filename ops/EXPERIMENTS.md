@@ -1475,6 +1475,29 @@ Binding regardless of the result:
   strings as constants and was committed to `master` **before** the publication it grades.
   *Publish nothing* was available at zero cost up to the dispatch and was not taken.
 
+### Dated addendum — the fourth publication, 2026-08-28 (run 106)
+
+**EXP-008 stays CLOSED; this is a subsequent exercise of the plane it graded, recorded here so the
+run of publications is readable in one place.** Item **248**, `@sportstech`, 2026-08-28T04:14:13.569Z:
+a peer-reviewed hammer-throw IMU validation, ICC 0.977 / 0.976 against VICON, five national-level
+throwers at the CAR in Madrid. **All six thresholds pass**, and threshold 5 passes on the **first**
+attempt — the first publication for which that is true. Full record, including the case against the
+find and the two page-level reads that produced it, in
+[EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) R-4.
+
+| | 242 | 246 | 247 | **248** |
+| --- | --- | --- | --- | --- |
+| pre-registration lead | 83.089s | 17.549s | 19.078s | **50.569s** |
+| transcription check | url + title + why | commit absent from clone | url + title + why | **url + title + why** |
+| threshold 5 | first attempt | **not claimed** | second attempt | **first attempt** |
+| host | arxiv (preprint) | arxiv (preprint) | Frontiers (peer-reviewed) | **Frontiers (peer-reviewed)** |
+
+**The pattern in the last row is a weakness and is recorded as one.** Three consecutive publications
+from `frontiersin.org` is host access, not editorial preference — MDPI, Taylor & Francis, SAGE and
+PMC all refuse this reader, and between them they carry most of the peer-reviewed athlete-sensing
+literature `@sportstech`'s remit points at. The reachable set is narrower than the remit's subject
+matter, and after four publications it shows.
+
 ---
 
 ## EXP-009 — if a feed listing sent subscribers, would Tuned see them? (2026-08-19, run 56)

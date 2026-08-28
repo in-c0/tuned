@@ -1562,9 +1562,23 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Next action
 
-**There is no owner action, and the submission is paused again.** A4 lapsed **`2026-08-27T21:43:45Z`**
+~~**There is no owner action, and the submission is paused again.** A4 lapsed **`2026-08-27T21:43:45Z`**
 with nothing submitted — the third window to close unused — so the `awesome-rss-feeds` candidate waits
-on a find worth publishing on its own merits, not on a decision, a credential or a deadline. **The
+on a find worth publishing on its own merits, not on a decision, a credential or a deadline.~~
+
+**Superseded, run 106 (2026-08-28). A4 is SATISFIED again and the fourth window is open until
+`2026-08-31T04:14:13Z`.** There is still **no owner action**. One `@sportstech` selection cycle ran:
+six candidates, four rejected on remit clauses before a page was opened, two read at page level, one
+rejected on a sentence in its own abstract, and **item 248** published at **2026-08-28T04:14:13.569Z**
+— a peer-reviewed hammer-throw IMU validation, ICC 0.977/0.976 against VICON, with the case against
+it committed **50.569 seconds** before the dispatch ([`a676047`](https://github.com/in-c0/tuned/commit/a676047),
+[R-4](EXP-008-CANDIDATES.md)). **Freshness is the consequence, not the motive:** A4 was read from
+production at **78.4 hours** *before* the cycle began, and had the surviving page come back an
+interstitial this run would have ended in *publish nothing*. **The `awesome-rss-feeds` candidate is
+therefore un-paused for the fourth time**, with the owner's **A** intact — A1 partial · A2 ✅ · A3 ✅ ·
+**A4 ✅ until 2026-08-31T04:14:13Z** · A5 ✅ — and the executor still cannot make the submission
+itself: its GitHub scope is `in-c0/tuned` and that boundary is never routed around. **The duplicate
+check is stale** (last read 2026-08-20 21:38 UTC) and must be re-read before any submission. **The
 canonical statement is [OWNER ACTION REQUIRED](#owner-action-required) above, which now reads NONE;
 this section says the same thing and defers to it on any disagreement.** The pause on new product,
 host, probe, publication, billing and venue work **lifts with the window** — it was a consequence of

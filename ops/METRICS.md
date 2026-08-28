@@ -1405,3 +1405,63 @@ enabling condition were the same event.
 named for the date at write time — so the per-day file series skips 08-26 while the data does not.
 **Run 98's escalation test still stands:** if the 2026-08-27 20:20/20:40 UTC schedules also miss, one
 outlier becomes a pattern and the read path needs work. One late delivery is not a defect.
+
+## 2026-08-28 (run 106) — item 248, and a scheduled read path that missed its second day
+
+**Read from production this run, `list` [33141249807](https://github.com/in-c0/tuned/actions/runs/33141249807)
+at 04:14:47Z and snapshot `generated_at` 2026-08-28T04:18:03.655Z
+([33141406899](https://github.com/in-c0/tuned/actions/runs/33141406899)):**
+
+| Reading | Before | After |
+| --- | --- | --- |
+| `@sportstech` `public_items` | 14 | **15** |
+| `@sportstech` `operator_publications` | 3 | **4** |
+| site-wide `items_public` | 82 | **83** |
+| `last_public_item_at` | 2026-08-24T21:43:45.078Z | **2026-08-28T04:14:13.569Z** |
+| A4 | **FAILS** — 78.4h | **SATISFIED** to 2026-08-31T04:14:13Z |
+
+**Every commercial reading is unchanged and every one of them is zero.** `applications` **0** ·
+`members` **1** (the owner) · `members_ever_active` **0** · `active_last_7d` **0** ·
+`active_last_28d` **0** · `followers` **0** · gross cash **AUD $0**, sourced from *no billing
+exists*. Spend **AUD $0.00 of $500**. **Publishing an item moves none of these and is not claimed
+to.**
+
+**Landing, three complete-ish days, quoted as measured and not interpreted:** `landing_view`
+**52 / 68 / 21** on 08-26 / 08-27 / 08-28-so-far, `landing_view_bot` **9 / 34 / 14**, and
+`landing_engage` and `application_start` **absent — that is, zero — on all three.** 141 UA-flagged
+human-bucket views and not one first interaction. Consistent with [EXP-007](EXPERIMENTS.md) Fork A;
+**not a new grading of it**, because these are not the days that experiment named.
+
+**One counter moved that has not moved before, and it is recorded without a story.** On 08-27,
+unsuffixed `feed_fetch` = **2** and `feed_fetch:sportstech` = **2** — the third-party (non-`_bot`)
+RSS counter, non-zero for the first time on that handle. **This is outside EXP-009 Reading 1's
+window** (complete UTC days 08-20…08-26, graded run 99 and closed), so it changes no grade. The
+standing rule holds: **`feed_fetch` is not demand and no fetch count becomes a number of people**
+without a per-visitor identifier this service does not keep.
+
+### The `metrics snapshot` schedule missed 2026-08-27, and that is the escalation test this file pre-registered
+
+The [workflow-recovery note above](#workflow-recovery-note--the-2026-08-26-scheduled-read-path-was-delayed-not-dropped)
+ends: *"if the 2026-08-27 20:20/20:40 UTC schedules also miss, one outlier becomes a pattern and the
+read path needs work."* **They missed.**
+
+| firing due | last `schedule` run of `metrics snapshot` | verdict |
+| --- | --- | --- |
+| 2026-08-26 20:40Z | [33025396417](https://github.com/in-c0/tuned/actions/runs/33025396417) at **2026-08-27T00:01:28Z** | ~3h21m late, succeeded |
+| **2026-08-27 20:40Z** | **none** | **not delivered — 7h38m overdue when this run checked at 04:18Z** |
+
+So **no scheduled snapshot existed between 2026-08-27T00:01Z and this run** — a **28-hour** gap in
+the loop's only path to production counters, and nothing surfaced it, because a schedule that never
+fires produces no failed run to notice. **Recovered by one `workflow_dispatch`**
+([33141406899](https://github.com/in-c0/tuned/actions/runs/33141406899), success, `ops/metrics/2026-08-28.json`
+committed as `94b8496`), which also **discriminates the fault**: the workflow, the secret, the
+vantage logic and the commit path are all healthy, so what failed is **GitHub delivering the
+`schedule` event**, not this repository.
+
+**What is not concluded.** That the schedule is broken, that it will miss again, or that this is
+connected to the ~6-hour Workers Builds stall of the same evening. Two late-or-missing deliveries in
+three days is a pattern in the weak sense — *worth watching* — and the loop has one instrument for it
+already: **every run reads `ops/metrics/latest.json`'s `generated_at`, and a value more than ~28
+hours old now means dispatch a snapshot rather than quote a stale one.** No workflow change is
+shipped for this: adding a redundant schedule to work around a delivery fault nobody has diagnosed
+would hide the next occurrence rather than catch it.

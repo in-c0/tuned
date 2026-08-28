@@ -3683,3 +3683,63 @@ card that should not have existed.
 
 **No demand inference. `feedle` A1 stays PARTIAL. All commercial readings stay zero. Documentation
 only. Spend: AUD $0.00 of $500 — unchanged.**
+
+## 2026-08-28 (run 106) — the agent did its job, and freshness followed
+
+**Decision: spend the run on one `@sportstech` selection cycle rather than on the queue's named next
+candidate.**
+
+**Why this and not the run-49 console 404.** [Run 105's addendum](https://github.com/in-c0/tuned/issues/1#issuecomment-5448214653)
+left the 404 as the next candidate and it is still cheap. It is also a diagnostic on a surface with
+no users. The thing standing between Tuned and its first stranger is **A4** — a directory submission
+sends someone to a feed, and the feed had been stale for **78.4 hours** when this run read it. A4 is
+the only gate on the whole distribution queue, and the only thing that moves it is the agent doing
+the thing the product exists to do: look at other people's work and select. That is not a detour
+from the commercial bottleneck; it *is* the bottleneck, and it needed no owner, no credential and no
+spend.
+
+**Why resuming was authorised.** The [03:34:40 UTC review](https://github.com/in-c0/tuned/issues/1#issuecomment-5448072304)
+told the loop to write the deploy-stall card **and then stop** until the owner supplied a Cloudflare
+dashboard reading. The owner never supplied it. The directive's own acceptance criteria name the
+alternative exit: *"a normal substantive `master` push deploys its exact commit and `verify
+production` passes; **the loop then resumes** the smallest diagnosis or distribution step."* That
+happened twice — `b5e58f6` green in 54s, `5be4fb5` green in 52s — so the stop condition was
+discharged on its own terms, not waived. **This is recorded rather than assumed** because the
+difference between "the blocker cleared" and "we got tired of waiting" is exactly the sort of thing
+a loop tells itself afterwards.
+
+**The guard against publishing to move a number, and how it was actually exercised.** The motive
+risk here is obvious and the loop has named it before: A4 was failing, this run knew it, and a
+publication fixes it. Three things make the ordering checkable rather than asserted:
+
+1. **Four of six candidates died on clauses with nothing to do with freshness** — an editorial and a
+   review-shaped survey (no measured result of their own), a daily-living activity study with the
+   wrong cohort, and a near-repeat of item 247's subject. A fifth was read at page level and
+   rejected on a sentence in its own abstract.
+2. **The case against the survivor was written first and pushed first** — [`a676047`](https://github.com/in-c0/tuned/commit/a676047),
+   authored 04:13:23Z, **50.569 seconds** before the 04:14:13.569Z publication, with six criticisms
+   including the one that hurts: *this is the third consecutive publication from the same host.*
+3. **Publish nothing was live until the last moment.** Had read 8 returned an interstitial — as
+   MDPI, Taylor & Francis, SAGE and PMC all do for this reader — the cycle would have ended with A4
+   still failing, and that was an acceptable outcome going in.
+
+**A weakness accepted rather than explained away.** `frontiersin.org` is now three of the last three
+publications. The cause is host access: the reader declares itself headless and declares itself as
+Tuned, and it will not stop doing either to get past a challenge, so the reachable set is narrower
+than the remit's subject matter. The alternative to publishing from a reachable host is selecting on
+host politics instead of merit, which is worse. Recorded in [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md)
+R-4, in the [EXPERIMENTS.md](EXPERIMENTS.md) addendum, and here.
+
+**Second finding, not a second action.** The `metrics snapshot` schedule did not fire on 2026-08-27,
+leaving a 28-hour gap in the only path to production counters, with nothing to notice it — a schedule
+that never fires produces no failed run. Recovered with one dispatch, which also proved the workflow
+healthy and located the fault in GitHub's `schedule` delivery. **No workflow change shipped**: a
+redundant schedule added to route around an undiagnosed delivery fault hides the next occurrence.
+Full record in [METRICS.md](METRICS.md).
+
+**Not done, deliberately:** no submission to any venue (the executor's GitHub scope is `in-c0/tuned`
+and that boundary is never routed around); no real channel tag exercised anywhere — the provenance
+run reports `campaignTagsExercised: 0`; no landing, copy, pricing or positioning work; no second
+publication; no owner notification, because nothing here needs a decision.
+
+**Spend: AUD $0.00 of $500, unchanged.**
