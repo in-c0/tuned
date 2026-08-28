@@ -1,6 +1,32 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-28 19:35 Sydney (09:35 UTC), run 107 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-28 20:30 Sydney (10:30 UTC), run 108 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ACTION REQUIRED · HIGH, unchanged from run 107 and not re-argued here.** The `awesome-rss-feeds`
+window still closes **2026-08-31 14:14 Sydney**, the executor still cannot make the write, and nothing
+this run did touches that. **What run 108 fixed is the other end of the same link.** Every distribution
+route this loop has ever graded ends the same way: a URL is posted somewhere and someone opens it. That
+destination — the public feed page — **carried a title, an icon, and the RSS link run 86 added, and
+nothing else.** No description, no Open Graph, no canonical. **Pasted into Slack, Discord, Mastodon, X,
+LinkedIn or iMessage it unfurled as bare text**, because all of those read Open Graph and there was none
+to read; in a search result the snippet was whatever a crawler chose to scrape. And `wrangler.jsonc`
+routes `justtuned.com` and `www.justtuned.com` as custom domains with `workers_dev` left on, so **three
+origins serve the identical document with nothing saying which one is the page.** **This is
+[L-46](LESSONS.md)/[L-51](LESSONS.md)'s shape a third time: the page looked complete to every human who
+reviewed it, because a human is not the reader that was failing.** Shipped in
+[`1b54f07`](https://github.com/in-c0/tuned/commit/1b54f07): one `socialHead` helper used by the feed page
+and the landing page, `SITE_ORIGIN` fixed rather than taken from the request, and
+[`test/sharing.test.ts`](../test/sharing.test.ts) — **10 tests, 9 of which fail on the parent commit**.
+Suite **12 files, 157 tests**, `check` exit 0. `verify-production.yml` now asserts the same thing against
+what is actually serving justtuned.com and **follows `og:image` requiring a PNG back**, which is the
+change's standing rollback signal. **No route, schema, counter, allowlist entry, migration, secret, data
+handling or rendered user-facing copy** — the landing page's two reviewed description strings are carried
+through byte-identical and a test pins them. **The honest limit, stated before anyone asks for a number:
+no counter in this service can observe an unfurl**, so this change's effect is **not measurable here** and
+is not claimed to be; it is a precondition for the first distribution attempt being worth making, not
+evidence about one. **[EXP-008](EXPERIMENTS.md), [EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md)
+are byte-untouched**; nothing published, submitted or retracted; no venue contacted; no real channel tag
+exercised; all commercial readings still zero; AUD $0.00 of $500. ·
+**Previously, run 107 (2026-08-28 19:35 Sydney) — [OWNER ACTION REQUIRED](#owner-action-required):
 ACTION REQUIRED · HIGH.** **One issue, at a public GitHub repository, ~2 minutes — and it is the only
 thing standing between Tuned and the first time its feed is put in front of strangers.** The
 [reviewer directive of 09:29:09Z](https://github.com/in-c0/tuned/issues/1#issuecomment-5450853462)
@@ -1625,6 +1651,17 @@ this section says the same thing and defers to it on any disagreement.** The pau
 host, probe, publication, billing and venue work **lifts with the window** — it was a consequence of
 the open card, not a standing hold — but the standing holds in *[Not doing](#not-doing-deliberate-holds)*
 are unaffected and still bind.
+
+**Superseded in part, run 108 (2026-08-28).** The list below is unchanged and still live, with **one
+candidate added at the top of it and one recorded correction**. Run 108 shipped the public pages' Open
+Graph, description and canonical tags ([`1b54f07`](https://github.com/in-c0/tuned/commit/1b54f07)) —
+the destination every venue in the register points at was unfurling as bare text. **The new standing
+candidate is `/robots.txt` + `/sitemap.xml`**, and it carries a correction to why it was held: run 86
+declined it because *"the part that would matter needs a Search Console account this executor does not
+hold"*, and **that is wrong in one specific way** — a `Sitemap:` directive in `robots.txt` is the
+account-free discovery path and is honoured with no console at all. It stays unshipped today because it
+is a different problem (crawl coverage, not link presentation) and run 108 shipped one thing, not because
+it needs a credential. **The owner card is untouched and still ACTION REQUIRED · HIGH.**
 
 **What is actually next, and none of it needs anyone's permission.** [EXP-009](EXPERIMENTS.md)
 Reading 2 is **not** on this list: it has no `t0` and cannot acquire one without a submission. The

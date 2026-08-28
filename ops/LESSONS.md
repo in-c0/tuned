@@ -1890,3 +1890,38 @@ the assertion would still hold.
   Not urgency as leverage — the three lapsed windows say nothing about demand, and a fourth lapse is
   still an acceptable outcome ([EXP-008](EXPERIMENTS.md) forbids publishing to hold a window open).
   And not a workaround: the access boundary stays exactly where it is ([L-48](#l-48)).
+
+## L-51 — a fix aimed at one non-human reader does not generalise to the others, and the page still looks finished (2026-08-28, run 108)
+
+**What happened.** Run 86 found that no page in this product carried `<link rel="alternate">`, so every
+feed reader was told the site has no feed. It shipped that element, wrote [L-46](#l-46) about why a human
+reviewer could never have caught it — the page carries a visible "RSS" anchor, so it *looks* feed-enabled
+— and closed. **Twenty-two runs later the same page still carried no description, no Open Graph and no
+canonical**, so it was invisible in a different way to a different set of non-human readers: link
+unfurlers, search crawlers, and anything deciding which of three equivalent origins is the page.
+
+**Why the earlier lesson did not prevent it.** L-46 was written about *one missing element*. The general
+fact underneath it — **this product is consumed by software at least as much as by people, and no human
+review pass can see what software is being told** — was true of the whole `<head>`, and the fix was
+scoped to the sentence that surfaced it. A lesson written at the altitude of the symptom protects the
+symptom.
+
+**Why it survived.** Exactly the L-46 mechanism, unchanged: **every reviewer of that page was a browser
+user, and the page renders perfectly.** Nothing about a missing `og:description` is visible to anyone
+looking at the page — it is visible only in a *different application*, one that no one in this loop had
+reason to open, because no link had ever been posted anywhere.
+
+**The rule.** When a defect is *"we never told software X"*, the fix is not the element X needs. **Enumerate
+the non-human readers of that surface and check what each is told** — feed readers, link unfurlers, search
+crawlers, and any process choosing between duplicate URLs. Shipping for one and closing the finding leaves
+the others in exactly the state that produced the finding.
+
+**Prevention check, for any surface a distribution link points at:** *open its `<head>` and name, per
+consumer, what that consumer reads and whether it is there.* Absence is invisible from the rendered page
+by construction, so it has to be read from the document, and — because a promise in a document can
+silently revert — asserted against the thing actually serving, not against the commit.
+
+**What this lesson does not license.** Not a metadata sweep for its own sake. The test is whether a named
+consumer is being told something wrong or nothing at all on a surface that matters commercially; `/terms`
+is not that surface, and neither is anything behind a token. And **none of it is measurable here** — no
+counter in this service observes an unfurl, so a fix of this class is a precondition, never evidence.

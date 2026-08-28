@@ -1450,3 +1450,37 @@ card, is the thing with a clock.** [L-50](LESSONS.md).
 PENDING — inadmissible, not a demand null**. No other candidate was touched, nothing was published,
 no real channel tag was exercised, and no demand is inferred from the three lapses in either
 direction.
+
+## The destination was failing every venue in the register at once — 2026-08-28 (run 108)
+
+**No grade in this register changes**, and that is the point worth stating first: this is not a channel
+finding, it is a finding about the thing every channel points at.
+
+Every candidate graded here terminates the same way — a URL is posted at a venue and someone opens it.
+Until [`1b54f07`](https://github.com/in-c0/tuned/commit/1b54f07) that destination, the public feed page,
+carried a `<title>`, an icon and the `<link rel="alternate">` run 86 added, and **nothing else**: no
+description, no Open Graph, no canonical.
+
+**What that cost each venue shape in the register, concretely:**
+
+| venue shape | what the reader gets | before |
+| --- | --- | --- |
+| a list whose entries are pasted/shared as links (`awesome-rss-feeds` readers, any social repost) | an unfurled card | **bare text** — every major client reads Open Graph and there was none |
+| a directory storing a **front page** (`ooh.directory`: *"the URL of the blog's front page (not its feed)"*) | title + description for its own listing | title only; the description was scraped or absent |
+| a **search index** (`feedle`) | a snippet | whatever a crawler chose to scrape |
+| any crawler at all | one canonical URL | three origins serving the identical document (`justtuned.com`, `www.justtuned.com`, `workers_dev`) with nothing naming the page |
+
+**This is the run-86 defect one layer out and it is the second time this register has recorded one.**
+Run 86's note here read: *"a directory that stores a front page reaches the feed by autodiscovery"* —
+true, and it says nothing about what that directory's own listing, or a reader's chat client, displays
+for the page. See [L-51](LESSONS.md).
+
+**Standing consequence for the `awesome-rss-feeds` submission when it is made.** Its A-conditions are
+unchanged — **A1 partial · A2 ✅ · A3 ✅ · A4 ✅ (until `2026-08-31T04:14:13Z`) · A5 ✅** — and the
+window still closes **2026-08-31 14:14 Sydney** with the write still outside this executor's GitHub
+scope. What has changed is only that the link is now worth the click it may get.
+[EXP-009](EXPERIMENTS.md) Reading 2 stays **Fork D / PENDING — inadmissible, not a demand null**.
+
+**Not inferred, in either direction.** No venue was contacted, nothing was submitted, no real channel tag
+was exercised, and **no counter here can observe an unfurl** — this change produces no reading and must
+never be reported as one.

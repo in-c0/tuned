@@ -1498,3 +1498,25 @@ logged because it is the counter EXP-009 will read, and its pre-submission level
 (the owner) · `members_ever_active` **0** · `active_last_7d` **0** · `active_last_28d` **0** ·
 `followers` **0** · `items_public` **83** · gross cash **AUD $0**, from *no billing exists*. Spend
 **AUD $0.00 of $500**, unchanged.
+
+## 2026-08-28 (run 108) — a shipped change with no counter, said so before the question is asked
+
+[`1b54f07`](https://github.com/in-c0/tuned/commit/1b54f07) gave the public feed page and the landing page
+their Open Graph, description and canonical tags. **It adds no counter, and no counter already here can
+observe its effect.**
+
+**Why, precisely.** A link card is rendered by someone else's chat client from tags it read once; a search
+snippet is rendered by an index. **Neither makes a request Tuned can attribute**, and this service keeps no
+per-visitor identifier by design. So there is no metric that moves when this change works, and **its
+absence from every table below is correct rather than an omission.**
+
+**What may move, and what it does not mean.** `feed_view_bot` / `feed_view_bot:<handle>` can rise if
+crawlers re-read the changed pages. **A crawl is not a person**, the standing rule is unchanged, and any
+such movement is a re-read of a modified document — the least informative possible cause. Nothing here
+emits or joins a tagged URL: the canonical and `og:url` are the **untagged** route, so
+`arrival*`/`arrival_fetch*` are untouched and **[EXP-010](EXPERIMENTS.md)'s graded series is unaffected**.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `active_last_7d` **0** · `active_last_28d` **0** ·
+`followers` **0** · `items_public` **83** · gross cash **AUD $0**, from *no billing exists*. Spend
+**AUD $0.00 of $500**, unchanged.

@@ -3787,3 +3787,84 @@ venue was contacted; no real channel tag was exercised; [EXP-009](EXPERIMENTS.md
 [EXP-010](EXPERIMENTS.md) are byte-untouched.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+## 2026-08-28 (run 108) — the destination of every distribution link was the page that said nothing about itself
+
+**Directive state.** No reviewer review after run 107's report (09:40 UTC). The 09:29 UTC directive was
+executed in full at run 107 and closed on its own named stop condition — *"authentication/permission
+denial"* — so the choice of cycle was the executor's.
+
+**Decision.** Not the queue's three named candidates. All three are diagnostics or instrumentation on a
+surface with no users, and run 107's own closing paragraph is the reason to look past them: *"107 runs
+have produced zero external exposure."* The one thing that would produce exposure is blocked on the
+owner and was escalated yesterday; it was not re-argued here. What **was** available, needed no owner,
+no credential, no venue and no spend, is the other end of the same link.
+
+**The finding.** Every distribution route this loop has ever graded terminates identically: a URL is
+posted somewhere and someone opens it. That destination — the public feed page — carried a `<title>`,
+an icon, and the `<link rel="alternate">` run 86 added. **Nothing else.** No description, no Open
+Graph, no canonical.
+
+- **Pasted into Slack, Discord, Mastodon, X, LinkedIn or iMessage, the URL unfurled as bare text.**
+  Every one of those clients reads Open Graph and there was none to read. A distribution link *is* a
+  pasted URL; this is the form all of them take.
+- **`wrangler.jsonc` routes `justtuned.com` and `www.justtuned.com` as custom domains and leaves
+  `workers_dev` on**, so three origins serve the identical document with nothing naming which is the
+  page — the exact case `rel="canonical"` exists for.
+
+**This is [L-46](LESSONS.md)'s shape for the third time** ([L-51](LESSONS.md)): the page looked complete
+to every human who reviewed it, because a human is not the reader that was failing. Run 86 found the
+same class one layer in and **its own fix did not generalise** — it added the element a feed reader
+needs and stopped there.
+
+**Shipped — [`1b54f07`](https://github.com/in-c0/tuned/commit/1b54f07).** One `socialHead` helper used by
+the public feed page and the landing page; `SITE_ORIGIN` fixed rather than derived from the request
+(`rssFeed` is passed the request origin, which is right for a feed a client already holds the URL of and
+wrong for a canonical); [`test/sharing.test.ts`](../test/sharing.test.ts), 10 tests, **9 of which fail on
+the parent commit**; and a `verify-production.yml` step asserting the same claim against what is actually
+serving justtuned.com.
+
+**Scope.** No route, schema, counter, allowlist entry, migration, workflow secret, data handling or
+rendered user-facing copy. The landing page's two reviewed description strings are carried through
+**byte-identical** and a test pins them against exactly this kind of drive-by rewrite. The only two
+values newly exposed to a crawler — creator `name` and `bio` — are already rendered on the same public
+page, so no new data category reaches any surface and the privacy policy is deliberately unamended.
+
+**Verification.** `npm run check` exit 0; suite **12 files, 157 tests** (was 11/147). The head was parsed
+by a real Chromium (`--dump-dom`) in three variants — human, agent, and a creator whose name and bio are
+`"><script>alert(1)</script>` and `"><img onerror=1>`: **0 img elements, no `on*` handler attribute
+anywhere in the DOM, and the raw head carries only the escaped form.** Production, read from the public
+zone (`BASE: https://justtuned.com`) by
+[33162613602](https://github.com/in-c0/tuned/actions/runs/33162613602), green in **52s**:
+`/ava: canonical https://justtuned.com/ava, og:url https://justtuned.com/ava, og:image /icon-512.png
+serves a PNG, card=summary`.
+
+**Two things deliberately not done.**
+
+1. **`summary` and not `summary_large_image`.** The only image this service owns is a 512×512 icon. The
+   large card promises a banner it would have to stretch that icon to fill, and a card that
+   misrepresents what is behind it is the wrong thing to ship on the surface most likely to be quoted.
+2. **Still no `/sitemap.xml` or `/robots.txt`.** Run 86 held these on the ground that *"the part that
+   would matter needs a Search Console account this executor does not hold"*, and **that premise is
+   wrong in one specific way worth recording rather than acting on today**: a `Sitemap:` directive in
+   `robots.txt` is the account-free discovery path and is honoured without any console. It stays unshipped
+   because it is a *different* problem — crawl coverage, not link presentation — and because this run
+   deliberately shipped one thing. It is the standing next candidate with the correction attached.
+
+**The honest limit, recorded before anyone asks for a number.** **No counter in this service can observe
+an unfurl.** A card rendered in someone else's chat client makes no request Tuned sees. So this change's
+effect is **not measurable here and is not claimed to be** — it is a precondition for the first
+distribution attempt being worth making, not evidence about one, and it must never be reported as
+traction. `feed_view`/`feed_view_bot` may move if crawlers re-read the page; that is a crawl, not a
+person, and the standing rule holds.
+
+**[EXP-008](EXPERIMENTS.md), [EXP-009](EXPERIMENTS.md) and [EXP-010](EXPERIMENTS.md) are byte-untouched.**
+EXP-010 grades `arrival_fetch:qa`, and nothing here emits, publishes or joins a tagged URL — the canonical
+and og:url are the untagged route, deliberately. Nothing published, submitted or retracted; no venue
+contacted; no real channel tag exercised anywhere; no owner action created or cleared.
+
+**Rollback.** Revert `1b54f07`. The change is additive `<head>` markup plus a test file and one workflow
+step; removing it restores the previous document byte for byte. The workflow step is the standing signal
+that it has silently reverted.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
