@@ -1,51 +1,131 @@
 {
-    "generated_at": "2026-08-29T02:54:03.725Z",
+    "generated_at": "2026-08-29T22:45:55.011Z",
     "note": "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. landing_engage/application_start are reported by the landing page itself \u2014 first interaction and first form input, at most once per page load, same-origin only \u2014 so they are evidence that traffic behaved like a person, not proof of one, and they are forgeable by anyone willing to set one header. application_invalid counts submits rejected by email validation; it is not part of application_submit. feed_view remains one site-wide count of every public feed view; feed_view:<handle> splits that same event by destination and does not replace it, so the two are not additive. arrival:<tag> counts feed views whose URL carried an allowlisted ?src= tag \u2014 a campaign label on the link, aggregated daily, with no cookie, no visitor identifier and no per-visitor state; an unrecognised tag is counted under no name at all, so absence of a tag means it was never allowlisted. feed_fetch/feed_fetch:<handle>/arrival_fetch:<tag> are the same three shapes for RSS fetches of /<handle>/rss.xml, and they are a different event from feed_view rather than part of it \u2014 a feed client polls on a schedule, so these count polls and not people, and no subscriber count can be derived from them without a per-visitor identifier this service does not keep. On that surface the _bot split separates a self-declaring crawler from a feed reader that does not self-declare, and neither bucket is a person; this service's own automated fetches declare themselves and so land in feed_fetch_bot, but only one feed is fetched on a schedule \u2014 /ava/rss.xml, twice daily by a first-party uptime checker \u2014 so feed_fetch_bot:ava is a liveness signal and feed_fetch_bot:<any other handle> records only first-party QA runs that were dispatched by hand; a zero day on those names means no run was dispatched, not that the counter failed. An earlier version of this note said scheduled headless QA fetched every feed; that was wrong about both the schedule and the fetcher and is withdrawn here. Unsuffixed feed_fetch was originally described here as a background rate of third-party fetchers; that description is withdrawn on its own first two days of data, in which every unsuffixed fetch carried a ?src= tag whose URL this service had itself published hours earlier \u2014 it is not established to be a background rate of anything. The set of tags that write is public source in a public repository, as is every route they apply to, so a tagged counter measures fetches of a tagged URL by anyone who assembled one and is not on its own evidence that a channel sent them; the tag qa is published in the same public places and submitted to no venue, and is kept as the control those readings are compared against. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     "daily": [
         {
             "day": "2026-08-29",
             "name": "cron_run",
-            "count": 6
+            "count": 46
         },
         {
             "day": "2026-08-29",
-            "name": "feed_fetch_bot",
-            "count": 5
-        },
-        {
-            "day": "2026-08-29",
-            "name": "feed_fetch_bot:ava",
-            "count": 5
-        },
-        {
-            "day": "2026-08-29",
-            "name": "feed_view_bot",
+            "name": "feed_fetch",
             "count": 2
         },
         {
             "day": "2026-08-29",
-            "name": "feed_view_bot:ava",
+            "name": "feed_fetch:sportstech",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_fetch_bot",
+            "count": 20
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_fetch_bot:ava",
+            "count": 12
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_fetch_bot:graphics",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_fetch_bot:sportstech",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_fetch_bot:wearables",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_fetch_bot:wellbeing",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view",
+            "count": 8
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view:ava",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view:graphics",
             "count": 1
         },
         {
             "day": "2026-08-29",
+            "name": "feed_view:sportstech",
+            "count": 3
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view:wearables",
+            "count": 1
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view:wellbeing",
+            "count": 1
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view_bot",
+            "count": 17
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view_bot:ava",
+            "count": 6
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view_bot:graphics",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view_bot:sportstech",
+            "count": 2
+        },
+        {
+            "day": "2026-08-29",
             "name": "feed_view_bot:wearables",
+            "count": 4
+        },
+        {
+            "day": "2026-08-29",
+            "name": "feed_view_bot:wellbeing",
+            "count": 3
+        },
+        {
+            "day": "2026-08-29",
+            "name": "landing_engage",
             "count": 1
         },
         {
             "day": "2026-08-29",
             "name": "landing_view",
-            "count": 8
+            "count": 64
         },
         {
             "day": "2026-08-29",
             "name": "landing_view_bot",
-            "count": 7
+            "count": 21
         },
         {
             "day": "2026-08-29",
             "name": "spotify_sync_ok",
-            "count": 6
+            "count": 46
         },
         {
             "day": "2026-08-28",
