@@ -3868,3 +3868,64 @@ step; removing it restores the previous document byte for byte. The workflow ste
 that it has silently reverted.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+## 2026-08-31 (04:14:13 UTC) — run 123: the fourth window closed unused, and the card retires with the authorization intact
+
+**Decision: retire [OWNER ACTION REQUIRED](STATUS.md#owner-action-required) to NONE on the card's own
+clock, and preserve the owner's `A`.** A4 — `/sportstech`'s newest public item ≤ 72h — lapsed at
+**`2026-08-31T04:14:13Z`** (item 248, published `2026-08-28T04:14:13.569Z`) with no submission made.
+Executed per the [2026-08-31 03:32:23 UTC reviewer directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5473352662),
+whose retirement branch fires at *"the first cycle after `04:14:13Z`"* with no qualifying URL.
+
+**The check was taken after the instant, not in anticipation of it, and that is a decision rather than
+an incidental detail.** This run fired at **`04:04:53Z`** — **9m20s inside** the window — which is
+earlier than the trigger the directive names. Two branches were available and the wrong one was
+tempting: retire now on the arithmetic certainty that nothing would arrive in nine minutes, or defer
+the whole transition to the 20:00 Sydney cycle, leaving a card reading **ACTION REQUIRED · HIGH** on a
+window that had already closed for roughly six hours. **Neither was taken.** The run held, took no
+commit, dispatch or probe inside the window, and re-read issue #1 at **`04:16:00Z`**: **230 comments,
+`updated_at` `2026-08-31T03:32:23Z`** — byte-identical to the pre-expiry reading at `04:04:53Z`, its
+newest comment the directive itself. **No venue URL exists at all**, so none can have been created
+before expiry. A card cannot honestly be retired on a clock that has not yet run out, and a nine-minute
+wait is cheaper than either an early retirement or a stale HIGH card.
+
+**What is preserved, and this is the point of the entry.** The owner's **A** (2026-08-20 15:04 UTC)
+and the [2026-08-25 03:36:14 UTC clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737)
+**both stand.** What expired is a *precondition* of the submission, never the authority to make it.
+The `plenaryapp/awesome-rss-feeds` candidate is **PAUSED, not dropped** — the owner never answered
+**C**, and an unanswered card is not a decision. It resumes the first time a find worth publishing on
+its own merits restores A4, which is not scheduled.
+
+**Decision: record [EXP-009](EXPERIMENTS.md) Reading 2 as Fork D / PENDING — inadmissible, not a
+demand null.** No submission was authorized-and-made, so there is no `t0` and nothing in Reading 2 is
+gradeable. **A lapsed window is a fact about this loop's access and schedule, not about strangers**,
+and it is not evidence in either direction. No pre-`t0` fetch becomes venue evidence; no poll becomes
+a subscriber. EXPERIMENTS.md and METRICS.md are left **byte-untouched** this run — the pre-registration
+already states this exact status, and re-writing it to restate what it says is the manufactured
+activity this loop holds against itself. Same discipline as the run-83 and run-103 retirements.
+
+**Fourth lapse.** `2026-08-21T04:15:49Z`, `2026-08-24T09:35:56Z`, `2026-08-27T21:43:45Z`,
+`2026-08-31T04:14:13Z`. **Nothing was published to hold any of them open** — [EXP-008](EXPERIMENTS.md)'s
+binding clauses disqualify a publication made to move a number, and A4's decay is a pre-registered
+acceptable outcome in EXP-009's stop conditions. **No second owner notification was sent**; run 121's
+expiry ping was the only one, and the two directives since forbade another.
+
+**The standing finding, stated once rather than re-argued.** Four windows have now opened and closed
+with every admissibility condition satisfied — A1 partial, A2 ✅, A3 ✅, A4 ✅ at the time, A5 ✅ — and
+the submission was never made in any of them. **The variable that has not moved across all four is not
+a condition but an access boundary**: this session's repository allowlist filters every GitHub call to
+`in-c0/tuned`, and the venue is someone else's repository (run 61, re-diagnosed run 88, [L-40](LESSONS.md),
+[L-48](LESSONS.md)). It was not routed around this run and no child session was spawned to obtain what
+this one was scoped out of; the remedy the platform error names — a second session scoped to the venue
+— remains boundary-shopping and remains refused. **A fifth window will fail the same way unless the
+boundary or the actor changes**, and that is a finding about this loop's design rather than a reason to
+weaken a control.
+
+**No demand inference, in either direction.** All commercial readings remain zero, sourced from
+*no billing exists* and *no submission exists*, never from an estimate.
+
+**Rollback.** Documentation only — no code, route, schema, counter, allowlist entry, migration,
+workflow, secret, data handling or user-facing copy. Revert this commit to restore the previous card
+text; no runtime, data or user-facing surface is implicated.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**

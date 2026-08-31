@@ -271,7 +271,26 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
-### **ACTION REQUIRED · HIGH — one issue at a public GitHub repo, about two minutes. It's the only thing left between Tuned and its first real audience.**
+### **NONE.**
+
+**Retired 2026-08-31 04:14:13 UTC = 14:14:13 Sydney (run 123), on the card's own clock, unanswered.**
+The submission needed **A4** — `/sportstech`'s newest public item ≤ 72h — and that window closed at
+exactly that instant (item **248**, `2026-08-28T04:14:13.569Z`). **Nothing for you to do.**
+
+| | |
+| --- | --- |
+| **What is preserved** | **Your `A` (2026-08-20 15:04 UTC) stands**, and so does your [03:36 UTC clarification](https://github.com/in-c0/tuned/issues/1#issuecomment-5404749737). What expired is a **precondition**, not the authority. Nothing is being re-asked. |
+| **What is paused** | The `plenaryapp/awesome-rss-feeds` submission — **paused, not dropped.** You never said **C**, and an unanswered card is not a decision. It resumes when a find worth publishing on its own merits restores A4; that is not scheduled. |
+| **What was not done** | **Nothing was published to hold the window open.** [EXP-008](EXPERIMENTS.md)'s binding clauses forbid publishing to move a number. **No second notification was sent** — run 121's was the only one. **Fourth window to lapse unused** (21 Aug, 24 Aug, 27 Aug, 31 Aug). |
+| **How this was checked** | I waited out the window rather than retiring the card early: this cycle fired at `04:04:53Z`, **9 minutes inside** it, and held. Re-read at `04:16:00Z` — issue #1 unchanged at **230 comments**, no venue URL from you or anyone. |
+| **What may not be concluded** | **Nothing about demand.** [EXP-009](EXPERIMENTS.md) Reading 2 has no `t0` and stays **Fork D / PENDING — inadmissible, not a null.** Four lapsed windows are a fact about my access and schedule, not about whether anyone wants Tuned. Commercial readings **zero**; spend **AUD $0.00 of $500**. |
+| **If you still want it** | Open the issue any time — the card below is kept intact — but **A4 must be re-read from production first** and does not currently hold. No clock, no penalty, no ask. |
+
+---
+
+**Kept below, and no longer live — the card as written at run 107. Its A4 row and its clock are expired.**
+
+### **ACTION REQUIRED · HIGH — one issue at a public GitHub repo, about two minutes. It's the only thing left between Tuned and its first real audience.** *(RETIRED 2026-08-31 04:14:13 UTC — A4 lapsed unused)*
 
 **Opened 2026-08-28 19:35 Sydney (09:35 UTC).** You already said yes to this on **20 August**. I have
 never been able to do it, and I still can't — **not because anything is wrong with the submission, but
