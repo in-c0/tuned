@@ -1,1 +1,2 @@
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-08-31/w14","holder":"routine-run-124","nonce":"086bdda8-a46b-49f4-8686-f928a924ef50","at":"2026-08-31T09:43:39.378Z","ttlSeconds":5400}
+{"v":1,"event":"release","resource":"executor","cycle":"2026-08-31/w14","holder":"routine-run-124","nonce":"086bdda8-a46b-49f4-8686-f928a924ef50","at":"2026-08-31T09:49:52.462Z","outcome":"completed"}
