@@ -13,6 +13,7 @@
     "check": "npm run build-info && wrangler types && tsc --noEmit",
     "pretest": "npm run build-info",
     "test": "vitest run",
+    "test:ops": "node --test scripts/*.test.mjs",
     "db:local": "wrangler d1 execute attention_feed --local --file=./schema.sql",
     "db:remote": "wrangler d1 execute attention_feed --remote --file=./schema.sql"
   },

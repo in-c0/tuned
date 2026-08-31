@@ -43,3 +43,9 @@ jobs:
       # qa/nominations/*.json — the registry EXP-008's provenance instrument grades against.
       # A back-dated or malformed entry there would weaken the instrument without breaking it.
       - run: node scripts/validate-nominations.mjs
+      # And once more, one runtime over: `npm test` runs inside workerd, where
+      # `node:child_process` does not exist — so the run lock, which is nothing but git
+      # subprocesses against a remote, cannot be tested there. This step is the only thing
+      # in the pipeline that proves two contending executor sessions produce exactly one
+      # winner. It uses throwaway bare repositories and never touches `origin`.
+      - run: npm run test:ops

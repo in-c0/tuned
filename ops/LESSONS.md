@@ -1925,3 +1925,33 @@ silently revert — asserted against the thing actually serving, not against the
 consumer is being told something wrong or nothing at all on a surface that matters commercially; `/terms`
 is not that surface, and neither is anything behind a token. And **none of it is measurable here** — no
 counter in this service observes an unfurl, so a fix of this class is a precondition, never evidence.
+
+## L-52 — the ordering everyone agreed to was never a lock, and the thing that caught it was luck (2026-08-31, run 124)
+
+**What happened.** Two executor sessions ran cycle 123 concurrently. Nothing detected it, nothing refused
+it, and nothing recorded it as a conflict. What stopped the second session was a **non-fast-forward push
+on `master`** — a side effect of git's ref semantics on a branch neither session was coordinating through.
+Reorder the two sessions by a minute and both commits land on different files, both post an execution
+report, and the machine memory this loop runs on contradicts itself with no signal that it did.
+
+**The rule.** **A convention observed by every participant is not mutual exclusion; it is a correlation.**
+The test is not *"do the runs currently interleave badly?"* but *"if two arrived at once, what refuses the
+second?"* — and the answer has to name a specific atomic operation with a specific loser. If the answer is
+a document, an ordering, a timestamp comparison, or a re-read before writing, there is no lock. A re-read
+is the classic non-answer: it narrows the window between check and act, and a narrowed window is still a
+window.
+
+**And: look for the primitive you already have before building one.** The guard that shipped adds no
+service, no dependency, no state store and no credential. It uses the fact that a non-force ref update on
+the remote is already a compare-and-swap — the loser is rejected by the server before its objects become
+reachable. The design work was almost entirely **probing what the credential could actually write**
+(`refs/heads/*` fast-forward only; tags, custom namespaces and *every deletion* 403) and then fitting the
+lock to that, rather than picking a shape and discovering the boundary afterwards. The 403 on deletion is
+what forced an append-only register — which then turned out to be the audit trail and the stale-recovery
+path for free.
+
+**What this lesson does not license.** Not a locking pass over the loop's other moving parts. One lock, on
+the one resource where a documented collision actually happened. And the guard's limit gets stated every
+time it is described: **it cannot stop a session that never calls it**, so the procedural line in
+`STATUS.md` is the part that is honoured rather than enforced. A guard described as stronger than it is
+would be worse than none, because it would be trusted.

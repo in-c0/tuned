@@ -1,6 +1,26 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-31 14:16 Sydney (04:16 UTC), run 123 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-31 19:55 Sydney (09:55 UTC), run 124 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **The loop has a lock, and it is a lock rather than a convention.** Executed on the [reviewer
+directive of `09:35:07Z`](https://github.com/in-c0/tuned/issues/1#issuecomment-5476488001): run 123 was
+executed by two sessions at once and was stopped only by a non-fast-forward push on `master`, which is
+luck, not exclusion. **The guard is [`scripts/run-claim.mjs`](../scripts/run-claim.mjs) and the primitive
+is the remote's own compare-and-swap** — a non-force ref update lands only if the ref is still where the
+pusher read it, so of N contenders exactly one commit becomes reachable. **See
+[Run lock](#run-lock--step-0-of-every-run) for the procedure; it is step 0 of every run, before any
+commit, comment, dispatch or deploy.** **Proved twice, not asserted:** eleven `node --test` cases,
+including a forced interleave where both contenders read the same tip and both believe the lock is free,
+and eight real processes racing to one winner and seven exit-75 losers; then end-to-end against the real
+`origin`, where a rival contender was refused `lease-held` and appended nothing. **This run itself was
+claimed before its first commit** (`086bdda8`, cycle `2026-08-31/w14`). **A credential probe this run
+narrowed what the executor can write:** `refs/heads/*` create and fast-forward only — **tags, custom ref
+namespaces and every ref deletion are 403**, which is why the register is one append-only orphan branch
+(`ops-claims`) and why release and stale recovery are appends rather than deletions. **Litter disclosed:**
+the probe left branch `_probe-claim` at master's tip on `origin` and **the executor cannot delete it** —
+harmless, and owner-deletable at leisure. **No product, runtime, route, schema, counter, migration,
+secret, data-handling or user-facing change; no owner ask; no spend.** All commercial readings remain
+zero; AUD $0.00 of $500 ·
+**Previously, run 123 (2026-08-31 14:16 Sydney) — [OWNER ACTION REQUIRED](#owner-action-required):
 NONE.** **The fourth window closed unused at `2026-08-31T04:14:13Z` (14:14 Sydney), and the card is
 retired on its own stated terms.** Executed on the [reviewer directive of
 `03:32:23Z`](https://github.com/in-c0/tuned/issues/1#issuecomment-5473352662), whose retirement branch
@@ -1481,6 +1501,42 @@ caused this.
 One screen of current state. Not a diary — the narrative lives in
 [DECISIONS.md](DECISIONS.md), [EXPERIMENTS.md](EXPERIMENTS.md), [METRICS.md](METRICS.md) and
 [issue #1](https://github.com/in-c0/tuned/issues/1). Update only when state **materially** changes.
+
+## Run lock — step 0 of every run
+
+**Before anything else — before the first commit, the first issue comment, the first workflow dispatch,
+the first deploy:**
+
+```
+node scripts/run-claim.mjs claim          # exit 0 = proceed · exit 75 = another session holds it, STOP
+...run...
+node scripts/run-claim.mjs release        # --outcome completed|aborted
+node scripts/run-claim.mjs status         # who holds it right now
+```
+
+**Exit 75 is a clean, expected outcome, not a failure.** A session that loses has mutated nothing — its
+claim commit was rejected by the remote and is unreachable — and it must end its turn without a commit,
+a comment, a dispatch or a deploy. It does not retry into the lease and it does not "just do the
+read-only part": run 123's second session also only meant to help.
+
+**What it is.** One append-only orphan branch, `ops-claims`, carrying `claims.jsonl`. A claim is a line;
+so is a release; so is a takeover. Every write is a fast-forward, so **nothing here ever force-pushes,
+deletes a ref, or touches protected history.** Mechanism and its rationale:
+[`scripts/lib/run-claim.mjs`](../scripts/lib/run-claim.mjs).
+
+**Why a branch and not a tag or a private namespace.** Probed 2026-08-31: this credential can create and
+fast-forward `refs/heads/*` and can do nothing else — `refs/tags/*`, custom namespaces and **every ref
+deletion** return 403. A lock whose release is a deletion would therefore have had no release at all.
+
+**Stale recovery, and it is automatic.** A claim carries a 90-minute lease. A claim past its lease with
+no release on record is a crashed session, and the next contender takes it over by appending a record
+naming what it supersedes — auditable, reversible by reading, and requiring no owner action, no
+credential change and no destructive ref operation. **A live lease is never taken**, and a cycle that was
+claimed *and released* is never re-entered: that second rule is run 123's duplicate specifically.
+
+**What it cannot do.** It cannot stop a session that never calls it. A repository-scoped guard has no way
+to intercept a process that declines to ask, and no mechanism available here does — so the first line of
+this section is the part that has to be honoured rather than enforced.
 
 ## Phase and single active objective
 

@@ -3929,3 +3929,76 @@ workflow, secret, data handling or user-facing copy. Revert this commit to resto
 text; no runtime, data or user-facing surface is implicated.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+## 2026-08-31 (09:43–09:55 UTC) — run 124: the loop gets a lock, built from the one atomic write this credential has
+
+**Directive.** [`09:35:07Z`](https://github.com/in-c0/tuned/issues/1#issuecomment-5476488001) — implement
+and prove the smallest repository-scoped atomic run-claim guard, so two executor sessions for the same
+cycle cannot both mutate state. Run 123 was executed twice concurrently and was stopped only by a
+non-fast-forward push on `master`; a different interleaving would have produced two contradictory ops
+commits and machine memory that disagreed with itself.
+
+**The decision: use the remote's ref update as the compare-and-swap, and build nothing else.** A
+non-force push lands only if the ref is still at the value the pusher built on. Two contenders that both
+read tip `T` and both build a *distinct* commit with parent `T` cannot both land — the loser is rejected
+by the remote before any of its objects become reachable. Distinctness is guaranteed by a per-claim
+random nonce inside the record, so the degenerate "both pushed the identical object, both saw success"
+case cannot arise. That is the entire guard; everything else is bookkeeping.
+
+**The shape was chosen by a credential probe, not by preference.** Probed this run against `origin`:
+
+| write | result |
+| --- | --- |
+| `refs/heads/*` create + fast-forward | **OK** |
+| `refs/tags/*` | **403** |
+| `refs/tuned/*` (custom namespace) | **403** |
+| **delete any ref** | **403** |
+
+So: no private ref namespace, no tag, and **no deletion**. That last row is load-bearing twice over. A
+branch-per-cycle lock would leave one permanent branch per run forever, and a lock whose release is a ref
+deletion would have had **no release at all**. Hence one append-only orphan branch, `ops-claims`, holding
+one `claims.jsonl`. Claim, release and stale takeover are all appends, so every transition is a
+fast-forward and **no operation in this design ever force-pushes or rewrites history** — which is also
+exactly what the directive's stale-recovery criterion asked for.
+
+**Two ways to lose, and they are different failures.** `lease-held` — another session is mid-run; this is
+resource-scoped rather than cycle-scoped on purpose, so two sessions that disagree about which Sydney
+window they are in still exclude each other. `cycle-complete` — this window was claimed *and released*,
+which is run 123's duplicate exactly: the first session finished and a second arrived to redo it. A
+finished cycle is never re-entered. Losing exits **75** (EX_TEMPFAIL), which is a clean, expected outcome
+and not an error, and a loser appends nothing.
+
+**Stale recovery is automatic and needs no owner.** A claim carries a 90-minute lease; a claim past its
+lease with no release is a crashed session, and the next contender appends a record naming what it
+supersedes. No deletion, no force, no credential change, no owner action.
+
+**Proof, because "we agreed to be careful" is what failed at run 123.** Eleven `node --test` cases in
+`scripts/run-claim.test.mjs`, wired into `check.yml` as `npm run test:ops` — it cannot live in `npm test`,
+which runs inside workerd where `node:child_process` does not exist. The load-bearing case does not race
+and hope: it **forces** the interleaving, driving both contenders through read-and-build before either
+pushes, asserting both believe the lock is free, then asserting the remote admits exactly one. A second
+case races eight real CLI processes to one winner and seven silent exit-75 losers. Then end-to-end
+against the real `origin`: this run's own claim landed (`086bdda8`, cycle `2026-08-31/w14`) and a rival
+contender from a scratch repository was refused `lease-held` and left the register at one record.
+
+**What it cannot do, stated rather than glossed.** It cannot stop a session that never calls it. No
+mechanism available to a repository-scoped executor can intercept a process that declines to ask, so the
+first line of `STATUS.md`'s Run lock section is honoured, not enforced. Claiming that this guarantees
+single-writer execution unconditionally would be the same class of overclaim the loop keeps recording.
+
+**Cost accepted, disclosed.** Workers Builds raises a preview per branch (run 56), so `ops-claims` carries
+the register and nothing else — no `wrangler.jsonc`, no `package.json` — and every claim commit message
+carries `[skip ci]`, which Workers Builds honours. A skipped build costs nothing; an unskipped one fails
+in seconds for want of a config and deploys nothing either way.
+
+**Litter, disclosed rather than quietly left.** The credential probe created branch `_probe-claim` on
+`origin` at master's tip, **and the executor cannot delete it** — ref deletion is one of the 403s above.
+It is harmless (it points at production's own commit) and the owner can delete it at leisure; it is
+recorded here so it is not later mistaken for a live branch.
+
+**Rollback.** Reverting this commit removes the guard, the tests and the `check.yml` step and restores
+the previous convention-only ordering. The `ops-claims` branch and its records would remain and be inert
+— nothing reads them but this script, and no runtime, route, schema, counter, migration, secret, data
+handling or user-facing surface is implicated in either direction.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
