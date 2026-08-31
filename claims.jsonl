@@ -3,3 +3,4 @@
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-08-31/w20","holder":"routine-run-125","nonce":"2be652cd-569b-4126-a4ba-32d6cd309519","at":"2026-08-31T10:05:31.904Z","ttlSeconds":5400}
 {"v":1,"event":"release","resource":"executor","cycle":"2026-08-31/w20","holder":"routine-run-125","nonce":"2be652cd-569b-4126-a4ba-32d6cd309519","at":"2026-08-31T10:21:00.041Z","outcome":"completed"}
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-09-01/w08","holder":"routine-run-126","nonce":"2445ae58-3c48-4765-badd-a3fd6b434139","at":"2026-08-31T22:05:25.779Z","ttlSeconds":5400}
+{"v":1,"event":"release","resource":"executor","cycle":"2026-09-01/w08","holder":"routine-run-126","nonce":"2445ae58-3c48-4765-badd-a3fd6b434139","at":"2026-08-31T22:06:02.393Z","outcome":"completed"}
