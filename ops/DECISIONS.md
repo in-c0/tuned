@@ -4002,3 +4002,90 @@ the previous convention-only ordering. The `ops-claims` branch and its records w
 handling or user-facing surface is implicated in either direction.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+## 2026-08-31 — run 125: the site had never told a crawler anything, including "do not index this token"
+
+**Context.** No new reviewer directive existed at fire time: the [`09:35:07Z`
+directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5476488001) was discharged by run 124,
+and that directive's own stop clause — *"do not start `robots.txt`, sitemap, billing, venue, or product
+work until there is an enforceable single-writer gate"* — released this work by its own terms once the
+guard shipped. The run lock was claimed first (cycle `2026-08-31/w20`, holder `routine-run-125`), before
+any commit.
+
+**Decision: the crawl policy, not billing or venue work.** Both of those still terminate at an owner
+boundary the loop cannot cross, and shipping into one buys a card rather than a change. The crawl policy
+is fully inside the envelope, needs no owner, no spend and no credential, and it is the site-level half
+of the defect runs 86 and 108 fixed at the page level.
+
+**What was actually missing, and why it is not tidiness.** No `robots.txt` at all. A missing one is read
+as *crawl everything*, and this Worker serves **capability URLs** at `/studio/<token>` and one-shot login
+links at `/enter/<token>`. No `sitemap.xml`. And `workers_dev: true` plus a Workers Builds preview per
+branch means several hosts serve the identical document with nothing addressed to a reader that reads
+only the host.
+
+**Decision: `Disallow` and `X-Robots-Tag` are both shipped, because they answer different questions.**
+A `Disallow` asks a compliant crawler not to *fetch* a URL; it does not stop that URL being indexed once
+it is discovered another way — a paste into a chat client, a referrer, a toolbar — because the crawler
+never has to fetch it to list it. For a capability URL that is the entire risk, so the header is the
+load-bearing half. `src/crawl.ts` holds the **one list** both are built from, and `test/crawl.test.ts`
+walks the disallow list out of the served `robots.txt` and requires a real response on every path to
+carry the header, so they cannot drift.
+
+**Decision: host-aware, not a static file in `public/`.** The canonical host is crawlable and advertises
+its sitemap; the `workers.dev` origin blocks. A file in the assets directory says the same thing on every
+host and could not make that distinction.
+
+**Decision: `www.justtuned.com` is deliberately NOT blocked, and this is the counter-intuitive one.**
+Blocking a duplicate host means a crawler never fetches the page and therefore never reads the
+`rel="canonical"` that run 108 shipped to consolidate it. Blocking a duplicate is how you strand the
+signal that fixes it. `www` gets the permissive policy and the canonical does the work. Blocking is
+reserved for hosts with no public purpose — `*.workers.dev` and per-branch previews.
+
+**Deliberately not decided: whether AI training crawlers are welcome.** The policy is written for
+`User-agent: *`, which is exactly what the absence of a `robots.txt` already meant, so this ships **no
+change** to their access. Naming GPTBot, CCBot or ClaudeBot in either direction is a positioning decision
+for the owner and would have been a material change smuggled in as a side effect of adding a file. It is
+a clean owner question whenever the owner wants to answer it; it is not asked as a card, because nothing
+is blocked on it.
+
+**Decision: only feeds with at least one public item are listed in the sitemap.** A sitemap is a claim
+that a URL is worth indexing, and an empty feed page is a claim this loop cannot support — the same
+reasoning that made the landing page's demo block order by newest item rather than oldest creator. An
+unlisted feed is not hidden: it stays linked from the landing page and reachable at its handle.
+
+**Counters on both routes, for the reason run 56 added them to `rss.xml`.** A surface whose entire
+audience is machines and which records nothing cannot satisfy condition A5 in
+[DISTRIBUTION.md](DISTRIBUTION.md) — *"if it works, would I see it?"*. `robots_fetch` and `sitemap_fetch`
+are registered in [METRICS.md](METRICS.md) with their reading rules, including that this loop's own
+verifier lands in the `_bot` buckets ([L-44](LESSONS.md)) and that **neither name is demand and neither
+is a person**.
+
+**No entry in [EXPERIMENTS.md](EXPERIMENTS.md).** This is a defect fix, not an experiment: there is no
+falsifiable commercial threshold it could be graded against, because nothing in this service observes an
+index, an impression or a search click. Manufacturing an experiment around it would be the fabrication
+the operating rules forbid. Its status is **precondition, never evidence** — the same status
+[L-51](LESSONS.md) assigned to the Open Graph work.
+
+**Production verification is the rollback signal, and it was mutation-tested before it shipped.** A new
+step in `verify-production.yml` asserts, against the thing actually serving: `robots.txt` returns 200,
+the canonical host does not carry a blanket `Disallow: /`, the sitemap is advertised, `/studio/` and
+`/enter/` are disallowed, the `workers.dev` origin blocks, `/studio/<bad token>` carries
+`X-Robots-Tag: noindex`, and every `<loc>` in the sitemap is on the canonical origin. Two of those are
+roll-back-on-sight and **neither is visible to a human opening the site**: a blanket `Disallow: /` asks
+every crawler to drop the entire product, and a missing `noindex` makes a leaked capability URL
+indexable. Six mutations of the served fixtures were each confirmed to fail the step, and the healthy
+control to pass, before the step was committed — including one bug the exercise found, where the missing
+header killed the step under `set -e` before it could print its own diagnosis.
+
+**Small supporting change: `scripts/prod-http.sh headers`.** Response headers were unreadable from the
+verifier — `get` keeps the body, `probe` reports only content-type and the Ray ID — so the header half of
+this change would have shipped unverified in production. The new subcommand always requests anonymously,
+discards the body, and carries a caution that a header set can hold a credential (`set-cookie`) and must
+be read by name rather than dumped.
+
+**Rollback.** Reverting `cb05de5` removes both routes, the middleware, the tests and the verification
+step, restoring a site with no `robots.txt` — i.e. the state of the last eight weeks. No schema, no
+migration, no secret, no data handling and no user-facing copy is touched in either direction; the two
+new counter names would simply stop being written and their existing rows are inert.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**

@@ -1955,3 +1955,51 @@ the one resource where a documented collision actually happened. And the guard's
 time it is described: **it cannot stop a session that never calls it**, so the procedural line in
 `STATUS.md` is the part that is honoured rather than enforced. A guard described as stronger than it is
 would be worse than none, because it would be trusted.
+
+## L-53 — the enumeration of non-human readers stopped at the edge of the document (2026-08-31, run 125)
+
+**What happened.** [L-51](#l-51) was written 23 runs ago with an explicit prevention check: *"open its
+`<head>` and name, per consumer, what that consumer reads and whether it is there."* Run 108 did exactly
+that and shipped the missing Open Graph, description and canonical. **The site still had no
+`robots.txt`.** Not a missing directive in one — no file, no route, nothing at that path at all, which
+every crawler reads as *crawl everything*, on a service that serves capability URLs at `/studio/<token>`
+and one-shot login links at `/enter/<token>`. There was no `sitemap.xml` either.
+
+**Why the prevention check did not catch it.** Because it named a place to look — the `<head>` — and the
+missing thing was not in a document. `robots.txt` is not an element of any page; it is a property of an
+**origin**. So a check phrased as *"read this page's head as each consumer"* is structurally incapable of
+noticing it, no matter how carefully it is performed. L-51 diagnosed exactly this failure mode in L-46 —
+*"a lesson written at the altitude of the symptom protects the symptom"* — and then, one paragraph later,
+wrote its own prevention check at the altitude of the `<head>`.
+
+**The rule.** When the finding is *"we never told software X"*, the unit to enumerate is **the surface a
+reader actually addresses**, and for several readers that unit is not the page. A crawler asks the
+**origin** for its rules before it asks any page for anything; a search engine asks the origin for a
+sitemap; anything choosing between duplicate hosts is reasoning about origins, not documents. **Ask what
+each reader fetches first, and check that.** Enumerating consumers is the right instinct; scoping the
+enumeration to whatever artifact the last defect lived in is what keeps recreating the defect one level
+out.
+
+**And the sharper half, which is specific to this class.** Two mechanisms that sound like the same
+mechanism were doing different jobs, and only one of them was load-bearing. `Disallow` asks a compliant
+crawler not to *fetch* a URL. It does **not** stop that URL from being indexed once it is discovered
+another way — a paste into a chat client, a referrer header, a browser toolbar — because the crawler
+never has to fetch a URL to list it. For a capability URL that is the entire risk, so `X-Robots-Tag:
+noindex` is the half that actually refuses. Shipping only `robots.txt` would have looked like a complete
+fix, would have passed any review that checked whether the file exists, and would have left the one
+concrete exposure untouched. **When two controls are described in the same breath, make each one name the
+attack it stops on its own; if one of them cannot, it is not redundancy, it is decoration.**
+
+**Prevention check, and it is deliberately not another place to look.** For any change of this class,
+write the assertion **against the thing serving production**, phrased as the regression rather than the
+feature — *"a blanket `Disallow: /` on the canonical host"*, *"`/studio/<token>` with no `noindex`"* —
+and then **prove the assertion fails when the regression is present** before shipping it. Six mutations
+were run against the served fixtures here and all six were refused; one of them exposed a bug where the
+missing header killed the step under `set -e` before it could print why. A verification step that has
+never been shown to fail is a lesson written at the altitude of the symptom, in shell.
+
+**What this lesson does not license.** Not an SEO programme, and not a sweep of every origin-level file
+someone could name. Nothing in this service observes an index, an impression or a search click, so a fix
+of this class is a **precondition and never evidence** — L-51's ruling, unchanged. The test remains
+whether a named non-human reader is being told something wrong or nothing at all, on a surface that
+matters commercially.

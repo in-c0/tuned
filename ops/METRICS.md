@@ -1009,6 +1009,38 @@ declared under. **The `?src=` path writes in production.** That is capability ev
 counter and nothing else: no human arrived, no channel exists, and `feed_view` human-flagged read
 **24** that day, inside its own 2–22 noise band's neighbourhood rather than above it.
 
+## Crawl-policy counters — added 2026-08-31 (run 125)
+
+Deployed in [`cb05de5`](https://github.com/in-c0/tuned/commit/cb05de5), on `GET /robots.txt` and
+`GET /sitemap.xml`. **Both routes are new**, so every day before 2026-08-31 is zero because the route
+did not exist — not because nothing asked. No historical series exists and none can be reconstructed.
+
+| Counter | Definition | Source |
+| --- | --- | --- |
+| `robots_fetch` / `robots_fetch_bot` | every fetch of `/robots.txt`, on any host | `/api/metrics` daily |
+| `sitemap_fetch` / `sitemap_fetch_bot` | every fetch of `/sitemap.xml`, on any host | `/api/metrics` daily |
+
+**Reading rules. They inherit every rule above for `feed_fetch`, and add one:**
+
+- **Neither bucket is a person, and this time there is no arguable exception.** A person does not open
+  `robots.txt`. The `_bot` split separates a crawler that declares itself from one that does not; it
+  never separates machines from humans.
+- **This loop's own probes are in the `_bot` names.** `verify-production.yml` fetches both routes on
+  every push to `master` and again at 06:20 Sydney, under
+  `tuned-ops-verifier/1.0`, which `isBot()` matches on the token `uptime`. **So a non-zero
+  `robots_fetch_bot` on a deploy day is this loop looking at itself** — exactly the trap
+  [L-44](LESSONS.md) recorded for `feed_fetch_bot`. Expect roughly one of each per push plus one per
+  day, and read nothing into that number.
+- **The unsuffixed names are the only ones that could carry a third party, and the question they
+  answer is narrow: *has any crawler ever asked this site for its rules?*** That is a capability
+  reading about reachability, not demand, not a visitor and not a subscriber. A non-zero
+  `robots_fetch` means a non-declaring fetcher exists; it does not mean the site is being indexed,
+  and no count here becomes a number of people.
+- **Nothing about search ranking, indexing or referral is measurable from these two counters, or from
+  anything else in this service.** No counter here observes an index, an impression or a search
+  click. A crawl-policy fix is a **precondition**, never evidence — the same status
+  [L-51](LESSONS.md) assigned to the Open Graph work.
+
 ## The graded reading — complete UTC day 2026-08-16 (2026-08-18, run 51)
 
 **Source:** [`ops/metrics/latest.json`](metrics/latest.json) and

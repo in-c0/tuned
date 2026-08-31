@@ -1,6 +1,44 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-31 19:55 Sydney (09:55 UTC), run 124 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-08-31 20:25 Sydney (10:25 UTC), run 125 — **[OWNER ACTION REQUIRED](#owner-action-required):
+NONE.** **This site had never told a crawler anything, and one of the things it never said was "do not
+index this token."** No reviewer directive was outstanding — run 124 discharged the
+[`09:35:07Z` one](https://github.com/in-c0/tuned/issues/1#issuecomment-5476488001), whose own stop clause
+released `robots.txt`/sitemap work the moment the run-lock guard existed. **Lock claimed first**, cycle
+`2026-08-31/w20`, holder `routine-run-125`, before any commit. **What was missing was not a directive in
+a file — it was the file.** No `robots.txt` at all, which every crawler reads as *crawl everything*, on a
+Worker that serves **capability URLs at `/studio/<token>` and one-shot login links at `/enter/<token>`**;
+no `sitemap.xml`; and `workers_dev` plus a Workers Builds preview per branch serving the identical
+document from several hosts with nothing addressed to a reader that reads only the host. **This is
+[L-46](LESSONS.md)/[L-51](LESSONS.md)'s shape a fourth time**, and [L-53](LESSONS.md) records why L-51's
+own prevention check could not catch it: it named the `<head>`, and `robots.txt` is a property of an
+**origin**, not an element of any document. **The two mechanisms are not redundant and only one is load
+bearing:** `Disallow` asks a compliant crawler not to *fetch* a URL and does nothing about a URL
+discovered through a paste, a referrer or a toolbar — for a capability URL that is the whole risk, so
+**`X-Robots-Tag: noindex` is the half that actually refuses**, and
+[`src/crawl.ts`](../src/crawl.ts) holds the one list both are built from so they cannot drift. Shipped in
+[`cb05de5`](https://github.com/in-c0/tuned/commit/cb05de5): host-aware `/robots.txt` (canonical host
+crawlable and advertising its sitemap, `workers.dev` origin blocked, **`www` deliberately NOT blocked** —
+a crawler forbidden to fetch a duplicate never reads the `rel="canonical"` that consolidates it),
+`/sitemap.xml` listing only feeds that have actually published, a noindex middleware, and
+[`test/crawl.test.ts`](../test/crawl.test.ts) — **17 tests**. Suite **13 files, 174 tests**; `check` 0;
+`test:ops` 11/11; CI [`33381676976`](https://github.com/in-c0/tuned/actions/runs/33381676976) green.
+**Verified against what is actually serving justtuned.com**, not against the commit:
+[`33381677038`](https://github.com/in-c0/tuned/actions/runs/33381677038) reports *canonical host
+crawlable, sitemap advertised, workers.dev origin blocked* · `/studio/<token>` **404 with
+`x-robots-tag: noindex, nofollow`** · `/sitemap.xml` **200, 8 URLs, all canonical**. That step is the
+change's standing rollback signal and **every one of its assertions was mutation-tested against fixtures
+before it shipped — six regressions, all refused, one real bug found and fixed in the process.**
+**Deliberately not decided: whether AI training crawlers are welcome.** The policy is `User-agent: *`,
+exactly what the absence of a `robots.txt` already meant, so **their access is unchanged**; naming GPTBot
+or CCBot either way is the owner's positioning call, not a side effect of adding a file, and nothing is
+blocked on it. **No schema, migration, secret, data handling or user-facing copy; no owner ask; no
+spend.** Two additive counters (`robots_fetch`, `sitemap_fetch`) registered in [METRICS.md](METRICS.md)
+with binding reading rules — **neither is demand, neither is a person, and this loop's own verifier lands
+in the `_bot` buckets** ([L-44](LESSONS.md)). **No [EXPERIMENTS.md](EXPERIMENTS.md) entry, on purpose:**
+nothing in this service observes an index, an impression or a search click, so this is a **precondition,
+never evidence**. All commercial readings remain zero; AUD $0.00 of $500 ·
+**Previously, run 124 (2026-08-31 19:55 Sydney) — [OWNER ACTION REQUIRED](#owner-action-required):
 NONE.** **The loop has a lock, and it is a lock rather than a convention.** Executed on the [reviewer
 directive of `09:35:07Z`](https://github.com/in-c0/tuned/issues/1#issuecomment-5476488001): run 123 was
 executed by two sessions at once and was stopped only by a non-fast-forward push on `master`, which is
