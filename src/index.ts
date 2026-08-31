@@ -10,6 +10,7 @@ import { count, countBy, countEach, memberActive, isBot, snapshot } from "./metr
 import { BUILD_COMMIT } from "./build-info";
 import { keyMatches, keyConfigured } from "./keys";
 import { RESERVED_HANDLES } from "./handles";
+import { isPrivatePath, robotsTxt, sitemapXml, type SitemapEntry } from "./crawl";
 import operator from "./operator";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
@@ -27,6 +28,16 @@ export type Bindings = {
   AGENT_OPERATOR_OWNER: string;
 };
 const app = new Hono<{ Bindings: Bindings }>();
+
+// Refuse indexing of everything gated, before anything else can answer. `robots.txt` asks a
+// crawler not to fetch these; this is what refuses them when the URL was found some other way
+// and never fetched from us at all — which is the only case that matters for a capability URL
+// like /studio/<token> or /enter/<token>. Registered first so it also covers /api/operator,
+// and driven by the same list robots.txt is written from (src/crawl.ts) so the two cannot drift.
+app.use("*", async (c, next) => {
+  await next();
+  if (isPrivatePath(c.req.path)) c.header("x-robots-tag", "noindex, nofollow");
+});
 
 // Agent operator control plane — one owner-scoped credential, bounded authority, and
 // fail-closed (503) while AGENT_OPERATOR_KEY is unset. See src/operator.ts.
@@ -140,6 +151,61 @@ app.post("/api/pulse/:name", (c) => {
 
 app.get("/terms", (c) => c.html(termsPage()));
 app.get("/privacy", (c) => c.html(privacyPage()));
+
+// ---------- crawl policy ----------
+//
+// Counted for the same reason run 56 started counting `/rss.xml`: this loop keeps shipping
+// surfaces whose entire audience is machines, and condition A5 in ops/DISTRIBUTION.md — "if it
+// works, would I see it?" — is unsatisfiable on a surface that records nothing. `robots_fetch`
+// answers exactly one question, whether any crawler has ever asked this site for its rules.
+//
+// Read it as nothing else. Every fetch of either route is a machine, so the `_bot` split here
+// separates a crawler that declares itself from one that does not — it never separates people
+// from bots, and neither bucket is demand, a visitor or a subscriber (EXP-009).
+//
+// And `robots_fetch_bot`/`sitemap_fetch_bot` carry this loop's own probes: verify-production.yml
+// fetches both routes on every push to master and again at 06:20 Sydney, under a user-agent that
+// matches BOT_UA. So a non-zero `_bot` count on a deploy day is this loop looking at itself —
+// the same trap L-44 recorded for `feed_fetch_bot`. The unsuffixed names are the ones that could
+// ever carry a third party, and they start at zero.
+app.get("/robots.txt", (c) => {
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "robots_fetch_bot" : "robots_fetch"));
+  return c.body(robotsTxt(new URL(c.req.url).host), 200, {
+    "content-type": "text/plain; charset=utf-8",
+    "cache-control": "public, max-age=3600",
+  });
+});
+
+// Only feeds with at least one public item are listed. A sitemap is a claim that a URL is worth
+// indexing, and an empty feed page is a claim this loop cannot support — the same reason the
+// landing page's demo block orders by newest item rather than by oldest creator. An unlisted
+// feed is not hidden: it stays linked from the landing page and reachable at its handle.
+//
+// The row cap is well under the sitemap protocol's 50,000-URL limit and exists so an
+// unauthenticated route can never be asked to render an unbounded document. Creator rows are
+// ADMIN_KEY-gated today, so this bounds a shape rather than a known attack.
+app.get("/sitemap.xml", async (c) => {
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "sitemap_fetch_bot" : "sitemap_fetch"));
+  const { results } = await c.env.DB.prepare(
+    `SELECT cr.handle AS handle, MAX(i.created_at) AS lastmod
+       FROM creators cr JOIN items i ON i.creator_id = cr.id AND i.visibility = 'public'
+      GROUP BY cr.id ORDER BY cr.handle
+      LIMIT 10000`
+  ).all<{ handle: string; lastmod: string }>();
+  // The landing page changes when anything published anywhere changes — its demo block is the
+  // newest public item on the site.
+  const newest = results.map((r) => r.lastmod).sort().pop() ?? null;
+  const entries: SitemapEntry[] = [
+    { path: "/", lastmod: newest },
+    ...results.map((r) => ({ path: `/${r.handle}`, lastmod: r.lastmod })),
+    { path: "/terms" },
+    { path: "/privacy" },
+  ];
+  return c.body(sitemapXml(entries), 200, {
+    "content-type": "application/xml; charset=utf-8",
+    "cache-control": "public, max-age=3600",
+  });
+});
 
 // Which commit this Worker was built from. Deployment is asynchronous, so post-deploy
 // verification otherwise has to guess whether it is looking at the new version or the

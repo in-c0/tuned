@@ -76,6 +76,31 @@ cmd_get() {
   printf '%s\n' "$code"
 }
 
+# headers <url> <outfile> [accept]
+#
+# The same request under the same contract as `get`, but the response *headers* are what is
+# kept and the body is discarded. It exists because some things this service promises are
+# only ever stated in a header — `X-Robots-Tag: noindex` on a capability URL is one, and it
+# is the half of the crawl policy that a `Disallow` line cannot do. A body check cannot see
+# it, and `probe` reports only content-type and the Ray ID.
+#
+# A real GET, not `-I`: HEAD is answered by a different path in some stacks, so verifying
+# HEAD would verify the wrong response. Nothing is printed but the status, and headers go to
+# a file the caller names — no body ever reaches the log.
+#
+# Caution for future callers, since the rest of this file promises never to expose a key: a
+# response header set CAN carry a credential — `set-cookie` on an authenticated route is the
+# obvious one. Never send an authed request through this (it always requests as anonymous),
+# never cat the header file, and read individual headers by name.
+cmd_headers() {
+  local url="$1" out="$2" accept="${3:-*/*}"
+  local -a hdr=()
+  while IFS= read -r -d '' arg; do hdr+=("$arg"); done < <(_headers "$accept" 0)
+  local code
+  code=$(curl -sS --max-time "${TIMEOUT:-30}" "${hdr[@]}" -D "$out" -o /dev/null -w '%{http_code}' "$url") || code="000"
+  printf '%s\n' "$code"
+}
+
 # post <url>
 #
 # A bodyless POST under the same contract, for asserting that a write route is deployed and
@@ -168,9 +193,10 @@ cmd_vantage() {
 
 case "${1:-}" in
   get)     shift; cmd_get "$@" ;;
+  headers) shift; cmd_headers "$@" ;;
   post)    shift; cmd_post "$@" ;;
   probe)   shift; cmd_probe "$@" ;;
   vantage) shift; cmd_vantage "$@" ;;
   origin)  printf '%s\n' "$ORIGIN_BASE" ;;
-  *) echo "usage: prod-http.sh get <url> <outfile> [accept] [authed] | post <url> | probe <url> [label] [accept] [authed] | vantage | origin" >&2; exit 2 ;;
+  *) echo "usage: prod-http.sh get <url> <outfile> [accept] [authed] | headers <url> <outfile> [accept] | post <url> | probe <url> [label] [accept] [authed] | vantage | origin" >&2; exit 2 ;;
 esac

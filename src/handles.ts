@@ -7,6 +7,7 @@ export const RESERVED_HANDLES = new Set([
   "favicon.ico",
   "robots.txt",
   "rss.xml",
+  "sitemap.xml",
   "terms",
   "privacy",
   "waitlist",

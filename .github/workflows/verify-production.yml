@@ -311,6 +311,83 @@ jobs:
 
           echo "/ava: canonical ${canon}, og:url ${ogurl}, og:image ${imgpath} serves a PNG, card=$(metaof twitter:card)"
 
+      # The same class of defect as the two steps above, one layer out: what this site tells a
+      # reader that never loads a page at all. test/crawl.test.ts asserts it against a real
+      # Worker in workerd; this asserts it against the thing serving justtuned.com, and is the
+      # change's standing rollback signal.
+      #
+      # Two failures are worth rolling back on sight and neither is visible to a human opening
+      # the site: a `Disallow: /` served on the canonical host would ask every crawler to drop
+      # the entire product from its index, and a missing `X-Robots-Tag` on /studio/ means a
+      # capability URL that leaked through a paste or a referrer is indexable.
+      - name: Crawl policy is deployed, host-aware, and not blocking the site
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+          VANTAGE: ${{ steps.vantage.outputs.vantage }}
+        run: |
+          set -euo pipefail
+
+          # A directive value, one per line, with the name stripped. No `head` in these
+          # pipelines: under `pipefail` it closes the pipe on a still-writing grep and the
+          # SIGPIPE fails the extraction rather than the assertion.
+          field() { grep -i "^[[:space:]]*$1:" "$2" | sed "s/^[^:]*:[[:space:]]*//" | tr -d '\r' || true; }
+
+          code=$(scripts/prod-http.sh get "${BASE}/robots.txt" /tmp/robots.txt 'text/plain')
+          [ "$code" = "200" ] || { echo "::error::/robots.txt returned HTTP $code — an absent robots.txt is read as 'crawl everything', /studio/<token> included"; exit 1; }
+          disallow=$(field Disallow /tmp/robots.txt)
+          sitemap=$(field Sitemap /tmp/robots.txt)
+
+          if [ "$VANTAGE" = "public" ]; then
+            # The canonical host. The site must be crawlable and must advertise its sitemap.
+            if printf '%s\n' "$disallow" | grep -qx '/'; then
+              echo "::error::robots.txt on the canonical host carries 'Disallow: /' — this asks every crawler to drop the entire site. Roll back."
+              exit 1
+            fi
+            [ "$sitemap" = "https://justtuned.com/sitemap.xml" ] || { echo "::error::robots.txt advertises sitemap '$sitemap', expected https://justtuned.com/sitemap.xml"; exit 1; }
+            for p in /studio/ /enter/ /api/; do
+              printf '%s\n' "$disallow" | grep -qx -- "$p" || { echo "::error::robots.txt does not disallow $p"; exit 1; }
+            done
+
+            # Host-awareness, proved rather than assumed: the same Worker on its workers.dev
+            # route is a duplicate origin with no public purpose, and must block. This is the
+            # one assertion a single-host check cannot make.
+            ocode=$(scripts/prod-http.sh get "$(scripts/prod-http.sh origin)/robots.txt" /tmp/robots-origin.txt 'text/plain')
+            [ "$ocode" = "200" ] || { echo "::error::robots.txt on the workers.dev origin returned HTTP $ocode"; exit 1; }
+            [ "$(field Disallow /tmp/robots-origin.txt)" = "/" ] || { echo "::error::the workers.dev origin does not block crawling — it is a duplicate of the whole site"; exit 1; }
+            echo "robots.txt: canonical host crawlable, sitemap advertised, workers.dev origin blocked"
+          else
+            # Reading from the origin because the zone is challenging clients. Then the
+            # blocking policy is the correct answer and the permissive one would be the bug.
+            [ "$disallow" = "/" ] || { echo "::error::the workers.dev origin served '$disallow' instead of blocking; it is a duplicate of the whole site"; exit 1; }
+            [ -z "$sitemap" ] || { echo "::error::a non-canonical host advertised a sitemap ('$sitemap')"; exit 1; }
+            echo "robots.txt: workers.dev origin blocks crawling (zone unreachable, canonical policy not checked this run)"
+          fi
+
+          # The half a Disallow cannot do. A crawler that learned a capability URL from a paste
+          # or a referrer never fetches robots.txt for it; only this header refuses the index.
+          # The token is deliberately not a real one — the route 404s and writes no counter.
+          hcode=$(scripts/prod-http.sh headers "${BASE}/studio/not-a-real-token" /tmp/studio.h 'text/html')
+          [ "$hcode" = "404" ] || { echo "::error::/studio/<bad token> returned HTTP $hcode, expected 404"; exit 1; }
+          # `|| true`: with the header absent — the regression this is here to catch — grep exits
+          # 1, pipefail propagates it, and `set -e` would kill the step before it could say why.
+          tag=$(grep -i '^x-robots-tag:' /tmp/studio.h | sed -n '1s/^[^:]*:[[:space:]]*//p' | tr -d '\r' || true)
+          case "$tag" in
+            *noindex*) echo "/studio/<token>: HTTP 404 with x-robots-tag '$tag'" ;;
+            *) echo "::error::/studio/<token> carries x-robots-tag '$tag' — a leaked capability URL is indexable. Roll back."; exit 1 ;;
+          esac
+
+          scode=$(scripts/prod-http.sh get "${BASE}/sitemap.xml" /tmp/sitemap.xml 'application/xml')
+          [ "$scode" = "200" ] || { echo "::error::/sitemap.xml returned HTTP $scode"; exit 1; }
+          grep -q '<urlset' /tmp/sitemap.xml || { echo "::error::/sitemap.xml is not a sitemap document"; exit 1; }
+          # Every URL must be on the canonical origin no matter which host served the document,
+          # for the same reason the canonical tag must not track the requesting host.
+          bad=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml | sed 's/<[^>]*>//g' | { grep -v '^https://justtuned\.com/' || true; })
+          [ -z "$bad" ] || { echo "::error::sitemap advertises URLs off the canonical origin: $bad"; exit 1; }
+          n=$(grep -c '<loc>' /tmp/sitemap.xml || true)
+          grep -q '<loc>https://justtuned.com/</loc>' /tmp/sitemap.xml || { echo "::error::sitemap does not list the landing page"; exit 1; }
+          echo "/sitemap.xml: HTTP 200, $n URLs, all on the canonical origin"
+          echo "Crawl policy: robots.txt served, \`/studio/\` noindex, sitemap lists $n canonical URLs" >> "$GITHUB_STEP_SUMMARY"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's
