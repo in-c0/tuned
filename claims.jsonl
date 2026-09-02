@@ -11,3 +11,4 @@
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-09-02/w08","holder":"vm:1968","nonce":"64807e0d-d918-4f87-9102-ecc9d9db7891","at":"2026-09-01T22:04:44.292Z","ttlSeconds":5400}
 {"v":1,"event":"release","resource":"executor","cycle":"2026-09-02/w08","holder":"vm:1968","nonce":"64807e0d-d918-4f87-9102-ecc9d9db7891","at":"2026-09-01T22:05:11.259Z","outcome":"completed"}
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-09-02/w14","holder":"routine-run-130","nonce":"4f03f486-82fe-4ce4-95d8-4ad2261692b6","at":"2026-09-02T04:04:57.576Z","ttlSeconds":5400}
+{"v":1,"event":"release","resource":"executor","cycle":"2026-09-02/w14","holder":"routine-run-130","nonce":"4f03f486-82fe-4ce4-95d8-4ad2261692b6","at":"2026-09-02T04:05:18.164Z","outcome":"completed"}
