@@ -9,9 +9,26 @@ name: metrics snapshot
 # Without it the job exits cleanly rather than failing, so the workflow can ship before
 # the secret exists.
 
+# Why there are two schedules, and why only one of them probes.
+#
+# `daily` in the payload is the whole 60-day history, not just today, so any snapshot
+# taken after 00:00 UTC carries every earlier day complete. The 20:40 run is the operating
+# read — it lands before the 08:00 Sydney executor run — but it is taken *inside* the UTC
+# day, so the day it is named after is always partial, and the first complete copy of it
+# would not otherwise exist until ~21h later. Any reading pre-registered over complete UTC
+# days therefore had no admissible source on the morning after its window closed. The
+# 00:15 run fixes that: it exists so the previous UTC day is on disk, complete, within
+# minutes of ending.
+#
+# The 00:15 run skips the probe step below. `/api/version` and `/api/metrics` write no
+# counters, so with the probes off the run is inert — it moves no metric, which is what
+# lets it be added while a pre-registered window is open without perturbing it. It also
+# keeps the published note in src/metrics.ts true: /ava/rss.xml is still fetched on a
+# schedule twice a day, by verify-production and by the 20:40 run here.
 on:
   schedule:
     - cron: "40 20 * * *" # 06:40 Sydney (AEST), before the 08:00 executor run
+    - cron: "15 0 * * *" # just after the UTC day ends: captures it complete, probes nothing
   workflow_dispatch:
 
 permissions:
@@ -31,7 +48,11 @@ jobs:
       # diagnosis has to survive in the log of the run that failed. Bodies are never
       # printed — only status, content type, size and the Cloudflare Ray ID, which is what
       # locates the matching Security Event if the edge is what answered.
+      #
+      # Skipped on the 00:15 schedule so that run writes no counter at all — see the
+      # header. Every other trigger, workflow_dispatch included, still probes.
       - name: Diagnose the production read path
+        if: github.event.schedule != '15 0 * * *'
         env:
           METRICS_KEY: ${{ secrets.METRICS_KEY }}
         run: |
@@ -56,6 +77,10 @@ jobs:
         id: vantage
         run: |
           set -uo pipefail
+          # Repeated rather than inherited: the step that used to do this is skipped on the
+          # 00:15 schedule, and a vantage step that only works after a probe step is a
+          # coupling nobody would look for.
+          chmod +x scripts/prod-http.sh
           scripts/prod-http.sh vantage | tee -a "$GITHUB_OUTPUT"
 
       - name: Fetch aggregate metrics

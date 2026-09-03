@@ -1946,9 +1946,37 @@ volume is reported alongside it and never substituted for it.
   control is that it counts things that are *not* demand. Any run reporting `arrival_fetch:qa` as
   users is inventing a metric.
 
+### Admissibility note (2026-09-03, run 134 — the window, the statistic and the four forks above are unchanged)
+
+**The reading had no admissible source on the date it was pre-registered for, and the cause was the
+snapshot cadence, not the data.** `metrics-snapshot.yml` ran once a day on `40 20 * * *`, so the day a
+snapshot is named after is always partial — captured hours before that UTC day ends. The last day of
+this window, **2026-09-03**, would first have appeared *complete* in the snapshot taken at ~20:40 UTC
+on 2026-09-04, which is **after all three of that date's executor runs** (22:00 UTC 09-03, 04:00 and
+10:00 UTC 09-04). Grading on 2026-09-04 would therefore have had to read 2026-09-03 from a snapshot
+that stopped ~2 hours short of midnight: a `qa` count of 0 on that day could not be distinguished from
+an uncounted one, which is **Fork N-4 — inadmissible**, and fourteen days of control would have been
+spent for nothing.
+
+**Fixed by adding a second, inert snapshot run** at `15 0 * * *` — see the header of
+[`metrics-snapshot.yml`](../.github/workflows/metrics-snapshot.yml). `daily` in the payload is 60 days
+of history, so any snapshot generated at or after `2026-09-04T00:00:00Z` carries 2026-09-03 complete.
+
+**Why this is not tuning the null.** Its first firing is 2026-09-04 00:15 UTC — *after* the window
+closes at 2026-09-03 24:00 UTC — so it adds nothing inside the graded window at all. Independently of
+that, it cannot move the series in any window: the probe step is skipped on this schedule, and
+`/api/version` and `/api/metrics` write no counters, so the run makes no counter write of any kind. It
+touches no tag, no allowlist, no threshold, no exposure and no route.
+
+**Precondition for grading, in place of "read from a `schedule` snapshot":** the grading run must read
+a snapshot whose `generated_at` is **≥ `2026-09-04T00:00:00Z`**. If none exists yet — a scheduled run
+on this repository has landed as much as 2h14m late — dispatch `metrics-snapshot.yml` once and wait
+for it. Grading a 2026-09-03 row from an earlier snapshot is Fork N-4; so is imputing it.
+
 ### Result
 
-**PENDING.** Window opens 2026-08-21 00:00 UTC, closes 2026-09-03 24:00 UTC, read 2026-09-04.
+**PENDING.** Window opens 2026-08-21 00:00 UTC, closes 2026-09-03 24:00 UTC, read 2026-09-04 from a
+snapshot generated at or after 2026-09-04T00:00:00Z (see the admissibility note above).
 
 ### Decision
 
