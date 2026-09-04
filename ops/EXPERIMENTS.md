@@ -1973,14 +1973,108 @@ a snapshot whose `generated_at` is **≥ `2026-09-04T00:00:00Z`**. If none exist
 on this repository has landed as much as 2h14m late — dispatch `metrics-snapshot.yml` once and wait
 for it. Grading a 2026-09-03 row from an earlier snapshot is Fork N-4; so is imputing it.
 
-### Result
+### Result — read 2026-09-04 (run 136). **Fork N-2, at its floor.**
 
-**PENDING.** Window opens 2026-08-21 00:00 UTC, closes 2026-09-03 24:00 UTC, read 2026-09-04 from a
-snapshot generated at or after 2026-09-04T00:00:00Z (see the admissibility note above).
+**`control_days` = 1 of 14. Total volume = 2 fetches.** Both on 2026-09-02; the other thirteen days
+are zero.
 
-### Decision
+**Source.** [`ops/metrics/2026-09-04.json`](metrics/2026-09-04.json) / `latest.json`, `generated_at`
+**2026-09-04T04:04:54.310Z** — after the window closed, so every one of the fourteen days is complete.
+The 00:15 UTC schedule added by run 134 had not fired by 04:04Z (last scheduled snapshot:
+2026-09-03T22:47:04Z), so the admissibility note's fallback was used: **one** `workflow_dispatch` of
+`metrics-snapshot.yml`, [run 33835474660](https://github.com/in-c0/tuned/actions/runs/33835474660),
+success. That dispatch fetches `/ava/rss.xml` **untagged** and on 2026-09-04, outside the window; it
+cannot write `arrival_fetch:qa` at all.
 
-**PENDING.** What this experiment has already decided, before its window opens: **EXP-009 Fork A must
-not be graded on its own.** Not because its threshold is wrong — it may well be right — but because
-its argument for that threshold assumed a premise this service does not satisfy, and nobody had
-measured the alternative.
+| UTC day | `arrival_fetch:qa` | `arrival_fetch_bot:qa` | `feed_fetch` | `feed_fetch:sportstech` |
+| --- | --- | --- | --- | --- |
+| 2026-08-21 | 0 | 0 | 0 | 0 |
+| 2026-08-22 | 0 | 0 | 0 | 0 |
+| 2026-08-23 | 0 | 0 | 0 | 0 |
+| 2026-08-24 | 0 | 0 | 0 | 0 |
+| 2026-08-25 | 0 | 0 | 23 | 16 |
+| 2026-08-26 | 0 | 0 | 0 | 0 |
+| 2026-08-27 | 0 | 0 | 2 | 2 |
+| 2026-08-28 | 0 | 0 | 13 | 13 |
+| 2026-08-29 | 0 | 0 | 2 | 2 |
+| 2026-08-30 | 0 | 0 | 0 | 0 |
+| 2026-08-31 | 0 | 0 | 0 | 0 |
+| 2026-09-01 | 0 | 0 | 5 | 1 |
+| 2026-09-02 | **2** | 0 | 2 | 2 |
+| 2026-09-03 | 0 | 0 | 0 | 0 |
+| **window** | **2 · 1 day** | 0 | 47 · 6 days | 36 · 6 days |
+
+**Fork N-4 was checked clause by clause before grading, and none of the five fires.**
+
+1. **`qa` submitted to a venue** — no. No submission of anything to any venue has occurred; runs
+   128–135 each recorded no venue action, and the standing owner boundary is unchanged.
+2. **`qa` removed from `ARRIVAL_TAGS`** — no. [`src/index.ts:785`](../src/index.ts#L785) still reads
+   `new Set(["qa", "awesome-rss-feeds"])`, and `test/arrival.test.ts` still pins it.
+3. **This loop fetched the tagged URL with a UA `isBot()` does not match** — no, and this was checked
+   against the one day that could have been contaminated. On 2026-09-02 this loop's only production
+   fetchers were `verify production` (22:38:52Z) and `metrics snapshot` (22:48:28Z); both probe
+   **`/ava/rss.xml` untagged**, so neither can write any `arrival_fetch:<tag>` name. The three
+   executor runs that day (129, 130, 131) were idle by directive — no dispatch, no probe.
+   `arrival_fetch_bot:qa` is **0** across all fourteen days, so there was no bot-UA tagged fetch
+   either. The vitest suite runs workerd against a simulated D1 with no network.
+4. **The joined `?src=qa` URL published somewhere new during the window** — no, and this is the clause
+   that needed measuring rather than asserting. Counting the *joined* URL (a route immediately
+   followed by `?src=qa`) at the window-open commit `fff7ee5` against the window-close commit
+   `2c40d2b`: **10 → 10**, in the same six files, none gained and none lost.
+   **Disclosed, because it is the looser reading of the same clause:** bare occurrences of the
+   *string* `src=qa` in prose rose **19 → 31** across seven ops files, and `ops/DASHBOARD.md` gained
+   its first. That is this loop writing about its own control in its own public record. It is not a
+   new publication of the URL, and it is recorded here rather than left for a later run to find,
+   because the direction of the bias matters: looser exposure can only push the null **up**. A
+   result of 1 day out of 14 is therefore an **upper bound** on the unaided null, not an
+   underestimate.
+5. **A snapshot day missing** — no. All fourteen days carry rows in `daily`.
+
+**The pre-registered expectation was correct.** The entry committed itself in advance to *"Fork N-3 or
+the low half of N-2 — fetches on 0–3 of the 14 days"*, on the argument that the 2026-08-19 burst was a
+discovery event that decays. It decayed to **1 day and 2 fetches**. This is recorded because the
+opposite outcome would have been recorded: the loop had already been wrong once on this series (run
+57's cadence claim, falsified inside a day), and a pre-registration only earns anything if its hits
+are reported in the same voice as its misses.
+
+**One claim in this entry's own baseline is falsified by the window it graded, and is withdrawn here
+rather than edited above.** The baseline said *"the unsuffixed name has never once recorded an
+untagged third-party fetch"* and drew from it that *"whatever this population is, it is not a
+background rate of feed readers finding Tuned on their own."* Over the fourteen graded days,
+unsuffixed `feed_fetch` totals **47** across six days, of which **2** carried `qa` and **1** carried
+`awesome-rss-feeds` — so **44 untagged non-bot-UA feed fetches** occurred. A background rate of
+untagged fetchers demonstrably exists now; it did not on the two partial days the baseline was drawn
+from. This strengthens the control rather than weakening it: the tagged share of unsuffixed feed
+traffic is **3 of 47**, and the tagged day-count is 1 of the 6 days that saw any unsuffixed fetch at
+all.
+
+**Reported and not claimed as anything else:** `arrival_fetch:awesome-rss-feeds` read **1**, on
+2026-08-25, its only non-zero day ever. That is the real channel tag, it belongs to EXP-009 and not to
+this entry, and [METRICS.md](METRICS.md) already registered — before the number existed — that any
+value after `t0` = 2026-08-25T03:33:11Z is **issue-#1-attributable, not venue traffic**, because the
+reviewer directive printed the joined tagged URL publicly at that timestamp. It is one fetch on the
+day of that publication. It is not demand, not a subscriber, and not evidence about any venue.
+
+### Decision — Fork N-2's registered next action, taken
+
+**The null is quiet but real, and it is quiet at the very bottom of the band.**
+
+1. **EXP-009 Fork A's 7-of-14 bar survives, validated by measurement rather than by argument.** A
+   published-but-never-submitted tagged Tuned URL earned **1 day of 14** unaided. Fork A's threshold
+   of ≥ 7 sits six days clear of the measured null. The premise EXP-010 was registered to test — that
+   a tagged counter cannot distinguish a subscriber from a publication — is **not** load-bearing at
+   Fork A's threshold on this evidence.
+2. **`control_days = 1` is a floor a treatment must exceed, not reach.** Per Fork N-2's own text, a
+   treatment landing **inside** the 0–1 band grades **Fork B**, not Fork A. Recorded in
+   [DISTRIBUTION.md](DISTRIBUTION.md).
+3. **A5's conditional resolves to satisfied.** DISTRIBUTION recorded that *"if EXP-010 lands on Fork
+   N-1 (a loud null), A5 reverts to ❌ for every tagged candidate."* It did not land on N-1. A5 stands
+   for tagged candidates, with the band attached. **No candidate's verdict changes today**, because
+   none was admissible on A2 anyway — this removes a hypothetical blocker, it does not authorize a
+   submission.
+4. **What this does not decide.** Nothing here is traffic, demand, subscribers or interest — a control
+   counts things that are *not* demand, and 2 fetches over 14 days is the strongest possible statement
+   that there is nothing here to mistake for a user. `applications` **0**, `members` **1**,
+   `members_ever_active` **0**, `followers` **0**, gross cash **$0**.
+
+**This experiment is closed.** No re-run, no second reading, no extension.

@@ -1552,3 +1552,45 @@ emits or joins a tagged URL: the canonical and `og:url` are the **untagged** rou
 (the owner) · `members_ever_active` **0** · `active_last_7d` **0** · `active_last_28d` **0** ·
 `followers` **0** · `items_public` **83** · gross cash **AUD $0**, from *no billing exists*. Spend
 **AUD $0.00 of $500**, unchanged.
+
+## 2026-09-04 (run 136) — EXP-010's `control_days` read, and the one baseline claim it falsified
+
+**The reading.** [EXP-010](EXPERIMENTS.md) graded, source-linked and closed. **`control_days` = 1 of 14,
+total volume 2**, over the frozen window 2026-08-21 … 2026-09-03, from
+[`ops/metrics/2026-09-04.json`](metrics/2026-09-04.json), `generated_at` **2026-09-04T04:04:54.310Z** —
+after the window closed, so all fourteen days are complete. The 00:15 UTC snapshot schedule had not
+fired by then; the admissibility note's registered fallback was used, one `workflow_dispatch` of
+`metrics-snapshot.yml` ([33835474660](https://github.com/in-c0/tuned/actions/runs/33835474660)), which
+fetches `/ava/rss.xml` untagged on 2026-09-04 and writes no `arrival_fetch:qa` at any time.
+
+**What `arrival_fetch:qa` is, restated because it is now a number people will want to quote.** It is a
+**control**, not traffic. It counts fetches of a tagged Tuned feed URL that was **published in this
+loop's public record and submitted to no venue, ever**. It is the day-count a tagged URL earns with no
+channel behind it. **Two fetches over fourteen days is not two users, two subscribers, two readers or
+two anything.** Any run reporting it as demand is inventing a metric.
+
+**One durable claim in this file's lineage is falsified by the graded window and is withdrawn here.**
+Run 57/58 recorded, from two partial August days, that unsuffixed `feed_fetch` *"has never once
+recorded an untagged third-party fetch"* and that the population *"is not a background rate of feed
+readers finding Tuned on their own."* Over 2026-08-21 … 2026-09-03 unsuffixed `feed_fetch` totals **47
+across six days**, of which **3** carried any tag — 2 `qa`, 1 `awesome-rss-feeds`. **44 untagged
+non-bot-UA feed fetches occurred.**
+
+**Binding consequence for every later reading of these names:** an unsuffixed `feed_fetch` movement is
+**not attributable to a channel by default**, and must not be quoted as one. Only the tagged name
+carries channel evidence, and only above the measured floor (`control_days` > 1) — see
+[DISTRIBUTION.md](DISTRIBUTION.md). This does **not** make `feed_fetch` a demand signal either: a
+non-bot user-agent is a UA-shaped count, not a person, and the standing rule against inferring people
+from RSS, crawler, sitemap, robot or UA-shaped counts is unchanged.
+
+**`arrival_fetch:awesome-rss-feeds` read 1, on 2026-08-25 — its only non-zero day, and it is not venue
+traffic.** This file registered before the number existed that `t0` = **2026-08-25T03:33:11Z**, the
+moment the reviewer directive printed the joined tagged URL on issue #1, and that anything after `t0`
+is **issue-#1-attributable**. The single fetch landed on the day of that publication. It is reported
+here, separately, and is **not** evidence about `plenaryapp/awesome-rss-feeds` or about any submission
+— none has been made.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
+**0** · `active_last_28d` **0** · `followers` **0** · `items_public` **83** · gross cash **AUD $0**,
+from *no billing exists*. Spend **AUD $0.00 of $500**, unchanged.

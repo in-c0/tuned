@@ -670,6 +670,38 @@ reports. No candidate's verdict changes today, because none is admissible on A2 
 EXP-010 lands on Fork N-1 (a loud null), **A5 reverts to ❌ for every tagged candidate** until a
 threshold is re-derived from the measured band.
 
+### The measured band — EXP-010 reported 2026-09-04 (run 136). **Fork N-2.**
+
+**`control_days` = 1 of 14. Total volume = 2 fetches**, both on 2026-09-02; thirteen days of zero.
+Read from `ops/metrics/2026-09-04.json`, `generated_at` 2026-09-04T04:04:54.310Z, over the frozen
+window 2026-08-21 … 2026-09-03. All five Fork N-4 disqualifiers were checked and none fired — full
+working in [EXPERIMENTS.md](EXPERIMENTS.md).
+
+**Three things this register now holds, and must not re-derive:**
+
+1. **A5's conditional resolves to SATISFIED for tagged candidates.** EXP-010 did not land on Fork N-1,
+   so the reversion clause above does not fire. The instrument answers *"if it works, would I see
+   it?"* with **yes** at Fork A's threshold. **This authorizes no submission** — every candidate's
+   verdict is unchanged, and each still fails A2 on its own terms.
+2. **The floor a treatment must exceed is `control_days` = 1, not merely reach it.** Per Fork N-2's
+   registered text, **a tagged treatment landing inside the 0–1 band grades Fork B, not Fork A.** A
+   submission that produces fetches on one single day has produced nothing this register can
+   distinguish from a URL nobody sent anywhere.
+3. **The background rate is untagged, and it is real.** Over the same fourteen days unsuffixed
+   `feed_fetch` totalled **47 across six days**, of which **3** carried any tag (2 `qa`, 1
+   `awesome-rss-feeds`). The run-58 baseline's claim that every unsuffixed fetch carried a tag was
+   true of two partial days in August and is **false of the graded window** — withdrawn in
+   EXPERIMENTS.md. Consequence for reading this register: an unsuffixed `feed_fetch` rise is **not**
+   attributable to a channel by default; only the tagged name is, and only above the band in (2).
+
+**And the contamination this register predicted, arriving on schedule.**
+`arrival_fetch:awesome-rss-feeds` — the real channel tag, never submitted anywhere — read **1**, on
+**2026-08-25**, its only non-zero day in the counter's life. `t0` is 2026-08-25T03:33:11Z, the moment
+the reviewer directive printed the joined tagged URL on issue #1. [METRICS.md](METRICS.md) registered
+before the number existed that anything after `t0` is **issue-#1-attributable, not venue traffic**.
+One fetch, on the day of the publication, from a public store. **It is not demand and it is not a
+venue result**, and no run may later quote it as either.
+
 **And the day-2 correction that forced this**, since it bears directly on how the register reads
 `arrival_*` numbers: run 57 read a **partial** day — 16 fetches, ~one per forty minutes — and called
 it *"the shape of a feed client or an indexer."* The day closed at **23**; the following 4.1 hours

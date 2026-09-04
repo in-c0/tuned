@@ -4135,3 +4135,64 @@ this repository have landed up to 2h14m late — is a single `workflow_dispatch`
 recorded as the grading precondition in EXPERIMENTS.md.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+## 2026-09-04 (run 136) — EXP-010 graded and closed; the null is quiet, and A5's reversion clause does not fire
+
+**Context.** The [2026-09-01 directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5500720093)
+acceptance criterion 4: *"On 2026-09-04: grade only the frozen 14-day EXP-010 series and synchronize
+canonical state only as required."* This is that run. No deviation was needed and none was taken.
+
+**Decision: dispatch once before grading, because the registered precondition required it.** The
+admissibility note run 134 added requires a snapshot with `generated_at` ≥ `2026-09-04T00:00:00Z`. The
+`15 0 * * *` schedule had not fired by 04:04Z — the newest snapshot was 2026-09-03T22:47:04Z, inside
+the window's last day. One `workflow_dispatch` of `metrics-snapshot.yml`
+([33835474660](https://github.com/in-c0/tuned/actions/runs/33835474660)) produced
+`generated_at` **2026-09-04T04:04:54.310Z**. This is the fallback the note names, not a new choice, and
+it cannot perturb the graded series: it fetches `/ava/rss.xml` **untagged**, on 2026-09-04, outside the
+window. Run 134's added schedule not having fired is worth one line for a later run: **a cron added on
+2026-09-03 was not observed to fire on 2026-09-04**, so the fallback is load-bearing rather than
+decorative, and nothing should be pre-registered against that schedule until it has been seen to run.
+
+**Decision: grade Fork N-2 — `control_days` = 1 of 14, volume 2.** All five Fork N-4 disqualifiers were
+checked individually rather than assumed, with the working in [EXPERIMENTS.md](EXPERIMENTS.md). The one
+that needed measuring was *"the joined `?src=qa` URL is published somewhere new during the window"*:
+counted at the window-open commit `fff7ee5` against the window-close commit `2c40d2b`, joined-URL
+occurrences are **10 → 10** in the same six files.
+
+**Disclosed against my own result, because the looser reading of that clause does move.** Bare prose
+occurrences of the string `src=qa` rose **19 → 31** across seven ops files, and `ops/DASHBOARD.md`
+gained its first. That is this loop writing about its own control in its own public record. It does not
+trigger N-4 as written, and the direction of the bias is the reason it is safe to say so: looser
+exposure can only push a null **up**. A reading of 1 day in 14 is therefore an **upper bound** on the
+unaided null. Had the result been loud, this same fact would have been a reason to distrust it — which
+is why it is recorded here rather than left out.
+
+**Decision: A5's reversion clause does not fire, and this authorizes nothing.** DISTRIBUTION recorded
+that a Fork N-1 landing would revert A5 to ❌ for every tagged candidate. It landed on N-2, so A5 stands
+for tagged candidates with the measured band attached: **a treatment must exceed `control_days` = 1, not
+reach it**, and a treatment inside the band grades Fork B. **No candidate's verdict changes and no
+submission is authorized** — each still fails A2 on its own terms, and the standing owner boundary on
+third-party submissions is untouched.
+
+**Decision: withdraw the run-57/58 claim that unsuffixed `feed_fetch` carries no untagged fetches.**
+The graded window contains **44 untagged non-bot-UA feed fetches** (47 total, 3 tagged). The claim was
+drawn from two partial days and is false of fourteen complete ones. Recorded in
+[METRICS.md](METRICS.md) with the binding consequence: an unsuffixed `feed_fetch` movement is not
+channel evidence by default, and it is not a person either.
+
+**Deliberately not touched.** `ops/STATUS.md` and `ops/DASHBOARD.md` — the directive scoped this run to
+grading plus *"canonical state only as required"*, and the fork's own registered next action names
+DISTRIBUTION. `src/`, routes, schema, counters, tags, allowlists, thresholds, workflows, funnel, billing
+and distribution surfaces: **byte-untouched**. No submission, no venue contact, no product change.
+
+**Rollback.** Documentation only — four ops files. Reverting the commit restores the PENDING text and
+changes no runtime, data, counter or user-facing surface in either direction. Nothing was deployed that
+alters the Worker.
+
+**The candidate this closes the door on, stated plainly.** EXP-010 was the last open measurement
+obligation in the loop. It produced a valid answer and **it did not produce a user or a dollar, on any
+fork.** With `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash $0 and 31
+days left in the window, the next run's action should be aimed at real demand, not at the measurement
+apparatus around it.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
