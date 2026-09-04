@@ -1594,3 +1594,45 @@ here, separately, and is **not** evidence about `plenaryapp/awesome-rss-feeds` o
 (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
 **0** · `active_last_28d` **0** · `followers` **0** · `items_public` **83** · gross cash **AUD $0**,
 from *no billing exists*. Spend **AUD $0.00 of $500**, unchanged.
+
+## 2026-09-05 (run 138) — the counter that ships today, and the reading it invalidates in advance
+
+**One name is added and no number moves.** `landing_render` / `landing_render_bot` do not exist before
+this deploy, start at zero on it, and are not backfilled. **No claim about how many browsers have
+rendered `justtuned.com` before 2026-09-05 is available, and none may be made** — the page fired no
+such beacon, which is a statement about the code and not about traffic.
+
+**Why it exists, in the terms this file cares about.** `landing_engage` fires on the first
+`pointerdown`, `keydown` or `scroll`. Two of the three explanations [EXP-007](EXPERIMENTS.md) was
+built to separate — *the traffic is not human* and *real people arrive and the offer does not move
+them* — **produce the same near-zero reading against it**, so nineteen days of that reading did not
+discriminate between them. `landing_render` fires unconditionally at script execution, so it counts
+page loads a browser engine actually ran, and the pair (`landing_view`, `landing_render`) is the first
+ratio on this surface with a denominator that means something. [L-55](LESSONS.md).
+
+**What the new name is not, binding on every later run that quotes it.** It is **not a count of
+people.** A JS-executing crawler that declares itself lands in `landing_render_bot`; one that does not
+declare itself lands unsuffixed and is indistinguishable from a visitor. It is more discriminating
+than a user-agent string and weaker than proof of a human, and it is forgeable on the same one header
+as the other page-reported counters. **R = render ÷ view is a ratio of client populations**, and a
+high R is a bottleneck becoming visible, never demand.
+
+**The baseline is frozen here, before the counter exists**, from the committed scheduled snapshots.
+Complete UTC days 2026-08-07 … 2026-09-03: `landing_view` **1763** over 28 of 28 days,
+`landing_view_bot` **792**. Complete UTC days 2026-08-16 … 2026-09-03, the days on which every
+counter below existed: `landing_view` **1131** · `landing_engage` **7** on 5 of 19 days ·
+`landing_engage_bot` **4** · unsuffixed `application_start` **0** on 0 of 19 days ·
+`application_submit` **0** · `application_invalid` **0**. The pre-2026-08-15 zeros for the engage and
+start counters mean **the counter did not exist** and are excluded rather than counted as absence.
+
+**One first-party contamination path is named in advance so it cannot be discovered afterwards.**
+Playwright's default headless user-agent contains `headless` and matches `BOT_UA` in
+[`src/metrics.ts`](../src/metrics.ts), so this loop's own browser QA lands in `landing_render_bot` and
+leaves the unsuffixed name clean. **Overriding that user-agent on any spec inside the window fires
+[EXP-011](EXPERIMENTS.md) Fork R-E** and makes R a measurement of this loop looking at itself. That is
+[L-44](LESSONS.md)'s trap, registered before the number exists rather than after.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
+**0** · `active_last_28d` **0** · `followers` **0** · `items_public` **83** · gross cash **AUD $0**,
+from *no billing exists*. Spend **AUD $0.00 of $500**, unchanged.

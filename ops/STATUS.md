@@ -1,7 +1,20 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-08-31 20:25 Sydney (10:25 UTC), run 125 — **[OWNER ACTION REQUIRED](#owner-action-required):
-NONE.** **This site had never told a crawler anything, and one of the things it never said was "do not
+**Last updated:** 2026-09-05 08:20 Sydney (2026-09-04 22:20 UTC), run 138 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged and undeadlined** (submit `/sportstech` to `plenaryapp/awesome-rss-feeds`; packet at
+[SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md); not re-asked here, per
+[L-07](LESSONS.md)). **The claim that has steered nineteen days of work rests on a counter that cannot
+test it.** `landing_engage` requires the visitor to scroll, click or type, so *"nobody real is
+arriving"* and *"real people arrive and leave"* produce the identical near-zero reading — 7 engages
+against 1131 landing views over 19 complete days, with unsuffixed `application_start` never written
+once. **`landing_render`** (run 138, [EXP-011](EXPERIMENTS.md), pre-registered before the counter
+existed) fires at script execution and asks nothing of the visitor, so it separates *a browser
+rendered this* from *something fetched this*; **R = render ÷ view over 2026-09-05 … 2026-09-18** either
+upholds the standing claim on measurement or contradicts it. **Deliberately not done this run: the
+`ooh-directory` arrival tag.** Run 137 named it next; the run-57 decision declining it on
+[L-33](LESSONS.md) ordering stands, because reversing it would have been the **second** condition
+weakened in two runs, both blocking the same unmakeable submission — see [L-55](LESSONS.md).
+**Previously, run 125 —** **This site had never told a crawler anything, and one of the things it never said was "do not
 index this token."** No reviewer directive was outstanding — run 124 discharged the
 [`09:35:07Z` one](https://github.com/in-c0/tuned/issues/1#issuecomment-5476488001), whose own stop clause
 released `robots.txt`/sitemap work the moment the run-lock guard existed. **Lock claimed first**, cycle
@@ -1719,6 +1732,24 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
 
 ## Current experiment
 
+- **EXP-011 — is `landing_view` a browser at all? OPEN. Pre-registered 2026-09-04 22:20 UTC (run
+  138), before the counter existed. Reading due on the complete UTC day 2026-09-18.** EXP-007 named
+  three explanations for the zero and shipped counters to separate them; nineteen complete days later
+  **only explanation 3 is excluded** — unsuffixed `application_start` has never been written, so no
+  form defect can be the cause. Explanations 1 (*the traffic is not human*) and 2 (*people arrive and
+  the offer does not move them*) both predict the same near-zero `landing_engage`, because that
+  counter fires on `pointerdown`/`keydown`/`scroll` and **requires the visitor to do something**. So
+  the standing claim *"the landing page is not the bottleneck, distribution is"* has directed
+  nineteen days of work from a counter that cannot tell the world where it is true from the world
+  where it is false. `landing_render` fires unconditionally at script execution, which separates
+  *a browser rendered this page* from *something requested this URL*; **R = `landing_render` ÷
+  `landing_view`** over 2026-09-05 … 2026-09-18 grades **R-A (< 10%, claim upheld and upgraded)**,
+  **R-B (≥ 40%, claim contradicted — the page is the bottleneck)**, **R-C (mixed)**, **R-D (beacon
+  never landed — nothing graded)**, **R-E (contaminated by a first-party non-`headless` UA)**. R is a
+  ratio of *client populations*, never a number of people, and a high R is not demand. Stop
+  conditions bind this loop for fourteen days: **the landing page's copy, layout, offer and form must
+  not change inside the window**, `landing_render` must not be fired from any other page, and there is
+  no second reading. See [EXPERIMENTS.md](EXPERIMENTS.md).
 - **EXP-007 — is there a human on the other side of the landing page? GRADED / CLOSED — FORK A
   (run 51).** Complete UTC day **2026-08-16**: `landing_view` **50**, `landing_engage` **0**,
   `application_start` **0**, `application_invalid` **0**, from the scheduled snapshot `generated_at`

@@ -2056,3 +2056,53 @@ this register has ever quoted** (30 days against `ooh.directory`'s *"couple of m
 executor gains nothing** — A0 and A2 still make the act unmakeable by it, so the change transfers an
 ability to the owner and none to the loop. **When you loosen your own constraint, the test of good
 faith is whether it hands you the thing you wanted.** Here it does not.
+
+---
+
+## L-55 — a counter that cannot separate two explanations was read for nineteen days as though it had (2026-09-05, run 138)
+
+[EXP-007](EXPERIMENTS.md) was pre-registered honestly. It named three explanations for **0
+applications** against 50–113 daily landing views, said no counter could then tell them apart, and
+shipped two counters to do it. That is the right shape and it is exactly what this loop is supposed to
+do.
+
+**It shipped the wrong instrument for two of the three, and nothing caught it for nineteen days.**
+
+| Explanation | What `landing_engage` reads if it is true |
+| --- | --- |
+| 1. the traffic is not human | ~0 — a scanner with a Chrome UA never scrolls |
+| 2. real people arrive and the offer does not move them | ~0 — a person who reads a short page and leaves never scrolls either |
+| 3. the form loses them | non-zero engage, zero submit |
+
+`landing_engage` fires on the first `pointerdown`, `keydown` or `scroll`. **It resolved explanation
+3 and left 1 and 2 exactly as entangled as they were before it existed** — and 3 was the cheapest of
+the three to have excluded by other means, because `application_start` already answered it.
+
+The reading came back **7 engages against 1131 views** and was recorded as **Fork A — the denominator
+is not human**, which is explanation 1. Nothing distinguished it from explanation 2. That grade became
+[NORTH_STAR](NORTH_STAR.md)'s *"the landing page is not the bottleneck, distribution is"*, which then
+directed every run for nineteen days — into a distribution register, five admissibility conditions,
+four expired windows and two venues, none of which produced a user.
+
+**The generalisable error is not "we picked a bad counter."** It is that the pre-registration checked
+its forks against *the counter's possible readings* and never against *the explanations it was built to
+separate*. Fork A and Fork B were distinguishable from each other on paper; explanations 1 and 2 were
+not distinguishable by the instrument at all, and no fork said so.
+
+**Lesson.** For each explanation you claim to be separating, write down **the reading this instrument
+gives if that explanation is true.** If two explanations produce the same row, the instrument does not
+separate them — however many exclusive forks the thresholds have. Do it as a table, before the deploy,
+because the forks will look exclusive when the *world states behind them* are not.
+
+**Prevention check, phrased so it cannot be answered by restating the forks:** *name the explanation
+that would be wrongly convicted if the reading came back at the low end.* If you cannot name one, the
+instrument is not discriminating — it is confirming. Here the wrongly-convicted explanation was
+"people arrive and the offer does not move them", and convicting it cost nineteen days.
+
+**And the second-order one, which is why this is filed as a lesson about instruments rather than about
+the landing page.** The loop has now spent four runs correcting the *shape* of its own instruments
+([L-44](#l-44), [L-46](#l-46), [L-53](#l-53), [L-54](#l-54)) and this is the fifth. Every one was
+found by asking what the instrument does when the thing it measures is *absent*. That question is
+cheap, it is available before any deploy, and it is not the question a pre-registration naturally
+asks — pre-registration asks *what will I conclude from each value*, which presumes the values mean
+what you think.

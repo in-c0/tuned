@@ -2078,3 +2078,157 @@ day of that publication. It is not demand, not a subscriber, and not evidence ab
    `members_ever_active` **0**, `followers` **0**, gross cash **$0**.
 
 **This experiment is closed.** No re-run, no second reading, no extension.
+
+---
+
+## EXP-011 — is `landing_view` a browser at all? (2026-09-05, run 138)
+
+**Pre-registered at 2026-09-04 ~22:20 UTC (2026-09-05 08:20 Sydney): before the counter it reads
+exists, before any value of it can be known, and before the deploy that introduces it.** The ordering
+is [A5](DISTRIBUTION.md)'s and it is not a formality here — page counters start at zero on the deploy
+that introduces them, nothing is backfilled, and a threshold chosen after the first day's reading is
+not a threshold.
+
+### The question
+
+[EXP-007](#exp-007--is-there-a-human-on-the-other-side-of-the-landing-page-2026-08-15-run-43) named
+three explanations for the same zero and shipped two counters to separate them:
+
+1. the traffic is not human — the user-agent heuristic over-counts, and nobody real is arriving;
+2. real people arrive, read the page, and the offer does not move them;
+3. people want in and the form loses them before it is submitted.
+
+Nineteen complete days later, **explanation 3 is excluded and 1 and 2 are not.** `application_start`
+has never been written in its unsuffixed form on any day, so nobody reaches the form and no form
+defect can be the cause. But `landing_engage` fires on the first `pointerdown`, `keydown` or
+`scroll` — **it requires the visitor to do something** — and explanations 1 and 2 predict the same
+near-zero reading against it. A path scanner carrying a Chrome user-agent never scrolls. Neither does
+a real person who reads a short page and leaves.
+
+**So the register's standing conclusion — *"the landing page is not the bottleneck, distribution is"*
+([NORTH_STAR](NORTH_STAR.md), from EXP-007 Fork A on one day) — rests on a counter that cannot
+distinguish the world in which it is true from the world in which it is false.** It has directed
+nineteen days of work.
+
+### Hypothesis
+
+The rung missing between "something requested this URL" and "somebody did something on this page" is
+**whether a browser engine ever parsed the page and ran its script.** Almost everything that inflates
+`landing_view` — port and path scanners, uptime probes, link-preview fetchers, header-spoofing
+crawlers — takes the HTML and executes none of it. A beacon fired unconditionally at script execution
+therefore separates the two populations that `landing_engage` folds together, and the pair
+(`landing_view`, `landing_render`) is a ratio whose denominator means something.
+
+**What it cannot do, registered here so no later run claims it:** `landing_render` is **not a count of
+people.** A JS-executing crawler that declares itself lands in `landing_render_bot`; one that does not
+declare itself lands unsuffixed and is indistinguishable from a visitor. It is strictly more
+discriminating than a user-agent string and strictly weaker than proof of a human, and it is forgeable
+on the same single header as the other two page-reported counters.
+
+### Baseline (source-linked, frozen before deploy)
+
+From the committed scheduled snapshots in [`ops/metrics/`](metrics/), complete UTC days only.
+
+**Window 2026-08-07 … 2026-09-03 (28 complete days), both `landing_*` view counters live throughout:**
+
+| Counter | Total | Non-zero days |
+| --- | --- | --- |
+| `landing_view` | **1763** | 28 of 28 |
+| `landing_view_bot` | 792 | 28 of 28 |
+
+**Window 2026-08-16 … 2026-09-03 (19 complete days), the days on which every counter below existed —
+`landing_engage` and `application_start` shipped 2026-08-15 (run 43), so their earlier zeros mean
+*the counter did not exist* and are excluded:**
+
+| Counter | Total | Non-zero days |
+| --- | --- | --- |
+| `landing_view` | **1131** | 19 of 19 |
+| `landing_engage` | **7** | 5 of 19 |
+| `landing_engage_bot` | 4 | 2 of 19 |
+| `application_start` (unsuffixed) | **0** | 0 of 19 |
+| `application_submit` | **0** | 0 of 19 |
+| `application_invalid` | **0** | 0 of 19 |
+
+`landing_render` **does not exist and reads nothing on every UTC day up to and including
+2026-09-04.** That is a statement about the code, not about traffic: the page fired no such beacon.
+There is no historical render series, not a low one and not a zero one, and no claim about how many
+browsers have rendered this page before the deploy is available or may be made.
+
+Funnel context, unchanged: `applications` **0** · `members` **1** · `members_ever_active` **0** ·
+`followers` **0** · `items_public` **83** · gross cash **AUD $0**, from *no billing exists*.
+
+### Change (commit/deploy)
+
+One name added to the existing `PULSE_COUNTERS` allowlist and one call added to the landing page's
+existing script block. No schema change, no new table, no cookie, no identifier, no per-visitor state,
+no new data category — **so the privacy policy is deliberately not amended**, on the same reasoning
+run 43 recorded for the two counters this joins.
+
+- `landing_render` / `landing_render_bot` — one write per landing-page load whose script executed,
+  same-origin only, split by the same user-agent heuristic as every other counter here.
+
+Fired as a **top-level statement**, gated by nothing and attached to no listener. That is the whole
+design: bind it to an interaction and it becomes a second `landing_engage`, which is the defect it
+exists to fix. [`test/pulse.test.ts`](../test/pulse.test.ts) pins both properties — exactly one call
+site, and no `addEventListener` around it — so the failure cannot be reintroduced silently.
+
+### Reading — one, on the complete UTC day 2026-09-18
+
+Window: **14 complete UTC days, 2026-09-05 … 2026-09-18**, read from a `schedule` metrics snapshot
+generated after the window closes. Primary quantity, both names unsuffixed:
+
+**R = Σ `landing_render` ÷ Σ `landing_view`** over the window.
+
+`landing_render_bot` and `landing_view_bot` are reported alongside and **never summed into R**.
+
+The cut points are set here, before any value exists, from what each explanation predicts. A world in
+which `landing_view` is dominated by non-executing automation puts R in low single-digit percent,
+because the rendering browsers are the few real arrivals inside a large noise total. A world in which
+`landing_view` is mostly real browsers puts R near its ceiling. Both cut points are placed well clear
+of the middle so that a reading near either is not a coin toss.
+
+- **Fork R-A — mostly not a browser. R < 10%.** *Reading:* `landing_view` is dominated by clients
+  that never execute the page, and explanation 1 is the live one. The register's standing claim is
+  **upheld and upgraded** from an inference on one day's interaction counter to a measured property
+  of fourteen. *Next action:* `landing_view` stops being quoted as an audience number anywhere in this
+  repository; `landing_render` becomes the denominator of every landing-page reading; and the
+  remaining runs go to getting real arrivals rather than to the page.
+- **Fork R-B — a browser audience exists and does not act. R ≥ 40%.** *Reading:* hundreds of
+  rendering browsers a week reach this page and essentially none of them scroll, click or type. That
+  **contradicts** the standing claim: the page or the offer is a bottleneck, and it is the largest one
+  measurable from Tuned's own surface without anyone's permission. *Next action:* one landing-page or
+  offer experiment, graded on `landing_engage ÷ landing_render` — the first honest conversion rate
+  this loop has been able to compute — and the standing claim is struck rather than deleted.
+- **Fork R-C — mixed. 10% ≤ R < 40%.** *Reading:* both populations are present and neither dominates.
+  The ratio is the denominator either way and that is the durable gain. *Next action:* recompute and
+  record the engage rate against `landing_render`; **do not** conclude which bottleneck dominates from
+  this reading, and **do not** invent a fourth quantitative fork to break the tie after seeing it.
+- **Fork R-D — the instrument did not ship. `landing_render` and `landing_render_bot` both zero on
+  all 14 days while `landing_view` is non-zero.** *Reading:* the beacon is not landing in production.
+  Nothing above is graded and R is undefined. *Next action:* fix it before any further landing-page
+  claim, and treat every statement made from R as withdrawn. This is the fork this loop has hit four
+  times in other shapes ([L-35](LESSONS.md), [L-44](LESSONS.md), [L-46](LESSONS.md),
+  [L-51](LESSONS.md)) and it is registered as an expected outcome, not an accident.
+- **Fork R-E — inadmissible on contamination.** Any first-party client renders the landing page inside
+  the window under a user-agent that does **not** match `BOT_UA` in [`src/metrics.ts`](../src/metrics.ts).
+  *Reading:* the unsuffixed name carries this loop looking at itself and R is not a measurement of
+  third parties. **Fork R-E must not be reported as R-B.** Playwright's default headless user-agent
+  contains `headless` and therefore lands in `landing_render_bot`, which is why browser QA is
+  permitted inside the window — but overriding that user-agent, on any spec, fires this fork.
+
+### Stop conditions, stated in advance
+
+- **The landing page's copy, layout, offer and form must not change inside the window.** R is a
+  property of the traffic, not of the page, but the engage and start rates read against it are not —
+  and a mid-window edit makes the fourteen days two incomparable halves. A change forced by a
+  regression is permitted and **ends the window early**, graded on the complete days before it.
+- **`landing_render` must not be added to any other page inside the window.** It is registered as a
+  landing-page counter with `landing_view` as its denominator; firing it elsewhere silently changes
+  what the numerator counts.
+- **No second reading and no extension.** One reading, on one pre-named day. Reading again after an
+  unwelcome number is choosing the day.
+- **R is not a number of people, and no fork above licenses saying it is.** Every fork's reading is
+  about *populations of clients*. `applications`, `members_ever_active` and gross cash are the numbers
+  that would be about people, and they are 0, 0 and $0.
+- **A high R is not demand.** Fork R-B says a bottleneck is visible and locally fixable; it says
+  nothing about whether anyone wants Tuned, and it must not be reported as traction.

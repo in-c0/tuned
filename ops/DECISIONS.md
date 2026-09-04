@@ -4258,3 +4258,51 @@ data-handling or user-facing surface is touched in either direction, and nothing
 submitted that a revert would have to undo.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+---
+
+## 2026-09-05 (run 138) — the instrument that could not separate what it was built to separate
+
+Lock claimed before any action: cycle `2026-09-05/w08`, holder `vm:1988`, nonce `7d8cce60`, at
+`2026-09-04T22:05Z`. No reviewer directive outstanding — the latest issue-#1 comment is run 137's own
+execution report.
+
+- **Decision: build the missing rung in the landing funnel, and do it before anything else that
+  depends on knowing which explanation is live.** `landing_engage` requires the visitor to scroll,
+  click or type, so *"the traffic is not human"* and *"real people arrive and the offer does not move
+  them"* produce an identical near-zero reading against it. Nineteen complete days of data
+  (`landing_view` **1131**, `landing_engage` **7**, unsuffixed `application_start` **0**) were graded
+  as the first of those and became the standing claim that has directed every run since. See
+  [L-55](LESSONS.md). `landing_render` fires unconditionally at script execution and separates them;
+  [EXP-011](EXPERIMENTS.md) is pre-registered before the counter exists, with the reading due on the
+  complete UTC day **2026-09-18**.
+- **Decision: fire it as a top-level statement, never from a listener, and pin that in tests.** The
+  entire value of the counter is that it asks nothing of the visitor. Attached to any event it
+  degrades silently into a second `landing_engage` — the same failure, one layer out.
+  [`test/pulse.test.ts`](../test/pulse.test.ts) asserts exactly one call site and no
+  `addEventListener` around it.
+- **Decision: do NOT allowlist an `ooh-directory` arrival tag this run, reversing run 137's stated
+  next candidate and leaving the run-57 decision in force.** Run 137 named it *"the next
+  executor-actionable step"*; the run-57 decision declined it on [L-33](LESSONS.md) ordering with A2
+  unanswered. There is a real argument that L-33 does not cover A2 — it orders *venue-permission*
+  checks, and A2 is an owner authorship decision that was equally open at `awesome-rss-feeds` when
+  EXP-009 registered its tag. **That argument is not acted on, and the reason is the pattern rather
+  than the merits.** Run 137 relaxed A4; relaxing the run-57 ordering here would be the **second**
+  condition weakened in two consecutive runs, both blocking the same submission, which A0 makes
+  unmakeable by this executor and which the owner has not executed in fifteen days with authorization
+  already granted. Run 137's own bound applies — *when you loosen your own constraint, the test of good
+  faith is whether it hands you the thing you wanted* — and here it would. The instrument is also not
+  the binding constraint at that venue: A2 is, and A2 is not the executor's to answer. If a reviewer
+  or the owner settles A2, the tag is a one-line change and this decision is cheap to reverse.
+- **Decision: do not re-ask for the `awesome-rss-feeds` submission.** The card stands, undeadlined,
+  in [STATUS.md](STATUS.md) and [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md).
+  [L-07](LESSONS.md) and NORTH_STAR rule 6 forbid re-describing an unchanged blocker; run 137
+  escalated it once and stood down, and this run stands down with it.
+- **Decision: bind the next fourteen days.** EXP-011's stop conditions forbid changing the landing
+  page's copy, layout, offer or form inside the window, and forbid firing `landing_render` from any
+  other page. This is a real constraint on runs 139–~180 and is recorded here so no later run has to
+  discover it in the experiment file.
+- **Privacy policy deliberately not amended**, on run 43's recorded reasoning: no schema change, no
+  new table, no cookie, no identifier, no per-visitor state and no new data category. The public
+  `/api/metrics` note is extended to describe the new name and what it is not.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
