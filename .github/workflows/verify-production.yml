@@ -185,6 +185,46 @@ jobs:
           esac
           echo "Unauthenticated \`POST /api/pulse/landing_engage\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
 
+      # EXP-011's Fork R-D is "the beacon never landed in production", and it is registered as
+      # an expected outcome because this loop has shipped four instruments that silently wrote
+      # nothing (L-35, L-44, L-46, L-51). Every one of them was found *after* a window closed,
+      # by which time the days were spent and unrecoverable — counters do not backfill.
+      #
+      # So the two halves are asserted here, on every push, against the document justtuned.com
+      # actually serves: the route accepts the name (404 = not allowlisted, and R is undefined
+      # for fourteen days before anyone notices), and the landing page still ships the call
+      # (present = the numerator can be written; absent = the route is fine and no browser will
+      # ever reach it, which reads identically to nobody arriving).
+      #
+      # The route half sends NO Origin and therefore cannot increment anything: 403 is the pass,
+      # exactly as for landing_engage above. A 404 here distinguishes "not deployed" from
+      # "deployed and refusing", which is the whole point — an unallowlisted name 404s.
+      - name: EXP-011 render beacon is deployed and reachable from the page
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh post "${BASE}/api/pulse/landing_render")
+          case "$code" in
+            403) echo "/api/pulse/landing_render with no Origin: HTTP 403 — allowlisted, and refusing a caller that is not the page." ;;
+            404)
+              echo "::error::/api/pulse/landing_render returned 404 — landing_render is not on the allowlist in production. EXP-011 would grade Fork R-D on an absence. Roll back."
+              exit 1 ;;
+            204)
+              echo "::error::/api/pulse/landing_render accepted a POST with NO Origin — the same-origin guard is gone. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::/api/pulse/landing_render returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          code=$(scripts/prod-http.sh get "${BASE}/" /tmp/landing.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/ returned HTTP $code"; exit 1; }
+          grep -q 'pulse("landing_render")' /tmp/landing.html || {
+            echo "::error::the landing page no longer fires landing_render — the route is live and nothing will ever call it. EXP-011's numerator is unwritable. Roll back."
+            exit 1
+          }
+          echo "Landing page ships \`pulse(\"landing_render\")\`; route answers 403 unauthenticated." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Public pages still render
         env:
           BASE: ${{ steps.vantage.outputs.base }}
