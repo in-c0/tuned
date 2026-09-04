@@ -80,6 +80,22 @@ describe("the pulse route records what it claims to", () => {
     expect(await counterFor("landing_engage")).toBeNull();
   });
 
+  it("counts landing_render, the one pulse that asks nothing of the visitor", async () => {
+    const res = await pulse("landing_render", { origin: ORIGIN, "user-agent": HUMAN_UA });
+
+    expect(res.status).toBe(204);
+    expect(await counterFor("landing_render")).toBe(1);
+  });
+
+  it("splits a self-declaring crawler out of landing_render too", async () => {
+    // Googlebot renders JavaScript. If it landed in the unsuffixed name, the ratio this
+    // counter exists to produce would read as browsers on the first crawl after deploy.
+    await pulse("landing_render", { origin: ORIGIN, "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1)" });
+
+    expect(await counterFor("landing_render_bot")).toBe(1);
+    expect(await counterFor("landing_render")).toBeNull();
+  });
+
   it("accumulates repeat pulses rather than overwriting them", async () => {
     await pulse("landing_engage", { origin: ORIGIN, "user-agent": HUMAN_UA });
     await pulse("landing_engage", { origin: ORIGIN, "user-agent": HUMAN_UA });
@@ -168,11 +184,18 @@ describe("the landing page actually fires the pulses", () => {
     const html = await res.text();
 
     expect(html).toContain('/api/pulse/');
+    expect(html).toContain('pulse("landing_render")');
     expect(html).toContain('pulse("landing_engage")');
     expect(html).toContain('pulse("application_start")');
     // One shot each: the guards are what make these page-loads rather than event counts.
     expect(html).toContain("if (engaged) return;");
     expect(html).toContain("if (started) return;");
+    // landing_render is the exception and must stay one: it is a top-level statement, gated
+    // by nothing and attached to no listener, because the event it reports is "this script
+    // ran". Bind it to an interaction and it becomes a second landing_engage — which is the
+    // exact defect it was built to fix.
+    expect(html).not.toMatch(/addEventListener\([^)]*landing_render/);
+    expect(html.match(/pulse\("landing_render"\)/g)).toHaveLength(1);
     // No cookie, no identifier, nothing persisted client-side. The privacy policy says the
     // site stores only small UI preferences in the browser; this must not change that.
     expect(html).not.toContain("localStorage.setItem(\"pulse");

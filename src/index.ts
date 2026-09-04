@@ -133,13 +133,39 @@ app.post("/waitlist", async (c) => {
 // this page is measurable. These two counters — plus `application_invalid` below — separate
 // them. See EXP-007 in ops/EXPERIMENTS.md for the pre-registered reading.
 //
-// Deliberately bounded: an allowlist of exactly two names, no request body, no response
+// Deliberately bounded: a short allowlist of names, no request body, no response
 // body, no cookie, no identifier of any kind, no per-visitor state. Same-origin only, which
 // stops casual inflation but is forgeable by anyone willing to set one header — these are
 // page-reported counters, and the snapshot's own note says so rather than implying proof.
 // Nothing here changes what the privacy policy already describes: no new data category is
 // collected and nothing is stored in the visitor's browser.
-const PULSE_COUNTERS = new Set(["landing_engage", "application_start"]);
+//
+// `landing_render` was added at run 138, and the reason is that after nineteen complete days
+// the three explanations above are **still** not separated — because the counter built to
+// separate them cannot. `landing_engage` fires on the first pointerdown, keydown or scroll,
+// so it requires a visitor to *do* something. Explanations 1 and 2 both produce a near-zero
+// reading against it: a headless scanner carrying a Chrome user-agent never scrolls, and
+// neither does a real person who reads a short page and leaves. Over the complete UTC days
+// 2026-08-16 … 2026-09-03, on which every counter here existed, that is exactly what
+// happened — `landing_view` 1131, `landing_engage` 7 on 5 of 19 days, unsuffixed
+// `application_start` never written at all — and the register has been reading that as
+// "the landing page is not the bottleneck, distribution is" on an inference the numbers do
+// not license. Explanation 3 *is* excluded, by application_start rather than by engage.
+//
+// The missing rung is not another interaction. It is **whether a browser engine ever parsed
+// this page and ran its script.** Almost everything that inflates `landing_view` — port and
+// path scanners, uptime probes, link-preview fetchers, header-spoofing crawlers — takes the
+// HTML and executes none of it. So `landing_render` fires once per page load at script
+// execution, unconditionally, and the pair (`landing_view`, `landing_render`) is a ratio
+// whose denominator means something: it is the share of UA-flagged human-shaped requests
+// that were a rendering browser at all.
+//
+// What it is not, stated here so no later run has to infer it: **it is not a person.** A
+// JS-executing crawler that declares itself lands in `landing_render_bot`; one that does not
+// declare itself lands unsuffixed and is indistinguishable from a visitor. It is strictly
+// more discriminating than a user-agent string and strictly weaker than proof of a human,
+// and it is forgeable on the same one header as the other two. See EXP-011.
+const PULSE_COUNTERS = new Set(["landing_render", "landing_engage", "application_start"]);
 app.post("/api/pulse/:name", (c) => {
   const name = c.req.param("name");
   if (!PULSE_COUNTERS.has(name)) return c.body(null, 404);

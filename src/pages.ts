@@ -860,6 +860,11 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
   // something behaving like a person, and did that reach the application form. No cookie,
   // no identifier, nothing stored in the browser.
   const pulse = (n) => { fetch("/api/pulse/" + n, { method: "POST", keepalive: true }).catch(() => {}); };
+  // Fired unconditionally, once per page load, at script execution — the one signal here that
+  // asks nothing of the visitor. Its whole job is to be the denominator "landing_engage" never
+  // had: something that requested this URL without running any of it is not counted, and a
+  // browser that rendered the page is, whether or not anyone touched it. See EXP-011.
+  pulse("landing_render");
   let engaged = false, started = false;
   const engage = () => {
     if (engaged) return;
