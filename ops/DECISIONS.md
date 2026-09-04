@@ -4196,3 +4196,65 @@ days left in the window, the next run's action should be aimed at real demand, n
 apparatus around it.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**
+
+## 2026-09-04 (run 137) — A4 was measuring the wrong instant for directories; the four-lapse failure mode is removed at its cause
+
+**Context.** The [2026-09-01 directive](https://github.com/in-c0/tuned/issues/1#issuecomment-5500720093)
+is **fully discharged**: all four acceptance criteria are met, the last of them by run 136's EXP-010
+grading. No reviewer directive is outstanding, and its stop clause — *"do not alter controls,
+thresholds, tags, schedules, funnel, billing, or distribution **before the reading**"* — expired with
+the reading. Lock claimed before any action: cycle `2026-09-04/w20`, holder `vm:3750`, nonce
+`3b9b36d8`, at `2026-09-04T10:08Z`.
+
+**The problem selected, and why it outranks the alternatives.** Run 136 closed the last open
+measurement obligation and said the next action should aim at a real person rather than at the
+counters around them. Every path to a person is gated the same way: [EXP-007](EXPERIMENTS.md) Fork A
+graded the landing page out of scope (the denominator is not human, so page work is not a substitute
+for distribution), and every venue in [DISTRIBUTION.md](DISTRIBUTION.md) terminates at **A0** — this
+executor can perform no write at any third party. The one candidate with the owner's authorization on
+record, `awesome-rss-feeds`, has been unblocked on every condition but one since 2026-08-20. **The
+condition that closed it four times was this loop's own A4, not anything the venue did.**
+
+**Decision: split A4 by venue shape rather than restore it a fifth time.** Burst venues (Show HN,
+Reddit, Product Hunt, any social repost) keep the ≤ 72h point-in-time test **byte-unchanged** —
+their readers arrive at the moment of posting, so that reading is what the stranger sees. Durable
+listings (`awesome-rss-feeds`, `ooh.directory`) are graded on **cadence**: ≥ 1 public item in the
+trailing 30 days and ≥ 3 in the trailing 90, re-read from production in the submission's own cycle.
+Their entries are read for months, so an item's age on submission day predicts nothing about what any
+of those readers see. Full reasoning in [DISTRIBUTION.md](DISTRIBUTION.md); the generalisable form is
+[L-54](LESSONS.md).
+
+**Read from production this run, not from the record.**
+[agent operator 33861980480](https://github.com/in-c0/tuned/actions/runs/33861980480),
+`2026-09-04T10:10:59Z`, HTTP 200: `@sportstech public_items=15 operator_publications=4
+operator_publications_hidden=0 last_public_item_at=2026-08-28T04:14:13.569Z` — **7.25 days old.**
+Fails the burst test; passes the cadence test on four publications in the trailing 30 days.
+
+**Decision: publish nothing to restore A4, deliberately.** *"Publish something so the window
+reopens"* is freshness-as-motive, which run 106 already ruled out, and it would have been the fifth
+repetition of the act that failed four times. **No item was published, no venue was contacted, no
+`?src=` tag or threshold was touched, and no code was changed.**
+
+**Decision: state the self-serving reading rather than wait for it to be found.** A run that weakens
+the condition blocking its preferred candidate has done something whose *shape* is motivated
+reasoning. Three bounds distinguish it and each is checkable: the burst threshold is byte-unchanged;
+the replacement bar is **stricter** than the only venue rule this register has quoted
+(30 days against `ooh.directory`'s *"updated within the past couple of months"*, read 2026-08-19); and
+**this executor gains no ability whatever** — A0 and A2 leave the act unmakeable by it before and
+after. The change hands an ability to the owner and none to the loop, which is the strongest available
+evidence that it is a correction and not a convenience.
+
+**Owner ask, and why it is not a suppressed re-ask.** [NORTH_STAR](NORTH_STAR.md) rule 6 suppresses
+repeated reports of an *unchanged* blocker. The blocker has changed materially: the ask was *"two
+minutes of account access inside 72 hours"* and is now *"two minutes, whenever"*, with the field
+values prepared verbatim in [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md) so it
+is a paste rather than a research task. **No new decision is requested** — the owner's `A` of
+2026-08-20 15:04 UTC already covers it.
+
+**Rollback.** Documentation only, five ops files. Reverting the commit restores A4's single 72h
+threshold, returns both durable-listing rows to **A4 ❌ expired**, and re-pauses the
+`awesome-rss-feeds` candidate. No runtime, route, schema, counter, tag, threshold, workflow, secret,
+data-handling or user-facing surface is touched in either direction, and nothing was published or
+submitted that a revert would have to undo.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of the $500 cap.**

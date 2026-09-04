@@ -1114,7 +1114,24 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **NONE.**
+### **ONE, and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
+
+**Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.**
+Field values, both paths, and what must not go in it:
+**[ops/SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md)**. It is a paste, not a
+research task.
+
+| | |
+| --- | --- |
+| **Is this a new decision?** | **No.** Your `A` of 2026-08-20 15:04 UTC already authorizes it and is not being re-asked. Nothing here needs a reply — only the act, or one comment retiring it. |
+| **Why the card is live again after four dead windows** | The condition that closed all four was **this loop's own A4**, not the venue. A4 tested *"newest public item ≤ 72h at the moment of posting"* — correct for Show HN, where readers arrive in one burst, and **pointed at the wrong instant for a directory**, whose entry is read for months. Run 137 split A4 by venue shape: burst unchanged, durable listings graded on **cadence** (≥ 1 item in 30 days, ≥ 3 in 90). `/sportstech` passes on 4 publications in the trailing 30 days, read from production at [10:10:59Z](https://github.com/in-c0/tuned/actions/runs/33861980480). **There is no expiry instant any more, so there is no window to miss.** [L-54](LESSONS.md), [DISTRIBUTION.md](DISTRIBUTION.md). |
+| **What was deliberately not done to get here** | **Nothing was published to reopen a window.** That is freshness-as-motive, ruled out by run 106, and it would have been the fifth repetition of what failed four times. No item, no venue contact, no tag, no threshold, no code. |
+| **The one remaining blocker, and it is not yours to fix** | **A0** — this executor can perform no write at any third party, re-tested four times with a byte-identical refusal. The submission is *correct and unmakeable by the loop*. That was always the real blocker; A4's clock hid it behind a deadline for fifteen days. |
+| **If you would rather not** | One comment on [issue #1](https://github.com/in-c0/tuned/issues/1) saying so retires the card and the packet permanently. A decision either way is more useful than the card standing open. |
+
+---
+
+### Previously: **NONE.**
 
 **Retired 2026-08-31 04:14:13 UTC (14:14:13 Sydney) on the card's own clock, unanswered.** The
 submission it asked for needed **A4** — `/sportstech`'s newest public item ≤ 72h — and that window

@@ -2003,3 +2003,56 @@ someone could name. Nothing in this service observes an index, an impression or 
 of this class is a **precondition and never evidence** — L-51's ruling, unchanged. The test remains
 whether a named non-human reader is being told something wrong or nothing at all, on a surface that
 matters commercially.
+
+## L-54 — a threshold designed for one venue shape was applied to every venue, and it closed four windows the venues themselves never closed (2026-09-04, run 137)
+
+**What happened.** [A4](DISTRIBUTION.md) — *"the destination is not stale on arrival"* — was written
+from [L-18](#l-18), a landing page heading its demo *"Live demo — a real feed, right now"* above an
+item 11.3 days old. Its test: **the destination's newest public item ≤ 72 hours old at the moment of
+posting.** That test was then applied unchanged to every row of the candidate register, including two
+directories.
+
+Between 2026-08-21 and 2026-08-31 the `awesome-rss-feeds` candidate held **A1 partial · A2 ✅ · A3 ✅ ·
+A5 ✅** continuously, and A4 was restored and expired **four times**, unused, each window 72 hours wide
+(`2026-08-21T04:15:49Z`, `2026-08-24T09:35:56Z`, `2026-08-27T21:43:45Z`, `2026-08-31T04:14:13Z`).
+Run 107 diagnosed the sequencing — [L-50](#l-50), *"the window, not the card, is the thing with a
+clock"* — notified the owner out of band inside the fourth window, and the fourth window lapsed
+anyway. **The venue refused nothing at any point. It was never contacted.**
+
+**Why L-50's fix did not hold.** L-50 treated the 72-hour window as a fixed constraint and tried to
+make the owner's attention arrive inside it. That is optimising the schedulable side of an equation
+whose other side is not schedulable. The window was the thing that could be changed, and nobody looked
+at it because it was written down as a *standard*, and standards get satisfied rather than audited.
+
+**The defect, and it is not strictness.** A4's question is right and is unchanged: *is what the
+stranger sees actually current?* Its test read the destination **at the moment of posting**, which is
+a valid proxy for what the stranger sees only when the stranger arrives at that moment. On Show HN
+they do — the post is read in one window and falls off the feed. In a directory they do not: the entry
+persists and is read for months, mostly long after it lands, so **a 72-hour reading taken on
+submission day says nothing whatever about what the 400th reader sees three months later.** The test
+was not too tight for durable listings; it was pointed at an instant with no bearing on them. What
+predicts what those readers see is **cadence** — whether the feed keeps publishing.
+
+**The rule.** A threshold inherits the shape of the failure it was written from. Before reusing one,
+name **the mechanism by which the original failure happened** and check that the new case shares it.
+Here the mechanism was *a claim made on the destination is falsified when the reader looks*, and a
+directory entry makes no claim about the destination at all. **A test that has never once been
+satisfied by the case it is blocking, while every other condition passes, is evidence about the test.**
+Four consecutive expiries of the only unblocked condition is not the venue being difficult; it is a
+measurement pointed at the wrong instant.
+
+**The prevention check, phrased so it cannot be answered by restating the threshold.** For any
+pre-registered bar, ask: *when do the people this bar protects actually arrive, relative to the moment
+it is read?* If the answer is "much later, and spread out", a point-in-time bar is the wrong
+instrument regardless of the number in it. And ask it **before** reading the value, for the reason
+run 137 wrote into the procedure: a run that reads first can pick the test that gives it the answer it
+wants, and this run wanted a particular answer.
+
+**The half that keeps this honest, recorded because it is the obvious objection.** A run that relaxes
+the condition blocking its preferred candidate has done something indistinguishable in shape from
+motivated reasoning. Three bounds separate the two, and all three are checkable rather than asserted:
+the burst threshold is **byte-unchanged**; the replacement bar is **stricter than the only venue rule
+this register has ever quoted** (30 days against `ooh.directory`'s *"couple of months"*); and **the
+executor gains nothing** — A0 and A2 still make the act unmakeable by it, so the change transfers an
+ability to the owner and none to the loop. **When you loosen your own constraint, the test of good
+faith is whether it hands you the thing you wanted.** Here it does not.
