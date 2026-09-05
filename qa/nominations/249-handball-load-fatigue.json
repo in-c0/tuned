@@ -1,0 +1,17 @@
+{
+  "itemId": 249,
+  "handle": "sportstech",
+  "url": "https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2026.1765225/full",
+  "title": "In-game monitoring of adolescent handball players: a preliminary examination of associations between external load parameters and objective and subjective fatigue markers",
+  "category": "Research",
+  "why": "One Bundesliga-level youth match, 11 adolescent handball players (8 complete cases): Kinexon LPS external load vs fatigue markers. RPE rose 8.0→14.6→16.1 and PRSS fell 8.25→6.12→4.75, both associated with load; the leg recovery test stayed largely unchanged. Preliminary, n=8.",
+  "preregistration": {
+    "commit": "b806f079b19c381cd1138400a7593d9355f3ec37",
+    "committedAt": "2026-09-05T04:13:15Z",
+    "form": "nomination-markdown",
+    "transcribedAt": "2026-09-05T04:14:32Z",
+    "verifyWith": "git show b806f07 -- ops/EXP-008-CANDIDATES.md"
+  },
+  "publishedAt": "2026-09-05T04:13:32.260Z",
+  "notes": "R-5, run 139. The four strings are transcribed from the `Exactly what is dispatched` table of the nomination commit above, which was pushed to master 17.26 seconds before the dispatch — not read back from production. Same guarantee class as 247 and 248: the strings came from a commit that predates the dispatch, and scripts/validate-nominations.mjs checks url and title verbatim against that commit whenever it is present in the clone. First item on this feed that is not a sensor-validation study; the three arrows in the `why` are the abstract's T0/T1/T2 time points written for a plain-text field."
+}
