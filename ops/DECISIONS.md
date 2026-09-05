@@ -4377,3 +4377,50 @@ channel tag exercised anywhere; no landing, copy, pricing or positioning work; n
 no threshold, counter, schedule or workflow change.
 
 **Spend: AUD $0.00 of $500, unchanged.**
+
+## 2026-09-05 (evening) — run 140: restored the only check that can see EXP-011's numerator
+
+Lock claimed before any action: cycle `2026-09-05/w20`, holder `vm:2063`, nonce `583c42d1`, at
+`2026-09-05T10:06:20Z`.
+
+- **Decision: spend the run on instrument validity rather than on a sixth `@sportstech` selection
+  cycle.** Run 139 argued a sixth cycle would be repetition and named *nothing* as the next candidate
+  until 2026-09-18. The audit that followed found something better than nothing: the one check able to
+  observe [EXP-011](EXPERIMENTS.md)'s numerator firing in a real browser was **broken by the commit that
+  created the need for it**. `qa/pulse-instrument.spec.mjs` asserted no pulse fires on a bare page load
+  and mirrored a two-name allowlist; run 138's `landing_render` contradicts both. `qa/` is
+  dispatch-only, so nothing ran it and nothing went red. [L-56](LESSONS.md).
+- **Why it outranked everything else admissible.** EXP-011 registers **Fork R-D — the beacon never
+  landed** as an expected outcome and, as written, R-D is discoverable **only on 2026-09-18**. Counters
+  do not backfill. With 30 days left in the window, a silent emitter would have cost fourteen of them
+  and the loop would have learned it on the day it needed the answer.
+- **Decision: fix the validator, and add the CI-visible invariant that catches it going stale.**
+  `test/pulse.test.ts` now reads `src/index.ts` and `qa/pulse-instrument.spec.mjs` as text and fails
+  the build if the spec's allowlist mirror ever diverges from `PULSE_COUNTERS` again, or if the spec
+  stops waiting for the ungated beacon. Neither guard runs a browser; both run on every push. Three
+  mutations were introduced to prove they bite, and all three were refused.
+- **Decision: touch no file under `src/`.** The Worker source is byte-identical across this deploy,
+  so EXP-011's window is not disturbed and there is nothing about the page for the fourteen days to be
+  inconsistent about.
+- **Decision: do NOT hoist `pulse("landing_render")` to the top of the inline script, though it
+  should be there.** It is a top-level statement but not the first one — about fifteen lines of DOM
+  decoration precede it, and a throw in any of them suppresses the beacon while `landing_view` still
+  increments, **biasing R down, toward Fork R-A, the claim this loop already holds.** That is the
+  second self-confirming bias disclosed on this experiment, after run 139's content-diffing crawler.
+  The fix is two lines and was declined because the stop conditions freeze the page and a mid-window
+  emitter edit makes the fourteen days two incomparable halves. **Measured instead:** the browser check
+  reports `page_errors: []` on the build now serving, so the hazard is not firing. **Registered
+  trigger:** any page error preceding the render pulse in any bracket inside the window means hoist
+  immediately and grade on the complete days before the edit.
+- **Registered cadence for the brackets:** once more inside the window, and once on 2026-09-19 before
+  the reading is recorded. A single pre-window check cannot see an emitter that detached in between —
+  the gap EXP-007's far-side bracket existed to close.
+- **First observation of the beacon, ever**
+  ([qa-browser 33959936807](https://github.com/in-c0/tuned/actions/runs/33959936807)): emitted on a
+  bare page load, **204**, `Origin: https://justtuned.com`, one-shot across two `Tab`s / a 600px
+  scroll / typing, no page errors, no console errors, form never submitted. Every increment landed in
+  the `_bot` names because the QA user-agent declares `HeadlessChrome`; the unsuffixed names R is
+  computed from were untouched. **Fork R-D is excluded at the emitter on day 1 of 14.**
+- **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+  `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
+  from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.

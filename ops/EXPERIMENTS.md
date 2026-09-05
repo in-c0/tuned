@@ -2263,3 +2263,68 @@ of the middle so that a reading near either is not a coin toss.
   that would be about people, and they are 0, 0 and $0.
 - **A high R is not demand.** Fork R-B says a bottleneck is visible and locally fixable; it says
   nothing about whether anyone wants Tuned, and it must not be reported as traction.
+
+### Instrument validity — addendum, run 140 (2026-09-05 20:10 Sydney)
+
+**Fork R-D is excluded at the emitter on day 1 of 14, and it was very nearly not discoverable until
+day 14.**
+
+This addendum changes **no threshold, no fork, no cut point, no window and no reading date.** It is a
+check on the apparatus, in the same shape as EXP-007's brackets, and it is recorded here because R-D
+is the one fork the experiment cannot recover from: counters do not backfill, so a beacon that never
+lands costs the whole window.
+
+**What was actually verified before this run.** Run 138's `verify production` step asserts that
+`POST /api/pulse/landing_render` answers **403** to a caller sending no `Origin` — proving the name is
+allowlisted — and that `GET /` returns HTML **containing the string** `pulse("landing_render")`. Both
+of those are equally true of a page whose script throws before reaching that line. Nothing anywhere
+had observed a browser engine execute it.
+
+**The check that could have has been broken since the counter shipped.**
+[`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs) asserted that **no** pulse fires on a
+bare page load, and mirrored a two-name allowlist. An unconditional beacon contradicts both. It is a
+`workflow_dispatch` suite, so it was never run and nothing went red. [L-56](LESSONS.md).
+
+**The observation, from a real Chromium against live production**
+([qa-browser 33959936807](https://github.com/in-c0/tuned/actions/runs/33959936807), spec
+`pulse-instrument.spec.mjs`, `10:11:07Z → 10:11:13Z`, production serving `1800bc8` per
+`/api/version`):
+
+| Assertion | Result |
+| --- | --- |
+| `landing_render` emitted on a **bare page load**, no interaction | **yes** |
+| Production's response to it | **204** |
+| `Origin` the browser attached | `https://justtuned.com` — the page's own, which is what the route requires |
+| One-shot across two `Tab`s, a 600px scroll and typing | **yes** — `landing_render_observed: 1` |
+| Interaction-gated pulses before any interaction | **none** |
+| `page_errors` | **`[]`** |
+| `console_errors` | **`[]`** |
+| Application form | typed into, **never submitted** |
+
+**Contamination: none, by construction.** The Playwright user-agent declares `HeadlessChrome`, so
+`src/metrics.ts` classifies every request this caused as bot traffic. The increments landed in
+`landing_view_bot`, `landing_render_bot`, `landing_engage_bot` and `application_start_bot` on
+2026-09-05, and **not one of them entered the unsuffixed names R is computed from.** This is the case
+the stop conditions expressly permit inside the window; **Fork R-E fires the moment that user-agent
+stops declaring `headless`, on any spec.**
+
+**What this does and does not establish.** It establishes that the emitter works — that a rendering
+browser reaching this page sends the beacon and production records it. It establishes **nothing about
+R**, which is a property of the traffic and is not readable before 2026-09-18. A low R after this
+check means *the arriving clients are not rendering browsers*; before this check it could also have
+meant *the beacon is broken*, and those two are no longer confusable.
+
+**The ordering hazard, disclosed rather than fixed.** `pulse("landing_render")` is a top-level
+statement but it is **not the first one**: roughly fifteen lines of DOM decoration run before it in the
+same inline script, and anything throwing there suppresses the beacon while `landing_view` still
+increments — biasing R **down, toward Fork R-A, the claim the loop already holds.** `page_errors: []`
+above is direct evidence the hazard is not firing on the build now serving. It was **deliberately not
+hoisted**: this experiment's stop conditions freeze the page, and an emitter edit mid-window splits the
+fourteen days into two incomparable halves. **Registered trigger, so no later run has to decide it
+fresh:** if any bracket inside the window reports a page error preceding the render pulse, hoist it
+immediately and grade EXP-011 on the complete days before the edit, under the regression clause above.
+
+**Cadence, registered now rather than chosen later:** dispatch this spec **once more inside the
+window** and **once after it closes on 2026-09-19, before the reading is recorded** — the far-side
+bracket EXP-007 needed, for the same reason. A single pre-window check cannot see an emitter that
+detached in between.

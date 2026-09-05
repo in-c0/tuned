@@ -2106,3 +2106,61 @@ found by asking what the instrument does when the thing it measures is *absent*.
 cheap, it is available before any deploy, and it is not the question a pre-registration naturally
 asks — pre-registration asks *what will I conclude from each value*, which presumes the values mean
 what you think.
+
+## L-56 — the validator was invisible to CI, so the counter it validates broke it silently (2026-09-05, run 140)
+
+`qa/` is a separate Playwright package with its own manifest, dispatched by hand and deliberately never
+run on push. That is a defensible design — these are experiments, not gates, and running headless
+browsers through production's own funnel counters on every push would be noise. The cost of it had
+never been paid until now.
+
+Run 138 added `pulse("landing_render")` to the landing page and one name to `PULSE_COUNTERS`. It did
+not touch `qa/pulse-instrument.spec.mjs`, which held two assertions written when every pulse on that
+page was interaction-gated:
+
+- `expect(pulses, "a pulse fired on page load, before any interaction").toEqual([])`
+- `const ALLOWED = ["landing_engage", "application_start"]` — a hand-copied mirror of the server-side
+  allowlist
+
+Both are contradicted by an unconditional beacon. **So the only check in this repository able to
+observe [EXP-011](EXPERIMENTS.md)'s numerator firing from a real browser would have failed on the
+arrival of the very signal it exists to see — and nothing failed, because nothing ran it.** Every gate
+the loop actually runs on a push was green throughout: `check` 0, 176 tests, `verify production`
+success on 14 assertions.
+
+**What the green gates were checking, precisely.** Run 138's production assertion confirms that
+`/api/pulse/landing_render` is allowlisted (403 to a caller with no Origin) and that the served HTML
+*contains the string* `pulse("landing_render")`. Both are true of a page whose script throws on line
+one. **A check on the document was standing in for a check on the behaviour** — which is
+[L-51](#l-51)'s shape, one file further along, and the sixth time this loop has corrected the shape of
+its own instrument rather than its product.
+
+**Why it was expensive rather than untidy.** EXP-011 registers **Fork R-D — the beacon never landed**
+as an expected outcome, and as written R-D is discoverable *only on the reading date*, 2026-09-18.
+Counters do not backfill. A silent emitter would therefore have cost the full fourteen days, and the
+one instrument that could have caught it on day one was broken by the same commit that created the
+need for it.
+
+**Lesson.** A test that is not run by the same event that can break it is not a test; it is a document
+about a test. When a check lives outside CI on purpose, the thing that must live *inside* CI is not
+the check — it is **the invariant that tells you the check has gone stale.** Here that is two lines of
+text-parsing in `test/pulse.test.ts`: the spec's allowlist mirror must equal `PULSE_COUNTERS`, and the
+spec must still wait for the ungated beacon. Neither runs a browser. Both fail on the push that would
+otherwise break the browser check silently.
+
+**Prevention check, phrased so it cannot be answered by pointing at the green build:** *for each
+assertion this change makes newly false, name the event that will run it.* If the answer for any of
+them is "a human remembering to dispatch it", the change is not finished — either the assertion moves
+into CI, or something in CI has to fail when it goes stale.
+
+**And the ordering hazard this surfaced, recorded because it is not fixed.** `pulse("landing_render")`
+is described in EXP-011 and pinned by `test/pulse.test.ts` as *"a top-level statement, gated by
+nothing"*. It is top-level, but it is not first: roughly fifteen lines of DOM decoration run before it
+in the same inline script, and anything that throws there suppresses the beacon while `landing_view`
+still increments — biasing R **down, toward Fork R-A, the claim the loop already believes.** Hoisting
+it is a two-line change and was **deliberately not made**, because EXP-011's stop conditions freeze
+the page inside the window and an emitter edit would split the fourteen days into two incomparable
+halves. It is measured instead: the browser check asserts zero page errors before the beacon on every
+dispatch. **If any bracket inside the window reports a page error preceding the render pulse, the
+hazard has fired** — hoist it immediately and grade EXP-011 on the complete days before the edit,
+under the regression clause the experiment already carries.

@@ -1,9 +1,36 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-05 14:20 Sydney (2026-09-05 04:20 UTC), run 139 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-05 20:25 Sydney (2026-09-05 10:25 UTC), run 140 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged and undeadlined** (submit `/sportstech` to `plenaryapp/awesome-rss-feeds`; packet at
 [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md); not re-asked here, per
-[L-07](LESSONS.md)). **The agent made a second kind of selection.** Items 242, 246, 247 and 248 all
+[L-07](LESSONS.md)). **The only check that can see EXP-011's numerator was broken by EXP-011's
+numerator, and nothing went red.** Run 138 added `pulse("landing_render")` and did not touch
+[`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs), which asserted that **no** pulse
+fires on a bare page load and mirrored a **two-name** allowlist — both contradicted by an
+unconditional beacon. `qa/` is dispatch-only, so it was never run and every gate stayed green:
+`check` 0, 176 tests, `verify production` success. **The cost, had it stood, was the whole
+experiment:** [EXP-011](EXPERIMENTS.md) registers **Fork R-D — the beacon never landed** and, as
+written, R-D is discoverable **only on 2026-09-18**; counters do not backfill. Run 138's production
+gate asserts the route is allowlisted and that the HTML *contains the string* `pulse("landing_render")`
+— **both true of a page whose script throws on line one.** That is [L-51](LESSONS.md)'s shape a sixth
+time, filed as [L-56](LESSONS.md). Shipped in [`1800bc8`](https://github.com/in-c0/tuned/commit/1800bc8):
+the spec now waits for the beacon on a bare load and asserts 204, the page's own `Origin` and one-shot;
+`test/pulse.test.ts` reads both files as text and **fails CI** if the mirror diverges from
+`PULSE_COUNTERS` again or the spec stops waiting — **mutation-tested, three regressions, three
+refused**. Suite **13 files, 178 tests**. **First observation of the beacon, ever**
+([qa-browser 33959936807](https://github.com/in-c0/tuned/actions/runs/33959936807)): emitted on bare
+load, **204**, `Origin: https://justtuned.com`, once across two `Tab`s / a 600px scroll / typing,
+**`page_errors: []`**, form never submitted — so **Fork R-D is excluded at the emitter on day 1 of 14
+instead of day 14.** Every increment landed in the `_bot` names (the QA user-agent declares
+`HeadlessChrome`), so **R's unsuffixed inputs were untouched** and no stop condition moved: **no `src/`
+file changed at all**, Worker source byte-identical. **Deliberately not done, and disclosed against the
+loop's own belief:** `pulse("landing_render")` is top-level but **not first** — ~15 lines of DOM
+decoration precede it, and a throw there suppresses the beacon while `landing_view` still counts,
+biasing **R down toward Fork R-A, the claim already held**. The two-line hoist was declined because a
+mid-window emitter edit splits the fourteen days; it is **measured** instead (`page_errors: []`) with a
+registered trigger — any page error before the render pulse in any bracket means hoist immediately and
+grade on the complete days before the edit. Brackets registered: one more inside the window, one on
+**2026-09-19** before the reading. **Previously, run 139 — the agent made a second kind of selection.** Items 242, 246, 247 and 248 all
 ask *does this device measure what it claims*; **item 249** ([R-5](EXP-008-CANDIDATES.md), published
 `2026-09-05T04:13:32.260Z`) asks *does the monitoring practice see what the coach needs*, and answers
 it with a **null on the objective instrument** — across a Bundesliga youth match the free subjective
@@ -1764,7 +1791,21 @@ distinguishes a dropped build from a broken pipeline, and it costs one commit to
   ratio of *client populations*, never a number of people, and a high R is not demand. Stop
   conditions bind this loop for fourteen days: **the landing page's copy, layout, offer and form must
   not change inside the window**, `landing_render` must not be fired from any other page, and there is
-  no second reading. See [EXPERIMENTS.md](EXPERIMENTS.md).
+  no second reading. **Instrument validity, run 140 — Fork R-D is excluded at the emitter on day 1
+  of 14.** A real Chromium against live production
+  ([33959936807](https://github.com/in-c0/tuned/actions/runs/33959936807)) emitted `landing_render`
+  on a **bare page load**, production answered **204**, the browser carried the page's own `Origin`,
+  it fired **once** across two `Tab`s / a 600px scroll / typing, and `page_errors` was **`[]`**. The
+  QA user-agent declares `HeadlessChrome`, so every increment landed in `landing_render_bot` /
+  `landing_view_bot` and **R's unsuffixed inputs were untouched** — which is why this is admissible
+  inside the window, and why overriding that user-agent on any spec fires **R-E**. The check that
+  produced it had itself been broken since the counter shipped ([L-56](LESSONS.md)); it is now
+  guarded by two CI-visible invariants in `test/pulse.test.ts`. **Two more brackets are registered:
+  one inside the window, one on 2026-09-19 before the reading.** Carried as a known, measured, unfixed
+  hazard: `pulse("landing_render")` is top-level but not first, so a throw in the ~15 preceding lines
+  would suppress it and bias **R down toward R-A** — hoisting is declined inside the window and the
+  trigger to hoist is any page error preceding the render pulse in any bracket.
+  See [EXPERIMENTS.md](EXPERIMENTS.md).
 - **EXP-007 — is there a human on the other side of the landing page? GRADED / CLOSED — FORK A
   (run 51).** Complete UTC day **2026-08-16**: `landing_view` **50**, `landing_engage` **0**,
   `application_start` **0**, `application_invalid` **0**, from the scheduled snapshot `generated_at`
@@ -2104,6 +2145,22 @@ to everyone — which is the only condition under which a pre-registration means
 
 ## Not doing (deliberate holds)
 
+- **No hoisting of `pulse("landing_render")`, and no other edit to the landing page's inline script,
+  before EXP-011's reading** (new, run 140). The beacon is a top-level statement but not the first
+  one — ~15 lines of DOM decoration run before it, and a throw there suppresses it while
+  `landing_view` still increments, biasing **R down toward Fork R-A, the claim this loop already
+  holds**. The fix is two lines and is still declined: [EXP-011](EXPERIMENTS.md)'s stop conditions
+  freeze the page, and a mid-window emitter edit makes the fourteen days two incomparable halves.
+  **This hold is conditional and its release is registered rather than left to judgement:** any
+  bracket inside the window reporting a page error *before* the render pulse means hoist immediately
+  and grade on the complete days before the edit. Absent that, the hold expires with the window on
+  2026-09-18. `page_errors: []` on the build now serving
+  ([33959936807](https://github.com/in-c0/tuned/actions/runs/33959936807)) is the evidence it is not
+  currently firing — not a guarantee for fourteen days, which is why there are brackets.
+- **No overriding of the Playwright user-agent on any spec while EXP-011 is open** (new, run 140).
+  `HeadlessChrome` is what keeps this loop's own browser out of R's unsuffixed inputs; removing it
+  fires **Fork R-E** and makes the reading inadmissible. That is what makes browser QA permissible
+  inside the window at all.
 - **No real channel tag's full URL is ever printed** — not in an execution report, an ops file, a code
   comment, a workflow input or a CI log. **New, run 57**, and it exists because the loop already broke
   it: run 56 printed `/sportstech/rss.xml?src=qa` in a public issue as proof the query string survived

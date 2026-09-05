@@ -1667,3 +1667,37 @@ complete UTC day the counter exists for, exactly as pre-registered.
 **1** (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** ·
 `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend
 this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+
+---
+
+## 2026-09-05 (evening), run 140 — `landing_render` observed emitting, and the increment it caused is this loop's own
+
+**The first observation anywhere that a browser emits `landing_render` and production accepts it**
+([qa-browser 33959936807](https://github.com/in-c0/tuned/actions/runs/33959936807), `10:11:07Z →
+10:11:13Z`, production serving `1800bc8`): emitted on a **bare page load** with no interaction, answered
+**204**, carrying `Origin: https://justtuned.com`, **once** across two `Tab` presses, a 600px scroll and
+a typed field — `page_errors: []`, `console_errors: []`, application form never submitted.
+
+Until this run, the strongest statement available was that the route is allowlisted and that the served
+HTML *contains the string* `pulse("landing_render")`. Both are true of a page whose script throws before
+reaching that line. [L-56](LESSONS.md).
+
+**Binding reading rule for the counter this caused, in the same shape as [L-44](LESSONS.md).** The
+Playwright user-agent declares `HeadlessChrome`, so every request the check made was bot-classified:
+the increments landed in **`landing_view_bot`, `landing_render_bot`, `landing_engage_bot` and
+`application_start_bot`** on 2026-09-05. **`landing_render_bot` therefore carries this loop looking at
+its own page and is not a third-party rendering browser** — read it as a liveness signal for the
+emitter and as nothing else. The unsuffixed `landing_render` and `landing_view` that
+[EXP-011](EXPERIMENTS.md) computes **R** from were **not touched by this run**, and R remains unreadable
+until the complete UTC day 2026-09-18.
+
+**Disclosed against the standing claim, because it biases toward it.** `pulse("landing_render")` is
+preceded in the same inline script by about fifteen lines of DOM decoration. A throw there suppresses
+the beacon while `landing_view` still increments, pushing **R down, toward Fork R-A** — the reading the
+loop already believes. `page_errors: []` above is evidence it is not happening on the build now serving;
+it is not a guarantee for the whole window, which is why the check is bracketed rather than run once.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
+**0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend this run **AUD
+$0.00**; running total **AUD $0.00 of $500**.
