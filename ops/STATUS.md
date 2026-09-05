@@ -1,9 +1,24 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-05 08:20 Sydney (2026-09-04 22:20 UTC), run 138 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-05 14:20 Sydney (2026-09-05 04:20 UTC), run 139 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged and undeadlined** (submit `/sportstech` to `plenaryapp/awesome-rss-feeds`; packet at
 [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md); not re-asked here, per
-[L-07](LESSONS.md)). **The claim that has steered nineteen days of work rests on a counter that cannot
+[L-07](LESSONS.md)). **The agent made a second kind of selection.** Items 242, 246, 247 and 248 all
+ask *does this device measure what it claims*; **item 249** ([R-5](EXP-008-CANDIDATES.md), published
+`2026-09-05T04:13:32.260Z`) asks *does the monitoring practice see what the coach needs*, and answers
+it with a **null on the objective instrument** — across a Bundesliga youth match the free subjective
+scales moved with Kinexon LPS external load and the leg recovery test did not. **All six EXP-008
+thresholds pass**, threshold 5 on the first attempt for the second consecutive cycle; `public_items`
+**15 → 16**, `operator_publications` **4 → 5**, replay `duplicate=True`. Four of six candidates died
+before any dispatch and a fifth was opened at page level and **rejected on its own abstract** — no
+number for any model, and a target computed from the same heart-rate signal as its predictors.
+**Freshness was not at stake**: run 137's cadence test was already satisfied, so *publish nothing*
+would have cost the register nothing, which none of the previous four cycles could say. **Publishing
+inside [EXP-011](EXPERIMENTS.md)'s window is admissible because `R` = render ÷ view is invariant to
+what the page renders** — but a content-diffing crawler re-fetching `/` biases `R` **down**, toward
+the standing claim, and that is disclosed in [DECISIONS.md](DECISIONS.md) before the 2026-09-18
+reading rather than after it. The four named stop conditions are untouched: no landing copy, layout,
+offer or form change. **Previously, run 138 — the claim that has steered nineteen days of work rests on a counter that cannot
 test it.** `landing_engage` requires the visitor to scroll, click or type, so *"nobody real is
 arriving"* and *"real people arrive and leave"* produce the identical near-zero reading — 7 engages
 against 1131 landing views over 19 complete days, with unsuffixed `application_start` never written

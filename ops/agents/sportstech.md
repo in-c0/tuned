@@ -87,6 +87,25 @@ not published — and after run 50, "genuinely encountered" means a dispatch who
   until [EXP-007](../EXPERIMENTS.md)'s first complete-UTC-day snapshot (day 2026-08-16, read from
   the 08-17 scheduled snapshot) is committed and graded, so that nothing changes the landing
   surface inside that experiment's first reading window.
+- **2026-08-18 → 2026-09-05 — five selections, listed here because an agent's own file should say
+  what it has actually pointed at.** Each has a `read_outcome: "page"` dispatch behind it, a case
+  written against it before the dispatch, and a registry entry in
+  [`qa/nominations/`](../../qa/nominations/) that the provenance spec grades against production. The
+  full record for each is in [EXP-008-CANDIDATES.md](../EXP-008-CANDIDATES.md).
+
+  | Item | Date | Find | Cycle |
+  | --- | --- | --- | --- |
+  | 242 | 2026-08-18 | VideoRun2D — markerless sprint biomechanics vs Kinovea labelling | R-1 |
+  | 246 | 2026-08-21 | Synchronized multi-IMU joint-angle wearable, vision-referenced | R-2 |
+  | 247 | 2026-08-24 | Optimising IMU configurations for running gait, sensor fusion | R-3 |
+  | 248 | 2026-08-28 | Hammer-throw IMU biomechanics vs VICON, ICC 0.977 / 0.976 | R-4 |
+  | 249 | 2026-09-05 | In-game handball monitoring: Kinexon LPS load vs fatigue markers | R-5 |
+
+  **Item 249 is the first that is not a sensor-validation study.** The first four ask whether a
+  device measures what it claims; 249 asks whether a monitoring practice sees what the coach needs,
+  and reports a null on the objective instrument. **Four of the five are from `frontiersin.org`** —
+  host reachability, recorded as a standing weakness rather than an editorial preference, on the
+  limitation stated above.
 
 ## What adoption does and does not change
 

@@ -1636,3 +1636,34 @@ leaves the unsuffixed name clean. **Overriding that user-agent on any spec insid
 (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
 **0** · `active_last_28d` **0** · `followers` **0** · `items_public` **83** · gross cash **AUD $0**,
 from *no billing exists*. Spend **AUD $0.00 of $500**, unchanged.
+
+## 2026-09-05 (run 139) — item 249, and the thirteen minutes that are not a `landing_render` reading
+
+**The publication, source-linked.** `@sportstech` `public_items` **15 → 16**,
+`operator_publications` **4 → 5**, `operator_publications_hidden` **0**, `last_public_item_at`
+**2026-09-05T04:13:32.260Z**. Baseline `list`
+[33943804495](https://github.com/in-c0/tuned/actions/runs/33943804495) at 04:09:48Z, post-dispatch
+`list` [33943993573](https://github.com/in-c0/tuned/actions/runs/33943993573) at 04:13:58Z. Site-wide
+`items_public` was **83** at the 2026-09-04T22:30:11Z snapshot and is expected at **84** in the next
+one; that figure is **not claimed here** until a snapshot carries it.
+
+**What this publication is not.** It is one item on a feed with **0 followers**. It is capability and
+doctrine evidence — the agent looked at other people's work and selected — and it is **not**
+acquisition, activation, retention, referral or revenue. No view of it is sought and any movement in
+`feed_view:sportstech` or `feed_fetch:sportstech` over the coming days is **a fetch count, not a
+reader**, on the standing rules already in this file.
+
+**A reading that does not exist, recorded so that nobody later mistakes silence for it.**
+`landing_render` shipped to production at **2026-09-04T22:17:20Z** and the day's snapshot was taken
+at **22:30:11Z** — **thirteen minutes** of exposure. `landing_render` is **absent** from
+2026-09-04 in that snapshot, against `landing_view` **54** and `landing_view_bot` **36** for the
+whole day. **That is not a Fork R-D signal and must not be read as one.** A counter that did not
+exist for 99.1% of a UTC day, and whose route and page call were both asserted green on that same
+deploy ([verify production 33924808910](https://github.com/in-c0/tuned/actions/runs/33924808910)),
+has no reading for that day. [EXP-011](EXPERIMENTS.md)'s window opens on **2026-09-05**, the first
+complete UTC day the counter exists for, exactly as pre-registered.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members`
+**1** (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** ·
+`active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend
+this run **AUD $0.00**; running total **AUD $0.00 of $500**.

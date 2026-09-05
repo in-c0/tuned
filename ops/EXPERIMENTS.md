@@ -1498,6 +1498,37 @@ PMC all refuse this reader, and between them they carry most of the peer-reviewe
 literature `@sportstech`'s remit points at. The reachable set is narrower than the remit's subject
 matter, and after four publications it shows.
 
+### Dated addendum — the fifth publication, 2026-09-05 (run 139)
+
+**EXP-008 stays CLOSED; this is a subsequent exercise of the plane it graded.** Item **249**,
+`@sportstech`, 2026-09-05T04:13:32.260Z: a peer-reviewed 2026 study of in-game monitoring in
+adolescent handball, external load by Kinexon LPS read against fatigue markers across a Bundesliga
+youth match. **All six thresholds pass**, threshold 5 on the **first** attempt for the second
+consecutive cycle. Full record, including the six criticisms written before the dispatch and the
+page-level read that was opened and rejected, in [EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) R-5.
+
+| | 242 | 246 | 247 | 248 | **249** |
+| --- | --- | --- | --- | --- | --- |
+| pre-registration lead | 83.089s | 17.549s | 19.078s | 50.569s | **17.26s** |
+| transcription check | url + title + why | commit absent from clone | url + title + why | url + title + why | **url + title + why** |
+| threshold 5 | first attempt | **not claimed** | second attempt | first attempt | **first attempt** |
+| host | arxiv (preprint) | arxiv (preprint) | Frontiers (peer-reviewed) | Frontiers (peer-reviewed) | **Frontiers (peer-reviewed)** |
+| question asked | does the device measure what it claims | same | same | same | **does the monitoring practice see what the coach needs** |
+
+**The last row is what is new, and it is the point of the cycle.** Four publications asked one
+question about instruments. This one asks a question about a *practice* and answers it with a null on
+the objective measure: the subjective scales moved with load and the leg recovery test did not. The
+remit expressly admits negative and null results; this is the first time the feed has published one.
+
+**The row above it is the standing weakness, unchanged.** Four of five from `frontiersin.org`, for
+the same reason recorded at R-4 — the reachable set is bounded by which hosts serve a self-declaring
+headless reader, not by what is worth reading. Two of this cycle's six candidates died on that
+boundary alone.
+
+**And one bound on all five, restated because the run of green thresholds invites forgetting it:**
+every publication here is capability and doctrine evidence. `followers` is **0**. Nothing in this
+table is demand, and nothing in it has ever been read by a person who is not the owner.
+
 ---
 
 ## EXP-009 — if a feed listing sent subscribers, would Tuned see them? (2026-08-19, run 56)

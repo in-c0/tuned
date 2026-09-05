@@ -4306,3 +4306,74 @@ execution report.
   new table, no cookie, no identifier, no per-visitor state and no new data category. The public
   `/api/metrics` note is extended to describe the new name and what it is not.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-05 (run 139) — the feed made a second kind of selection, and freshness was not the reason
+
+**Decision: spend the run on the fifth `@sportstech` selection cycle, and publish from it.**
+
+**Why this and not the alternatives.** No reviewer directive is outstanding. [EXP-011](EXPERIMENTS.md)
+is open until 2026-09-18 and its stop conditions close the landing page, the copy, the offer and the
+form; the distribution register is blocked at every candidate on **A2**, which is the owner's
+authorship decision, and on **A0**, which is this executor's inability to write at any third party;
+the payment path needs a provider account that does not exist and whose creation is an owner
+boundary. Run 138 named what is left admissible inside the window and this is the first item on that
+list: *"agent selection cycles on `@sportstech` under EXP-008's contract."* **It is also the only
+lever in this run's own hands that is the product rather than the instrument around it.** Nine of the
+last eleven runs have been measurement work; this one is the thing Tuned exists to do.
+
+**Why publishing inside EXP-011's window is admissible, stated with the mechanism rather than
+asserted.** A publication changes what the landing page's demo block renders — the demo is *"the feed
+with the most recently published item"* ([`src/index.ts`](../src/index.ts)), and that is
+`@sportstech`. Run 44 held EXP-008's first publication for exactly this reason, so the precedent is
+real and the question deserved an answer rather than a wave.
+
+**It is admissible because EXP-011's ratio is invariant to what the page says.** `R` = `landing_render`
+÷ `landing_view`; the numerator fires unconditionally at script execution and the denominator on the
+request. Neither depends on which item is in the demo. EXP-007 was different — it measured
+*engagement*, which content can plausibly move, and that is what run 44 was protecting.
+
+**One contaminating mechanism does exist, it is small, and it is disclosed against this run's own
+interest.** A content-diffing crawler that re-fetches `/` because the demo changed adds
+`landing_view` without `landing_render` and pushes `R` **down** — that is, toward **Fork R-A**, the
+standing claim the loop already believes. A bias in the direction of confirming what you already
+think is the one worth writing down before the reading, so it is here, and the reading on 2026-09-18
+should be quoted with it. The page's rendered HTML already varies day to day (the demo's freshness
+indicator is age-derived), so this is one more variation of a kind already present rather than a new
+class of one. **The four named stop conditions were not touched:** no landing copy, layout, offer or
+form change, and `landing_render` still fires from exactly one page.
+
+**The motive guard, and why this cycle starts from the cleanest position of the five.** Run 137 split
+A4 by venue shape, so the durable-listing cadence test is satisfied on four publications in the
+trailing 30 days. **Nothing about freshness was at stake**, and a *publish nothing* outcome would have
+cost the register nothing at all — which the previous four cycles could not say. Three further things
+make the ordering checkable:
+
+1. **Four of six candidates died before any dispatch**, on host reachability (PMC's reCAPTCHA,
+   Taylor & Francis' bot check, ScienceDirect) and on near-repeat of item 242's subject.
+2. **The fifth was opened at page level and rejected on its own abstract** — a 2026 peer-reviewed
+   ECG/gradient-boosting paper that reports **no number for any model** and predicts a target
+   computed from the same heart-rate signal its predictors come from, which the paper itself
+   discloses. Access was not the problem; the evidence class was.
+3. **The case against the survivor was written first and pushed first** —
+   [`b806f07`](https://github.com/in-c0/tuned/commit/b806f07) authored 04:13:15Z, publication
+   04:13:32.260Z, **+17.26s** — with six criticisms including the one that hurts: `frontiersin.org`
+   is now **four of five** publications on this feed.
+
+**What is new about the find itself, and it is the part worth keeping.** Items 242, 246, 247 and 248
+all ask *does this device measure what it claims*. Item 249 asks *does the monitoring practice see
+what the coach needs*, and answers it with a **null on the objective instrument**: across a
+Bundesliga youth match the free subjective scales moved with external load and the leg recovery test
+did not. That is a second kind of selection rather than a fifth repetition of the first, and the
+selection is the agent's whole contribution.
+
+**A weakness carried forward unchanged, not explained away.** Four of five publications now come from
+one host. The cause is unchanged since R-4: the reachable set is bounded by which hosts serve a
+self-declaring headless reader, and selecting on host politics rather than merit would be worse.
+
+**Not done, deliberately:** no venue submission, no owner ask, no re-argument of the standing
+`awesome-rss-feeds` card ([L-07](LESSONS.md)); no `ooh-directory` arrival tag, which run 138 declined
+on the pattern rather than the merits and which this run has no new reason to reverse; no real
+channel tag exercised anywhere; no landing, copy, pricing or positioning work; no second publication;
+no threshold, counter, schedule or workflow change.
+
+**Spend: AUD $0.00 of $500, unchanged.**

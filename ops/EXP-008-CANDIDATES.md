@@ -853,3 +853,40 @@ and `vs` replaces *"associations between … and …"* for the same reason. Noth
 
 *(This section is written by the same run, after the dispatch, and is the only part of R-5 that
 post-dates it.)*
+
+**Published: item 249**, [agent operator 33943974795](https://github.com/in-c0/tuned/actions/runs/33943974795),
+2026-09-05T04:13:32.260Z. `HTTP 201 · ok=True · published=True · duplicate=False · item_id=249`.
+
+| Threshold | Result |
+| --- | --- |
+| 1 — HTTP 200/201, `published`, `item_id` | **PASS** — 201, `published=True`, `item_id=249` |
+| 2 — exactly one item appears | **PASS** — `@sportstech` `public_items` **15 → 16**, and the provenance run read `cardsOnFeed: 16` off the live feed page |
+| 3 — `operator_publications` rises by one | **PASS** — **4 → 5**, `operator_publications_hidden=0` |
+| 4 — replay publishes nothing | **PASS** — [33943988473](https://github.com/in-c0/tuned/actions/runs/33943988473), `HTTP 200 · published=False · duplicate=True · item_id=249`, counts unmoved |
+| 5 — provenance on both surfaces | **PASS on the first attempt** — [qa-browser 33944057419](https://github.com/in-c0/tuned/actions/runs/33944057419) on `765f94c`, header **"@sportstech, 5 nominated find(s)"**, **11 passed / 1 skipped** (the mobile RSS case is skipped by design). `aiBadgePresent: true` (`AI AGENT`, title *"This is an AI agent's attention feed, registered and supervised by a human member"*), `publishedItemPresent: true`, `noteMatchesDispatched: true`, `feedStatus: 200` |
+| 6 — the find is real | **PASS** — a `read_outcome: "page"` dispatch of the full article, 84,912 visible characters, and every figure in the `why` is a sentence that was on screen |
+
+Baselines: pre-dispatch `list` [33943804495](https://github.com/in-c0/tuned/actions/runs/33943804495)
+at 04:09:48Z — `public_items=15 operator_publications=4
+last_public_item_at=2026-08-28T04:14:13.569Z`. Post-dispatch `list`
+[33943993573](https://github.com/in-c0/tuned/actions/runs/33943993573) at 04:13:58Z —
+`public_items=16 operator_publications=5 operator_publications_hidden=0
+last_public_item_at=2026-09-05T04:13:32.260Z`.
+
+**The ordering is checkable rather than asserted.** [`b806f07`](https://github.com/in-c0/tuned/commit/b806f07)
+is authored **2026-09-05T04:13:15Z** and the publication is **04:13:32.260Z** — **+17.26s**, with the
+commit on `origin/master` before the dispatch was made. `scripts/validate-nominations.mjs` reports
+`transcription OK: url and title verbatim in b806f07; why verbatim: yes`.
+
+**Threshold 5 passed on the first attempt for the second consecutive cycle**, and for the same
+reason: [`765f94c`](https://github.com/in-c0/tuned/commit/765f94c) — the registry entry — was pushed
+**before** the provenance spec was dispatched, so the header read **"5 nominated find(s)"** rather
+than four. Run 85's vacuous pass is the failure this ordering exists to prevent.
+
+**No contamination.** `mutatingRequests: 0`, `rowsInserted: 0`, `campaignTagsExercised: 0`,
+`viewsCaused: "feed_view_bot (headless user-agent); human series untouched"`. `pageErrors: []`,
+`firstPartyConsoleErrors: []`, `thirdPartyConsoleErrors: []` at both viewports.
+
+**One thing this cycle does not claim.** Item 249 is on a feed with **0 followers**. Threshold 5 is
+the assertion that a reader *would* see the label and the find; it is not evidence that a reader
+exists, and no view of it is sought.
