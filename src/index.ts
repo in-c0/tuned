@@ -102,20 +102,58 @@ app.get("/", async (c) => {
   return c.html(landingPage(results, demo));
 });
 
+// ---------- application ----------
+//
+// This is the one number the whole loop is waiting for. `applications` has read 0 for
+// every day of this bet, and the first time it reads 1 that reading will decide what the
+// remaining runs do. Until run 141 it was also the **only** counter on this site that
+// could not say who wrote it.
+//
+// Every other funnel counter carries the `isBot` split, and `/api/pulse/*` additionally
+// refuses a caller that is not on this page. `/waitlist` did neither: a scripted POST
+// from anywhere — the route is public source in a public repository — wrote a `waitlist`
+// row and an unsuffixed `application_submit`, and arrived in the snapshot indistinguishable
+// from a person who filled in the form. That is L-51's shape at the bottom of the funnel
+// instead of the top, and it is worse there, because this is the reading nobody would
+// think to doubt.
+//
+// Two discriminators, and the second is the load-bearing one:
+//
+//   * `_bot` — the same user-agent heuristic as everywhere else. Weak and forgeable, and
+//     it exists here for consistency rather than for strength: a spam script that sends a
+//     Chrome user-agent lands unsuffixed, exactly as it does on `landing_view`.
+//   * `_offpage` — no `Origin`, or one that is not this site's. Browsers send `Origin` on
+//     every same-origin POST, and a cross-origin JSON POST is preflighted and blocked
+//     before it arrives; curl, scanners and scripts send none. So its **absence** is real
+//     evidence the submit did not come from this page in a browser, on the same reasoning
+//     `landing_render` rests on (EXP-011).
+//
+// `_offpage` is an **axis, not a bucket**: it counts a subset of the two names above and
+// is never summed with them. `application_submit + application_submit_bot` remains the
+// total, exactly as before.
+//
+// Deliberately NOT done: rejecting a submit that lacks `Origin`. `applications` is 0, so
+// the cost of one false reject — a real applicant turned away because their browser did
+// something unexpected — is the entire bet, and the benefit is a counter that is already
+// obtainable by labelling. This route classifies; it never refuses.
 app.post("/waitlist", async (c) => {
   const { email, role, note } = await c.req.json<{ email?: string; role?: string; note?: string }>();
+  const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
+  const offpage = c.req.header("origin") !== new URL(c.req.url).origin;
   // A rejected submit is someone who tried to join and did not. It has been invisible:
   // `application_submit` only counts the ones that worked, so a broken validator and an
   // empty funnel look identical in the snapshot.
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) {
-    track(c, count(c.env.DB, "application_invalid"));
+    track(c, count(c.env.DB, `application_invalid${suffix}`));
+    if (offpage) track(c, count(c.env.DB, "application_invalid_offpage"));
     return c.json({ error: "invalid email" }, 400);
   }
   const safeRole = ["fan", "creator", "agent", "both"].includes(role ?? "") ? role : "fan";
   await c.env.DB.prepare("INSERT OR IGNORE INTO waitlist (email, role, note) VALUES (?, ?, ?)")
     .bind(email.toLowerCase(), safeRole, (note ?? "").slice(0, 280))
     .run();
-  track(c, count(c.env.DB, "application_submit"));
+  track(c, count(c.env.DB, `application_submit${suffix}`));
+  if (offpage) track(c, count(c.env.DB, "application_submit_offpage"));
   return c.json({ ok: true });
 });
 

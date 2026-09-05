@@ -138,19 +138,27 @@ describe("the pulse route stays bounded", () => {
   });
 });
 
+async function apply(
+  body: Record<string, unknown>,
+  headers: Record<string, string> = { origin: ORIGIN, "user-agent": HUMAN_UA }
+): Promise<Response> {
+  const ctx = createExecutionContext();
+  const res = await worker.fetch(
+    new Request(`${ORIGIN}/waitlist`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...headers },
+      body: JSON.stringify(body),
+    }),
+    env as never,
+    ctx
+  );
+  await waitOnExecutionContext(ctx);
+  return res;
+}
+
 describe("a rejected application is no longer invisible", () => {
   it("counts application_invalid when the email fails validation", async () => {
-    const ctx = createExecutionContext();
-    const res = await worker.fetch(
-      new Request(`${ORIGIN}/waitlist`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: "not-an-email", role: "fan", note: "" }),
-      }),
-      env as never,
-      ctx
-    );
-    await waitOnExecutionContext(ctx);
+    const res = await apply({ email: "not-an-email", role: "fan", note: "" });
 
     expect(res.status).toBe(400);
     expect(await counterFor("application_invalid")).toBe(1);
@@ -159,20 +167,82 @@ describe("a rejected application is no longer invisible", () => {
   });
 
   it("does not count a valid application as invalid", async () => {
-    const ctx = createExecutionContext();
-    await worker.fetch(
-      new Request(`${ORIGIN}/waitlist`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: "someone@example.com", role: "fan", note: "" }),
-      }),
-      env as never,
-      ctx
-    );
-    await waitOnExecutionContext(ctx);
+    await apply({ email: "someone@example.com", role: "fan", note: "" });
 
     expect(await counterFor("application_submit")).toBe(1);
     expect(await counterFor("application_invalid")).toBeNull();
+  });
+});
+
+// The one reading this whole bet is waiting for, and until run 141 it was the only counter
+// on the site that could not say who wrote it. See the comment above `POST /waitlist`.
+describe("the application counter says who submitted it", () => {
+  it("keeps a browser submit in the unsuffixed name and marks no axis", async () => {
+    await apply({ email: "someone@example.com", role: "fan", note: "" });
+
+    expect(await counterFor("application_submit")).toBe(1);
+    expect(await counterFor("application_submit_bot")).toBeNull();
+    expect(await counterFor("application_submit_offpage")).toBeNull();
+  });
+
+  it("splits a self-declaring automated submit into _bot", async () => {
+    await apply(
+      { email: "someone@example.com", role: "fan", note: "" },
+      { origin: ORIGIN, "user-agent": "curl/8.5.0" }
+    );
+
+    expect(await counterFor("application_submit_bot")).toBe(1);
+    expect(await counterFor("application_submit")).toBeNull();
+  });
+
+  it("marks a submit that did not come from this page, whatever user-agent it claims", async () => {
+    // The realistic case, and the reason the axis exists rather than the _bot split alone:
+    // a script that sends a Chrome user-agent is invisible to `isBot` and lands unsuffixed.
+    // No Origin is what gives it away.
+    await apply({ email: "someone@example.com", role: "fan", note: "" }, { "user-agent": HUMAN_UA });
+
+    expect(await counterFor("application_submit")).toBe(1);
+    expect(await counterFor("application_submit_offpage")).toBe(1);
+  });
+
+  it("treats a foreign Origin as offpage too", async () => {
+    await apply(
+      { email: "someone@example.com", role: "fan", note: "" },
+      { origin: "https://elsewhere.example", "user-agent": HUMAN_UA }
+    );
+
+    expect(await counterFor("application_submit_offpage")).toBe(1);
+  });
+
+  it("still accepts and stores every one of them — this route classifies, it never refuses", async () => {
+    // `applications` is 0. A false reject costs the whole bet; a mislabelled counter costs
+    // a footnote. The route must never trade the first for the second.
+    const res = await apply({ email: "offpage@example.com", role: "fan", note: "" }, { "user-agent": "curl/8.5.0" });
+
+    expect(res.status).toBe(200);
+    const row = await DB.prepare("SELECT email FROM waitlist WHERE email = ?")
+      .bind("offpage@example.com")
+      .first<{ email: string }>();
+    expect(row?.email).toBe("offpage@example.com");
+  });
+
+  it("carries the same two discriminators on a rejected submit", async () => {
+    await apply({ email: "not-an-email" }, { "user-agent": "curl/8.5.0" });
+
+    expect(await counterFor("application_invalid_bot")).toBe(1);
+    expect(await counterFor("application_invalid_offpage")).toBe(1);
+    expect(await counterFor("application_invalid")).toBeNull();
+  });
+
+  it("never sums the axis into the bucket — the total is what it always was", async () => {
+    await apply({ email: "a@example.com", role: "fan", note: "" }, { "user-agent": HUMAN_UA });
+    await apply({ email: "b@example.com", role: "fan", note: "" });
+
+    // Two submits: one offpage, one from the page. The two buckets still total two.
+    const bucketed =
+      ((await counterFor("application_submit")) ?? 0) + ((await counterFor("application_submit_bot")) ?? 0);
+    expect(bucketed).toBe(2);
+    expect(await counterFor("application_submit_offpage")).toBe(1);
   });
 });
 

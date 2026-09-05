@@ -271,7 +271,13 @@ describe("the funnel is actually wired to the routes", () => {
     const res = await worker.fetch(
       new Request("https://justtuned.com/waitlist", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        // The headers a browser on this page actually sends. Without them the submit is
+        // counted as automation, which is the point of the split — see test/pulse.test.ts.
+        headers: {
+          "content-type": "application/json",
+          origin: "https://justtuned.com",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/128.0.0.0",
+        },
         body: JSON.stringify({ email: "someone@example.com", role: "human", note: "hi" }),
       }),
       env as never,
