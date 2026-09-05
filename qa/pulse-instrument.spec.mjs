@@ -1,4 +1,32 @@
-// EXP-007 instrument validity — does the deployed landing page actually emit its counters?
+// Landing-page instrument validity — does the deployed page actually emit its counters?
+//
+// ---------------------------------------------------------------------------------------------
+// Run 140 (2026-09-05): this spec was broken by the counter it now has to validate, and nobody
+// noticed because it is dispatch-only.
+//
+// Run 138 added `pulse("landing_render")` — fired unconditionally on page load — and did not
+// touch this file. Two assertions here were written when every pulse on this page was
+// interaction-gated, and both of them contradict the new counter:
+//
+//   * `expect(pulses, "a pulse fired on page load, before any interaction").toEqual([])`
+//   * `ALLOWED`, the mirror of the server-side allowlist, listing only two names
+//
+// So from 2026-09-04 22:17Z until this commit, the only check in the repository that could
+// observe `landing_render` firing **from a real browser against production** would have failed
+// if it had been dispatched, on the arrival of the very signal it needed to see. It is a
+// dispatch-only workflow, so it was not dispatched, and the failure was silent.
+//
+// Why that matters more than the tidiness of it: EXP-011 grades R = landing_render ÷ landing_view
+// over 2026-09-05 … 2026-09-18 and registers **Fork R-D — the instrument did not ship** as an
+// expected outcome. As written, R-D is only discoverable on 2026-09-18, because nothing else in
+// the loop looks at whether a browser emits the beacon. Run 138's production gate asserts that
+// the route is allowlisted and that the served HTML *contains the string* `pulse("landing_render")`
+// — neither of which proves any engine ever ran it. That is L-51's shape exactly: a check on the
+// document standing in for a check on the behaviour.
+//
+// This spec is the check on the behaviour, and restoring it converts R-D from a fourteen-day
+// discovery into a same-day one.
+// ---------------------------------------------------------------------------------------------
 //
 // This is not a new experiment and it does not change EXP-007's pre-registration. It is a
 // check on EXP-007's *apparatus*, run deliberately on UTC days that fall **outside** the
@@ -33,12 +61,14 @@
 // the end of a single inline <script>; anything that throws earlier in that block detaches them
 // and produces exactly the zeros Fork A predicts.
 //
-// Footprint. GETs plus the two pulse POSTs the page itself sends. The application form is typed
+// Footprint. GETs plus the three pulse POSTs the page itself sends. The application form is typed
 // into and **never submitted** — `applications` has read 0 since the counter existed and that
 // number stays clean. The headless user-agent means src/metrics.ts classifies everything this
-// suite causes as bot traffic, so the increments land in `landing_engage_bot` /
-// `application_start_bot` on whichever UTC day it is dispatched, and never enter either the
-// human-flagged counters EXP-007's forks read or the day they read them.
+// suite causes as bot traffic, so the increments land in `landing_render_bot` /
+// `landing_engage_bot` / `application_start_bot` on whichever UTC day it is dispatched, and never
+// enter either the human-flagged counters EXP-007's and EXP-011's forks read or the days they
+// read them. That is what makes this dispatchable inside EXP-011's open window; the moment the
+// user-agent stops declaring `headless`, it is not.
 
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
@@ -49,12 +79,18 @@ fs.mkdirSync(ARTIFACTS, { recursive: true });
 
 const PULSE_PREFIX = "/api/pulse/";
 
-// The server-side allowlist, mirrored here so an unexpected third name is a failure rather than
-// something this suite quietly counts. Kept in sync with PULSE_COUNTERS in src/index.ts.
-const ALLOWED = ["landing_engage", "application_start"];
+// The server-side allowlist, mirrored here so an unexpected fourth name is a failure rather than
+// something this suite quietly counts. Kept in sync with PULSE_COUNTERS in src/index.ts — and the
+// reason this constant is load-bearing rather than decorative is that it went stale for a day
+// without anything failing (see the run-140 note above).
+const ALLOWED = ["landing_render", "landing_engage", "application_start"];
 
-test.describe("EXP-007 instrument validity — does the page emit what the experiment reads?", () => {
-  test("a real interaction emits landing_engage, and a real keystroke emits application_start", async ({
+// The one pulse on this page that asks nothing of the visitor. Every other name here is
+// interaction-gated, and that difference is what the assertions below are built around.
+const UNGATED = "landing_render";
+
+test.describe("landing instrument validity — does the page emit what the experiments read?", () => {
+  test("page load emits landing_render; interaction emits landing_engage; a keystroke emits application_start", async ({
     page,
     baseURL,
   }, testInfo) => {
@@ -77,6 +113,13 @@ test.describe("EXP-007 instrument validity — does the page emit what the exper
       pulses.push({ name: u.pathname.slice(PULSE_PREFIX.length), status: res.status() });
     });
 
+    // Armed before the navigation, because the beacon is sent during script execution and can
+    // resolve before `goto` returns.
+    const renderPromise = page.waitForResponse(
+      (r) => r.url().includes(`${PULSE_PREFIX}${UNGATED}`),
+      { timeout: 15_000 },
+    );
+
     await page.goto("/", { waitUntil: "load" });
     const pageOrigin = new URL(page.url()).origin;
 
@@ -85,9 +128,26 @@ test.describe("EXP-007 instrument validity — does the page emit what the exper
     // every artifact this loop currently collects.
     expect(pageErrors, `page threw before any interaction: ${pageErrors.join(" | ")}`).toEqual([]);
 
-    // Nothing should have fired yet: both counters are interaction-gated, and a pulse on bare
-    // page load would mean the page is reporting engagement nobody performed.
-    expect(pulses, "a pulse fired on page load, before any interaction").toEqual([]);
+    // --- landing_render: EXP-011's numerator, observed rather than inferred ---
+    //
+    // This is the assertion the whole file exists for as of run 140. It fails if the beacon is
+    // detached, suppressed by something that throws earlier in the same inline script, refused by
+    // production, or sent without the Origin the route requires. Any of those is EXP-011's Fork
+    // R-D, and this is the only place in the repository where a browser engine is what decides.
+    const renderRes = await renderPromise;
+    const renderHeaders = await renderRes.request().allHeaders();
+
+    expect(renderRes.status(), "landing_render was not accepted by production").toBe(204);
+    expect(renderHeaders.origin, "browser sent no Origin on landing_render, or not the page's own").toBe(
+      pageOrigin,
+    );
+
+    // Nothing interaction-gated may have fired: those counters mean a visitor did something, and
+    // a pulse on bare page load would be the page reporting engagement nobody performed.
+    expect(
+      pulses.map((p) => p.name).filter((n) => n !== UNGATED),
+      "an interaction-gated pulse fired on page load, before any interaction",
+    ).toEqual([]);
 
     // --- landing_engage: the first sign of something behaving like a person ---
     //
@@ -115,6 +175,14 @@ test.describe("EXP-007 instrument validity — does the page emit what the exper
     expect(
       pulses.filter((p) => p.name === "landing_engage").length,
       "landing_engage fired more than once on a single page load",
+    ).toBe(1);
+    // The same one-shot property for the ungated beacon, checked after the interactions rather
+    // than before them: a `landing_render` that re-fired on scroll or keypress would inflate
+    // EXP-011's numerator against a denominator counted once per request, and R would exceed 1
+    // for reasons that have nothing to do with who is arriving.
+    expect(
+      pulses.filter((p) => p.name === UNGATED).length,
+      "landing_render fired more than once on a single page load",
     ).toBe(1);
 
     // --- application_start: did engagement reach the form? ---
@@ -163,7 +231,8 @@ test.describe("EXP-007 instrument validity — does the page emit what the exper
       console_errors: consoleErrors,
       application_submitted: false,
       utc_day: new Date().toISOString().slice(0, 10),
-      note: "Instrument validity bracket for EXP-007. Dispatched only on UTC days outside the complete UTC day 2026-08-16 that EXP-007 reads — 08-15 near-side, 08-17 far-side. The increments this caused are bot-classified by src/metrics.ts because of the headless user-agent.",
+      landing_render_observed: pulses.filter((p) => p.name === UNGATED).length,
+      note: "Instrument validity for the landing page's three pulses. Originally an EXP-007 bracket (08-15 near-side, 08-17 far-side, both outside the day EXP-007 reads); extended at run 140 to landing_render, which EXP-011 reads. This one is dispatched INSIDE EXP-011's window on purpose and that is admissible: the headless user-agent means src/metrics.ts classifies every increment this suite causes as bot traffic, so it lands in landing_render_bot / landing_view_bot and never in the unsuffixed names R is computed from. Overriding that user-agent would fire EXP-011 Fork R-E and must not be done.",
     };
     // Before anything optional can fail. L-20, three times over: run 47 lost a reading to a
     // screenshot timeout and run 48 shipped a spec whose evidence reached only the artifact

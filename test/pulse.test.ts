@@ -14,6 +14,8 @@
 import { env, createExecutionContext, waitOnExecutionContext } from "cloudflare:test";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import schemaSql from "../schema.sql?raw";
+import indexSource from "../src/index.ts?raw";
+import pulseSpecSource from "../qa/pulse-instrument.spec.mjs?raw";
 import worker from "../src/index";
 import { utcDay } from "../src/metrics";
 
@@ -199,5 +201,64 @@ describe("the landing page actually fires the pulses", () => {
     // No cookie, no identifier, nothing persisted client-side. The privacy policy says the
     // site stores only small UI preferences in the browser; this must not change that.
     expect(html).not.toContain("localStorage.setItem(\"pulse");
+  });
+});
+
+describe("the browser check that validates these counters is not allowed to go stale", () => {
+  // Run 140. Everything above proves the route counts and the page ships the call. Neither can
+  // prove the half that only a browser engine decides: that the beacon is actually emitted and
+  // accepted from the deployed page. `qa/pulse-instrument.spec.mjs` is the only check that does,
+  // and it is invisible to CI by design — qa/ is a separate Playwright package with its own
+  // manifest, dispatched by hand, deliberately never run on push.
+  //
+  // The cost of that design showed up immediately. Run 138 added `landing_render` to
+  // PULSE_COUNTERS and to the page, and did not touch the spec — whose own mirror of the
+  // allowlist still listed two names, and which asserted that *no* pulse fires on page load.
+  // Both assertions are contradicted by the new counter, so the one check able to observe
+  // EXP-011's numerator firing would have failed on the arrival of the thing it needed to see.
+  // Nothing failed, because nothing ran it.
+  //
+  // These two tests are the link that was missing. They are cheap, they run on every push, and
+  // they turn that class of divergence from a silent gap into a red build.
+  const quoted = (source: string, pattern: RegExp, what: string) => {
+    const block = source.match(pattern);
+    expect(block, `could not find ${what} — this test's parser needs updating, not deleting`).not
+      .toBeNull();
+    return [...(block as RegExpMatchArray)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort();
+  };
+
+  it("mirrors the server-side PULSE_COUNTERS allowlist exactly", () => {
+    const server = quoted(
+      indexSource,
+      /const PULSE_COUNTERS = new Set\(\[([\s\S]*?)\]\)/,
+      "PULSE_COUNTERS in src/index.ts",
+    );
+    const mirrored = quoted(
+      pulseSpecSource,
+      /const ALLOWED = \[([\s\S]*?)\]/,
+      "ALLOWED in qa/pulse-instrument.spec.mjs",
+    );
+
+    expect(server.length, "PULSE_COUNTERS is empty — the parser matched the wrong thing").toBeGreaterThan(0);
+    expect(
+      mirrored,
+      "qa/pulse-instrument.spec.mjs no longer mirrors PULSE_COUNTERS: the browser check would " +
+        "reject a pulse the server allows, or fail to notice one it does not",
+    ).toEqual(server);
+  });
+
+  it("asserts the ungated beacon is emitted on load, not merely present in the document", () => {
+    // Deliberately about the spec's *content*, because the failure this guards against is a
+    // spec that still passes while checking nothing. `landing_render` is the one pulse whose
+    // whole meaning is that it fires without being asked, so the browser check has to wait for
+    // it on a bare page load; a spec that only looked for the string in the HTML would be run
+    // 138's production gate again, one file further along.
+    expect(
+      pulseSpecSource,
+      "the browser spec no longer waits for landing_render on page load",
+    ).toMatch(/waitForResponse[\s\S]{0,200}\$\{UNGATED\}/);
+    expect(pulseSpecSource, "UNGATED is not landing_render").toMatch(
+      /const UNGATED = "landing_render"/,
+    );
   });
 });
