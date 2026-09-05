@@ -709,3 +709,147 @@ regressions for free.
 `firstPartyConsoleErrors: []` on the `@sportstech` feed page at both viewports. That is **not** a
 resolution of the run-49 unattributed console 404, which was seen on a different surface; it is one
 page coming back clean and is recorded as that.
+
+---
+
+## R-5 — the fifth `@sportstech` selection cycle, 2026-09-05 (run 139)
+
+**Written before the dispatch, not after it.** No reviewer directive is outstanding; run 138 named
+*"agent selection cycles on `@sportstech` under EXP-008's contract"* as admissible work inside
+[EXP-011](EXPERIMENTS.md)'s open window, and this is that. The standing rules at the head of this
+file apply unchanged: a candidate reaches a dispatch only with a `read_outcome: "page"` behind it,
+the `why` must be traceable to sentences that were on screen, and **publish nothing** stays live
+until the dispatch is actually made.
+
+**The motive risk this cycle carries, named before the reads rather than after them.** Run 137 split
+A4 by venue shape, and `@sportstech` now passes the durable-listing cadence test on four
+publications in the trailing 30 days. **So freshness is not at stake this run** — nothing here
+restores a threshold, and a *publish nothing* outcome would have cost the register nothing at all.
+That is the cleanest motive position any of these five cycles has started from, and it is recorded
+because the previous four could not say it.
+
+### The candidate slate, and why four of six were rejected before any dispatch
+
+Discovery is result level — a search result is a pointer, never an encounter — so the rejections
+below are made on what a result page states about itself, and only survivors were opened.
+
+| # | Candidate | Verdict |
+| --- | --- | --- |
+| 1 | `pmc.ncbi.nlm.nih.gov/articles/PMC12487117/` — ACWR for predicting sports injury risk, systematic review and meta-analysis | **Rejected — unencounterable by this reader.** PMC serves a reCAPTCHA interstitial at HTTP 200 to a self-declaring headless client (run 50). The remit's threshold 6 cannot be met for a page that cannot be opened, and the reader will not stop declaring itself to get past a challenge |
+| 2 | `link.springer.com/article/10.1186/s13102-025-01332-x` — the same meta-analysis at its publisher | **Rejected — subject overlap with a claim this feed cannot support.** The interesting reading is *the field's dominant load metric may not predict injury*, which is a claim about a literature rather than a measured result of the paper's own; the remit selects findings with a concrete measured result. Kept on the record as the strongest candidate this cycle did **not** pursue |
+| 3 | `tandfonline.com/doi/full/10.1080/02640414.2025.2497678` — concurrent validity of markerless motion capture in dual-athlete team-sport movements | **Rejected twice over.** Taylor & Francis returns a Cloudflare bot check to this reader (run 50); and it is a near-repeat of item 242's subject, which is the feed finding one theme rather than making one selection |
+| 4 | `sciencedirect.com/…/S0021929025005779` — agreement between markerless and marker-based capture during jumping | **Rejected — same two grounds**, host and near-repeat |
+| 5 | `frontiersin.org/…/fspor.2026.1765225/full` — in-game monitoring of adolescent handball players | **Read, and published.** See below |
+| 6 | `frontiersin.org/…/fpubh.2026.1843963/full` — physiological load estimation from ECG features and gradient-boosted modelling | **Read at page level, and rejected on its own abstract.** See below |
+
+Also considered and not read: `arxiv.org/pdf/2603.26935`, *The Load Management Paradox: Correcting
+the Healthy-Worker Survivor Effect in NBA Injury Modeling*. It is the most methodologically
+interesting thing this cycle saw. It is a preprint, and two of this feed's four items are already
+preprints carrying that caveat, while peer-reviewed material was reachable this cycle. Recorded so a
+later run can pick it up rather than rediscover it.
+
+### The reads — 2026-09-05
+
+| # | URL | Status | Title as served | Page-level? | Run |
+| --- | --- | --- | --- | --- | --- |
+| 5 | `frontiersin.org/…/10.3389/fspor.2026.1765225/full` | **200** | `Frontiers \| In-game monitoring of adolescent handball players: a preliminary examination of associations between external load parameters and objective and subjective fatigue markers` | **Yes** — 84,912 chars, `read_outcome: "page"`, `interstitial_signals: []` | [33943790863](https://github.com/in-c0/tuned/actions/runs/33943790863) |
+| 6 | `frontiersin.org/…/10.3389/fpubh.2026.1843963/full` | **200** | `Frontiers \| Physiological load estimation in athletes using ECG-derived features and gradient-boosted modeling` | **Yes** — 60,423 chars, `read_outcome: "page"`, `interstitial_signals: []` | [33943794214](https://github.com/in-c0/tuned/actions/runs/33943794214) |
+
+Both reads carry `possible_gate_markers: ["accept cookies"]` and `read_outcome: "page"`. A cookie
+banner is not a gate — the article text was served and read either side of it, which is what the two
+fields are kept separate to distinguish.
+
+### Why read 6 was rejected, from its own abstract
+
+Read 6 opened cleanly and is a 2026 peer-reviewed original research article, so nothing about access
+or venue disqualifies it. **Its abstract reports no number.** The result is stated as *"XGBoost
+showed the strongest overall cross-validation performance among the tested models"* and
+*"strong predictive performance"* — no R², no error, no interval, for any model. The remit selects
+*"a concrete measured result or a validated implementation"*, and a benchmark table named in the
+outline is not a result the reader was shown.
+
+The second ground is the target. The paper predicts **TRIMP**, which is itself computed from heart
+rate and session duration, using heart-rate and HRV descriptors — and it says so, excluding
+TRIMP-derived predictors *"to reduce circularity"* and stating the framework is *"not … a model to
+predict an independent physiological outcome."* That is an honest disclosure and it is also the
+finding: heart-rate features reconstruct a heart-rate score. **The open dataset and interpretable
+pipeline are genuine merits**, and if a later cycle can quote actual figures off its Table 5, this
+is a defensible pick. Today it fails threshold 6's *"concrete measured result"* on the text that was
+on screen.
+
+### R-5 — the read
+
+**`https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2026.1765225/full`**,
+read [33943790863](https://github.com/in-c0/tuned/actions/runs/33943790863), 2026-09-05T04:10:06Z.
+
+```
+http_status: 200 · read_outcome: "page" · visible_text_chars: 84912
+interstitial_signals: [] · possible_gate_markers: ["accept cookies"] · excerpt_truncated: true
+redirected: false · final_url == requested_url · published_at: "2026/03/11" (meta)
+```
+
+`ORIGINAL RESEARCH article · Front. Sports Act. Living, 11 March 2026 · Sec. Elite Sports and
+Performance Enhancement · Volume 8 - 2026`. Peer-reviewed, not a preprint, review or editorial.
+
+**What is on remit.** Workload monitoring — the remit's third bullet — read against fatigue, in
+competition rather than in a lab. The measured content quoted in the `why` is verbatim from the
+abstract that was on screen: `n = 11; 8 complete cases; age: 16.1 ± 0.4 years`, *"monitored during a
+Bundesliga-level youth match"*, external load *"recorded via the Kinexon LPS"*, `RPE increased (T0:
+8.0 ± 2.45; T1: 14.6 ± 2.20; T2: 16.1 ± 2.85)`, `PRSS decreased (T0: 8.25 ± 1.91; T1: 6.12 ± 1.89;
+T2: 4.75 ± 2.43)`, *"PRSS and RPE showed moderate-to-strong associations with both volume- and
+intensity-based external load measures"*, and *"LRT scores remained largely unchanged and showed
+minimal associations."*
+
+**Why it is worth a reader's attention, in one line the agent is willing to own:** the expensive
+objective instrument did not detect what the free subjective one did, in the only setting that
+counts — a real match.
+
+### The case against it, stated by the nominator
+
+1. **The sample is very small and the paper says so in its title.** `n = 11`, **8 complete cases**,
+   and the agreement analysis runs on **7**. *"Preliminary examination"* is the authors' own framing,
+   and `Preliminary, n=8` is in the published `why` for that reason rather than as hedging.
+2. **One match, one squad, one sex, one age band.** Highly trained adolescent male players at
+   Bundesliga youth level. Nothing here generalises to seniors, to women, or to a season.
+3. **It is correlational and the direction is not established.** *"Associations"* is the paper's
+   word and it is the one used. A reader who takes this as *load causes perceived fatigue* is
+   reading more than the design supports.
+4. **The null on the leg recovery test is the interesting half and the weakest half.** A test that
+   *"remained largely unchanged"* across a match is consistent with the athletes not being
+   neuromuscularly fatigued, with the test being insensitive, and with an administration effect at
+   half-time in a live fixture. The find does not distinguish them and neither does the `why`.
+5. **`frontiersin.org` is now four of the five publications on this feed.** Same weakness recorded at
+   R-4, same cause: the reachable set is bounded by which hosts serve a self-declaring headless
+   reader, and selecting on host politics instead of merit would be worse. It stays a real weakness
+   and it is not explained away.
+6. **The abstract is the read.** 84,912 characters were on the page; the reader reports a bounded
+   prefix, and every figure quoted comes from the abstract. No figure, table or full result section
+   was inspected, and the `why` claims nothing that was not on screen.
+
+**What survives all six.** Peer-reviewed 2026 original research, on remit, in competition, with
+concrete measured numbers against a named commercial instrument (Kinexon LPS), reporting a **null on
+its own objective measure** — the class of result the remit expressly admits and the class the
+literature under-publishes. It is also the first `@sportstech` publication that is **not** a sensor
+validation study: items 242, 246, 247 and 248 all ask *does this device measure what it claims*;
+this one asks *does the monitoring practice see what the coach needs*. That is the feed making a
+second kind of selection rather than repeating its first.
+
+### Exactly what is dispatched
+
+One `agent-operator.yml` run, `action=publish`, default idempotency key:
+
+| Field | Value | Budget |
+| --- | --- | --- |
+| `handle` | `sportstech` | — |
+| `url` | `https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2026.1765225/full` | 102 / 2000 |
+| `title` | In-game monitoring of adolescent handball players: a preliminary examination of associations between external load parameters and objective and subjective fatigue markers | 170 / 300 |
+| `category` | `Research` | one of `CATEGORIES` in [`src/pages.ts`](../src/pages.ts), set explicitly so it cannot default to a permanent `Misc` |
+| `why` | One Bundesliga-level youth match, 11 adolescent handball players (8 complete cases): Kinexon LPS external load vs fatigue markers. RPE rose 8.0→14.6→16.1 and PRSS fell 8.25→6.12→4.75, both associated with load; the leg recovery test stayed largely unchanged. Preliminary, n=8. | **276 / 280** |
+
+The three arrows are the abstract's three time points `T0; T1; T2` written for a plain-text field,
+and `vs` replaces *"associations between … and …"* for the same reason. Nothing else is compressed.
+
+### What actually happened — recorded after the dispatch
+
+*(This section is written by the same run, after the dispatch, and is the only part of R-5 that
+post-dates it.)*
