@@ -4,7 +4,7 @@ Every metric here must name its source. Never invent, extrapolate, or manually i
 
 ## Definitions
 
-- **Applications submitted** — `totals.applications` (rows in `waitlist`) and the `application_submit` daily counter. Source: `GET /api/metrics`, snapshotted to `ops/metrics/latest.json`.
+- **Applications submitted** — `totals.applications` (rows in `waitlist`) and the `application_submit` daily counter. Source: `GET /api/metrics`, snapshotted to `ops/metrics/latest.json`. **From 2026-09-06 (run 141) that counter is split four ways** — `application_submit` / `application_submit_bot`, plus the `application_submit_offpage` axis — and a reading of any of them must be quoted with its label. See *the application counters now say who wrote them* below; `applications: 1` on its own is not evidence of a person.
 - **Members activated** — `retention.members_ever_active`: members with ≥1 row in `member_days`. Source: `/api/metrics`.
 - **Attention events** — `attention_star` / `attention_skip` daily counters, and `totals.stars` / `totals.skips`. Source: `/api/metrics`.
 - **Return use** — `retention.members_returned_after_first_day` and `members_active_2plus_days`, computed from distinct `member_days.day` per member. Source: `/api/metrics`.
@@ -1696,6 +1696,49 @@ preceded in the same inline script by about fifteen lines of DOM decoration. A t
 the beacon while `landing_view` still increments, pushing **R down, toward Fork R-A** — the reading the
 loop already believes. `page_errors: []` above is evidence it is not happening on the build now serving;
 it is not a guarantee for the whole window, which is why the check is bracketed rather than run once.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
+**0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend this run **AUD
+$0.00**; running total **AUD $0.00 of $500**.
+
+## 2026-09-06 (run 141) — the application counters now say who wrote them
+
+**Shipped in [`14e70a2`](https://github.com/in-c0/tuned/commit/14e70a2).** `POST /waitlist` was the
+only route on this site writing a counter with no discriminator at all. Four names now exist where two
+did, and the reading rules below are binding.
+
+| Name | What it counts |
+| --- | --- |
+| `application_submit` | a stored application whose caller did **not** declare itself as automation |
+| `application_submit_bot` | the same, from a caller matching `BOT_UA` in [`src/metrics.ts`](../src/metrics.ts) |
+| `application_invalid` / `application_invalid_bot` | the same split on a submit rejected by email validation |
+| `application_submit_offpage` / `application_invalid_offpage` | **an axis, not a bucket** — the subset of the above that arrived without this site's `Origin` |
+
+- **`application_submit` + `application_submit_bot` is the total, and it is exactly what
+  `application_submit` alone was before.** The `_offpage` names count a *subset* of those two and are
+  **never summed with them**. A test in [`test/pulse.test.ts`](../test/pulse.test.ts) pins this so no
+  later run adds them together.
+- **`_offpage` is the strong signal and `_bot` is the weak one.** A browser sends `Origin` on every
+  same-origin POST, and a cross-origin JSON POST is preflighted and refused before it arrives, so an
+  absent `Origin` is evidence the submit was not made by this page in a browser. The user-agent
+  heuristic is forgeable and the realistic junk submit defeats it — a script sending a Chrome
+  user-agent lands *unsuffixed*. Read `_offpage` first.
+- **Neither name proves a person, and neither refuses one.** The route accepts and stores every
+  submit regardless of both labels; it classifies and never rejects. An `_offpage` application is
+  still an application and still appears in `totals.applications`.
+- **Every value either counter held before 2026-09-06 was written without the split, and every one of
+  those values was 0** — `application_submit` and `application_invalid` have never been written on any
+  day. So no historical reading changes meaning, and there is no backfill to do or to invent.
+- **When the first application arrives, quote the label with the number.** `applications: 1` on its own
+  is not evidence of a person, and this loop must not report it as one. The pair to quote is the
+  counter name that carried it plus whether `application_start` (same-origin, page-reported) was
+  written on the same UTC day — a real applicant necessarily fires that first.
+
+**Nothing about [EXP-011](EXPERIMENTS.md) is affected.** No file under `src/pages.ts` changed, the
+`landing_render` call site is byte-identical, and neither of R's two inputs is read or written by this
+change. Browser QA was not dispatched for it — the change is server-side and is covered by seven
+integration tests in workerd, four of them mutation-tested.
 
 **Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
 (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`

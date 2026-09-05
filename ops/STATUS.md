@@ -1,9 +1,40 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-05 20:25 Sydney (2026-09-05 10:25 UTC), run 140 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-06 08:35 Sydney (2026-09-05 22:35 UTC), run 141 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged and undeadlined** (submit `/sportstech` to `plenaryapp/awesome-rss-feeds`; packet at
 [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md); not re-asked here, per
-[L-07](LESSONS.md)). **The only check that can see EXP-011's numerator was broken by EXP-011's
+[L-07](LESSONS.md)). **Every counter on this site could say who wrote it except the one that decides
+the bet.** `POST /waitlist` wrote `application_submit` and `application_invalid` unsuffixed, always —
+alone among every counter this loop has shipped. `/api/pulse/*` refuses a caller that is not on the
+page; `landing_view`, `feed_view`, `feed_fetch`, `robots_fetch` and `sitemap_fetch` all carry `_bot`.
+The route that records the **one event that would end this drought** carried neither, and it is public
+source in a public repository, so a scripted POST wrote a `waitlist` row **and** an unsuffixed
+`application_submit` and arrived in the snapshot indistinguishable from a person filling in the form.
+**It survived 140 runs because it was never wrong** — `applications` has read 0 throughout, and a
+counter that has only ever recorded zero looks exactly like a correct one. [L-57](LESSONS.md): rank
+instruments by *what a reading would license*, not by how often they are read; and **nobody doubts good
+news**, so the discriminator has to exist before the news arrives, because counters do not backfill.
+Shipped in [`14e70a2`](https://github.com/in-c0/tuned/commit/14e70a2): `_bot` on both names, plus
+`application_submit_offpage` / `application_invalid_offpage` — **an axis, not a bucket**, marking a
+submit that carried no `Origin`. **The axis is the load-bearing half:** the realistic junk submit sends
+a Chrome user-agent (invisible to `isBot`, lands unsuffixed) and no `Origin`. **Deliberately not done:
+refusing an offpage submit.** `applications` is 0, so one false reject costs the whole bet against a
+label obtainable without refusing anything — this route classifies and never refuses, and a test pins
+that. **Seven tests, four mutations, four refused** (drop either split, drop the axis, refuse an
+offpage submit). Suite **13 files, 185 tests**; `check` 0; `test:ops` 11/11; CI
+[33995166776](https://github.com/in-c0/tuned/actions/runs/33995166776) green;
+[verify production](https://github.com/in-c0/tuned/actions/runs/33995166731) **success on `14e70a2`
+serving**. **No `src/pages.ts` change, so EXP-011's four stop conditions are byte-untouched and neither
+of R's inputs is read or written.** **Unlike every counter in the L-35/44/46/51 family, this one's
+failure is self-announcing:** `totals.applications` is a table `COUNT` computed independently of the
+counters, so `applications` rising while none of the six names moves is visible in the very next
+snapshot — which is why no production write-probe was run and none is owed. **Considered and declined:
+an interim-analysis rule for EXP-011.** Tonight was the last moment one could be registered before any
+of the window's data was readable, and a group-sequential design would have returned the frozen landing
+page up to eleven days early — but EXP-011's own stop conditions say *no second reading and no
+extension*, and amending that mid-window to shorten a wait under deadline pressure is
+[L-55](LESSONS.md)'s failure exactly. Run 140 declined a beneficial two-line fix to honour the same
+freeze. **Previously, run 140 — the only check that can see EXP-011's numerator was broken by EXP-011's
 numerator, and nothing went red.** Run 138 added `pulse("landing_render")` and did not touch
 [`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs), which asserted that **no** pulse
 fires on a bare page load and mirrored a **two-name** allowlist — both contradicted by an

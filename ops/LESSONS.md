@@ -2164,3 +2164,36 @@ halves. It is measured instead: the browser check asserts zero page errors befor
 dispatch. **If any bracket inside the window reports a page error preceding the render pulse, the
 hazard has fired** — hoist it immediately and grade EXP-011 on the complete days before the edit,
 under the regression clause the experiment already carries.
+
+## L-57 — every counter on the site could say who wrote it except the one that decides the bet (2026-09-06, run 141)
+
+**What happened.** `POST /waitlist` writes `application_submit` and `application_invalid`. Both were
+written unsuffixed, always, with no user-agent split and no origin check — alone among every counter
+this loop has shipped. `/api/pulse/*` refuses a caller that is not on the page; `landing_view`,
+`feed_view`, `feed_fetch`, `robots_fetch` and `sitemap_fetch` all carry `_bot`. The route that records
+the **only** event that would end this loop's drought carried neither, and it is public source in a
+public repository, so any scripted POST wrote a `waitlist` row and an unsuffixed counter that would
+have read, in the snapshot, exactly like a person filling in the form.
+
+**Why it survived 140 runs.** Because it never produced a wrong number. `applications` has been 0
+throughout, and a counter that has only ever recorded zero is indistinguishable from a correct one.
+Every review of the funnel looked at the *value* — which was right — and never at what the value would
+have meant had it moved. **A counter is not validated by being right about nothing.**
+
+**Why it is worse here than at the top of the funnel.** [L-51](#l-51--a-fix-aimed-at-one-non-human-reader-does-not-generalise-to-the-others-and-the-page-still-looks-finished)
+and [L-55](#l-55--a-counter-that-cannot-separate-two-explanations-was-read-for-nineteen-days-as-though-it-had)
+are the same defect on `landing_view` and `landing_engage`, and both were caught by disbelief: those
+numbers were suspiciously large or suspiciously zero, so somebody eventually asked what they meant. The
+first `applications: 1` would have been the number this loop has spent sixty days wanting. **Nobody
+doubts good news, so the instrument that reports it needs its discriminator built before the news
+arrives, not after.** After is too late in the literal sense: counters do not backfill, and the one
+event that mattered would already have been recorded unlabelled.
+
+**The generalisable rule.** Rank instruments by *what a reading would license*, not by how often they
+are read or how likely they are to be wrong. The counters that decide something get their
+discriminators first, even — especially — when they have only ever read zero.
+
+**Prevention check, phrased so a green build cannot answer it:** *for each counter this service
+writes, if it read 1 tomorrow, what would we conclude, and what in the record would let us tell that
+conclusion from its opposite?* If the answer is "nothing", the counter is not finished, however long
+it has been correct.
