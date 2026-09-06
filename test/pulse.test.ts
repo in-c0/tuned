@@ -156,6 +156,117 @@ async function apply(
   return res;
 }
 
+// A browser navigating from a click sends `Sec-Fetch-User: ?1`. Nothing else does.
+const CLICK = { "user-agent": HUMAN_UA, "sec-fetch-user": "?1", "sec-fetch-mode": "navigate" };
+
+async function navigate(path: string, headers: Record<string, string> = CLICK, cookie?: string): Promise<Response> {
+  const ctx = createExecutionContext();
+  const res = await worker.fetch(
+    new Request(`${ORIGIN}${path}`, { headers: cookie ? { ...headers, cookie } : headers, redirect: "manual" }),
+    env as never,
+    ctx
+  );
+  await waitOnExecutionContext(ctx);
+  return res;
+}
+
+async function seedMember(token: string): Promise<void> {
+  await DB.prepare("INSERT INTO members (email, name, session_token) VALUES (?, '', ?)")
+    .bind(`${token}@example.com`, token)
+    .run();
+}
+
+describe("the activation chain says whether a person was there", () => {
+  beforeEach(async () => {
+    await DB.batch([DB.prepare("DELETE FROM member_days"), DB.prepare("DELETE FROM members")]);
+  });
+
+  it("keeps a clicked sign-in in the unsuffixed name and marks no axis", async () => {
+    await seedMember("tok-click");
+    const res = await navigate("/enter/tok-click");
+
+    expect(res.status).toBe(302);
+    expect(await counterFor("member_login")).toBe(1);
+    expect(await counterFor("member_login_bot")).toBeNull();
+    expect(await counterFor("member_login_unattended")).toBeNull();
+  });
+
+  it("marks a sign-in link opened with no click, whatever user-agent it claims", async () => {
+    // The realistic case, and the whole reason the axis exists rather than the _bot split
+    // alone: a mail security gateway or chat unfurler fetching the admit email's link sends a
+    // browser user-agent, is invisible to `isBot`, and lands unsuffixed. The missing
+    // `Sec-Fetch-User` is what gives it away.
+    await seedMember("tok-prefetch");
+    await navigate("/enter/tok-prefetch", { "user-agent": HUMAN_UA });
+
+    expect(await counterFor("member_login")).toBe(1);
+    expect(await counterFor("member_login_unattended")).toBe(1);
+  });
+
+  it("splits a self-declaring fetcher into _bot as well", async () => {
+    await seedMember("tok-curl");
+    await navigate("/enter/tok-curl", { "user-agent": "curl/8.5.0" });
+
+    expect(await counterFor("member_login_bot")).toBe(1);
+    expect(await counterFor("member_login")).toBeNull();
+    expect(await counterFor("member_login_unattended")).toBe(1);
+  });
+
+  it("still signs every one of them in — this route classifies, it never refuses", async () => {
+    // `members_ever_active` is 0. A member turned away because their browser omitted one
+    // header costs the whole bet; a mislabelled counter costs a footnote.
+    await seedMember("tok-accept");
+    const res = await navigate("/enter/tok-accept", { "user-agent": HUMAN_UA });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/today");
+    expect(res.headers.get("set-cookie") ?? "").toContain("tok-accept");
+  });
+
+  it("labels the desk view that moves members_ever_active", async () => {
+    // This is the reading the whole change is for: a prefetch that carried the cookie through
+    // the redirect writes a member_days row, and `members_ever_active` goes 0 → 1 with no
+    // person involved. On the day it moves, desk_view_unattended is what says so.
+    await seedMember("tok-desk");
+    await navigate("/today", { "user-agent": HUMAN_UA }, "tuned_session=tok-desk");
+
+    const active = await DB.prepare("SELECT COUNT(DISTINCT member_id) AS n FROM member_days").first<{ n: number }>();
+    expect(active?.n).toBe(1);
+    expect(await counterFor("desk_view")).toBe(1);
+    expect(await counterFor("desk_view_unattended")).toBe(1);
+  });
+
+  it("splits a self-declaring fetcher's desk view into _bot", async () => {
+    // Without this the `_bot` half of the desk split can be deleted and every other
+    // assertion here still passes, because they all send a browser user-agent (L-56).
+    await seedMember("tok-deskbot");
+    await navigate("/today", { "user-agent": "curl/8.5.0" }, "tuned_session=tok-deskbot");
+
+    expect(await counterFor("desk_view_bot")).toBe(1);
+    expect(await counterFor("desk_view")).toBeNull();
+  });
+
+  it("leaves a clicked desk view unmarked", async () => {
+    await seedMember("tok-desk2");
+    await navigate("/today", CLICK, "tuned_session=tok-desk2");
+
+    expect(await counterFor("desk_view")).toBe(1);
+    expect(await counterFor("desk_view_unattended")).toBeNull();
+    expect(await counterFor("desk_view_bot")).toBeNull();
+  });
+
+  it("never sums the axis into the bucket — the totals are what they always were", async () => {
+    await seedMember("tok-a");
+    await seedMember("tok-b");
+    await navigate("/enter/tok-a", { "user-agent": HUMAN_UA }); // unattended
+    await navigate("/enter/tok-b"); // clicked
+
+    const bucketed = ((await counterFor("member_login")) ?? 0) + ((await counterFor("member_login_bot")) ?? 0);
+    expect(bucketed).toBe(2);
+    expect(await counterFor("member_login_unattended")).toBe(1);
+  });
+});
+
 describe("a rejected application is no longer invisible", () => {
   it("counts application_invalid when the email fails validation", async () => {
     const res = await apply({ email: "not-an-email", role: "fan", note: "" });

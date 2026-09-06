@@ -53,6 +53,25 @@ function track(c: Context, work: Promise<unknown>): void {
   }
 }
 
+/** The user-agent split every counter on this site carries. Weak and forgeable by design. */
+function botSuffix(c: Context): "" | "_bot" {
+  return isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
+}
+
+/** True when nothing about this navigation says a person activated it.
+ *
+ *  `Sec-Fetch-User: ?1` is sent by a browser on a top-level navigation **only** when it was
+ *  triggered by user activation — a click, a typed URL, a bookmark. A prefetcher, a mail
+ *  security gateway or a chat unfurler produces no user activation, and a plain HTTP client
+ *  sends no `Sec-Fetch-*` header at all, so both land here.
+ *
+ *  This is the GET counterpart of the `Origin` test on /waitlist: a GET carries no `Origin`,
+ *  so there is nothing else on a navigation request to ask. It is evidence, not proof, in
+ *  both directions — which is why every caller labels and none refuses. */
+function unattended(c: Context): boolean {
+  return c.req.header("sec-fetch-user") !== "?1";
+}
+
 function newToken(): string {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
@@ -318,11 +337,46 @@ app.post("/api/members", async (c) => {
   return c.json({ email, login_url: `${origin}/enter/${session}`, dashboard: `${origin}/home` }, 201);
 });
 
+// A sign-in link is delivered by email and opened by a GET, which makes this the one route on
+// the site whose first visitor is *systematically* a machine. Mail providers, security gateways
+// and chat unfurlers fetch every URL in a message before a person ever sees it, and this handler
+// grants a session and counts a login to whatever asks. So `member_login` recorded "a member
+// signed in" and "something opened the link in the admit email" under one name, and the record
+// held nothing that could separate them (L-58).
+//
+// That is worse than a mislabelled counter, because it does not stop here: this route redirects
+// to `/today`, which writes a `member_days` row, and `member_days` is the sole source of
+// `retention.members_ever_active` — the number this loop reports as its activation evidence and
+// which has read **0** for the whole window. A prefetch that carries the cookie through the
+// redirect moves it 0 → 1 with no person involved, and reads in the snapshot exactly like the
+// first activation Tuned has ever had. The false positive is not hypothetical: it is scheduled
+// to fire on the very first real admission, which is the moment nobody would doubt it.
+//
+// Two discriminators, and the second is the load-bearing one:
+//
+//   * `_bot` — the same user-agent heuristic as every other counter. Weak and forgeable, and
+//     here for consistency rather than strength: a scanner sending a Chrome user-agent lands
+//     unsuffixed, exactly as it does on `landing_view`.
+//   * `_unattended` — the request carried no `Sec-Fetch-User: ?1`. Browsers set that header on
+//     a top-level navigation **only** when a person activated it; nothing a prefetcher, mail
+//     gateway or unfurler does produces user activation, and a plain HTTP client sends no
+//     `Sec-Fetch-*` at all. So its absence is real evidence no click caused this request — the
+//     same shape of reasoning as `_offpage` on /waitlist (L-57) and `landing_render` (EXP-011),
+//     adapted to a GET, which carries no `Origin` to test.
+//
+// `_unattended` is an **axis, not a bucket**: it counts a subset of the two names above and is
+// never summed with them. `member_login + member_login_bot` remains the total it always was.
+//
+// Absence is evidence, not proof, in both directions: a real click that arrives without the
+// header lands in `_unattended` too. Which is exactly why this route classifies and never
+// refuses — see the sign-in interstitial declined in ops/DECISIONS.md. Turning away one real
+// member to keep a counter clean would cost more than every mislabelled login combined.
 app.get("/enter/:token", async (c) => {
   const member = await c.env.DB.prepare("SELECT * FROM members WHERE session_token = ?").bind(c.req.param("token")).first<Member>();
   if (!member) return c.html(loginPage("That sign-in link isn't valid anymore. Ask us for a fresh one."), 404);
   grantSession(c, member.session_token);
-  track(c, count(c.env.DB, "member_login"));
+  track(c, count(c.env.DB, `member_login${botSuffix(c)}`));
+  if (unattended(c)) track(c, count(c.env.DB, "member_login_unattended"));
   return c.redirect("/today");
 });
 
@@ -439,7 +493,19 @@ app.get("/today", async (c) => {
   const member = await currentMember(c);
   if (!member) return c.redirect("/login");
   const db = c.env.DB;
-  track(c, Promise.all([count(db, "desk_view"), memberActive(db, member.id, "desk")]));
+  // This is where a false activation actually lands. `memberActive` writes the `member_days`
+  // row that `retention.members_ever_active` is computed from, and reaching here needs only the
+  // session cookie /enter/<token> just handed out — so anything that followed the sign-in link
+  // and kept the cookie through the redirect arrives with a valid session and is counted active.
+  //
+  // The same two discriminators as /enter, for the same reason, on the same terms: `_bot` is the
+  // consistency split, `_unattended` is an axis counting a subset and never summed with the
+  // names above, and neither refuses anything — the desk renders identically either way. What
+  // they buy is that `members_ever_active: 0 → 1` no longer arrives alone: on the day it moves,
+  // `desk_view` / `desk_view_bot` / `desk_view_unattended` say in the same snapshot whether a
+  // browser a person was driving is what moved it.
+  track(c, Promise.all([count(db, `desk_view${botSuffix(c)}`), memberActive(db, member.id, "desk")]));
+  if (unattended(c)) track(c, count(db, "desk_view_unattended"));
 
   // followed feeds; auto-follow your own agents on first visit so the desk is never empty
   await db.prepare(
