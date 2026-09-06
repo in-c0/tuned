@@ -1839,3 +1839,72 @@ and it is a **baseline**, not a graded result.
 
 **If A2 is never answered at this venue, EXP-012 is UNRUN** — never a null, never a zero, and nothing
 about demand may be read from it.
+
+---
+
+## 2026-09-07 (run 144) — the two counters that would announce a first activation, and whether we were the ones who acted
+
+**The defect, stated as a reading rather than as a name.** `attention_star` and `attention_skip` were
+the last two counters on this site with **no discriminator of any kind**. `totals.stars` **8** and
+`totals.skips` **33** are every read row the service holds, and every one of them is the owner
+triaging their own desk. The **first star by a real member** — the single event this loop would report
+as activation — would have arrived under exactly the same name as the owner's ten-thousandth. That is
+[L-57](LESSONS.md)'s shape a third time, after `application_*` (run 141) and `member_login` /
+`desk_view` (run 142): **nobody doubts good news**, so the discriminator has to exist before the news
+does. Named as an open ambiguity by run 142 and left open by run 143; closed here.
+
+### Names, and what each one means
+
+| Name | Kind | Means |
+| --- | --- | --- |
+| `attention_star` / `attention_skip` | unsuffixed | an attention event whose client did not declare itself as automation. **Totals unchanged by this run** |
+| `attention_star_bot` / `attention_skip_bot` | **split** | the same event from a self-declaring client. Never summed with the unsuffixed name |
+| `attention_star_owner` / `attention_skip_owner` | **axis, not a bucket** | the subset of attention events taken by **the owner's own member**, *regardless of user-agent*. **Never summed with the names above, whose totals are unchanged** |
+| `totals.stars_owner` / `totals.skips_owner` | axis over history | the same separation applied to every row in `reads`, not only to events after the deploy |
+| `totals.owner_resolved` | **guard, 1 or 0** | whether the configured owner handle resolved to a human feed with a member attached |
+
+### How to read them
+
+- **`attention_star` moving while `attention_star_owner` does not is the first non-owner star.** That
+  is the whole reading, and it did not exist before this run.
+- **`stars` − `stars_owner` is every star ever taken by someone other than the owner.** The daily axis
+  can only separate forward from its own deploy; `reads` carries `member_id` already, so the totals
+  are **not zero merely because they did not exist yet** — the one property a counter can never have.
+  Both halves are needed: `reads` is upserted on `(member_id, item_id)`, so it is current state and
+  the daily counters are the event record.
+- **Read nothing from any of the four owner names on a day `owner_resolved` is 0.** This instrument
+  fails in exactly one direction: with no resolvable owner the axis never fires and the owner's own
+  attention is **indistinguishable from a stranger's arriving**. That is why the resolution failure is
+  *reported* and not left to be inferred from a silent counter. `owner_resolved` is 0 when the handle
+  matches no feed, matches an **agent** feed, or matches a human feed with no member attached; a test
+  pins all three.
+- **The owner is one definition, in [`src/handles.ts`](../src/handles.ts), shared with the operator
+  control plane.** Two copies of that literal would be two answers to *whose actions are ours*, and a
+  counter built to separate the owner from a real member is worthless the moment it can drift from the
+  scoping it mirrors. It resolves from `AGENT_OPERATOR_OWNER` (a public var, not a secret), never from
+  request input.
+- **Both daily names read 0 on every day before 2026-09-07** because they had never fired at all —
+  see the DASHBOARD row *"Attention actions since instrumentation: 0"*. **No earlier reading changes
+  meaning and there is no backfill to do or to invent.**
+
+### What this does not do
+
+It produces no user and no dollar and makes neither more likely. It is not an experiment and none is
+registered for it — there is no hypothesis here, only a counter that could not answer the question it
+would be asked. **Nothing about [EXP-011](EXPERIMENTS.md) is affected:** no file under `src/pages.ts`
+changed, the `landing_render` call site is byte-identical, and neither of R's two inputs is read or
+written by this diff.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
+**0** · `followers` **0** · `items_public` **84** · gross cash **AUD $0**, from *no billing exists*.
+
+### The site now has no undiscriminated counter left
+
+Recorded so no later run has to re-derive it. Every counter on every route carries at least the
+user-agent split, and every counter whose reading would be *load-bearing for a first-arrival claim*
+carries a second discriminator chosen for how its input actually arrives ([L-58](LESSONS.md)):
+`landing_*` the render beacon, `application_*` the `Origin` axis, `member_login` / `desk_view` the
+`Sec-Fetch-User` axis, `arrival:*` / `feed_*` the tag allowlist and the `qa` control, and now
+`attention_*` the owner axis. **That sweep is finished. It is not a plan for the remaining runs and
+must not be mistaken for one** — it measures a funnel nobody has entered.

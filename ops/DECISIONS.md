@@ -4568,3 +4568,70 @@ Lock claimed before any action: cycle `2026-09-06/w14`, holder `vm:1987`, nonce 
 - **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
   `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
   from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+
+## 2026-09-07 — run 144: closed the owner-vs-member ambiguity on the last two undiscriminated counters
+
+- **Decision:** split `attention_star` / `attention_skip` by user-agent and add
+  `attention_star_owner` / `attention_skip_owner` as an axis, plus `totals.stars_owner` /
+  `skips_owner` computed retroactively from `reads` and a `totals.owner_resolved` guard. Shipped in
+  [`579b024`](https://github.com/in-c0/tuned/commit/579b024). Full reading rules in
+  [METRICS.md](METRICS.md).
+- **Rationale, and why this and not something else.** [L-59](LESSONS.md) was written **last run**, and
+  its prevention check is *before selecting this run's action, read the register's named next step and
+  count how many consecutive prior runs declined it.* The named next step is this one; the count is
+  **one** (run 143). At two a decline needs a named trigger and at three the item is done or struck —
+  so applying L-59 for the first time meant doing it now rather than starting the same five-run
+  pattern the lesson exists to forbid. The alternative named on the board, EXP-011's second
+  instrument-validity bracket, is registered for **mid-window** and today is day 3 of 14; dispatching
+  it now would repeat the day-1 check rather than bracket the interval.
+- **The finding is [L-57](LESSONS.md)'s, for the third time and the last available time.** Every
+  attention event this service holds — 8 stars, 33 skips — is the owner triaging their own desk, and
+  the first star by a real member would have arrived under exactly the same name. Nobody doubts good
+  news, so the discriminator has to exist before the news does.
+- **Two halves, because they answer different questions.** The daily axis separates events from its
+  own deploy forward. `reads` carries `member_id` already, so the totals separate the **whole
+  history** at the cost of one sub-select and are not zero merely because they did not exist yet.
+  `reads` is upserted on `(member_id, item_id)` — it is current state, and the counters are the event
+  record — so neither half subsumes the other.
+- **The instrument fails in one direction, so the failure is reported rather than inferred.** With no
+  resolvable owner the axis never fires and the owner's own stars look exactly like a stranger's —
+  a false activation, in the one direction nobody would question. `totals.owner_resolved` reports
+  resolution, and on a 0 day none of the four owner names licenses any reading. A test pins all three
+  ways resolution can fail: no such handle, an **agent** feed at the handle, and a human feed with no
+  member attached.
+- **The owner definition moved to [`src/handles.ts`](../src/handles.ts) and `operator.ts` now imports
+  it.** Two copies of `"ava"` would have been two answers to *whose actions are ours*, and a counter
+  built to separate the owner from a real member is worthless the moment it can drift from the
+  operator scoping it mirrors. The operator middleware's behaviour is unchanged — same query, same
+  503 on an unresolvable owner — and its tests pin that.
+- **A false claim in the code, made true rather than deleted.** `botSuffix`'s docstring has read
+  *"The user-agent split every counter on this site carries"* since it was written, and it was not
+  true of these two. Recorded as an occurrence of [L-56](LESSONS.md) rather than a new lesson: an
+  invariant asserted in a comment that nothing checked. It is now true.
+- **Deliberately not done.** No refusal or rate-limit on the read route — it classifies and never
+  refuses, on the reasoning run 142 recorded for the sign-in interstitial. No per-member counter and
+  no member identifier in any counter name: `member_days` is the per-member table and it already
+  exists. No schema change, no migration, no cookie, no per-visitor state, **no new data category —
+  so the privacy policy is deliberately unchanged**, on the reasoning runs 43, 141 and 142 recorded.
+  No `src/pages.ts` change of any kind.
+- **Deliberately not done: an experiment registration.** This is a defect fix on an instrument, not a
+  hypothesis, and [EXPERIMENTS.md](EXPERIMENTS.md) does not get an entry manufactured for it — the
+  same call run 1 made for the build gate.
+- **No production write-probe, and none is owed.** Probing would mean signing in as the owner and
+  starring a real item, which writes `attention_star` and `attention_star_owner` with first-party
+  noise on the one route whose intended population is the first real member. The failure is
+  self-announcing instead: `retention.members_ever_active` is computed from `member_days`
+  independently of `metric_days`, and `totals.owner_resolved` reports the only silent failure this
+  instrument has. Twelve tests run the real Worker against a real D1 in workerd, and **eight
+  mutations were attempted and eight refused**.
+- **EXP-011 is untouched, checked rather than asserted.** No file under `src/pages.ts` changed, so no
+  landing copy, layout, offer or form moved; `landing_render`'s call site is byte-identical; neither
+  of R's two inputs is read or written by this diff. The 2026-09-18 reading is unaffected and its
+  second instrument-validity bracket remains due mid-window.
+- **The instrument sweep is finished, and that is a fact about the board rather than a plan.** No
+  counter on any route is undiscriminated any more. There is no distribution work this executor can
+  perform (run 143), the landing surface is frozen by EXP-011's stop conditions until 2026-09-18, and
+  the instrument work is now done. **28 days remain and every standing figure is zero.**
+- **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+  `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
+  from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.

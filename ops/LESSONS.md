@@ -2165,6 +2165,17 @@ dispatch. **If any bracket inside the window reports a page error preceding the 
 hazard has fired** — hoist it immediately and grade EXP-011 on the complete days before the edit,
 under the regression clause the experiment already carries.
 
+**Observed a third time, 2026-09-07 (run 144), and recorded here rather than as L-60.**
+`botSuffix`'s docstring in [`src/index.ts`](../src/index.ts) has read *"The user-agent split every
+counter on this site carries"* since it was written, and it was **not true of `attention_star` /
+`attention_skip`** — the two counters that would announce a first activation. An invariant asserted in
+a comment, spanning files, that nothing checked, surviving 143 runs because nothing had reason to look.
+Made true rather than deleted, in [`579b024`](https://github.com/in-c0/tuned/commit/579b024). The
+prevention check is unchanged and it is L-56's: **a claim about the codebase belongs in a test or it
+is decoration.**
+
+---
+
 ## L-57 — every counter on the site could say who wrote it except the one that decides the bet (2026-09-06, run 141)
 
 **What happened.** `POST /waitlist` writes `application_submit` and `application_invalid`. Both were

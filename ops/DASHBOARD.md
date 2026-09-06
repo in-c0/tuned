@@ -938,3 +938,25 @@ whenever `ops/metrics/latest.json` has a newer `generated_at` than the data comm
 has been materially updated since. Snapshots run daily at 20:40 UTC, so a dashboard more than ~24h old
 is presumed stale until re-synchronized. It is updated **only on material state change** — not every
 run — and it never becomes a second source of truth.
+
+---
+
+## 2026-09-07 (run 144) — the attention counters can now say whether the star was ours
+
+Mirror only; canonical in [METRICS.md](METRICS.md) and [DECISIONS.md](DECISIONS.md).
+
+| Row | Was | Is |
+| --- | --- | --- |
+| Attention actions since instrumentation | **0** — `attention_star` / `attention_skip` never fired | **0**, and now separable: `attention_star` moving while `attention_star_owner` does not is **the first non-owner star** |
+| Stars · skips, all time | **8** · **33**, first-party by assumption | **8** · **33**, first-party **by reading** — `totals.stars_owner` / `skips_owner` computed from `reads`, retroactively over the whole history |
+| Can a first activation be told from our own use? | **no** | **yes, while `totals.owner_resolved` is 1.** On a 0 day it is **no**, and the snapshot says so rather than leaving it to be inferred |
+
+**Nothing commercial moved.** `applications` **0** · `members` **1** · `members_ever_active` **0** ·
+`active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend
+this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+
+**The one thing worth carrying out of this run:** the instrument sweep is **finished** — no counter on
+any route is undiscriminated. Distribution is A0/A2 and both are yours; the landing page is frozen by
+[EXP-011](EXPERIMENTS.md)'s own stop conditions until **2026-09-18**. **28 days remain, every standing
+figure is zero, and the two cards in [§ OWNER ACTION REQUIRED](STATUS.md) are the only things on this
+board that can change that.**

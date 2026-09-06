@@ -1,6 +1,62 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-06 20:20 Sydney (10:20 UTC), run 143 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-07 08:20 Sydney (22:20 UTC 09-06), run 144 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from run 143 and not re-argued here, per [L-07](LESSONS.md).** **The two counters that
+would announce Tuned's first activation could not say whether we were the ones who acted.**
+`attention_star` and `attention_skip` were the last two counters on this site with **no discriminator
+of any kind**. Every attention event the service holds — `totals.stars` **8**, `totals.skips` **33** —
+is the owner triaging their own desk, and **the first star by a real member would have arrived under
+exactly the same name**. That is [L-57](LESSONS.md)'s shape a third time, after `application_*`
+(run 141) and `member_login`/`desk_view` (run 142): nobody doubts good news, so the discriminator has
+to exist before the news does. Named open by run 142, left open by run 143, closed here.
+
+Shipped in [`579b024`](https://github.com/in-c0/tuned/commit/579b024): the `_bot` split on both names,
+plus `attention_star_owner` / `attention_skip_owner` as an **axis, not a bucket** — the subset taken by
+the owner's own member, regardless of user-agent, never summed with the names above, whose totals are
+unchanged. **`attention_star` moving while `attention_star_owner` does not is the first non-owner
+star**, and that reading did not exist before this run. **Two halves, because they answer different
+questions:** the daily axis separates events forward from its own deploy, while `totals.stars_owner` /
+`skips_owner` are computed from `reads` — which carries `member_id` already — so they separate the
+**whole history** and are **not zero merely because they did not exist yet**, the one property a
+counter can never have. `reads` is upserted on `(member_id, item_id)`, so it is current state and the
+counters are the event record; neither half subsumes the other.
+
+**The instrument fails in exactly one direction, so the failure is reported rather than inferred.**
+With no resolvable owner the axis never fires and the owner's own stars look **identical to a
+stranger's** — a false activation, in the one direction nobody would question. `totals.owner_resolved`
+reports resolution, and **on a 0 day none of the four owner names licenses any reading**. Tests pin all
+three ways it can fail: no such handle, an **agent** feed at the handle, and a human feed with no
+member attached. The owner definition itself moved to [`src/handles.ts`](../src/handles.ts) and
+`operator.ts` now imports it — two copies of that literal would have been two answers to *whose actions
+are ours*, and a counter built to separate the owner from a real member is worthless the moment it can
+drift from the operator scoping it mirrors. **The route classifies and never refuses:** a star writes,
+redistributes and returns 200 identically whether or not the owner resolves.
+
+**Why this and not the other named item.** [L-59](LESSONS.md) was written **last run**, and this is its
+first application: read the register's named next step and count consecutive declines. The count was
+**one** (run 143); at two a decline needs a named trigger and at three the item is done or struck, so
+doing it now is what the lesson forbids starting the five-run pattern again. EXP-011's second
+instrument-validity bracket is registered for **mid-window** and today is day 3 of 14.
+
+**Mutation-tested, not asserted.** **Twelve** tests in [`test/attention.test.ts`](../test/attention.test.ts)
+against a real D1 in workerd; **eight mutations attempted, eight refused** — dropping the axis (5
+failures), dropping the `_bot` split (1), falling back to member id 1 instead of null (3), dropping
+`kind = 'human'` from owner resolution (1), reporting `owner_resolved` 1 when unresolvable (3),
+dropping the member filter from `stars_owner` (1), inverting the owner comparison (5), dropping the
+owner totals from the snapshot (4); control **12/12**. Suite **14 files, 210 tests**; `check` 0;
+`test:ops` 11/11; workflow and nomination validators ok. **No `src/pages.ts` change, so EXP-011's four
+stop conditions are byte-untouched** and neither of R's inputs is read or written. No schema change, no
+migration, no cookie, no identifier, no per-visitor state, **no new data category — so the privacy
+policy is unchanged**, on the reasoning runs 43, 141 and 142 recorded.
+
+**The consequence, and it is the honest point of the run. The instrument sweep is finished.** No
+counter on any route is undiscriminated any more. Distribution is A0/A2 and both are the owner's
+(run 143); the landing surface is frozen by EXP-011's own stop conditions until **2026-09-18**; the
+instrument work is now done. **28 days remain and every standing figure is zero.** That is not a plan
+for the remaining runs and must not be read as one — run 141 and run 143 both asked the reviewer to
+name what this executor should do with them, and **that request stands unanswered for a third run.**
+
+**Previously, run 143 (2026-09-06 20:20 Sydney) — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, and the second one is a question, not a chore.** **A5 is closed at `ooh.directory`, and with it
 the last distribution work anywhere on this board that this executor could perform.** The venue's own
 form asks for *"The URL of the blog's front page (not its feed)"*, so the tagged URL is `/sportstech` —
