@@ -32,7 +32,12 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      # Full history, because the wait step below asks whether the serving commit
+      # *contains* the expected one. A shallow clone answers "no" to that for every
+      # commit, which is the silent-false-negative direction.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Never fails the job. Its whole purpose is to leave a diagnosis in the log of the
       # run that went red — on 2026-08-10 the wait step below burned eight minutes printing
@@ -90,14 +95,37 @@ jobs:
               exit 0
             fi
 
-            echo "attempt $attempt: serving '${serving:-<no build stamp>}', expecting '$EXPECTED' — waiting 20s"
+            # Equality is the wrong question, and asking it made this check go red on
+            # 2026-09-06 while the change under test was live and healthy. Cloudflare
+            # builds whatever the tip of master is when the build starts, and this
+            # repository has a *scheduled* workflow that commits to master
+            # (metrics-snapshot.yml, 20:40 and 00:15 UTC, and GitHub's scheduler runs
+            # late). Any commit landing between the push and the build makes an exact
+            # match permanently unsatisfiable — the job then reports "the deploy never
+            # landed" about a deploy that landed and superseded it, and this loop's own
+            # rule is to roll back on that. So the question is *containment*: is the
+            # pushed commit part of what is serving?
+            #
+            # Fetch each attempt, because a commit pushed after checkout is not in the
+            # clone yet — which is precisely the case this exists for. Unknown objects
+            # fail closed: no match, keep waiting.
+            git fetch --quiet --no-tags origin master 2>/dev/null || true
+            if [ -n "$serving" ] && git cat-file -e "${serving}^{commit}" 2>/dev/null \
+               && git merge-base --is-ancestor "$EXPECTED" "$serving" 2>/dev/null; then
+              echo "serving=$serving" >> "$GITHUB_OUTPUT"
+              echo "Expected commit $EXPECTED is live inside a newer build $serving (attempt $attempt)."
+              echo "Verified build: \`$serving\`, which contains \`$EXPECTED\`" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            echo "attempt $attempt: serving '${serving:-<no build stamp>}', expecting '$EXPECTED' (or a descendant of it) — waiting 20s"
             sleep 20
           done
 
           # Fail closed. An unverifiable deploy is treated as a failed deploy: the health
           # steps below are skipped rather than run against an unknown version, because a
           # green result on the wrong Worker is worse than no result.
-          echo "::error::Expected commit $EXPECTED never became live (last seen: '${serving:-<no build stamp>}'). The Cloudflare build may have failed, or the deploy is stuck."
+          echo "::error::Expected commit $EXPECTED never became live, and nothing serving contained it (last seen: '${serving:-<no build stamp>}'). The Cloudflare build may have failed, or the deploy is stuck."
           exit 1
 
       - name: Site is up

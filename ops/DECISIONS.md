@@ -4635,3 +4635,42 @@ Lock claimed before any action: cycle `2026-09-06/w14`, holder `vm:1987`, nonce 
 - **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
   `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
   from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+
+## 2026-09-07 — run 144, second action: the post-deploy verifier was asking for equality when the question is containment
+
+- **Decision:** change `verify-production.yml`'s match rule from *the serving build stamp equals the
+  pushed SHA* to *the serving commit **contains** the pushed SHA*, with `fetch-depth: 0` and an
+  in-loop `git fetch origin master`. Pinned by [`scripts/verify-workflow.test.mjs`](../scripts/verify-workflow.test.mjs).
+  Full account in [L-60](LESSONS.md).
+- **Why a second action at all, when the run's bounded intervention was already shipped and
+  verified.** The gate was found broken **by this run's own verification step**, it was red on
+  `master`, and this loop's standing rule is to **roll back automatically on a failed verification**.
+  A red that is wrong about a healthy deploy is not a nuisance to hand to the next run — it is an
+  instruction to the next run to revert good work, with the health assertions skipped so nothing in
+  the record contradicts it. Run 1 and run 140 both made this call: a gate discovered broken outranks
+  the planned work.
+- **What actually happened, since it was not a Cloudflare fault.**
+  [Run 198](https://github.com/in-c0/tuned/actions/runs/34063537090) failed at 22:24:41Z reporting
+  `ea902e1` *"never became live (last seen: `1abe55e`)"*. `1abe55e` is `ops: metrics snapshot
+  2026-09-06`, pushed by this repository's own scheduled workflow at **22:17:04Z** — 32 seconds after
+  this run's push — and it is a **descendant of `ea902e1`**. Cloudflare built the newer tip. The
+  change was live the whole time; the check could not see it.
+- **Not a rare race — a scheduled one.** `metrics-snapshot.yml` commits to `master` on cron, and
+  GitHub's scheduler runs late; the executor's 08:00 Sydney run pushes at 22:00 UTC, into the window
+  where a delayed 20:40 UTC snapshot lands. This will recur until the rule is containment.
+- **The fix keeps every failure mode it had.** Still fails closed on a Worker serving something
+  **older** than the push, on an unknown object, on a missing build stamp, and on the eight-minute
+  budget expiring; the health assertions still sit behind it, so a green result on an unknown Worker
+  remains impossible. Four mutations attempted, four refused: dropping `fetch-depth: 0`, dropping the
+  in-loop fetch, accepting any serving commit rather than a containing one, and reverting the
+  fail-closed message.
+- **Deliberately not done: widening the eight-minute budget, or making the wait step a warning.**
+  Both would have made this particular red go away without answering the question the check exists to
+  ask, and the second would have removed the only thing standing between an unverified deploy and a
+  green run.
+- **This run's production verification was obtained by hand and is stated as such.**
+  [Run 199](https://github.com/in-c0/tuned/actions/runs/34064052747), a `workflow_dispatch` on
+  `master` — **success on `1abe55e` serving**, which contains both of this run's commits. Every health
+  assertion green. The push-triggered run's assertions were skipped and are **not** claimed.
+- **No metric moved and none is claimed.** Spend this run **AUD $0.00**; running total **AUD $0.00 of
+  $500**.

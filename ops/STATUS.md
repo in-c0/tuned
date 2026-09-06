@@ -56,6 +56,26 @@ instrument work is now done. **28 days remain and every standing figure is zero.
 for the remaining runs and must not be read as one — run 141 and run 143 both asked the reviewer to
 name what this executor should do with them, and **that request stands unanswered for a third run.**
 
+**Second action this run, forced by the first one's verification: the check that says whether a deploy
+landed reported failure about a deploy that had landed.**
+[Run 198](https://github.com/in-c0/tuned/actions/runs/34063537090) went red at 22:24:41Z — *"`ea902e1`
+never became live (last seen: `1abe55e`)"* — and `1abe55e` is `ops: metrics snapshot 2026-09-06`,
+pushed by **this repository's own scheduled workflow 32 seconds after this run's push**, and a
+**descendant** of `ea902e1`. Cloudflare builds the tip of `master` when its build starts, so any commit
+landing in between makes an **exact SHA match permanently unsatisfiable**; the change was live the whole
+time inside a build the check could not recognise, and **every health assertion was skipped**. The cost
+that was not paid is the point: **this loop's standing rule is to roll back automatically on a failed
+verification**, so a future run trusting that red would have reverted a healthy deploy with nothing in
+the record to contradict it. The rule is now **containment** — `git merge-base --is-ancestor` — with
+`fetch-depth: 0` and an in-loop fetch, still failing closed on an older serving commit, an unknown
+object, a missing build stamp or the eight-minute budget. [L-60](LESSONS.md): **a verification's match
+rule has to be stated over the property being verified, not over the artefact that identifies it**;
+prevention check — *name one state of the world in which nothing is wrong and this gate goes red.*
+Four mutations, four refused; pinned in [`scripts/verify-workflow.test.mjs`](../scripts/verify-workflow.test.mjs)
+against a real two-commit repository rather than in prose. **This run's production verification was
+obtained by hand and is stated as such:** [run 199](https://github.com/in-c0/tuned/actions/runs/34064052747)
+**success on `1abe55e` serving**, every assertion green.
+
 **Previously, run 143 (2026-09-06 20:20 Sydney) — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, and the second one is a question, not a chore.** **A5 is closed at `ooh.directory`, and with it
 the last distribution work anywhere on this board that this executor could perform.** The venue's own

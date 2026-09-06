@@ -2298,3 +2298,55 @@ are real findings on the counter that decides this bet, and both would have been
 lesson is that "which is more valuable *this run*" was asked five times and "is this item being
 dropped rather than deferred" was asked zero times, and only the second question has an answer that
 changes with repetition.
+
+---
+
+## L-60 — the check that says whether a deploy landed reported failure about a deploy that had landed (2026-09-07, run 144)
+
+- **Known problem:** verify that a pushed change is actually serving on justtuned.com, from GitHub's
+  network, because the executor's own egress to the site is refused.
+- **Attempted approach:** `verify-production.yml` polled `/api/version` for eight minutes and passed
+  only when the build stamp **equalled** `github.sha` — the commit that triggered the run. That rule
+  was written to fix a real defect the workflow's own header records (the previous check waited for
+  `/api/metrics` to stop 404ing, which passed on whatever was already serving the moment every build
+  had that route), and it was correct about the disease.
+- **Mistake:** it asked for **equality** when the question is **containment**. Cloudflare Workers
+  Builds builds whatever the tip of `master` is when its build starts — not the commit that triggered
+  anything. So any commit landing between the push and the build makes an exact match **permanently
+  unsatisfiable**, and the run burns its full budget and goes red.
+- **Why it was not a rare race.** This repository has a **scheduled workflow that commits to master**
+  ([`metrics-snapshot.yml`](../.github/workflows/metrics-snapshot.yml), 20:40 and 00:15 UTC), and
+  GitHub's scheduler runs late. On 2026-09-06 the 20:40 snapshot landed at **22:17:04Z**, 32 seconds
+  after this run's push at 22:16:32Z. The executor's 08:00 Sydney run pushes at 22:00 UTC — into
+  exactly the window where a delayed 20:40 snapshot arrives. Two of this loop's own automations,
+  colliding on a schedule.
+- **Evidence and cost.** [Run 198](https://github.com/in-c0/tuned/actions/runs/34063537090) **failed**
+  at 22:24:41Z: *"Expected commit `ea902e1` never became live (last seen: `1abe55e`)."* `1abe55e` is
+  `ops: metrics snapshot 2026-09-06`, a **descendant** of `ea902e1` — the change was live, inside a
+  build the check could not recognise. **Every health assertion was skipped**, so this run's actual
+  production verification had to be obtained by hand
+  ([run 199](https://github.com/in-c0/tuned/actions/runs/34064052747), success). The cost that was not
+  paid, and is the reason this is a lesson rather than a nuisance: **this loop's standing rule is to
+  roll back automatically on a failed verification.** A future run trusting this red would have rolled
+  back a healthy deploy on the strength of a check that was wrong about it — and, because the health
+  steps are skipped, would have had nothing else in the record to contradict it.
+- **Lesson.** **A verification's match rule has to be stated over the property being verified, not
+  over the artefact that happens to identify it.** The property is *"is my change what production is
+  running"*; the SHA is only a handle on it. An identity test on the handle is stricter than the
+  property, and every case where it is stricter is a false negative — a check that fails when nothing
+  is wrong. This is the mirror of [L-51](LESSONS.md)/[L-56](LESSONS.md): those are checks too weak to
+  see a real failure, this is a check too strong to see a real success, and both are found by asking
+  *what would make this check wrong while the world is fine?*
+- **More elegant next attempt.** `git merge-base --is-ancestor $EXPECTED $serving` — the serving
+  commit must **contain** the pushed one. It still fails closed on a Worker serving something older,
+  on an unknown object, and on a missing build stamp. Shipped with `fetch-depth: 0` (a shallow clone
+  answers "not contained" for everything, which is the silent-false-negative direction) and an in-loop
+  `git fetch origin master`, because the commit that supersedes the push does not exist in the clone
+  at checkout time — which is the entire case the rule exists for.
+- **Prevention check, cheap and mechanical.** Before shipping any gate: **name one state of the world
+  in which nothing is wrong and this gate goes red.** If such a state exists and is reachable, the
+  rule is stricter than the property and needs widening — before it fires, not after. Pinned in
+  [`scripts/verify-workflow.test.mjs`](../scripts/verify-workflow.test.mjs), which exercises the
+  predicate against a real two-commit repository in both directions rather than asserting it in prose;
+  four mutations attempted, four refused.
+
