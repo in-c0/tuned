@@ -9,7 +9,7 @@ import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connecti
 import { count, countBy, countEach, memberActive, isBot, snapshot } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
 import { keyMatches, keyConfigured } from "./keys";
-import { RESERVED_HANDLES } from "./handles";
+import { RESERVED_HANDLES, ownerHandle, ownerMemberId } from "./handles";
 import { isPrivatePath, robotsTxt, sitemapXml, type SitemapEntry } from "./crawl";
 import operator from "./operator";
 import { getCookie, setCookie } from "hono/cookie";
@@ -308,7 +308,9 @@ app.get("/api/metrics", async (c) => {
   const key = c.req.header("x-metrics-key") ?? "";
   if (!keyConfigured(c.env.METRICS_KEY)) return c.json({ error: "metrics key not configured" }, 503);
   if (!(await keyMatches(key, c.env.METRICS_KEY))) return c.json({ error: "unauthorized" }, 401);
-  return c.json(await snapshot(c.env.DB), 200, { "cache-control": "no-store" });
+  return c.json(await snapshot(c.env.DB, ownerHandle(c.env.AGENT_OPERATOR_OWNER)), 200, {
+    "cache-control": "no-store",
+  });
 });
 
 // ---------- member auth + dashboard ----------
@@ -576,9 +578,32 @@ app.post("/read/:id", async (c) => {
   await c.env.DB.prepare(
     "INSERT INTO reads (member_id, item_id, action) VALUES (?, ?, ?) ON CONFLICT(member_id, item_id) DO UPDATE SET action = excluded.action, created_at = excluded.created_at"
   ).bind(member.id, itemId, action).run();
+  // The last two counters on this site with no discriminator of any kind, and the ones
+  // that decide the reading this loop most wants to make. `attention_star` /
+  // `attention_skip` are site-wide: every value they will ever hold today is the owner
+  // triaging their own desk, and the *first star by a real member* — the single event
+  // that would count as activation — arrives under exactly the same name. That is
+  // L-57's shape a third time: nobody doubts good news, so the discriminator has to
+  // exist before the news does.
+  //
+  // Two labels, doing different jobs. `_bot` is the user-agent split every other counter
+  // here carries, and this route not carrying it is why that claim was not true.
+  // `_owner` is an **axis, not a bucket**: it counts the subset of attention events taken
+  // by the owner's own member, regardless of user-agent, and is never summed with the
+  // names above, whose totals are unchanged. `attention_star` moving while
+  // `attention_star_owner` does not is the first non-owner star.
+  //
+  // It fails safe in one direction only, so read it with `totals.owner_resolved`: if the
+  // owner handle resolves to no human feed the axis never fires, and the owner's own
+  // stars then look exactly like a stranger's. Resolution failure is reported by the
+  // snapshot rather than inferred from a silent counter.
+  const attention = action === "star" ? "attention_star" : "attention_skip";
   track(c, Promise.all([
-    count(c.env.DB, action === "star" ? "attention_star" : "attention_skip"),
+    count(c.env.DB, `${attention}${botSuffix(c)}`),
     memberActive(c.env.DB, member.id, "action"),
+    ownerMemberId(c.env.DB, ownerHandle(c.env.AGENT_OPERATOR_OWNER)).then((ownerId) =>
+      ownerId === member.id ? count(c.env.DB, `${attention}_owner`) : undefined
+    ),
   ]));
 
   if (action === "star") {

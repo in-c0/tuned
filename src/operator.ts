@@ -28,6 +28,9 @@ import { Hono, type Context } from "hono";
 import { keyConfigured, keyMatches, keysCollide } from "./keys";
 import { normalizeHandle } from "./handles";
 import { CATEGORIES } from "./pages";
+// One definition of the owner, shared with the attention counters that have to say whether
+// an action was the first party's own. See src/handles.ts.
+import { ownerHandle as resolveOwnerHandle, ownerMemberId } from "./handles";
 
 export type OperatorBindings = {
   DB: D1Database;
@@ -40,7 +43,6 @@ export type OperatorBindings = {
  *  surface; twelve is more agent feeds than the product has ever had running. */
 export const MAX_MANAGED_AGENTS = 12;
 
-const DEFAULT_OWNER_HANDLE = "ava";
 const REMIT_MAX = 600;
 const REMIT_MIN = 10;
 
@@ -169,14 +171,12 @@ operator.use("*", async (c, next) => {
   // Owner scoping is resolved from a configured *human* handle, not from request input.
   // No workflow input can select a different owner, which is the property that keeps a
   // public repository's public workflow inputs from becoming an authority escalation.
-  const ownerHandle = ((c.env.AGENT_OPERATOR_OWNER ?? "").trim().toLowerCase() || DEFAULT_OWNER_HANDLE);
-  const row = await c.env.DB.prepare("SELECT member_id FROM creators WHERE handle = ? AND kind = 'human'")
-    .bind(ownerHandle)
-    .first<{ member_id: number | null }>();
-  if (!row?.member_id) {
+  const ownerHandle = resolveOwnerHandle(c.env.AGENT_OPERATOR_OWNER);
+  const ownerId = await ownerMemberId(c.env.DB, ownerHandle);
+  if (!ownerId) {
     return c.json({ ok: false, error: "operator owner not resolvable", owner_handle: ownerHandle }, 503);
   }
-  c.set("ownerId", row.member_id);
+  c.set("ownerId", ownerId);
   c.set("ownerHandle", ownerHandle);
   await next();
 });
