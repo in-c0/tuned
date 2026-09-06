@@ -4471,3 +4471,58 @@ Lock claimed before any action: cycle `2026-09-05/w20`, holder `vm:2063`, nonce 
 - **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
   `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
   from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+
+---
+
+## 2026-09-06 14:20 Sydney (04:20 UTC), run 142 — the activation number could be moved by the email that announces a member
+
+Lock claimed before any action: cycle `2026-09-06/w14`, holder `vm:1987`, nonce `9141e9f5`, at
+`2026-09-06T04:04:16Z`.
+
+- **Directive: none outstanding.** The newest comment on issue #1 is run 141's execution report; no
+  reviewer directive has been posted since, and the 2026-09-01 review was discharged by run 136. The
+  action was selected under the standing mission, from run 141's own named next candidate.
+- **What was done: [L-57](LESSONS.md)'s prevention check, run over the counters run 141 did not
+  touch.** Two failed it, and they were the last two on the site with no discriminator of any kind:
+  `member_login` (`GET /enter/:token`) and `desk_view` (`GET /today`). The full inventory —
+  `landing_view`, the three `/api/pulse/*` names, the six application names, `feed_view*`,
+  `feed_fetch*`, `arrival*`, `robots_fetch`, `sitemap_fetch` — all carry a split; `cron_run` and the
+  `spotify_*` names have no external caller and are unambiguous by construction.
+- **Why these two outranked the rest, and it is not the labelling.** `/today` writes the `member_days`
+  row that `retention.members_ever_active` is computed from, and `/enter/:token` grants the session
+  that makes `/today` reachable — on a GET, from a link **delivered by email**. Mail gateways,
+  security scanners and chat unfurlers fetch every URL in a message before a person opens it. So the
+  chain reporting Tuned's first activation can be walked end to end by a machine, and it fires on the
+  **first real admission**, which is exactly when nobody would doubt it.
+- **Shipped in [`c743cb6`](https://github.com/in-c0/tuned/commit/c743cb6):** the `_bot` split on both
+  names, plus `member_login_unattended` / `desk_view_unattended` as an **axis, not a bucket** — the
+  subset arriving without `Sec-Fetch-User: ?1`. The axis is the load-bearing half: a mail gateway
+  sending a Chrome user-agent is invisible to `isBot` and lands unsuffixed. A GET carries no `Origin`
+  to test, so this is run 141's reasoning adapted to a navigation.
+- **Deliberately not done: refusing an unattended sign-in, or a confirm-to-continue interstitial.**
+  The interstitial is the textbook fix for magic-link prefetch and it was considered on the merits.
+  It was declined because `members_ever_active` is **0**: one member turned away — or one member who
+  gives up at an extra click — costs more than every mislabelled login combined, and the label is
+  obtainable without refusing or delaying anything. **These routes classify; they never refuse**, and
+  a test pins that. It is also an availability change resting on a browser-behaviour assumption this
+  loop cannot verify against real members, because it has none.
+- **Deliberately not done: closing the `attention_star` / `attention_skip` ambiguity.** Those cannot
+  separate the owner from any other member. That is a different ambiguity from the one fixed here, it
+  is partially answerable from `member_days`, and folding it in would have widened a bounded fix. It
+  is recorded in [METRICS.md](METRICS.md) and named as a next candidate.
+- **No production write-probe, and none is owed.** Probing would mean writing `member_login_bot` and
+  `member_login_unattended` — two of the four names just shipped — with first-party noise, on a route
+  whose whole population is meant to be the first real member. The failure is self-announcing instead:
+  `retention.members_ever_active` is computed from `member_days` independently of `metric_days`, so it
+  rising while none of the four names moves is visible in the very next snapshot.
+- **A test that passed with the mechanism removed, caught before commit.** Five mutations were run;
+  four were refused immediately, and dropping the `_bot` half of the desk split was **not** — every
+  assertion in the new block sent a browser user-agent. That is [L-56](LESSONS.md)'s shape inside a
+  test written by the run citing L-56. A bot-user-agent desk view was added and the mutation is now
+  refused. Recorded because the green suite was wrong and only the mutation pass said so.
+- **EXP-011 is untouched, checked rather than asserted.** No file under `src/pages.ts` changed, so no
+  landing copy, layout, offer or form moved; `landing_render`'s call site is byte-identical; neither
+  of R's two inputs is read or written by this diff. The 2026-09-18 reading is unaffected.
+- **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+  `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
+  from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.

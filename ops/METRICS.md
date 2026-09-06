@@ -5,7 +5,7 @@ Every metric here must name its source. Never invent, extrapolate, or manually i
 ## Definitions
 
 - **Applications submitted** — `totals.applications` (rows in `waitlist`) and the `application_submit` daily counter. Source: `GET /api/metrics`, snapshotted to `ops/metrics/latest.json`. **From 2026-09-06 (run 141) that counter is split four ways** — `application_submit` / `application_submit_bot`, plus the `application_submit_offpage` axis — and a reading of any of them must be quoted with its label. See *the application counters now say who wrote them* below; `applications: 1` on its own is not evidence of a person.
-- **Members activated** — `retention.members_ever_active`: members with ≥1 row in `member_days`. Source: `/api/metrics`.
+- **Members activated** — `retention.members_ever_active`: members with ≥1 row in `member_days`. Source: `/api/metrics`. **From 2026-09-06 (run 142) it may not be reported alone.** The `member_days` row is written by `/today`, reachable with the session cookie an emailed sign-in link hands out, so this number can move 0 → 1 without a person. Quote `desk_view` / `desk_view_bot` / `desk_view_unattended` for the same UTC day with it — see *the activation chain now says whether a person was there* below.
 - **Attention events** — `attention_star` / `attention_skip` daily counters, and `totals.stars` / `totals.skips`. Source: `/api/metrics`.
 - **Return use** — `retention.members_returned_after_first_day` and `members_active_2plus_days`, computed from distinct `member_days.day` per member. Source: `/api/metrics`.
 - **Landing views** — `landing_view` (non-bot by user-agent heuristic) vs `landing_view_bot`. A UA heuristic is not proof of a human; report both, never merge them, and never call `landing_view` "verified human traffic".
@@ -1739,6 +1739,61 @@ did, and the reading rules below are binding.
 `landing_render` call site is byte-identical, and neither of R's two inputs is read or written by this
 change. Browser QA was not dispatched for it — the change is server-side and is covered by seven
 integration tests in workerd, four of them mutation-tested.
+
+**Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
+(the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
+**0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend this run **AUD
+$0.00**; running total **AUD $0.00 of $500**.
+
+---
+
+## The activation chain now says whether a person was there — 2026-09-06 14:20 Sydney (04:20 UTC), run 142
+
+Shipped in [`c743cb6`](https://github.com/in-c0/tuned/commit/c743cb6). Four names, and the reason they
+exist is [L-58](LESSONS.md): `member_login` and `desk_view` were the last two counters on this site
+with **no discriminator of any kind**, and they are the two that stand between an emailed sign-in link
+and `retention.members_ever_active`.
+
+### The names, and the binding rules for reading them
+
+| name | what it counts |
+| --- | --- |
+| `member_login` / `member_login_bot` | a sign-in link opened; the split is the standard user-agent heuristic |
+| `member_login_unattended` | **axis** — the subset of the two above that carried no `Sec-Fetch-User: ?1` |
+| `desk_view` / `desk_view_bot` | a desk render at `/today`; same split |
+| `desk_view_unattended` | **axis** — same subset test |
+
+- **`member_login` + `member_login_bot` is the total, and it is exactly what `member_login` alone was
+  before.** Same for `desk_view`. The `_unattended` names count a *subset* of those pairs and are
+  **never summed with them**. A test in [`test/pulse.test.ts`](../test/pulse.test.ts) pins this.
+- **`_unattended` is the strong signal and `_bot` is the weak one.** A browser sets
+  `Sec-Fetch-User: ?1` on a top-level navigation **only** when a person activated it — a click, a
+  typed URL, a bookmark. A prefetcher, mail gateway or unfurler produces no user activation, and a
+  plain HTTP client sends no `Sec-Fetch-*` at all, so both land in `_unattended`. The user-agent
+  heuristic is forgeable and the realistic case defeats it: a mail security gateway sending a Chrome
+  user-agent lands *unsuffixed*. Read `_unattended` first.
+- **Absence is evidence, not proof, and it cuts both ways.** A genuine click that arrives without the
+  header is counted `_unattended` too. This is why neither route refuses anything: sign-in works and
+  the desk renders identically under every label.
+- **Read them against `retention.members_ever_active`, always.** That number is computed from
+  `member_days` rows written by `/today`. A sign-in link is *sent* by email and fetched by machines
+  before any person opens the message, so it can move **0 → 1 with no person involved** — and on the
+  day it moves, these names are the only thing in the record that says whether it did. **Do not report
+  a first activation without quoting `desk_view_unattended` for the same UTC day.**
+- **Every value `member_login` or `desk_view` held before 2026-09-06 was written without either
+  discriminator.** No historical reading changes meaning; there is no backfill to do or to invent.
+
+### Counters still carrying an ambiguity this run did **not** close
+
+Recorded so no later run mistakes silence for completeness. `attention_star` and `attention_skip` are
+site-wide and cannot separate **the owner from any other member** — `totals.stars` **8** and
+`totals.skips` **33** are all first-party, and the first non-owner star would arrive under the same
+name. That is a *different* ambiguity from the one fixed here (owner-vs-member, not human-vs-machine),
+it is partially answerable from `member_days`, which is per-member, and folding it into this change
+would have widened a bounded fix. It is named as a next candidate, not left implied.
+
+**Nothing about [EXP-011](EXPERIMENTS.md) is affected.** No file under `src/pages.ts` changed, the
+`landing_render` call site is byte-identical, and neither of R's two inputs is read or written.
 
 **Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
 (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`

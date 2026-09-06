@@ -1,40 +1,61 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-06 08:35 Sydney (2026-09-05 22:35 UTC), run 141 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-06 14:20 Sydney (04:20 UTC), run 142 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged and undeadlined** (submit `/sportstech` to `plenaryapp/awesome-rss-feeds`; packet at
 [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md); not re-asked here, per
-[L-07](LESSONS.md)). **Every counter on this site could say who wrote it except the one that decides
-the bet.** `POST /waitlist` wrote `application_submit` and `application_invalid` unsuffixed, always —
-alone among every counter this loop has shipped. `/api/pulse/*` refuses a caller that is not on the
-page; `landing_view`, `feed_view`, `feed_fetch`, `robots_fetch` and `sitemap_fetch` all carry `_bot`.
-The route that records the **one event that would end this drought** carried neither, and it is public
-source in a public repository, so a scripted POST wrote a `waitlist` row **and** an unsuffixed
-`application_submit` and arrived in the snapshot indistinguishable from a person filling in the form.
-**It survived 140 runs because it was never wrong** — `applications` has read 0 throughout, and a
-counter that has only ever recorded zero looks exactly like a correct one. [L-57](LESSONS.md): rank
-instruments by *what a reading would license*, not by how often they are read; and **nobody doubts good
-news**, so the discriminator has to exist before the news arrives, because counters do not backfill.
-Shipped in [`14e70a2`](https://github.com/in-c0/tuned/commit/14e70a2): `_bot` on both names, plus
-`application_submit_offpage` / `application_invalid_offpage` — **an axis, not a bucket**, marking a
-submit that carried no `Origin`. **The axis is the load-bearing half:** the realistic junk submit sends
-a Chrome user-agent (invisible to `isBot`, lands unsuffixed) and no `Origin`. **Deliberately not done:
-refusing an offpage submit.** `applications` is 0, so one false reject costs the whole bet against a
-label obtainable without refusing anything — this route classifies and never refuses, and a test pins
-that. **Seven tests, four mutations, four refused** (drop either split, drop the axis, refuse an
-offpage submit). Suite **13 files, 185 tests**; `check` 0; `test:ops` 11/11; CI
-[33995166776](https://github.com/in-c0/tuned/actions/runs/33995166776) green;
-[verify production](https://github.com/in-c0/tuned/actions/runs/33995166731) **success on `14e70a2`
+[L-07](LESSONS.md)). **The number this loop calls activation could have been moved by the email that
+announces a member.** Run 141 shipped [L-57](LESSONS.md)'s prevention check — *if this counter read 1
+tomorrow, what would we conclude, and what in the record would let us tell that conclusion from its
+opposite?* — and this run put it over the counters run 141 did not touch. Two failed, and they were the
+last two on the site with **no discriminator of any kind**: `member_login` (`GET /enter/:token`) and
+`desk_view` (`GET /today`). **They are not a labelling problem, because they are not read in
+isolation.** `/today` writes the `member_days` row that `retention.members_ever_active` — the number
+this loop reports as its activation evidence, **0** for the whole window — is computed from, and
+`/enter/:token` grants the session that makes `/today` reachable, **on a GET, from a link delivered by
+email**. Mail gateways, security scanners and chat unfurlers fetch every URL in a message before a
+person opens it. So the chain reporting Tuned's first activation can be walked end to end by a machine,
+and **it fires on the first real admission** — the moment nobody would doubt it. Shipped in
+[`c743cb6`](https://github.com/in-c0/tuned/commit/c743cb6): the `_bot` split on both names, plus
+`member_login_unattended` / `desk_view_unattended` as an **axis, not a bucket** — the subset arriving
+without `Sec-Fetch-User: ?1`, which browsers set on a top-level navigation only when a person activated
+it. **The axis is the load-bearing half:** a mail gateway sending a Chrome user-agent is invisible to
+`isBot` and lands unsuffixed. A GET carries no `Origin`, so this is run 141's reasoning adapted to a
+navigation. **Deliberately not done: refusing an unattended sign-in, or a confirm-to-continue
+interstitial** — the textbook fix for magic-link prefetch, declined on the merits, because
+`members_ever_active` is 0 and one member turned away or lost to an extra click costs more than every
+mislabelled login combined. These routes classify and never refuse; a test pins that. **Five mutations,
+four refused — and the fifth is the finding.** Dropping the `_bot` half of the desk split passed the
+whole suite, because every assertion in the new block sent a browser user-agent: [L-56](LESSONS.md)'s
+shape inside a test written by the run citing L-56, caught before commit only because the mutation pass
+was run at all. Fixed, then refused. Filed as [L-58](LESSONS.md): **a counter's discriminator must be
+judged against how its input actually arrives** — every counter already split sits on a URL a visitor
+*navigates to*; these two sit on a URL that is *sent*. Suite **13 files, 193 tests**; `check` 0;
+`test:ops` 11/11; CI [34010848174](https://github.com/in-c0/tuned/actions/runs/34010848174) green;
+[verify production](https://github.com/in-c0/tuned/actions/runs/34010848169) **success on `c743cb6`
 serving**. **No `src/pages.ts` change, so EXP-011's four stop conditions are byte-untouched and neither
-of R's inputs is read or written.** **Unlike every counter in the L-35/44/46/51 family, this one's
-failure is self-announcing:** `totals.applications` is a table `COUNT` computed independently of the
-counters, so `applications` rising while none of the six names moves is visible in the very next
-snapshot — which is why no production write-probe was run and none is owed. **Considered and declined:
-an interim-analysis rule for EXP-011.** Tonight was the last moment one could be registered before any
-of the window's data was readable, and a group-sequential design would have returned the frozen landing
-page up to eleven days early — but EXP-011's own stop conditions say *no second reading and no
-extension*, and amending that mid-window to shorten a wait under deadline pressure is
-[L-55](LESSONS.md)'s failure exactly. Run 140 declined a beneficial two-line fix to honour the same
-freeze. **Previously, run 140 — the only check that can see EXP-011's numerator was broken by EXP-011's
+of R's inputs is read or written.** **No production write-probe, and none is owed:**
+`members_ever_active` is computed from `member_days` independently of `metric_days`, so it rising while
+none of the four new names moves is visible in the very next snapshot; probing would have written
+first-party noise into two of the four names on the one route whose intended population is the first
+real member. **Named and deliberately not closed:** `attention_star` / `attention_skip` still cannot
+separate the owner from any other member — a different ambiguity, partially answerable from the
+per-member `member_days`, recorded in [METRICS.md](METRICS.md) rather than folded into a bounded fix.
+
+**Previously, run 141 — the one number this bet is waiting for could not say who wrote it.**
+`POST /waitlist` wrote `application_submit` and `application_invalid` unsuffixed, always, and it is
+public source in a public repository, so a scripted POST arrived in the snapshot indistinguishable from
+a person filling in the form. **It survived 140 runs because it was never wrong** — `applications` has
+read 0 throughout, and a counter that has only ever recorded zero looks exactly like a correct one.
+[L-57](LESSONS.md): rank instruments by *what a reading would license*; **nobody doubts good news**, so
+the discriminator has to exist before the news arrives. Shipped in
+[`14e70a2`](https://github.com/in-c0/tuned/commit/14e70a2): `_bot` on both names plus
+`application_submit_offpage` / `application_invalid_offpage` as an axis. **Deliberately not done:
+refusing an offpage submit.** Also **considered and declined: an interim-analysis rule for EXP-011** —
+tonight was the last moment one could be registered before any of the window's data was readable, and
+amending a pre-registered reading schedule mid-window to shorten a wait under deadline pressure is
+[L-55](LESSONS.md)'s failure exactly.
+
+**Previously, run 140 — the only check that can see EXP-011's numerator was broken by EXP-011's
 numerator, and nothing went red.** Run 138 added `pulse("landing_render")` and did not touch
 [`qa/pulse-instrument.spec.mjs`](../qa/pulse-instrument.spec.mjs), which asserted that **no** pulse
 fires on a bare page load and mirrored a **two-name** allowlist — both contradicted by an

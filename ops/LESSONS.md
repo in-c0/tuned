@@ -2197,3 +2197,49 @@ discriminators first, even — especially — when they have only ever read zero
 writes, if it read 1 tomorrow, what would we conclude, and what in the record would let us tell that
 conclusion from its opposite?* If the answer is "nothing", the counter is not finished, however long
 it has been correct.
+
+## L-58 — the metric this loop calls activation could be moved by the email that announces a member (2026-09-06, run 142)
+
+**What happened.** [L-57](#l-57--every-counter-on-the-site-could-say-who-wrote-it-except-the-one-that-decides-the-bet)
+shipped a prevention check one run earlier — *for each counter this service writes, if it read 1
+tomorrow, what would we conclude, and what in the record would let us tell that conclusion from its
+opposite?* Run 142 asked it of the counters run 141 did not touch. Two failed it, and they were the
+last two on the site with **no discriminator of any kind**: `member_login` on `GET /enter/:token` and
+`desk_view` on `GET /today`. No user-agent split, no origin test, nothing.
+
+**Why these two are worse than a mislabelled counter, and this is the whole lesson.** They are not
+read in isolation. `/today` calls `memberActive`, which writes the `member_days` row that
+`retention.members_ever_active` is computed from — the number this loop reports as its activation
+evidence, and which has read **0** for the entire window. And `/enter/:token` grants the session that
+makes `/today` reachable, on a **GET**, from a **link delivered by email**.
+
+Mail providers, security gateways and chat unfurlers fetch every URL in a message before a person
+opens it. That is ordinary, universal infrastructure, not an attack. So the chain that would report
+Tuned's first activation can be walked end to end by a machine, and it fires **on the very first real
+admission** — the moment the loop is least able to doubt it.
+
+**The generalisable rule, and it is not L-57 restated.** L-57 ranks instruments by what a reading
+would license. This is the step after: **a counter's discriminator has to be judged against how its
+input actually arrives, not against what the route is for.** `member_login` looks unambiguous when
+read as "the login route"; it is systematically machine-first when read as "the thing at the end of
+an emailed link". Every counter that was already split — `landing_view`, `feed_view`, `feed_fetch`,
+`robots_fetch` — is on a URL a visitor navigates to. These two are on URLs that are **sent**, and
+nobody re-asked the question when the delivery channel changed the population.
+
+**And the fix must not become a refusal.** The obvious remedy — require a click before signing in, or
+reject an unattended GET — trades a labelling problem for a lockout. `members_ever_active` is 0, so
+one member turned away because their browser omitted a header costs more than every mislabelled login
+combined. Same ruling as L-57: **classify, never refuse**, and pin it with a test.
+
+**Prevention check, added to L-57's:** *for each counter, how does the request that increments it
+reach the route — typed, clicked, linked, or sent?* A counter on a URL that is **sent** to someone
+needs its discriminator before the first message goes out, because the delivery channel fetches it
+first.
+
+**A second finding, from the mutation pass rather than the audit.** Four of the five mutations were
+refused immediately; dropping the `_bot` half of the desk split was **not** — every assertion in the
+new block sent a browser user-agent, so the mechanism was deletable with the suite green. That is
+[L-56](#l-56--the-validator-was-invisible-to-ci-so-the-counter-it-validates-broke-it-silently)'s shape
+in a test written by the run that had just cited L-56. Caught before commit only because the mutation
+pass was run at all. **Asserting a split exists is not the same as asserting it splits**; the test has
+to send the input that lands in the other bucket.
