@@ -311,6 +311,78 @@ describe("an arrival tag on a feed URL identifies the attempt that sent a subscr
   });
 });
 
+// EXP-012's instrument, pinned before the submission it grades exists.
+//
+// ooh.directory's form field says "The URL of the blog's front page (not its feed)", so the
+// tagged URL is the HTML feed page and the name EXP-012 grades is `arrival:ooh-directory` —
+// written by `GET /:handle`, the route counted since run 48. The tag was the only missing
+// half (ops/DISTRIBUTION.md, run 57), and these tests are the check that adding it actually
+// lands, because a tag that writes nothing is indistinguishable from a venue that sent nobody
+// and there is exactly one submission to spend finding out.
+describe("the ooh.directory tag is registered on the route that venue takes", () => {
+  it("counts a tagged front-page view under the name EXP-012 grades", async () => {
+    await seedFeed("sportstech");
+
+    const res = await visit("/sportstech?src=ooh-directory", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toEqual({
+      feed_view: 1,
+      "feed_view:sportstech": 1,
+      "arrival:ooh-directory": 1,
+    });
+  });
+
+  it("splits a tagged crawler out of that name, so the first hour of a listing is not readers", async () => {
+    await seedFeed("sportstech");
+
+    await visit("/sportstech?src=ooh-directory", BOT_UA);
+
+    expect(await countersToday()).toEqual({
+      feed_view_bot: 1,
+      "feed_view_bot:sportstech": 1,
+      "arrival_bot:ooh-directory": 1,
+    });
+  });
+
+  it("writes a different name on the RSS route, so a poll can never be read as an arrival", async () => {
+    await seedFeed("sportstech");
+
+    // The allowlist is shared across both routes, so this tag is writable on /rss.xml too.
+    // That is harmless and pinned rather than prevented: it lands in `arrival_fetch:` — a
+    // different name from the one EXP-012 grades — exactly as `qa` and `awesome-rss-feeds`
+    // do. A feed client polls on a schedule; those are polls, not people.
+    await visit("/sportstech/rss.xml?src=ooh-directory", HUMAN_UA);
+
+    const counters = await countersToday();
+    expect(counters).toMatchObject({ "arrival_fetch:ooh-directory": 1 });
+    expect(counters["arrival:ooh-directory"]).toBeUndefined();
+  });
+
+  it("writes nothing on the landing page, because that is not the URL the venue takes", async () => {
+    // `GET /` reads no `?src=` at all. Pinned so that a later run that decides to instrument
+    // the marketing page cannot silently change what EXP-012's numerator counts — the same
+    // hazard EXP-011's stop conditions name for `landing_render`.
+    const res = await visit("/?src=ooh-directory", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toEqual({ landing_view: 1 });
+  });
+
+  it("keeps the tag on the allowlist, because EXP-012 cannot be regraded after the fact", async () => {
+    await seedFeed("sportstech");
+
+    // Same reason the `qa` control is pinned above, one step earlier in its life: this tag
+    // will look like dead code for as long as A2 is unanswered at the venue, and deleting it
+    // would take the counter silently to zero. Counters do not backfill; a submission is
+    // spent once. If the candidate is ever dropped, drop it in ops/DISTRIBUTION.md first and
+    // let this test fail second.
+    await visit("/sportstech?src=ooh-directory", HUMAN_UA);
+
+    expect(await countersToday()).toMatchObject({ "arrival:ooh-directory": 1 });
+  });
+});
+
 describe("countEach writes every name in one round trip", () => {
   it("increments each distinct name, and increments an existing row rather than replacing it", async () => {
     await countEach(DB, ["alpha", "beta"]);

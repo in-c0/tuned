@@ -912,7 +912,23 @@ app.get("/studio/:token/setup", async (c) => {
 // number is the null any real tag must be read against (EXP-009, Reading 2). Deleting `qa`
 // here because it looks like test scaffolding would silently destroy the null, so
 // test/arrival.test.ts pins it.
-const ARRIVAL_TAGS = new Set(["qa", "awesome-rss-feeds"]);
+//
+// `ooh-directory` is the second real channel tag, registered run 143 for the candidate in
+// ops/DISTRIBUTION.md whose A1 was read at run 57. It applies to **this** route — `GET
+// /:handle` — and not to `GET /`, because the venue's own form field says *"The URL of the
+// blog's front page (not its feed)"* and the blog here is `/sportstech`, not the marketing
+// page at `/`. Registering it therefore needs no new instrument: the route has been counted
+// since run 48 and only the tag was missing, which is the mirror of run 56's defect (an
+// instrumented tag on an uninstrumented route).
+//
+// Registered *before* any submission, for the reason above the allowlist: counters start at
+// zero on the deploy that introduces them and nothing is backfilled, so a tag added after the
+// post grades nothing. **Registering it authorizes no submission.** A2 — whether the owner
+// may be named as the suggester of an agent-written link blog — is unanswered at this venue,
+// and A1 is only PARTIALLY satisfied (the venue admits link blogs that carry "original
+// commentary about each link"; Tuned's commentary is written by an agent and labelled as
+// such). EXP-012 holds the window, the threshold, the control and the inadmissible outcomes.
+const ARRIVAL_TAGS = new Set(["qa", "awesome-rss-feeds", "ooh-directory"]);
 
 // ---------- public feed ----------
 app.get("/:handle", async (c) => {
