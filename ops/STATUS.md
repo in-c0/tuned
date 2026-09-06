@@ -1,6 +1,49 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-06 14:20 Sydney (04:20 UTC), run 142 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-06 20:20 Sydney (10:20 UTC), run 143 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, and the second one is a question, not a chore.** **A5 is closed at `ooh.directory`, and with it
+the last distribution work anywhere on this board that this executor could perform.** The venue's own
+form asks for *"The URL of the blog's front page (not its feed)"*, so the tagged URL is `/sportstech` —
+`GET /:handle`, counted since run 48. **The route was already covered; only the tag was missing**, which
+is the mirror of run 56's defect (an instrumented tag on an uninstrumented route). Shipped in
+[`a9eaa2e`](https://github.com/in-c0/tuned/commit/a9eaa2e): one string on the existing `ARRIVAL_TAGS`
+allowlist, five tests, no new route, no schema, no cookie, no identifier, **no new data category — so
+the privacy policy is unchanged**. [EXP-012](EXPERIMENTS.md) pre-registers the window, `D ≥ 3 and
+V ≥ 8`, six forks — with **never-listed** named as the *expected* outcome on the venue's own words —
+and **two** controls: `arrival:qa`, whose measured null on this route is **0 non-zero days across 21**,
+and the tag's own published-but-unsubmitted interval before `t0`. All of it registered **before the
+counter had ever been written**, because counters do not backfill and a suggestion is spent once.
+**Registering the tag authorizes no submission**, and the commit says so.
+
+**Why this and not the two instrument items run 142 named.** Run 137 called this *"the next
+executor-actionable step at this venue"*; runs 138, 139, 140, 141 and 142 each declined it for
+something else, every decline individually defensible, **no report responsible for the sum** —
+[L-59](LESSONS.md). It is also the only remaining item on the board about **whether anyone arrives**
+rather than about the instruments measuring an empty funnel, which is the thing run 142 closed by
+warning about in its own words. The second EXP-011 bracket is registered for **mid-window** and is
+premature on day 2 of 14; `attention_star`/`attention_skip` is, by run 142's own ranking, smaller than
+either of the last two instrument fixes. **Run 57's L-33 objection is discharged rather than ignored:**
+A1 here has already been read (run 57, two dated dispatches) and is PARTIAL, so this is not an
+instrument built ahead of its gate.
+
+**Mutation-tested, not asserted.** Dropping the tag from the allowlist fails 4; dropping the arrival
+name from `GET /:handle` fails 6; control **28/28**. The load-bearing test is the fourth: it pins that
+`GET /` writes **nothing** for this tag, because that route reads no `?src=` at all and a later run
+instrumenting the marketing page would silently change what EXP-012's numerator counts. Suite
+**13 files, 198 tests**; `check` 0; `test:ops` 11/11; workflow and nomination validators ok. **No
+`src/pages.ts` change, so EXP-011's four stop conditions are byte-untouched** and neither of R's inputs
+is read or written by this diff.
+
+**The consequence, and it is the point of the run.** Every remaining step at every candidate in
+[DISTRIBUTION.md](DISTRIBUTION.md) is now **A0 or A2, and both are the owner's.** There is no
+distribution work left that this executor can do. `awesome-rss-feeds` has the owner's `A` from
+2026-08-20 and needs two minutes of account access. `ooh.directory` has **never been asked**: whether
+an agent-written link blog may be suggested in the owner's name to a human-curated blog directory is an
+authorship decision, put verbatim in [SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directory.md) as a
+one-word answer — `A` proceeds, `N` retires the file permanently. **29 days remain and every standing
+figure is zero.**
+
+**Previously, run 142 (2026-09-06 14:20 Sydney) — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged and undeadlined** (submit `/sportstech` to `plenaryapp/awesome-rss-feeds`; packet at
 [SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md); not re-asked here, per
 [L-07](LESSONS.md)). **The number this loop calls activation could have been moved by the email that

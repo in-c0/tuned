@@ -4526,3 +4526,45 @@ Lock claimed before any action: cycle `2026-09-06/w14`, holder `vm:1987`, nonce 
 - **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
   `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
   from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+
+## 2026-09-06 — run 143: closed A5 at ooh.directory, and with it the last distribution work this executor could do
+
+- **Decision:** register `ooh-directory` in `ARRIVAL_TAGS` and pre-register [EXP-012](EXPERIMENTS.md),
+  rather than take the two instrument items run 142 named next (`attention_star`/`attention_skip`
+  owner-vs-member, and the second EXP-011 bracket). Shipped in
+  [`a9eaa2e`](https://github.com/in-c0/tuned/commit/a9eaa2e).
+- **Rationale.** Run 137 named this *"the next executor-actionable step at this venue"* and runs
+  138–142 each declined it — five consecutive runs, every decline individually defensible, no report
+  responsible for the sum ([L-59](LESSONS.md)). It is also the only remaining item on the board that
+  is about **whether anyone arrives** rather than about the instruments measuring an empty funnel,
+  and run 142 closed by saying so itself: *"the loop will spend them on progressively smaller
+  instrument work, which is not a plan, it is a way of looking busy."* The second EXP-011 bracket is
+  registered for **mid-window** and is premature on day 2 of 14; `attention_*` is, by run 142's own
+  ranking, smaller than either of the last two instrument fixes.
+- **The ordering tension, resolved rather than glossed.** Run 57 declined to build this instrument on
+  [L-33](LESSONS.md) grounds — *building the instrument before the gate*. That reading is discharged:
+  L-33 orders gates by cost-to-check ÷ chance-of-disqualifying, and **A1 here has already been read**
+  (run 57, two dated dispatches) and is PARTIAL rather than closed. The remaining gate is A2, which
+  is cheap to ask, is the owner's to answer, and does not disqualify the *form* of the post. A5's own
+  rule then binds in the other direction: counters do not backfill, so a tag registered after the
+  submission grades nothing. Run 137 reached the same resolution; this run acts on it.
+- **What was deliberately not done.** No submission, no venue contact, no fork or PR at any third
+  party, no re-argument of the standing `awesome-rss-feeds` card. Registering the tag **authorizes no
+  submission** and the commit message says so.
+- **The consequence for the board, which is the point of the run.** Every remaining step at every
+  candidate in [DISTRIBUTION.md](DISTRIBUTION.md) is now **A0 or A2, and both are the owner's**.
+  There is no distribution work left that this executor can perform. That is not a complaint; it is
+  the state the register now records, and it should be read alongside the 29 days remaining.
+- **A second owner card exists, and it is a different kind of ask from the first.**
+  `awesome-rss-feeds` has the owner's `A` (2026-08-20) and needs two minutes of account access.
+  `ooh.directory` has **never been asked**: whether an agent-written link blog may be suggested, in
+  the owner's name, to a human-curated blog directory is an authorship decision. It is put verbatim
+  in [SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directory.md) as a one-word answer, `A` or `N`,
+  where `N` retires the file permanently.
+- **EXP-011 is untouched, checked rather than asserted.** No file under `src/pages.ts` changed, so no
+  landing copy, layout, offer or form moved; `landing_render`'s call site is byte-identical; neither
+  of R's two inputs is read or written by this diff, and a test pins that `GET /` writes nothing for
+  the new tag. The 2026-09-18 reading is unaffected.
+- **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+  `members_ever_active` **0** · `active_last_7d` **0** · `followers` **0** · gross cash **AUD $0**,
+  from *no billing exists*. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.

@@ -1799,3 +1799,43 @@ would have widened a bounded fix. It is named as a next candidate, not left impl
 (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
 **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Spend this run **AUD
 $0.00**; running total **AUD $0.00 of $500**.
+
+---
+
+## `arrival:ooh-directory` — registered 2026-09-06 (run 143), before it had ever been written
+
+The second real channel tag. It writes on `GET /:handle` — the HTML feed page, counted since run 48 —
+because ooh.directory's own form field asks for *"The URL of the blog's front page (not its feed)"*
+and the blog is `/sportstech`. No new counter family and no new definition: it is one more value of
+the `arrival:<tag>` / `arrival_bot:<tag>` row registered above, and every reading rule in that section
+binds it unchanged.
+
+**Read it only against [EXP-012](EXPERIMENTS.md), which registers `D ≥ 3 and V ≥ 8` over 14 complete
+UTC days from `t0`, six forks and two controls before any value existed.** Four things bind whoever
+reads this counter first:
+
+- **`t0` is the submission timestamp, not the deploy.** Anything `arrival:ooh-directory` records
+  **before** `t0` is the tag being published without a venue behind it. That is not venue traffic and
+  no run may quote it as such. It is EXP-012's second control (`presubmission_days`,
+  `presubmission_total`), and at `presubmission_days ≥ 2` the experiment is **inadmissible on
+  contamination**, not positive.
+- **A zero here is ambiguous in a way this venue makes likely.** ooh.directory states in advance that
+  *"Suggesting a blog does not guarantee it will appear on the site."* A zero therefore means *never
+  listed* (EXP-012 Fork O-D, **nothing graded**), *listed and silent* (Fork O-C), or *the tag stopped
+  writing* (Fork O-E) — and those are separated by a `source-read` dispatch and the `feed_view:sportstech`
+  series, never by the counter alone.
+- **`arrival_fetch:ooh-directory` is a different counter and is never summed into it.** The allowlist
+  is shared with `GET /:handle/rss.xml`, so the tag is writable there too; those are feed polls on a
+  schedule, not arrivals. `test/arrival.test.ts` pins the two names apart.
+- **`GET /` writes nothing for this tag**, and a test pins that. If a later run instruments the
+  landing page with `?src=`, EXP-012's numerator changes meaning silently — the same hazard EXP-011's
+  stop conditions name for `landing_render`.
+
+**The measured null on this route, frozen from committed snapshots before the treatment exists:**
+`arrival:qa` — published in the same public places, submitted to no venue, ever — reads **0 on all 21
+complete UTC days 2026-08-16 … 2026-09-05**, against `feed_view:sportstech` **37 across 17 of those
+days**. That is a tighter floor than the RSS route's `control_days` = 1 of 14 ([EXP-010](EXPERIMENTS.md)),
+and it is a **baseline**, not a graded result.
+
+**If A2 is never answered at this venue, EXP-012 is UNRUN** — never a null, never a zero, and nothing
+about demand may be read from it.

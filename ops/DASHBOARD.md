@@ -363,6 +363,29 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
+### **TWO now, and the new one is a question rather than a chore.** — raised 2026-09-06 20:20 Sydney (run 143)
+
+**Card 2 of 2 — new. May Tuned be suggested to `ooh.directory` at all?** This is **not** a repeat of
+the card below and it needs no account, no paste and no two minutes — **one word on
+[issue #1](https://github.com/in-c0/tuned/issues/1) settles it.** Full packet:
+**[SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directory.md)**.
+
+| | |
+| --- | --- |
+| **The question** | ooh.directory is a **human-curated blog directory**. Its FAQ admits link blogs *"only if they include original commentary about each link"* — `/sportstech` meets that on its face, because every item carries a `why` line. **But that commentary is written by an agent.** The page says so with an `AI AGENT` badge, so nothing is concealed from a curator reading it, and the FAQ has no clause about machine-written text either way. **Silence is not permission**, and suggesting an agent-written blog in your name is your call, not mine. |
+| **What I need** | **`A`** — proceed, and the packet becomes a paste like the card below. **`N`** — retire it, and the file is deleted permanently. Either answer is a good outcome; the card standing open is the only bad one. |
+| **What I already did, so the answer is all that is missing** | A5 is **closed**: `arrival:ooh-directory` now writes on the exact URL this venue takes, with five tests, and [EXP-012](EXPERIMENTS.md) registers the threshold, the window, six outcomes and **two** controls — all **before the counter had ever been written**, because counters do not backfill and a suggestion is spent once. |
+| **What I did not do** | **Nothing was submitted and no venue was contacted.** Registering the tag authorizes no submission, and the commit says so. |
+| **The honest expectation** | The venue tells you in advance that most suggestions are never reviewed: *"Suggesting a blog does not guarantee it will appear on the site."* EXP-012 registers **never-listed** as the *expected* outcome, in which case **nothing is graded** and no conclusion about demand is drawn in either direction. |
+
+**And the thing worth saying plainly alongside both cards.** After this run there is **no distribution
+work left that I can perform**. Every remaining step at every candidate is A0 (an account I do not
+hold) or A2 (an authorship decision that is yours). **29 days remain; `applications` 0, active members
+0, followers 0, AUD $0.** Improving the product further cannot change any of those, because nobody has
+been shown it.
+
+---
+
 ### **ONE, and it has no deadline.** — raised 2026-09-04 20:35 Sydney (run 137)
 
 **Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.** Field

@@ -2328,3 +2328,154 @@ immediately and grade EXP-011 on the complete days before the edit, under the re
 window** and **once after it closes on 2026-09-19, before the reading is recorded** — the far-side
 bracket EXP-007 needed, for the same reason. A single pre-window check cannot see an emitter that
 detached in between.
+
+---
+
+## EXP-012 — if ooh.directory listed `/sportstech`, would Tuned see the arrivals? (2026-09-06, run 143)
+
+**Pre-registered before the counter it reads has ever been written, before any submission exists, and
+before A2 has been answered at this venue.** That ordering is [A5](DISTRIBUTION.md)'s and it is the
+whole reason this file is written today rather than after a listing: `arrival:<tag>` starts at zero on
+the deploy that introduces it, nothing is backfilled, and a suggestion to this venue can be made once.
+
+### The question
+
+[DISTRIBUTION.md](DISTRIBUTION.md) has held ooh.directory as a candidate since run 57 with **A5 as the
+only condition this executor could still move**. Run 137 named registering the tag and its threshold
+as *"the next executor-actionable step at this venue"*; runs 138–142 each declined it for something
+else. It is done here.
+
+The venue's form field says *"The URL of the blog's front page **(not its feed)**"*. The blog is
+`/sportstech` — the HTML route `GET /:handle`, counted since run 48 — **not** the marketing page at
+`/`, which reads no `?src=` at all and is pinned in `test/arrival.test.ts` not to. So the route was
+already covered and only the tag was missing. That is the exact mirror of run 56's defect, where an
+instrumented tag sat on an uninstrumented route.
+
+### Hypothesis
+
+If ooh.directory lists `/sportstech`, arrivals from that listing land in **`arrival:ooh-directory`**
+(unsuffixed) and are separable from the site's own traffic. If it lists it and nobody comes, the same
+counter says so. If it never lists it, no reading is available and none is invented.
+
+**What this cannot do, registered here so no later run claims it.** `arrival:ooh-directory` is **not a
+count of people** and not a count of subscribers. It counts HTML views of one URL carrying one
+query parameter, split by the same forgeable user-agent heuristic as every other counter here. There
+is no cookie, no visitor identifier and no per-visitor state, so nothing in it distinguishes ten
+arrivals from one client returning ten times.
+
+### Baseline (source-linked, frozen before any submission)
+
+From the committed scheduled snapshots in [`ops/metrics/`](metrics/), complete UTC days only, window
+**2026-08-16 … 2026-09-05 (21 complete days)** — the days on which the `arrival:` family existed
+(`arrival_bot:qa` first wrote 2026-08-16).
+
+| Counter | Total | Non-zero days |
+| --- | --- | --- |
+| `arrival:qa` (unsuffixed) | **0** | **0 of 21** |
+| `arrival_bot:qa` | 3 | 2 of 21 |
+| `arrival:awesome-rss-feeds` | **0** | 0 of 21 |
+| `feed_view:sportstech` | 37 | 17 of 21 |
+| `feed_view_bot:sportstech` | 84 | 18 of 21 |
+
+`arrival:ooh-directory` **does not exist and reads nothing on every UTC day up to and including
+2026-09-06.** That is a statement about the allowlist, not about traffic. There is no historical
+series for it, not a low one and not a zero one.
+
+**The HTML-route null is measured and it is zero.** `qa` is published in exactly the same public
+places as a real channel tag and is submitted to no venue, ever — that is its whole job
+([A6](DISTRIBUTION.md), run 58). On the RSS route [EXP-010](#exp-010) measured its null at
+`control_days` = 1 of 14. **On this route, over 21 days, it is 0 of 21.** A tighter floor, on the
+same surface EXP-012 grades, and it is a baseline rather than a graded result.
+
+Funnel context, unchanged: `applications` **0** · `members` **1** · `members_ever_active` **0** ·
+`followers` **0** · `items_public` **84** · gross cash **AUD $0**, from *no billing exists*.
+
+### Change (commit/deploy)
+
+One string added to the existing `ARRIVAL_TAGS` allowlist in [`src/index.ts`](../src/index.ts). No new
+route, no new counter family, no schema change, no cookie, no identifier, no per-visitor state, **no
+new data category — so the privacy policy is deliberately not amended**, on the same reasoning runs 48
+and 56 recorded for the tags this joins.
+
+Five tests in [`test/arrival.test.ts`](../test/arrival.test.ts) pin the four properties the reading
+depends on: the tagged front-page view writes `arrival:ooh-directory`; a crawler splits into
+`arrival_bot:ooh-directory`; the RSS route writes the **different** name `arrival_fetch:ooh-directory`
+so a poll can never be read as an arrival; and `GET /` writes nothing for the tag at all.
+
+### t0, and the control this design gets for free
+
+**t0 is the submission timestamp the owner posts to issue #1** — not the deploy, and not the date of
+this file.
+
+Between this deploy and t0 the tag is **published but unsubmitted**, which is precisely the condition
+`qa` is kept in permanently. That interval is therefore a **second control, on the real tag itself**,
+and it is strictly better than `qa` because it is the same string on the same URL. Its reading is
+recorded at t0 as `presubmission_days` and `presubmission_total`.
+
+**If A2 is never answered and no submission is made, EXP-012 is never run.** It is then recorded as
+**UNRUN**, never as a null and never as a zero, and nothing about demand may be read from it.
+
+### Reading — one, on the complete UTC day fifteen days after t0
+
+Window: **14 complete UTC days beginning the first complete UTC day after t0**, read from a `schedule`
+metrics snapshot generated after the window closes. Quantities, both unsuffixed:
+
+- **D = non-zero days of `arrival:ooh-directory`** in the window.
+- **V = Σ `arrival:ooh-directory`** over the window.
+
+`arrival_bot:ooh-directory` and `arrival_fetch:ooh-directory` are reported alongside and **never
+summed into D or V**.
+
+The cut points are set here, before any value exists. The measured null on this route is 0 days and 0
+volume; the RSS-route null is 1 day in 14. A threshold that merely beat zero would grade a single
+URL-assembling crawler as a channel, so both cut points clear both nulls with room.
+
+- **Fork O-A — the listing sent people. D ≥ 3 and V ≥ 8.** *Reading:* arrivals attributable to this
+  listing exceed everything a published-but-unsubmitted tagged URL has ever earned on this route, on
+  both axes. *Next action:* ooh.directory becomes the first channel with evidence behind it; the same
+  packet shape is prepared for the next venue, and the reading is quoted with D, V and both controls
+  or not at all.
+- **Fork O-B — inside the band. D ≤ 2, or V < 8.** *Reading:* nothing separable from a URL nobody
+  sent anywhere. *Next action:* the candidate is not re-run and not re-argued; a second suggestion to
+  the same venue is **not** admissible.
+- **Fork O-C — silent. D = 0 across all 14 days**, with the venue listing confirmed present.
+  *Reading:* a listed link blog sent nobody. That is a real and reportable null about the channel, and
+  it is **not** a statement about Tuned's demand.
+- **Fork O-D — inadmissible: never listed.** `/sportstech` does not appear on ooh.directory at the
+  reading, verified by one `source-read` dispatch in the reading's own cycle. *Reading:* **nothing is
+  graded.** The venue states this outcome in advance — *"These are suggestions rather than
+  submissions… Suggesting a blog does not guarantee it will appear on the site"* — so this is the
+  **expected modal outcome**, registered as such rather than discovered as a disappointment. No
+  demand inference in either direction.
+- **Fork O-E — the instrument did not land.** `arrival:ooh-directory` and `arrival_bot:ooh-directory`
+  both zero on all 14 days *while* `feed_view:sportstech` is non-zero. *Reading:* the tag is not
+  writing in production and nothing above is graded. *Next action:* fix it, and treat every statement
+  made from D or V as withdrawn. This is the fork this loop has hit five times in other shapes
+  ([L-35](LESSONS.md), [L-44](LESSONS.md), [L-46](LESSONS.md), [L-51](LESSONS.md),
+  [L-56](LESSONS.md)) and it is an expected outcome, not an accident.
+- **Fork O-F — inadmissible on contamination.** `presubmission_days` ≥ 2, or any first-party client
+  fetches the tagged URL inside the window under a user-agent that does not match `BOT_UA` in
+  [`src/metrics.ts`](../src/metrics.ts). *Reading:* the unsuffixed name is carrying URL-assemblers or
+  this loop looking at itself, and D is not a measurement of the venue. **Fork O-F must not be
+  reported as Fork O-A.**
+
+### Stop conditions, stated in advance
+
+- **Registering the tag authorizes no submission.** A2 at this venue is **unanswered**: whether the
+  owner may be named as the suggester of an **agent-written** link blog is the owner's decision and
+  nobody else's. A1 is only PARTIALLY satisfied on the same point — the venue admits link blogs *"if
+  they include original commentary about each link"*, and Tuned's commentary is written by an agent
+  and labelled `AI AGENT` on the page. Nothing is concealed; that is provenance being visible, not a
+  rule being satisfied.
+- **One suggestion.** Not a second entry in another category, and not a resubmission after silence.
+- **No second reading and no extension.** One reading, on one day derived from t0 before t0 exists.
+- **D and V are not numbers of people**, and no fork above licenses saying they are. `applications`,
+  `members_ever_active` and gross cash are the numbers that would be about people, and they are 0, 0
+  and $0.
+- **A listing is not demand.** Fork O-A says a channel produced arrivals; it says nothing about
+  whether anyone wants Tuned, and it must not be reported as traction.
+- **The tag is not private and must not be treated as though it were.** It is public source in a
+  public repository, as is every route it applies to ([A6](DISTRIBUTION.md), amended run 58). The
+  standing rule against printing the joined URL is kept — [`SUBMISSION-ooh-directory.md`](SUBMISSION-ooh-directory.md)
+  names the route and the tag on separate lines — but that is compliance, **not** a privacy measure,
+  and the reading's interpretability rests on the two controls above rather than on secrecy.

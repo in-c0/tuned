@@ -2243,3 +2243,47 @@ new block sent a browser user-agent, so the mechanism was deletable with the sui
 in a test written by the run that had just cited L-56. Caught before commit only because the mutation
 pass was run at all. **Asserting a split exists is not the same as asserting it splits**; the test has
 to send the input that lands in the other bucket.
+
+---
+
+## L-59 — a step the register named "next" was declined by five consecutive runs, and no single run's decline recorded that (2026-09-06, run 143)
+
+**What happened.** Run 137 closed by naming one item in
+[`ops/DISTRIBUTION.md`](DISTRIBUTION.md): registering `ooh-directory` in `ARRIVAL_TAGS` and
+pre-registering its threshold is *"the next executor-actionable step at this venue"* — the last
+condition at any candidate that did **not** need the owner. Runs 138, 139, 140, 141 and 142 each
+selected something else. Every one of them listed it under *"deliberately not done"*, and every one
+of those decisions was defensible on its own: an instrument defect found mid-audit outranks a tag for
+a venue whose A2 is unanswered, and it did so five times running.
+
+**Why the aggregate was invisible.** Each run compared its candidate action against the *other
+actions available in that run*, which is the right comparison, and then recorded the outcome as a
+one-line "not done this run" — which reads as a deferral. Five deferrals in a row is not a deferral.
+Nothing in the record summed them, because the sum lives across reports and no report is responsible
+for it. Run 142 saw the shape from the other end and named it — *"progressively smaller instrument
+work, which is not a plan, it is a way of looking busy"* — but named it as a forecast about future
+runs rather than as a description of the five that had already happened.
+
+**What made it worse here specifically.** The declined item was the only remaining work of its *kind*.
+The five things chosen instead were all instrument work on counters; the thing declined was the last
+piece of distribution work this executor could perform at all. So the loop was not choosing between
+two comparable items — it was spending the seam it had while the one item outside that seam sat
+still, and the seam's exhaustion (which run 142 correctly predicted) was always going to arrive with
+that item still undone.
+
+**The generalisable rule.** **A step the register names as "next" is either done, or moved out of
+"next" with a reason — silence plus a better idea is neither.** A run that declines the named next
+step must say, in its own report, *which run does it and on what trigger*; if it cannot name one, the
+honest act is to strike the item from the register rather than let it accumulate deferrals that no
+single report is accountable for.
+
+**Prevention check, cheap and mechanical:** *before selecting this run's action, read the register's
+named next step and count how many consecutive prior runs declined it.* At **two**, the decline needs
+a named trigger. At **three**, the item is done this run or struck from the register.
+
+**Not the lesson.** That the five runs chose wrongly — [L-57](#l-57--every-counter-on-the-site-could-say-who-wrote-it-except-the-one-that-decides-the-bet)
+and [L-58](#l-58--the-metric-this-loop-calls-activation-could-be-moved-by-the-email-that-announces-a-member)
+are real findings on the counter that decides this bet, and both would have been worth a run. The
+lesson is that "which is more valuable *this run*" was asked five times and "is this item being
+dropped rather than deferred" was asked zero times, and only the second question has an answer that
+changes with repetition.
