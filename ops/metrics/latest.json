@@ -1,56 +1,96 @@
 {
-    "generated_at": "2026-09-06T04:40:01.459Z",
+    "generated_at": "2026-09-06T22:17:04.571Z",
     "note": "Aggregate counts only, sourced from live D1. Days are UTC. landing_view/landing_view_bot are split by a user-agent heuristic and are not verified human traffic. landing_render/landing_engage/application_start are reported by the landing page itself \u2014 script execution, first interaction and first form input, at most once per page load, same-origin only \u2014 so they are evidence that traffic behaved like a person, not proof of one, and they are forgeable by anyone willing to set one header. landing_render counts page loads whose script actually ran, which excludes the scanners, probes and preview fetchers that take the HTML and execute none of it; read against landing_view it is the share of UA-flagged human-shaped requests that were a rendering browser, and it is not a count of people \u2014 a JS-executing crawler that does not declare itself lands in the unsuffixed name alongside a visitor. application_invalid counts submits rejected by email validation; it is not part of application_submit. From 2026-09-06 both application_submit and application_invalid carry the same _bot user-agent split as every other counter here, so their unsuffixed names mean a submit that did not declare itself as automation; every value either name held before that date was written without the split, and both were 0 on every day of that period, so no earlier reading changes meaning. application_submit_offpage and application_invalid_offpage are an axis rather than a bucket: they count the subset of those submits that arrived without this site's Origin header, and they are never summed with the names above, whose total is unchanged. A browser sends Origin on every same-origin POST and a cross-origin JSON POST is refused before it arrives, so an offpage submit is evidence the request did not come from this page in a browser \u2014 it is not proof of automation and the submit is accepted and stored either way, because this route classifies and never refuses. From 2026-09-06 member_login and desk_view carry the same _bot user-agent split as every other counter here, plus member_login_unattended and desk_view_unattended as an axis rather than a bucket: they count the subset of those requests that arrived without Sec-Fetch-User: ?1, and they are never summed with the names above, whose totals are unchanged. A browser sends that header on a top-level navigation only when a person activated it \u2014 a click, a typed URL, a bookmark \u2014 and a prefetcher, mail security gateway, chat unfurler or plain HTTP client sends no user activation and often no Sec-Fetch header at all, so an unattended request is evidence no click caused it. It is not proof: a real click arriving without the header is counted unattended too, and the sign-in and the desk work identically either way, because these routes classify and never refuse. Read them against retention.members_ever_active, which is computed from member_days rows written by the desk: a sign-in link is delivered by email and fetched by machines before any person opens it, so that number can move from 0 to 1 without a person, and on the day it moves these names are what say whether it did. Every value member_login or desk_view held before that date was written without either discriminator. feed_view remains one site-wide count of every public feed view; feed_view:<handle> splits that same event by destination and does not replace it, so the two are not additive. arrival:<tag> counts feed views whose URL carried an allowlisted ?src= tag \u2014 a campaign label on the link, aggregated daily, with no cookie, no visitor identifier and no per-visitor state; an unrecognised tag is counted under no name at all, so absence of a tag means it was never allowlisted. feed_fetch/feed_fetch:<handle>/arrival_fetch:<tag> are the same three shapes for RSS fetches of /<handle>/rss.xml, and they are a different event from feed_view rather than part of it \u2014 a feed client polls on a schedule, so these count polls and not people, and no subscriber count can be derived from them without a per-visitor identifier this service does not keep. On that surface the _bot split separates a self-declaring crawler from a feed reader that does not self-declare, and neither bucket is a person; this service's own automated fetches declare themselves and so land in feed_fetch_bot, but only one feed is fetched on a schedule \u2014 /ava/rss.xml, twice daily by a first-party uptime checker \u2014 so feed_fetch_bot:ava is a liveness signal and feed_fetch_bot:<any other handle> records only first-party QA runs that were dispatched by hand; a zero day on those names means no run was dispatched, not that the counter failed. An earlier version of this note said scheduled headless QA fetched every feed; that was wrong about both the schedule and the fetcher and is withdrawn here. Unsuffixed feed_fetch was originally described here as a background rate of third-party fetchers; that description is withdrawn on its own first two days of data, in which every unsuffixed fetch carried a ?src= tag whose URL this service had itself published hours earlier \u2014 it is not established to be a background rate of anything. The set of tags that write is public source in a public repository, as is every route they apply to, so a tagged counter measures fetches of a tagged URL by anyone who assembled one and is not on its own evidence that a channel sent them; the tag qa is published in the same public places and submitted to no venue, and is kept as the control those readings are compared against. Counters start at zero on the deploy that introduced them; absence of a day means no requests were counted that day. Gross cash is absent because no billing exists.",
     "daily": [
         {
             "day": "2026-09-06",
             "name": "cron_run",
-            "count": 10
+            "count": 45
         },
         {
             "day": "2026-09-06",
             "name": "feed_fetch_bot",
-            "count": 6
+            "count": 16
         },
         {
             "day": "2026-09-06",
             "name": "feed_fetch_bot:ava",
-            "count": 6
+            "count": 16
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view",
+            "count": 5
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view:ava",
+            "count": 1
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view:graphics",
+            "count": 1
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view:sportstech",
+            "count": 1
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view:wearables",
+            "count": 1
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view:wellbeing",
+            "count": 1
         },
         {
             "day": "2026-09-06",
             "name": "feed_view_bot",
-            "count": 2
+            "count": 5
         },
         {
             "day": "2026-09-06",
             "name": "feed_view_bot:ava",
-            "count": 2
+            "count": 4
+        },
+        {
+            "day": "2026-09-06",
+            "name": "feed_view_bot:wellbeing",
+            "count": 1
         },
         {
             "day": "2026-09-06",
             "name": "landing_view",
-            "count": 35
+            "count": 68
         },
         {
             "day": "2026-09-06",
             "name": "landing_view_bot",
-            "count": 9
+            "count": 29
+        },
+        {
+            "day": "2026-09-06",
+            "name": "robots_fetch",
+            "count": 5
         },
         {
             "day": "2026-09-06",
             "name": "robots_fetch_bot",
-            "count": 9
+            "count": 21
         },
         {
             "day": "2026-09-06",
             "name": "sitemap_fetch_bot",
-            "count": 2
+            "count": 6
         },
         {
             "day": "2026-09-06",
             "name": "spotify_sync_ok",
-            "count": 10
+            "count": 45
         },
         {
             "day": "2026-09-05",
