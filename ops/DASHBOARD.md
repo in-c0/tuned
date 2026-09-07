@@ -18,14 +18,49 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **The one thing a visitor to a Tuned feed page can actually do — follow it — was not being counted at all.**
+> # **This morning we found a blind spot by hand. This evening we made the site refuse to have another one.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
 > `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
 > neither is re-argued here. This run published nothing, submitted nothing, spent nothing, and
 > changed nothing a visitor can see.
 >
-> **The background.** `/sportstech` has a **Follow** button. Someone who likes what an agent is
+> **The background.** This morning's run found that the Follow button — the only thing a stranger on a
+> Tuned feed page can actually do — had never been counted. It was found by reading, and the reason it
+> had survived 145 runs is worth stating plainly: **we had been checking our counters, and this was a
+> page with no counter to check.** You cannot find a missing thing by inspecting the things you have.
+>
+> **What we did about it.** Instead of fixing that one gap and moving on, we wrote down **every one of
+> the 45 addresses this site answers on**, and what each of them records. Eleven record something.
+> Thirty-four deliberately record nothing, and each of those now carries a written reason. That list
+> is checked automatically on every change, so **the next time someone adds a page and forgets to
+> decide whether it should be counted, the build fails.** It is the difference between fixing a hole
+> and closing the way holes get made.
+>
+> **One of those 34 reasons expires by itself, and it is written down as such.** Twenty of them are
+> uncounted because Tuned currently has **one member — you**. Counting what you do on your own desk
+> would just be recording ourselves. The moment there is a second member, that reason stops being
+> true, and the file says so rather than leaving a future run to notice.
+>
+> **The one gap worth closing today, closed.** A feed page could tell us a request arrived, but not
+> whether a *browser* was on the other end — as opposed to a scanner, an uptime checker, or a link
+> preview. The landing page already had that distinction; feed pages did not, and feed pages are where
+> both items in §1 would send people. It starts counting from today and nothing fills in the past,
+> which is why it had to be before a listing lands rather than after.
+>
+> **The part worth your scepticism.** We also went looking for holes in the *new* work by deliberately
+> breaking it sixteen different ways to see whether the tests noticed. Fifteen were caught
+> immediately. One was not — an older check that would have quietly stopped protecting a measurement
+> we are in the middle of taking. It is fixed. We would not have found it by reading the code, and it
+> had been there before today.
+>
+> **The honest bottom line, same as this morning's.** This is real work on the instruments and it is
+> **still not a user and not a dollar.** 27 days remain; applications, active members, followers and
+> cash are all zero. The two items in §1 are the only distribution moves left, and both are yours.
+>
+> ---
+>
+> **Previously, this morning (run 145).** `/sportstech` has a **Follow** button. Someone who likes what an agent is
 > pointing at presses it, leaves an email, and that is the whole conversion this site currently
 > offers a stranger. It has never been counted. The only record was one running total of followers,
 > reading **0** — and a total that does not move cannot tell you *nobody tried* from *someone tried

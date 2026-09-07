@@ -1981,3 +1981,95 @@ before a listing lands, and both submissions are owner-gated and still open.
 
 **No metric moved this run and none is claimed.** `applications` 0 · `members` 1 ·
 `members_ever_active` 0 · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+
+---
+
+## 2026-09-07 (run 146) — `feed_render`, and the route inventory that will name the next gap
+
+**One name ships today: `feed_render` / `feed_render_bot`.** It reads **0** on every UTC day up to and
+including 2026-09-06 **because it did not exist** — a statement about the instrument, not about
+traffic. There is no historical series of feed-page renders, not a low one and not a zero one.
+
+### The name
+
+| Name | Kind | What it counts |
+| --- | --- | --- |
+| `feed_render` / `feed_render_bot` | bucket, page-reported | a public feed page whose script actually ran |
+
+### What it is for
+
+`landing_view` alone could not say whether a human-shaped request was a rendering browser or one of
+the scanners, port probes, uptime checkers and link-preview fetchers that take the HTML and execute
+none of it. That is why `landing_render` exists. **`/:handle` had the view and no such name** —
+`feed_view:sportstech` reads **37** unsuffixed views across 21 complete days and nothing on this site
+could say whether one of them was a browser.
+
+**It is built now, before a listing lands, for the reason run 145's names were:** both open items in
+[DISTRIBUTION.md](DISTRIBUTION.md) point at a feed page, both are owner-gated, either can land on any
+day, and **counters do not backfill**. The first arrival is exactly the reading that cannot be
+reconstructed afterwards.
+
+### Binding reading rules
+
+- **`feed_render` is not a count of people.** A JS-executing crawler that does not declare itself lands
+  in the unsuffixed name alongside a visitor. It is strictly more discriminating than a user-agent
+  string and strictly weaker than proof of a human — the same standing given to `landing_render`.
+- **It is page-reported and forgeable on one header**, like every other pulse name.
+- **It carries no handle and is site-wide.** The pulse name is the whole key, so a handle in it would
+  be a string from the URL bar minting rows in `metric_days`. Therefore `feed_render ÷ feed_view` is
+  sound, and **`feed_render ÷ feed_view:<handle>` is sound only while one feed dominates views**.
+  Today `/sportstech` does; that will stop being true without warning.
+- **It counts public feed pages only.** It is emitted under the follow button's own guard, which every
+  public feed page renders and the studio page — served the same script — never does. So it is the
+  honest denominator for `follow_open`, which is gated on the same element: a page that stops emitting
+  one stops emitting both, rather than skewing a ratio.
+- **No interim reading of `landing_render` is quoted, here or anywhere in run 146.** EXP-011 is
+  pre-registered to grade R = `landing_render` ÷ `landing_view` over 2026-09-05 … 2026-09-18, and a
+  partial series reported as a finding is exactly what pre-registration forbids. The case for
+  `feed_render` is structural.
+
+### The route inventory — what this run actually changed about how gaps are found
+
+[L-61](LESSONS.md) was written last run: *an inventory audit is only as complete as the set it
+enumerates.* Its prescribed next attempt was to **enumerate the surface, not the instrument**.
+[`test/route-inventory.test.ts`](../test/route-inventory.test.ts) is that enumeration, and it runs on
+every push. **All 45 routes are classified** — 11 as instrumented, 34 as deliberately uncounted with a
+written reason — and the classification is asserted in both directions, so a route that quietly grows
+a counter fails as loudly as one that loses its own.
+
+**The counted set, for the record:**
+
+| Route | Writes |
+| --- | --- |
+| `GET /` | `landing_view[_bot]` |
+| `POST /waitlist` | `application_submit` / `application_invalid`, `+_bot`, `+_offpage` |
+| `POST /api/pulse/:name` | the allowlisted pulse name, `+_bot` |
+| `GET /robots.txt` · `GET /sitemap.xml` | `robots_fetch[_bot]` · `sitemap_fetch[_bot]` |
+| `GET /:handle` | `feed_view[_bot]`, `feed_view[_bot]:<handle>`, `arrival[_bot]:<tag>` |
+| `GET /:handle/rss.xml` | `feed_fetch[_bot]`, `feed_fetch[_bot]:<handle>`, `arrival_fetch[_bot]:<tag>` |
+| `POST /:handle/follow` | `follow_submit` / `follow_invalid`, `+_bot`, `+:<handle>`, `+_offpage`, `+_duplicate` |
+| `GET /enter/:token` | `member_login[_bot]`, `+_unattended` |
+| `GET /today` | `desk_view[_bot]`, `+_unattended`, `member_days` |
+| `POST /read/:id` | `attention_star` / `attention_skip`, `+_bot`, `+_owner` |
+| scheduled handler | `cron_run`, `spotify_sync_*`, `cron_no_credentials` |
+
+**The uncounted set is a decision, not an omission, and two of its reasons expire on their own.**
+Twenty of the 34 are uncounted because they are member-only or capability-URL surfaces and `members`
+is **1** — every request any of them has ever served is the owner, and a counter there would record
+the operator operating the service. **That reason expires the day `members` exceeds 1**, and the
+inventory says so in the file rather than leaving it to be re-derived. Seven more are the operator
+control plane, where every call is this loop. `GET /terms` and `GET /privacy` are the only public HTML
+this service serves that records nothing; if a venue ever sends traffic *to* them that becomes wrong.
+
+### Owner attention, first reading (2026-09-07 04:42:52Z snapshot)
+
+The `owner_resolved` reading run 145 deferred to the next snapshot now exists, and it grades run 144's
+instrument rather than any behaviour: **`totals.owner_resolved` 1**, so the owner axis is valid and the
+four owner names may be read. **`totals.stars_owner` 8 of `totals.stars` 8; `totals.skips_owner` 33 of
+`totals.skips` 33.** Every attention event this service has ever recorded is the owner triaging their
+own desk — **`stars − stars_owner` = 0** — which is what the register has stated all along and what,
+until run 144, it could not have known.
+
+**No metric moved this run and none is claimed.** `applications` 0 · `members` 1 ·
+`members_ever_active` 0 · `followers` 0 · `items_public` 84 · gross cash **AUD $0**, from *no billing
+exists*.

@@ -4732,3 +4732,106 @@ before any commit, comment or dispatch.
   recorded. The email a follower submits was already stored in `followers`; the `Origin` header is
   read and discarded.
 - **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+---
+
+## 2026-09-07 (run 146) — enumerate the surface instead of the instrument, and close the one gap it names
+
+Lock claimed before any commit, comment or dispatch: cycle `2026-09-07/w20`, holder `vm:2047`, nonce
+`688eeb85`, at `2026-09-07T10:05:18Z`. Released `completed` at end of run.
+
+**Directive: none outstanding.** The newest comment on issue #1 is run 145's execution report; no
+reviewer directive has been posted since the 2026-09-01 review, which run 136 discharged. The action
+was selected under the standing mission.
+
+- **Decision: do what [L-61](LESSONS.md) prescribed, not the item run 145 named.** L-61's *more
+  elegant next attempt* is to **enumerate the surface, not the instrument** — for each route, what
+  does it write, and if nothing, is that deliberate? Run 145 named `feed_render` as its next
+  candidate, which is **one guess at what such an enumeration would find**. Performing the
+  enumeration finds that gap *and* the ones nobody has guessed, so it strictly dominates, and it is
+  the difference between fixing a defect and closing the class.
+- **Decision: make the enumeration a test, not a run.** An audit performed once decays from the next
+  commit onward; this one is [`test/route-inventory.test.ts`](../test/route-inventory.test.ts) and it
+  runs on every push. **All 45 routes are classified** — 11 instrumented, 34 deliberately uncounted
+  with a written reason. A new route with no decision about instrumentation is a red build.
+- **Decision: assert in both directions.** A route recorded as uncounted that quietly grows a counter
+  is the same defect wearing the other face — the register would describe a surface as uncounted while
+  production counted it. Both directions fail.
+- **Decision: refuse to pass vacuously, explicitly.** This is the specific way an inventory test lies:
+  a parser that matches nothing sweeps an empty set and every assertion over it holds — the exact
+  shape of L-61 one level up. So the parsed route count is checked against an independent count of
+  registration tokens, and the set of mounted sub-applications is pinned. A route written as
+  `app.on()`, a computed path, or a whole sub-app mounted under a new prefix goes red rather than
+  unnoticed.
+- **Decision: an `uncounted` entry must carry a reason long enough to be a reason.** A test enforces
+  it. An uncounted route with no argument behind it is an oversight wearing a decision's clothes, and
+  the file is the only place that difference is visible.
+- **Recorded, because it expires on its own: 20 of the 34 uncounted routes are uncounted because
+  `members` is 1.** Every request any member-only or capability-URL surface has ever served is the
+  owner, and a counter there would record the operator operating the service — the reading run 144
+  spent a whole run learning to subtract. **That reason stops holding the day `members` exceeds 1**,
+  and it is written in the file so the next run re-decides rather than re-confirms.
+- **Decision: ship `feed_render`, the one public-surface gap the enumeration confirms matters.**
+  `landing_view` alone could not say whether a human-shaped request was a rendering browser; that is
+  why `landing_render` exists. `/:handle` had the view and no such name. Both open distribution items
+  point at a feed page, either can land on any day, and **counters do not backfill**.
+- **Decision: quote no interim value of `landing_render`, anywhere in this run.** EXP-011 is
+  pre-registered to grade R = `landing_render` ÷ `landing_view` over 2026-09-05 … 2026-09-18. A
+  partial series reported as a finding is what pre-registration exists to forbid, and the temptation
+  was real: the argument for `feed_render` would have been sharper with the number in it. The argument
+  is made structurally instead. **EXP-011's forks, thresholds, window and reading date are
+  byte-untouched.**
+- **Decision: gate `feed_render` on the follow button rather than fire it unconditionally.**
+  `CLIENT_JS` is served to the studio page too, which has no button; `publicPage` always renders one.
+  The gate is deliberate twice over — it keeps the name to public feed pages, and it makes
+  `feed_render` the honest denominator for `follow_open`, which is gated on the same element, so a
+  page that stops emitting one stops emitting both rather than skewing a ratio.
+- **Decision: site-wide, carrying no handle**, on the reasoning `follow_open` already carries: the
+  pulse name is the whole key and a handle from the URL bar would mint rows in `metric_days`. The cost
+  is recorded rather than hidden — `feed_render ÷ feed_view:<handle>` is sound only while one feed
+  dominates views.
+- **Decision: ship the production gate in the same commit as the counter, not a run behind it.** That
+  is the whole of the run-138/140/145 sequence: `landing_render` was live for two days with the only
+  check able to see it broken, and `follow_open` went a run without a gate. `verify-production` now
+  asserts against the served documents that `/api/pulse/feed_render` answers **403**, that
+  `/sportstech` fires it, and that **the landing page does not** — so EXP-011's denominator cannot be
+  contaminated mid-window without a red build.
+- **A hole that predates this change, found by mutating rather than reading — [L-62](LESSONS.md).**
+  `ALLOWED` and `PULSE_COUNTERS` were pinned to each other, but `NEVER_HERE` — the complement the
+  browser spec uses to assert a feed-page pulse never fires on `/` — was pinned to nothing. Adding a
+  name to `ALLOWED` and forgetting `NEVER_HERE` passed every check in the repository while silently
+  retiring the assertion protecting a pre-registered denominator. **Eight of eight `feed_render` mutations
+  now refused**; on the first pass it was seven of eight, and this was the survivor. `NEVER_HERE` is now
+  **derived from the served landing document** rather than compared to a second hand-written list.
+- **Deliberately not done: an experiment.** A gate on the instrument and a defect fix, not a
+  hypothesis with a threshold. No EXP entry is manufactured. EXP-011 and EXP-012 are byte-untouched.
+- **Deliberately not done: counting `/terms` and `/privacy`.** They are the only public HTML this
+  service serves that records nothing, and the reason is written down rather than assumed: they are
+  footer-reached from surfaces already counted, so a counter there would measure the footer. **If a
+  venue ever links to them directly this becomes wrong**, which is why it is in the file.
+- **Deliberately not done: EXP-011's mid-window instrument bracket.** The window is 2026-09-05 →
+  2026-09-18 and today is **day 3 of 14**; dispatching it now is choosing the day, which
+  [L-55](LESSONS.md) forbids. This is the **second** consecutive decline and the count is kept rather
+  than quietly incremented ([L-59](LESSONS.md)): at three the item is done or struck. **Named trigger:
+  the first run on or after 2026-09-11.**
+- **The `owner_resolved` reading run 145 deferred has arrived and is recorded, not acted on.** Snapshot
+  `2026-09-07T04:42:52Z`: `owner_resolved` **1**, `stars_owner` **8** of `stars` **8**, `skips_owner`
+  **33** of `skips` **33**. Every attention event this service holds is the owner's. That closes run
+  145's third named item as a **reading**, not a change.
+- **EXP-011's stop conditions are intact.** The `src/pages.ts` change is confined to `CLIENT_JS`, which
+  `landingPage()` does not use; the landing document's copy, layout, offer and form are unchanged;
+  `landing_render` is added to no other page; neither of R's inputs is read or written. Three tests and
+  one production gate pin it.
+- **No schema change, no migration, no new route, no secret, no auth change, no cookie, no identifier,
+  no per-visitor state, no new data category — so the privacy policy is unchanged**, on the reasoning
+  runs 43, 141, 142, 144 and 145 recorded.
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+- **Correction, recorded here because the commit message cannot be corrected.**
+  [`00f635a`](https://github.com/in-c0/tuned/commit/00f635a)'s message says *"Ten mutations of the
+  feed_render instrument attempted, ten refused."* **The number is eight, not ten** — eight mutations
+  of the `feed_render` instrument (seven refused on the first pass, one survivor, eight after the fix)
+  and eight of the route inventory gate, sixteen in total. The commit was already on `master` when the
+  miscount was caught, and rewriting `master`'s history to fix a message is not a trade this loop
+  makes. The correct figures are the ones in this file, [STATUS.md](STATUS.md),
+  [METRICS.md](METRICS.md) and [L-62](LESSONS.md); the commit message is wrong in the direction that
+  flatters the run, which is the direction that matters.

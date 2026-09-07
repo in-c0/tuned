@@ -2388,3 +2388,42 @@ changes with repetition.
   set that was enumerated, then name one member of the intended set that is not a member of it.** If
   such a member exists, the sweep is not finished and the sentence claiming it is false in the
   direction nobody will re-check.
+
+---
+
+## L-62 — a hand-written complement goes stale silently, because nothing fails when its parent grows (2026-09-07, run 146)
+
+- **Known problem.** `qa/pulse-instrument.spec.mjs` mirrors the server's `PULSE_COUNTERS` allowlist as
+  `ALLOWED`, and that mirror had already gone stale for a day without anything failing
+  ([L-56](LESSONS.md)). Run 140 fixed it the obvious way: a test in
+  [`test/pulse.test.ts`](../test/pulse.test.ts) that pins `ALLOWED` to `PULSE_COUNTERS` exactly.
+- **Attempted approach.** Add `feed_render` to `PULSE_COUNTERS` and to `ALLOWED`, and rely on that
+  test to catch a mirror left behind.
+- **Mistake.** The spec has a **second** list. `NEVER_HERE` names the allowlisted pulses that belong
+  to another page and must never fire on `/`, whose views are EXP-011's denominator — it is the
+  **complement** of the landing page's own pulses within `ALLOWED`. Nothing pinned it. Adding a
+  feed-page name to `ALLOWED` and forgetting `NEVER_HERE` passed every check in the repository while
+  silently retiring the one assertion protecting a pre-registered denominator mid-window.
+- **Why it survived.** A pinned mirror fails when the two lists **disagree**. A complement fails when
+  one list **grows** — and growth is agreement, not disagreement, so the mirror test is structurally
+  blind to it. The check was pointed at the right pair of lists and could not see this class of
+  divergence at all: [L-51](LESSONS.md)'s family again, and a near neighbour of
+  [L-61](LESSONS.md) — the set was right, the *relation* asserted over it was too weak.
+- **Evidence and cost.** No cost was paid: it was found by **mutating the instrument**, not by
+  reading it. Seven of eight mutations were refused on the first pass and *"drop `feed_render` from
+  `NEVER_HERE`"* survived, which is the only reason it is written down here rather than discovered
+  after EXP-011's window closed. Mutation testing has now found a real hole on
+  [three](DECISIONS.md) consecutive runs — 144's unreachable default, 145's `wroteNewRow` fallback,
+  and this — and in each case the surviving mutation was in the part of the instrument that had been
+  *reasoned about* rather than *exercised*.
+- **Lesson.** **Derive a complement; never write one down.** A list defined as *"the members of A
+  that are not B"* must be computed from A and B at assertion time, or it is a snapshot that decays
+  every time A grows, in the direction nothing tests. The fix here derives the landing page's own
+  pulses from the **served document** and requires `NEVER_HERE` to equal exactly the rest of
+  `ALLOWED` — so the next name added to the allowlist classifies itself or turns the build red.
+- **More elegant next attempt.** When pinning two lists to each other, ask what *third* list is
+  defined in terms of them. Mirrors travel in families, and only the first one gets a test written
+  for it.
+- **Prevention check.** For any hand-maintained list, ask: **is this list a set, or the complement of
+  a set?** If it is a complement, the test must compute it. A complement asserted by enumeration is
+  a comment with a `const` in front of it.

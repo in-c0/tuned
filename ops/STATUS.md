@@ -1,7 +1,94 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-07 14:20 Sydney (04:20 UTC), run 145 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143 and 144 and not re-argued here, per [L-07](LESSONS.md).** **The only
+**Last updated:** 2026-09-07 20:20 Sydney (10:20 UTC), run 146 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143, 144 and 145 and not re-argued here, per [L-07](LESSONS.md).** **The
+method that found this morning's uncounted route could not have found the next one, so the method was
+replaced rather than repeated.**
+
+Run 145 found `POST /:handle/follow` writing nothing, four runs after a sweep closed on *"no counter
+on any route is undiscriminated any more."* [L-61](LESSONS.md) named why that sentence was true and
+useless: it was a claim about the set of **counters**, and a route with no counter is not merely
+undetected by that method, it is **unreachable by it**. L-61's own prescribed next attempt was to
+**enumerate the surface, not the instrument** — for each route, what does it write, and if nothing, is
+that deliberate?
+
+**That is this run, and it is a test rather than an audit.**
+[`test/route-inventory.test.ts`](../test/route-inventory.test.ts) parses the route table out of
+[`src/index.ts`](../src/index.ts) and [`src/operator.ts`](../src/operator.ts) and requires **all 45
+routes** to be classified — **11 instrumented, 34 deliberately uncounted with a written reason**. An
+audit performed once decays from the next commit; this runs on every push, so a new route with no
+decision about instrumentation is a **red build**. It asserts in **both** directions: a route recorded
+as uncounted that quietly grows a counter fails as loudly as one that loses its own, because the
+register describing a surface production does not have is the same defect wearing the other face.
+
+**And it refuses to pass vacuously, explicitly** — the specific way an inventory test lies, and L-61
+one level up. A parser that matches nothing sweeps an empty set and every assertion over it holds. So
+the parsed route count is checked against an independent count of registration tokens and the set of
+mounted sub-applications is pinned: a route written as `app.on()`, a computed path, or a whole sub-app
+under a new prefix goes **red** rather than unnoticed. **Eight mutations attempted, eight refused.**
+
+**Recorded because it expires on its own: 20 of the 34 uncounted routes are uncounted because
+`members` is 1.** Every request any member-only or capability-URL surface has ever served is the
+owner, and a counter there would record the operator operating the service. **That reason stops
+holding the day `members` exceeds 1**, and it is written in the file so the next run re-decides rather
+than re-confirms. Seven more are the operator control plane. `GET /terms` and `GET /privacy` are the
+only public HTML this service serves that records nothing — if a venue ever links to them directly,
+that becomes wrong.
+
+**The enumeration named one public-surface gap worth closing now, and it is the one run 145 named
+next.** Shipped in [`00f635a`](https://github.com/in-c0/tuned/commit/00f635a): **`feed_render`**,
+`landing_render`'s rung on a public feed page. `landing_view` alone could not say whether a
+human-shaped request was a rendering browser or one of the scanners, probes and preview fetchers that
+take the HTML and execute none of it; `/:handle` had the view and **no such name** —
+`feed_view:sportstech` reads **37** across 21 complete days and nothing here could say whether one of
+them was a browser. Both open distribution items point at a feed page, either can land any day, and
+**counters do not backfill**.
+
+**No interim value of `landing_render` is quoted in this run, and the temptation was real.** EXP-011
+is pre-registered to grade R = `landing_render` ÷ `landing_view` over 2026-09-05 … 2026-09-18; a
+partial series reported as a finding is what pre-registration exists to forbid. The case for
+`feed_render` is made **structurally instead**, and EXP-011's forks, thresholds, window and reading
+date are **byte-untouched**.
+
+**Gated on the follow button rather than fired unconditionally**, because `CLIENT_JS` is served to the
+studio page too and `publicPage` always renders a button. The gate is deliberate twice over: it keeps
+the name to public feed pages, and it makes `feed_render` the **honest denominator for `follow_open`**,
+gated on the same element — a page that stops emitting one stops emitting both rather than skewing a
+ratio. Site-wide and carrying no handle, on `follow_open`'s reasoning, so `feed_render ÷
+feed_view:<handle>` is sound only while one feed dominates views.
+
+**The production gate ships in the same commit as the counter, not a run behind it** — the whole of
+the run-138/140/145 sequence. `verify-production` asserts against the served documents that
+`/api/pulse/feed_render` answers **403**, that `/sportstech` fires it, and that **the landing page does
+not**, so EXP-011's denominator cannot be contaminated mid-window without a red build.
+
+**A hole that predates this change, found by mutating the instrument rather than reading it —
+[L-62](LESSONS.md).** `ALLOWED` and `PULSE_COUNTERS` were pinned to each other; `NEVER_HERE` — the
+**complement** the browser spec uses to assert a feed-page pulse never fires on `/` — was pinned to
+nothing. Adding a name to one and forgetting the other passed every check in this repository while
+silently retiring the assertion protecting a pre-registered denominator. **A pinned mirror fails when
+two lists disagree; a complement fails when one list grows, and growth is agreement.** `NEVER_HERE` is
+now **derived from the served landing document**. Eight of eight `feed_render` mutations refused; on the
+first pass it was seven, and this was the survivor.
+
+**The `owner_resolved` reading run 145 deferred has arrived** (snapshot `2026-09-07T04:42:52Z`):
+`owner_resolved` **1**, `stars_owner` **8** of `stars` **8**, `skips_owner` **33** of `skips` **33**.
+**Every attention event this service holds is the owner triaging their own desk** — which the register
+has said all along and, until run 144, could not have known.
+
+Gates: `check` **0** · **17 files, 261 tests** (was 15/240) · `test:ops` 14/14 · workflow and
+nomination validators ok · CI [34110877147](https://github.com/in-c0/tuned/actions/runs/34110877147)
+**success** · [verify production 205](https://github.com/in-c0/tuned/actions/runs/34110877141)
+**success** on `00f635a` serving, including the new `feed_render` step. **No rollback.**
+
+**The honest point of the run, stated as plainly as run 145 stated its own.** This closes a *class* of
+gap rather than a gap, which is worth more than another counter and is still not a user or a dollar.
+**27 days remain and every standing figure is zero.** Both distribution items are still the owner's;
+the landing surface is still frozen by EXP-011 until 2026-09-18. **Runs 141, 143, 144 and 145 asked
+the reviewer to name what this executor should do with its remaining runs. This is the fifth asking,
+and the request is narrowed further below.**
+
+**Previously, run 145 (2026-09-07 14:20 Sydney) — the only
 conversion action on a public feed page wrote no counter at all — and it is the page both open
 distribution items point at.**
 
