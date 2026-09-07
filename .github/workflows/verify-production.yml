@@ -253,6 +253,43 @@ jobs:
           }
           echo "Landing page ships \`pulse(\"landing_render\")\`; route answers 403 unauthenticated." >> "$GITHUB_STEP_SUMMARY"
 
+      # The same two halves as the step above, one page along. A pulse name is allowlisted in
+      # one Set and called from one page, and the two can part company without anything going
+      # red: `landing_render` did exactly that at run 138 and was only caught at run 140. The
+      # cost here is smaller than EXP-011's — no window closes on it — but the failure is the
+      # same shape and reads the same way, as a rung that is simply always zero.
+      - name: Follow funnel beacon is deployed and reachable from the feed page
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh post "${BASE}/api/pulse/follow_open")
+          case "$code" in
+            403) echo "/api/pulse/follow_open with no Origin: HTTP 403 — allowlisted, and refusing a caller that is not the page." ;;
+            404)
+              echo "::error::/api/pulse/follow_open returned 404 — follow_open is not on the allowlist in production. The rung between a feed view and a follow would read zero forever. Roll back."
+              exit 1 ;;
+            204)
+              echo "::error::/api/pulse/follow_open accepted a POST with NO Origin — the same-origin guard is gone. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::/api/pulse/follow_open returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          # Read from the feed page the distribution candidates point at, not from any feed:
+          # the button and the beacon have to be on the document a listing would send people to.
+          code=$(scripts/prod-http.sh get "${BASE}/sportstech" /tmp/feedpage.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/sportstech returned HTTP $code"; exit 1; }
+          grep -q 'id="follow-btn"' /tmp/feedpage.html || {
+            echo "::error::/sportstech no longer carries a follow button — the only conversion action on the page is gone. Roll back."
+            exit 1
+          }
+          grep -q '/api/pulse/follow_open' /tmp/feedpage.html || {
+            echo "::error::/sportstech no longer fires follow_open — the route is live and nothing will ever call it. Roll back."
+            exit 1
+          }
+          echo "Feed page ships the follow button and \`follow_open\`; route answers 403 unauthenticated." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Public pages still render
         env:
           BASE: ${{ steps.vantage.outputs.base }}
