@@ -399,8 +399,15 @@ describe("the browser check that validates these counters is not allowed to go s
   // EXP-011's numerator firing would have failed on the arrival of the thing it needed to see.
   // Nothing failed, because nothing ran it.
   //
-  // These two tests are the link that was missing. They are cheap, they run on every push, and
-  // they turn that class of divergence from a silent gap into a red build.
+  // These tests are the link that was missing. They are cheap, they run on every push, and they
+  // turn that class of divergence from a silent gap into a red build.
+  //
+  // The third one was added at run 146, and it exists because the first two did not cover the
+  // second half of the mirror. `ALLOWED` and `PULSE_COUNTERS` were pinned to each other, but
+  // `NEVER_HERE` — the list the spec uses to assert that a pulse belonging to another page never
+  // fires on `/` — was not pinned to anything. Adding a feed-page name to `ALLOWED` and forgetting
+  // `NEVER_HERE` passed every check here while silently retiring the one assertion protecting
+  // EXP-011's denominator. It was found by mutating this instrument rather than by reading it.
   const quoted = (source: string, pattern: RegExp, what: string) => {
     const block = source.match(pattern);
     expect(block, `could not find ${what} — this test's parser needs updating, not deleting`).not
@@ -441,5 +448,29 @@ describe("the browser check that validates these counters is not allowed to go s
     expect(pulseSpecSource, "UNGATED is not landing_render").toMatch(
       /const UNGATED = "landing_render"/,
     );
+  });
+
+  it("names every allowlisted pulse the landing page does not emit as one that must never fire there", async () => {
+    // Derived from the served document rather than from a second hand-written list, so the
+    // division is a fact about the page instead of a claim about it. Every allowlisted name the
+    // landing page does not ship belongs to some other surface, and the browser spec's job is to
+    // fail if one of them ever fires on `/` — whose views are EXP-011's denominator.
+    const allowed = quoted(pulseSpecSource, /const ALLOWED = \[([\s\S]*?)\]/, "ALLOWED");
+    const neverHere = quoted(pulseSpecSource, /const NEVER_HERE = \[([\s\S]*?)\]/, "NEVER_HERE");
+
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(new Request(`${ORIGIN}/`, { headers: { "user-agent": HUMAN_UA } }), env as never, ctx);
+    await waitOnExecutionContext(ctx);
+    const html = await res.text();
+
+    const foreign = allowed.filter((name) => !html.includes(name)).sort();
+    const own = allowed.filter((name) => html.includes(name)).sort();
+
+    expect(foreign.length, "the landing page emits every allowlisted pulse — the parser matched the wrong thing").toBeGreaterThan(0);
+    expect(own, "the landing page emits none of the allowlisted pulses").not.toEqual([]);
+    expect(
+      neverHere.sort(),
+      "a pulse belonging to another page is allowlisted but not in NEVER_HERE: the browser check would no longer notice it firing on the landing page",
+    ).toEqual(foreign);
   });
 });

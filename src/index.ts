@@ -237,7 +237,29 @@ app.post("/waitlist", async (c) => {
 // cannot be attributed to a destination the way `follow_submit:<handle>` can, and the ratio
 // against `feed_view:<handle>` is only sound while one feed dominates the views. It is also
 // page-reported and forgeable on one header, like every other name here.
-const PULSE_COUNTERS = new Set(["landing_render", "landing_engage", "application_start", "follow_open"]);
+//
+// `feed_render` is `landing_render`'s rung on the feed page, and the argument for it is the one
+// above transplanted, not a reading. **No interim value of `landing_render` is quoted here**: it
+// first existed on 2026-09-05, EXP-011 is pre-registered to grade R = `landing_render` ÷
+// `landing_view` over 2026-09-05 … 2026-09-18, and reporting a partial series as a finding is what
+// pre-registration exists to forbid. What is quoted is the structure. `landing_view` alone could
+// not say whether a browser engine ever parsed the landing page, which is why that name was built;
+// `/:handle` has the view and no such name at all — `feed_view:sportstech` reads 37 across 21
+// complete days and nothing on this site can say whether one of them was a rendering browser.
+//
+// It is built now rather than when a listing lands because **counters do not backfill**. Both open
+// items in ops/DISTRIBUTION.md point at a feed page, both are owner-gated and either can land on
+// any day; the first arrival is exactly the reading that cannot be reconstructed afterwards.
+//
+// Two properties it shares with `follow_open` rather than with `landing_render`, stated so no later
+// run infers otherwise. It is **site-wide and carries no handle**, for the same reason: the pulse
+// name is the whole key and a handle from the URL bar would mint rows in metric_days. And it is
+// **emitted only by a page carrying the follow button** — `publicPage` always renders one and
+// `studioPage`, which shares this script, never does — so it counts renders of a public feed page
+// and not of the studio. What follows from that pair: `feed_render` ÷ `feed_view` is sound
+// site-wide, `feed_render` ÷ `feed_view:<handle>` is sound only while one feed dominates views, and
+// `feed_render` is the honest denominator for `follow_open`, which is gated on the same element.
+const PULSE_COUNTERS = new Set(["landing_render", "landing_engage", "application_start", "follow_open", "feed_render"]);
 app.post("/api/pulse/:name", (c) => {
   const name = c.req.param("name");
   if (!PULSE_COUNTERS.has(name)) return c.body(null, 404);

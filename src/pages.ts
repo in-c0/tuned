@@ -327,6 +327,15 @@ document.querySelectorAll(".chip[data-cat]").forEach(chip => {
 // follow dialog
 const fbtn = document.getElementById("follow-btn");
 if (fbtn) {
+  // feed_render — the rung under everything below it, fired once on script execution and asking
+  // nothing of the visitor. A feed view says a request arrived; this says a browser engine parsed
+  // the document and ran it, which is what the scanners, uptime probes and preview fetchers that
+  // make up an unknown share of feed_view do not do. Gated on the follow button rather than fired
+  // unconditionally, because this script is also served to the studio page, which has no button
+  // and is not a public surface; publicPage always renders one. That gate is deliberate twice
+  // over: it makes feed_render the honest denominator for follow_open, which is gated on the same
+  // element, so a page that stopped emitting one stops emitting both rather than skewing a ratio.
+  fetch("/api/pulse/feed_render", { method: "POST", keepalive: true }).catch(() => {});
   const dlg = document.getElementById("follow-dlg");
   // The rung between "this feed was viewed" and "someone followed it". Same mechanism as the
   // landing page's pulses — one POST, no body, no cookie, no identifier, same-origin only,

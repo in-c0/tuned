@@ -290,6 +290,43 @@ jobs:
           }
           echo "Feed page ships the follow button and \`follow_open\`; route answers 403 unauthenticated." >> "$GITHUB_STEP_SUMMARY"
 
+      # Shipped in the same commit as the counter rather than a run behind it, which is the whole
+      # of the run-138/140 lesson: `landing_render` was live for two days with the only check able
+      # to see it broken, and `follow_open` went a run without a gate. `feed_render` is the rung
+      # under everything a distribution listing would produce — a feed view that no browser
+      # rendered — so a detached beacon here reads as "nobody came" on exactly the day someone did.
+      - name: Feed render beacon is deployed and reachable from the feed page
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh post "${BASE}/api/pulse/feed_render")
+          case "$code" in
+            403) echo "/api/pulse/feed_render with no Origin: HTTP 403 — allowlisted, and refusing a caller that is not the page." ;;
+            404)
+              echo "::error::/api/pulse/feed_render returned 404 — feed_render is not on the allowlist in production. Every feed view would stay unattributable to a browser. Roll back."
+              exit 1 ;;
+            204)
+              echo "::error::/api/pulse/feed_render accepted a POST with NO Origin — the same-origin guard is gone. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::/api/pulse/feed_render returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          # /tmp/feedpage.html is the document fetched by the step above — the feed page both open
+          # distribution items point at, not any feed.
+          grep -q '/api/pulse/feed_render' /tmp/feedpage.html || {
+            echo "::error::/sportstech no longer fires feed_render — the route is live and nothing will ever call it. Roll back."
+            exit 1
+          }
+          # The landing page must not have grown it: `landing_view` is EXP-011's denominator and a
+          # feed-page pulse firing on `/` would contaminate a pre-registered window mid-flight.
+          if grep -q 'feed_render' /tmp/landing.html; then
+            echo "::error::the landing page emits feed_render — EXP-011's surface is no longer the one it was registered against. Roll back."
+            exit 1
+          fi
+          echo "Feed page ships \`feed_render\`; route answers 403 unauthenticated; landing page is free of it." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Public pages still render
         env:
           BASE: ${{ steps.vantage.outputs.base }}
