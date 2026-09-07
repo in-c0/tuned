@@ -1908,3 +1908,76 @@ carries a second discriminator chosen for how its input actually arrives ([L-58]
 `Sec-Fetch-User` axis, `arrival:*` / `feed_*` the tag allowlist and the `qa` control, and now
 `attention_*` the owner axis. **That sweep is finished. It is not a plan for the remaining runs and
 must not be mistaken for one** — it measures a funnel nobody has entered.
+
+---
+
+## 2026-09-07 (run 145) — the follow funnel, which had no counter at all
+
+**Seven names ship today on `POST /:handle/follow` and `/api/pulse/follow_open`. Every one of them
+reads 0 on every UTC day up to and including 2026-09-06, because none of them existed.** That is a
+statement about the source, not about traffic: there is no historical follow series, not a low one
+and not a zero one, and no claim about how many people have tried to follow a Tuned feed before this
+deploy is available or may be made.
+
+### What was actually wrong, and why it is a different defect from runs 141–144
+
+Those runs closed counters that could not say **who** wrote them. This route wrote **nothing**. The
+only trace a follow has ever left is `totals.followers` — a single running total, currently **0** —
+and a total that does not move has four explanations the service could not tell apart:
+
+1. nobody tried;
+2. someone tried and the address was rejected by validation;
+3. someone tried who was already following, so the total was correct not to move;
+4. the request never reached the route at all.
+
+`feed_view:sportstech` has read **37** unsuffixed views across 21 complete days against `followers`
+**0**. Under the old instrument that pair licensed nothing, because 1 and 2 are indistinguishable in
+it.
+
+### The names
+
+| Name | Kind | What it counts |
+| --- | --- | --- |
+| `follow_submit` / `follow_submit_bot` | bucket | an accepted follow; the two together are the total |
+| `follow_submit:<handle>` / `follow_submit_bot:<handle>` | bucket, by destination | the same event split by feed, exactly as `feed_view:<handle>` splits a view — **not additive** with the site-wide name |
+| `follow_submit_offpage` | **axis** | the subset arriving without this site's `Origin` |
+| `follow_invalid` / `follow_invalid_bot` | bucket | a follow rejected by email validation — **not part of** `follow_submit` |
+| `follow_invalid_offpage` | **axis** | the same, for rejections |
+| `follow_duplicate` | **axis** | accepted follows from an address that already followed that feed |
+| `follow_open` / `follow_open_bot` | bucket, page-reported | the visitor opened the follow dialog |
+
+**An axis is never summed into a bucket**, and is not itself split by user-agent — it counts a subset
+of the unsuffixed *and* `_bot` names together. That is the convention `application_submit_offpage` set
+at run 141 and it is unchanged here.
+
+### Binding reading rules
+
+- **`follow_duplicate` is what makes `totals.followers` readable.** A day with `follow_submit` 3 and
+  `follow_duplicate` 3 moved the follower total by **zero**, and without this name that day is
+  indistinguishable from one on which nobody tried. Any run reporting "followers did not move" must
+  quote `follow_submit` and `follow_duplicate` for the same UTC day or say it did not look.
+- **`follow_duplicate` can under-report and can never invent.** When a write result does not report
+  whether a row was created, the follow is counted **new**. The opposite default would mark the first
+  real follower a repeat — the one direction in which a genuine first conversion disappears.
+- **`follow_open` carries no handle.** The pulse name is the whole key, so a handle in it would be a
+  string from the URL bar minting rows in `metric_days`. It is **site-wide**: with more than one feed
+  live it cannot be attributed to a destination, and a ratio against `feed_view:<handle>` is sound only
+  while one feed dominates views. Today `/sportstech` does; that will stop being true without warning.
+- **`follow_open` is page-reported and forgeable on one header**, like `landing_engage` and
+  `landing_render`. It is evidence that a client behaved like a person, never proof of one.
+- **Neither `follow_submit` nor `follow_open` is a count of people.** No cookie, no visitor identifier,
+  no per-visitor state — so ten follows and one client following ten times are the same reading.
+- **The route classifies and never refuses.** An offpage follow and a bot-flagged follow are both
+  stored. `followers` is 0, and one real person turned away costs more than every mislabelled follow
+  combined — the rule run 141 set for `/waitlist` and run 142 for `/enter/:token`.
+
+### Why the ordering is the point
+
+Both remaining distribution candidates in [DISTRIBUTION.md](DISTRIBUTION.md) point at a **feed page** —
+`ooh.directory` at `/sportstech` ([EXP-012](EXPERIMENTS.md), registered run 143), `awesome-rss-feeds`
+at its RSS URL. A5 asks *"if it works, would I see it?"*. Run 143 instrumented the **arrival**; the
+thing the arrival is **for** was still uncounted. Counters do not backfill, so this could only be built
+before a listing lands, and both submissions are owner-gated and still open.
+
+**No metric moved this run and none is claimed.** `applications` 0 · `members` 1 ·
+`members_ever_active` 0 · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.

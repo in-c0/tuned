@@ -4674,3 +4674,61 @@ Lock claimed before any action: cycle `2026-09-06/w14`, holder `vm:1987`, nonce 
   assertion green. The push-triggered run's assertions were skipped and are **not** claimed.
 - **No metric moved and none is claimed.** Spend this run **AUD $0.00**; running total **AUD $0.00 of
   $500**.
+
+## 2026-09-07 (run 145) — instrument the follow funnel, which had no counter at all
+
+Lock: cycle `2026-09-07/w14`, holder `vm:9358`, nonce `52c9fe46`, claimed `2026-09-07T04:18:20Z`
+before any commit, comment or dispatch.
+
+- **Decision: count `POST /:handle/follow`.** It is the only conversion action on a public feed page
+  and it wrote nothing. Seven names ship — `follow_submit[_bot][:handle]`, `follow_invalid[_bot]`,
+  the `follow_submit_offpage` / `follow_invalid_offpage` / `follow_duplicate` axes, and the
+  page-reported `follow_open[_bot]`. Definitions and binding reading rules in
+  [METRICS.md](METRICS.md).
+- **Rationale, and why now rather than at some point.** Both remaining distribution candidates point
+  at a feed page: `ooh.directory` at `/sportstech` (EXP-012, run 143) and `awesome-rss-feeds` at its
+  RSS URL. Both are owner-gated and open. Run 143 instrumented the arrival; the thing the arrival is
+  *for* was uncounted, so A5's *"if it works, would I see it?"* was answered yes at the top of that
+  page and no at the bottom. Counters do not backfill and a listing can land on any day, so this is
+  buildable only before one does.
+- **Why this and not the two items run 144 named as next.** Both were premature or unavailable, and
+  this is [L-59](LESSONS.md)'s count kept honestly rather than a sixth silent decline. EXP-011's
+  **mid-window** instrument-validity bracket is registered for mid-window; the window is
+  2026-09-05 → 2026-09-18 and today is **day 3 of 14**, so dispatching it now would be choosing the
+  day, which [L-55](LESSONS.md) forbids. The `owner_resolved` reading needs the first snapshot that
+  carries it; run 144 deployed at 22:20 UTC and the newest snapshot in `ops/metrics/` is
+  **22:17:04Z 2026-09-06**, three minutes older than the counters — the reading does not exist yet
+  and will exist on its own at the next scheduled snapshot. Neither is declined on preference;
+  **both are unavailable today and both remain named.**
+- **Decision: `follow_open` is a pulse, and it is site-wide.** The pulse name is the whole key, so a
+  handle inside it would let a URL-bar string mint rows in `metric_days`. The cost is stated rather
+  than hidden: it cannot be attributed to a destination while more than one feed is live, and the
+  ratio against `feed_view:<handle>` holds only while one feed dominates views.
+- **Decision: an unknown write result counts as a new follower, not a repeat.** `wroteNewRow` in
+  [`src/metrics.ts`](../src/metrics.ts) carries the asymmetry and the reason. The opposite default
+  would mark the first real follower a repeat, so `follow_duplicate` may under-report repeats and can
+  never invent one. This branch is **unreachable on a live D1** and survived the first mutation pass
+  for exactly that reason; it is now pinned by a direct unit test rather than by a route test.
+- **Deliberately not done: refusing an offpage or bot-flagged follow.** `followers` is 0. One real
+  person turned away by a discriminator costs more than every mislabelled follow combined. The route
+  classifies and never refuses, and a test pins that — the rule run 141 set for `/waitlist` and run
+  142 for `/enter/:token`.
+- **Deliberately not done: a `feed_render` beacon.** The `landing_render` analogue on the feed page
+  would separate non-rendering clients from uninterested readers far more sharply than a dialog open
+  can, and it is the natural next rung. It is a second counter with its own denominator argument and
+  it is not needed to make this route's zero readable, so it is **named as the next candidate rather
+  than folded in**.
+- **Deliberately not done: an experiment.** This is a defect fix on an instrument, not a hypothesis
+  with a threshold, and no EXP entry is manufactured for it. EXP-012's registered reading is
+  unaffected: `arrival:ooh-directory` and its six forks are byte-untouched.
+- **EXP-011's stop conditions are intact.** The `src/pages.ts` change is confined to `CLIENT_JS`,
+  which `landingPage()` does not use — it builds its own inline script — so the landing document is
+  unchanged in copy, layout, offer and form. `landing_render` is not added to any other page. A test
+  in [`test/follow.test.ts`](../test/follow.test.ts) asserts `GET /` contains no `follow_open`, and
+  the browser spec now asserts separately that a pulse belonging to another page never fires on `/`.
+  Neither of R's two inputs is read or written by this diff.
+- **No schema change, no migration, no cookie, no identifier, no per-visitor state, no new data
+  category — so the privacy policy is unchanged**, on the reasoning runs 43, 141, 142 and 144
+  recorded. The email a follower submits was already stored in `followers`; the `Origin` header is
+  read and discarded.
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**

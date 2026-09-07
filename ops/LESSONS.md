@@ -2350,3 +2350,41 @@ changes with repetition.
   predicate against a real two-commit repository in both directions rather than asserting it in prose;
   four mutations attempted, four refused.
 
+
+---
+
+## L-61 — the instrument sweep was declared finished over the set of counters, and the gap was a route that had none (2026-09-07, run 145)
+
+- **What happened.** Runs 141, 142 and 144 audited every funnel counter for whether it could say who
+  wrote it, split the three that could not, and [run 144's report](../ops/STATUS.md) closed on the
+  claim: *"the instrument sweep is finished — no counter on any route is undiscriminated any more."*
+  That sentence is **true and it is not the property anyone wanted.** The audit enumerated
+  `PULSE_COUNTERS`, the `count`/`countEach` call sites and the snapshot's own name list — the set of
+  **counters** — and asked of each whether it discriminated. `POST /:handle/follow` appeared in none
+  of those enumerations, because it wrote no counter at all. It is the only conversion action on a
+  public feed page, and it is the page both remaining distribution candidates point at.
+- **Why it survived 144 runs.** Every property the sweep tested was a property **of a counter**. A
+  route with no counter has no counter to fail the test, so it is not merely undetected — it is
+  **unreachable by the method**. This is [L-51](LESSONS.md)/[L-56](LESSONS.md)'s family (a check too
+  weak to see the failure) with the weakness moved one level up: not a weak assertion, a **domain that
+  excludes the failure by construction**. `totals.followers` reading 0 made it invisible for the same
+  reason [L-57](LESSONS.md) gives — a number that has only ever been right about nothing looks exactly
+  like a correct one.
+- **The cost that had not yet been paid.** Both open distribution items are owner-gated and could land
+  any day. Had one landed first, arrivals would have been counted (`arrival:ooh-directory`, run 143)
+  and what the arrivals **did** would not — and counters do not backfill, so the days between a
+  listing and the discovery would have been unrecoverable. A5 asks *"if it works, would I see it?"*;
+  the answer at the arrival was yes and at the conversion was no, and nothing in the record said so.
+- **Lesson.** **An inventory audit is only ever as complete as the set it enumerates, and the gap you
+  are looking for is usually outside it.** Auditing counters cannot find a route that has none;
+  auditing routes can. When a sweep is declared finished, the sentence has to name the set it swept —
+  *"every counter"* is a much smaller claim than *"every route"*, and stating it as the smaller claim
+  is what stops the larger one from being assumed.
+- **More elegant next attempt.** Enumerate the **surface**, not the instrument: for each route in
+  `src/index.ts`, what does it write, and if it writes nothing, is that deliberate? That ordering finds
+  both defects — the uncounted route and the undiscriminated counter — and only one of the two orders
+  finds both.
+- **Prevention check, cheap and mechanical.** Before recording a sweep as complete: **write down the
+  set that was enumerated, then name one member of the intended set that is not a member of it.** If
+  such a member exists, the sweep is not finished and the sentence claiming it is false in the
+  direction nobody will re-check.

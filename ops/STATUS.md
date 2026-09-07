@@ -1,7 +1,78 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-07 08:20 Sydney (22:20 UTC 09-06), run 144 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from run 143 and not re-argued here, per [L-07](LESSONS.md).** **The two counters that
+**Last updated:** 2026-09-07 14:20 Sydney (04:20 UTC), run 145 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143 and 144 and not re-argued here, per [L-07](LESSONS.md).** **The only
+conversion action on a public feed page wrote no counter at all — and it is the page both open
+distribution items point at.**
+
+`POST /:handle/follow` is what a visitor to `/sportstech` does if they want more of it, and until this
+run the sole trace it left was `totals.followers`, a single running total reading **0**. A total that
+does not move has four explanations that instrument cannot separate: **nobody tried**, **someone tried
+and the address was rejected**, **someone tried who was already following**, or **the request never
+arrived**. Against `feed_view:sportstech` **37** unsuffixed views across 21 complete days, that pair
+licensed nothing at all.
+
+**This is not the defect runs 141–144 closed, and the difference is the lesson.** Those counters existed
+and could not say *who* wrote them. This route had **no counter to audit**, so it appeared in none of
+the enumerations that sweep walked — and run 144 closed on *"the instrument sweep is finished; no
+counter on any route is undiscriminated any more."* That sentence is **true and it is the wrong
+property**: it was a claim about the set of counters, and the gap was a route outside it.
+[L-61](LESSONS.md): **an inventory audit is only as complete as the set it enumerates**; prevention
+check — *write down the set you swept, then name one member of the intended set that is not in it.*
+
+**Shipped in [`fb118ee`](https://github.com/in-c0/tuned/commit/fb118ee)** — seven names, three of them
+axes: `follow_submit[_bot]` and `follow_submit[_bot]:<handle>` (the destination split, exactly as
+`feed_view:<handle>` splits a view), `follow_invalid[_bot]` (rejected by validation, **not part of**
+submit), the `follow_submit_offpage` / `follow_invalid_offpage` axes on run 141's definition, the
+`follow_duplicate` axis, and the page-reported `follow_open[_bot]`.
+
+**`follow_duplicate` is the load-bearing one**, because it is what makes `totals.followers` readable: a
+day with `follow_submit` 3 and `follow_duplicate` 3 moved the total by **zero**, and without it that
+day and a day nobody tried are the same reading. **`follow_open` is the rung**, on EXP-007's own
+nineteen-day lesson — without a counter between the view and the submit, *"the arriving clients are not
+people"* and *"people arrive and do not want this"* produce the identical zero.
+
+**The instrument fails in exactly one direction, and the direction was chosen.** When a write result
+does not say whether a row was created, the follow is counted **new**; the opposite default would mark
+the **first real follower** a repeat, which is the one direction in which a genuine conversion
+disappears. `wroteNewRow` in [`src/metrics.ts`](../src/metrics.ts) carries the asymmetry — and that
+branch is **unreachable on a live D1**, which is exactly why it survived the first mutation pass and is
+now pinned by a direct unit test. **Deliberately not done: refusing an offpage or bot-flagged follow.**
+`followers` is 0; one real person turned away costs more than every mislabelled follow combined, and
+this route classifies and never refuses.
+
+**Why this and not the two items run 144 named, and the count is kept rather than quietly incremented
+([L-59](LESSONS.md)).** Neither is declined on preference; **both are unavailable today and both stay
+named.** EXP-011's second instrument-validity bracket is registered for **mid-window** and today is
+**day 3 of 14** — dispatching it now is choosing the day. The `owner_resolved` reading needs the first
+snapshot carrying it, and the newest snapshot in `ops/metrics/` is **22:17:04Z 2026-09-06**, three
+minutes *older* than the counters run 144 deployed; it will exist on its own at the next scheduled
+snapshot.
+
+**Mutation-tested, not asserted.** **Thirty** tests in [`test/follow.test.ts`](../test/follow.test.ts)
+against a real D1 in workerd; **thirteen mutations attempted, thirteen refused** — dropping either
+`_bot` split, dropping the destination split, dropping either offpage axis, never firing
+`follow_duplicate`, inverting it, flipping its default toward duplicate, refusing an offpage follow,
+counting a submit on the rejection path, dropping `follow_open` from the allowlist, dropping the
+beacon's one-shot guard, and detaching the beacon from the page. **One survived the first pass** — the
+unreachable default — and closing it is what produced `wroteNewRow`. Suite **15 files, 240 tests**;
+`check` 0; `test:ops` 14/14; workflow and nomination validators ok.
+
+**EXP-011's four stop conditions are intact and this run did touch `src/pages.ts`, so the argument is
+made rather than asserted.** The change is confined to `CLIENT_JS`, which `landingPage()` **does not
+use** — it builds its own inline script — so the landing document's copy, layout, offer and form are
+unchanged, `landing_render` is added to no other page, and neither of R's inputs is read or written. A
+test pins that `GET /` contains no `follow_open`, and the browser spec now asserts separately that a
+pulse belonging to another page never fires on `/`. **No schema change, no migration, no cookie, no
+identifier, no per-visitor state, no new data category — so the privacy policy is unchanged.**
+
+**The consequence, and it is the honest point of the run. This closes the last uncounted conversion
+action on a Tuned surface, and it changes nothing a visitor can see.** 28 days remain and every
+standing figure is zero. Both distribution items are still the owner's; the landing surface is still
+frozen by EXP-011 until **2026-09-18**. **Runs 141, 143 and 144 asked the reviewer to name what this
+executor should do with its remaining runs. This is the fourth asking.**
+
+**Previously, run 144 (2026-09-07 08:20 Sydney) — **the two counters that
 would announce Tuned's first activation could not say whether we were the ones who acted.**
 `attention_star` and `attention_skip` were the last two counters on this site with **no discriminator
 of any kind**. Every attention event the service holds — `totals.stars` **8**, `totals.skips` **33** —

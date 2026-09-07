@@ -18,11 +18,32 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **The first sign that someone has actually started using Tuned could have been produced by the email that tells them they're in.**
+> # **The one thing a visitor to a Tuned feed page can actually do — follow it — was not being counted at all.**
 >
-> **[§1](#1-owner-action-required) is ONE, unchanged and undeadlined** — the two-minute paste to
-> `plenaryapp/awesome-rss-feeds`, which only you can make. This run published nothing, submitted
-> nothing, spent nothing, and changed nothing a visitor can see.
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here. This run published nothing, submitted nothing, spent nothing, and
+> changed nothing a visitor can see.
+>
+> **The background.** `/sportstech` has a **Follow** button. Someone who likes what an agent is
+> pointing at presses it, leaves an email, and that is the whole conversion this site currently
+> offers a stranger. It has never been counted. The only record was one running total of followers,
+> reading **0** — and a total that does not move cannot tell you *nobody tried* from *someone tried
+> and the form rejected them* from *someone tried who was already on the list*.
+>
+> **Why it matters this week and not in general.** Both items in §1 point at that page. If either
+> lands and people arrive, arrivals are counted — run 143 saw to that — and what they **did** would
+> not have been. These counters start at zero on the day they ship and nothing fills in the past, so
+> the only time to build them is before a listing lands.
+>
+> **What was actually shipped:** seven counter names covering the follow button being opened, a follow
+> being accepted, a follow being rejected by the email check, and a follow from someone already on the
+> list. That last one is the one that makes the follower total mean something.
+>
+> **The uncomfortable half, in plain terms.** Three previous runs swept the site for counters that
+> could not say who wrote them, and the last one reported the sweep finished. It was — over the set of
+> *counters*. This route had none, so it was never in the set being checked. The sweep was honest and
+> the sentence describing it was too small a claim to notice that.
 >
 > **The background.** When you let someone into Tuned, they get an email with a sign-in link. Clicking
 > it signs them in and drops them on their desk. Two counts follow from that: *someone signed in*, and
@@ -902,9 +923,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-61** | **The instrument sweep was declared finished over the set of counters, and the gap was a route that had none.** Runs 141, 142 and 144 audited every funnel counter for whether it could say who wrote it, and run 144 closed on *"no counter on any route is undiscriminated any more"*. True — and a claim about counters. `POST /:handle/follow`, the only conversion action on a public feed page, wrote none, so it was unreachable by the method rather than merely missed. | Enumerate the **surface**, not the instrument: for each route, what does it write, and if nothing, is that deliberate? Only that order finds both the uncounted route and the undiscriminated counter. Prevention check: *write down the set you swept, then name one member of the intended set that is not in it.* |
 | **L-58** | **The metric this loop calls activation could be moved by the email that announces a member.** `member_login` and `desk_view` were the last two counters with no discriminator at all — and they sit between an emailed sign-in link and `retention.members_ever_active`, which mail gateways, scanners and unfurlers can move 0 → 1 by fetching a URL before any person opens it. | Judge a counter's discriminator against **how its request actually arrives**, not against what the route is for. Prevention check: *for each counter, is its URL typed, clicked, linked, or **sent**?* A counter on a URL that is sent needs its discriminator before the first message goes out. And the fix labels, never refuses: a lockout costs more than every mislabelled row combined. |
 | **L-57** | **Every counter on the site could say who wrote it except the one that decides the bet.** `POST /waitlist` wrote `application_submit` and `application_invalid` unsuffixed, alone among every counter this loop has shipped. It survived 140 runs because it was never *wrong* — `applications` has read 0 throughout, and a counter that has only ever recorded zero is indistinguishable from a correct one. | Rank instruments by **what a reading would license**, not by how often they are read or how likely they are to be wrong. Prevention check: *if this counter read 1 tomorrow, what would we conclude, and what in the record would let us tell that conclusion from its opposite?* **Nobody doubts good news**, so build the discriminator before the news arrives — counters do not backfill. |
-| **L-56** | **The validator was invisible to CI, so the counter it validates broke it silently.** `qa/pulse-instrument.spec.mjs` was the only check able to observe `landing_render` firing, and the commit that shipped that counter contradicted two of its assertions. `qa/` is dispatch-only, so nothing ran it and every routine gate stayed green. | A test not run by the same event that can break it is not a test, it is a document about a test. When a check lives outside CI on purpose, what must live **inside** CI is the invariant that says the check has gone stale. Prevention check: *for each assertion this change makes newly false, name the event that will run it* — "a human remembering to dispatch it" means the change is not finished. |
 
 
 Older lessons, including L-08's control-plane warning and L-10's contamination rule, remain in
@@ -919,11 +940,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-06 14:20 Sydney (04:20 UTC) |
-| **Run** | 142 — **the number this loop calls activation could have been moved by the email that announces a member.** `member_login` and `desk_view` were the last two counters on the site with no discriminator of any kind, and they sit between an emailed sign-in link and `retention.members_ever_active`. Both now carry the `_bot` split plus a `_unattended` axis — no `Sec-Fetch-User: ?1`, which browsers send only when a person activated the navigation. A confirm-to-continue interstitial was declined: activation is 0, so a lockout costs more than every mislabelled sign-in. Five mutations, four refused; the fifth exposed a test that passed with the mechanism deleted, fixed before commit. |
-| **Repository commit at time of writing** | [`c743cb6`](https://github.com/in-c0/tuned/commit/c743cb6) — confirmed serving by `verify production` [34010848169](https://github.com/in-c0/tuned/actions/runs/34010848169), plus this run's ops commit. |
-| **Data commit** | [`3c6df1f`](https://github.com/in-c0/tuned/commit/3c6df1f) — [`metrics/latest.json`](metrics/latest.json), `generated_at` 2026-09-05T22:13:42.915Z. **No metric moved this run and none is claimed.** |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** Run 142 rewrote the headline card, §7 and §8's own rows. §1 is unchanged and verified against STATUS — ONE, undeadlined. **§4 is deliberately untouched: no metric moved, so copying it forward would be motion, not freshness.** §2, §3, §5 and §6 were last materially checked by run 140 and EXP-011's entry there is current through its 2026-09-18 reading. Where this file and a canonical file disagree, the canonical file is right. |
+| **Last materially updated** | 2026-09-07 14:20 Sydney (04:20 UTC) |
+| **Run** | 145 — **the only conversion action on a public feed page wrote no counter at all.** `POST /:handle/follow` left one trace, `totals.followers`, reading 0 — a total whose failure to move has four explanations it cannot separate. Seven names ship, including the `follow_duplicate` axis that makes that total readable and a `follow_open` beacon for the rung between viewing a feed and following it. An unknown write counts as a **new** follower, never a repeat, so the instrument can under-report repeats and can never erase a first conversion. Thirteen mutations attempted, thirteen refused — one survived the first pass, on a branch a live D1 never takes. |
+| **Repository commit at time of writing** | [`fb118ee`](https://github.com/in-c0/tuned/commit/fb118ee) — plus this run's ops commit. Production verification recorded in [STATUS.md](STATUS.md). |
+| **Data commit** | [`1abe55e`](https://github.com/in-c0/tuned/commit/1abe55e) — [`metrics/latest.json`](metrics/latest.json), `generated_at` 2026-09-06T22:17:04.571Z. **No metric moved this run and none is claimed.** |
+| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** Run 145 rewrote the headline card, §7 and §8's own rows. §1 is verified against STATUS — **TWO**, undeadlined, and the headline card now says so; it had still read ONE since run 142. **§4 is deliberately untouched: no metric moved, so copying it forward would be motion, not freshness.** §2, §3, §5 and §6 were last materially checked by run 140 and EXP-011's entry there is current through its 2026-09-18 reading. Where this file and a canonical file disagree, the canonical file is right. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
