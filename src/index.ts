@@ -6,7 +6,7 @@ import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connection } from "./spotify";
-import { count, countBy, countEach, memberActive, isBot, snapshot } from "./metrics";
+import { count, countBy, countEach, memberActive, isBot, snapshot, wroteNewRow } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
 import { keyMatches, keyConfigured } from "./keys";
 import { RESERVED_HANDLES, ownerHandle, ownerMemberId } from "./handles";
@@ -222,7 +222,22 @@ app.post("/waitlist", async (c) => {
 // declare itself lands unsuffixed and is indistinguishable from a visitor. It is strictly
 // more discriminating than a user-agent string and strictly weaker than proof of a human,
 // and it is forgeable on the same one header as the other two. See EXP-011.
-const PULSE_COUNTERS = new Set(["landing_render", "landing_engage", "application_start"]);
+//
+// `follow_open` is the same rung one page along, and it is added for the reason EXP-007 spent
+// nineteen days establishing: without an intermediate counter, a zero at the bottom has two
+// explanations that no amount of staring separates. On a feed page `feed_view:<handle>` is the
+// top and `follow_submit` is the bottom; if the bottom reads 0, "the arriving clients are not
+// people" and "people arrive and do not want to follow" produce the identical number. Opening
+// the follow dialog is a deliberate act that neither a scanner nor an uninterested reader
+// performs, so it separates them.
+//
+// What it cannot do, recorded here rather than left to be inferred: it is **site-wide and
+// carries no handle**, because the pulse name is the whole key and a handle in it would be a
+// string from the URL bar minting rows in metric_days. So with more than one feed live it
+// cannot be attributed to a destination the way `follow_submit:<handle>` can, and the ratio
+// against `feed_view:<handle>` is only sound while one feed dominates the views. It is also
+// page-reported and forgeable on one header, like every other name here.
+const PULSE_COUNTERS = new Set(["landing_render", "landing_engage", "application_start", "follow_open"]);
 app.post("/api/pulse/:name", (c) => {
   const name = c.req.param("name");
   if (!PULSE_COUNTERS.has(name)) return c.body(null, 404);
@@ -1064,12 +1079,75 @@ app.get("/:handle/rss.xml", async (c) => {
   return c.body(rssFeed(creator, items, new URL(c.req.url).origin), 200, { "content-type": "application/rss+xml; charset=utf-8" });
 });
 
+// The one conversion action on a public feed page, and until now it wrote no counter at all.
+//
+// That is a different defect from the one runs 141–144 closed. Those counters existed and could
+// not say *who* wrote them; this route had nothing to discriminate. `totals.followers` moving
+// was the only trace a follow ever left, and a total that does not move has four explanations
+// this route could not tell apart: nobody tried, someone tried and the address was rejected,
+// someone tried who was already following, or the request never reached here at all.
+//
+// It matters now rather than generally. Both remaining distribution candidates in
+// ops/DISTRIBUTION.md point at a feed page — ooh.directory at `/sportstech` (EXP-012),
+// awesome-rss-feeds at its RSS URL — and `feed_view:sportstech` has read 37 unsuffixed views
+// over 21 days against `followers` 0. A5 asks "if it works, would I see it?": the arrival was
+// instrumented at run 143 and the thing the arrival is *for* was not. Counters do not backfill,
+// so this can only be built before a listing lands.
+//
+// The names, and which of them are buckets and which are axes:
+//
+//   follow_submit[_bot]             an accepted follow. Bucket; the two are the total.
+//   follow_submit[_bot]:<handle>    the same event split by destination, exactly as
+//                                   feed_view:<handle> splits a view. Not additive with the
+//                                   site-wide name above — it is the same event, twice.
+//   follow_submit_offpage           axis: the subset arriving without this site's Origin.
+//   follow_invalid[_bot]            rejected by email validation. Not part of follow_submit,
+//                                   the same way application_invalid is not part of
+//                                   application_submit.
+//   follow_invalid_offpage          axis, as above.
+//   follow_duplicate                axis: the subset of accepted follows that changed nothing
+//                                   because that address already followed this feed. It is the
+//                                   name that makes `totals.followers` readable — a day with
+//                                   follow_submit 3 and follow_duplicate 3 moved the total by
+//                                   zero, and without this counter that is indistinguishable
+//                                   from a day nobody tried.
+//
+// An axis is never summed into the buckets and is not itself split by user-agent, which is the
+// convention application_submit_offpage set at run 141: it counts a subset of the unsuffixed
+// *and* _bot names together.
+//
+// This route classifies and never refuses, for the reason run 141 gave about /waitlist and run
+// 142 gave about /enter: `followers` is 0, and one real person turned away by a discriminator
+// costs more than every mislabelled follow combined. An offpage follow is stored.
 app.post("/:handle/follow", async (c) => {
-  const creator = await c.env.DB.prepare("SELECT id FROM creators WHERE handle = ?").bind(c.req.param("handle").toLowerCase()).first<{ id: number }>();
+  const creator = await c.env.DB.prepare("SELECT id, handle FROM creators WHERE handle = ?")
+    .bind(c.req.param("handle").toLowerCase())
+    .first<{ id: number; handle: string }>();
   if (!creator) return c.json({ error: "no such feed" }, 404);
+  const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
+  const offpage = c.req.header("origin") !== new URL(c.req.url).origin;
   const { email } = await c.req.json<{ email?: string }>();
-  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) return c.json({ error: "invalid email" }, 400);
-  await c.env.DB.prepare("INSERT OR IGNORE INTO followers (creator_id, email) VALUES (?, ?)").bind(creator.id, email.toLowerCase()).run();
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) {
+    track(c, countEach(c.env.DB, [`follow_invalid${suffix}`, offpage ? "follow_invalid_offpage" : ""]));
+    return c.json({ error: "invalid email" }, 400);
+  }
+  // `changes` is what separates a new follower from a repeat: INSERT OR IGNORE reports 0 when
+  // the (creator_id, email) row already existed. `wroteNewRow` carries the asymmetric default
+  // and the reason for it — an unknown result must never be reported as a repeat, because that
+  // is the direction in which a real first follower disappears.
+  const written = await c.env.DB.prepare("INSERT OR IGNORE INTO followers (creator_id, email) VALUES (?, ?)")
+    .bind(creator.id, email.toLowerCase())
+    .run();
+  const duplicate = !wroteNewRow(written.meta);
+  track(
+    c,
+    countEach(c.env.DB, [
+      `follow_submit${suffix}`,
+      `follow_submit${suffix}:${creator.handle}`,
+      offpage ? "follow_submit_offpage" : "",
+      duplicate ? "follow_duplicate" : "",
+    ])
+  );
   return c.json({ ok: true });
 });
 

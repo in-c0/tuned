@@ -83,7 +83,13 @@ const PULSE_PREFIX = "/api/pulse/";
 // something this suite quietly counts. Kept in sync with PULSE_COUNTERS in src/index.ts — and the
 // reason this constant is load-bearing rather than decorative is that it went stale for a day
 // without anything failing (see the run-140 note above).
-const ALLOWED = ["landing_render", "landing_engage", "application_start"];
+// `follow_open` is on this list because the server allows it, not because this page emits it:
+// it fires on a feed page's follow dialog and never on `/`. The mirror has to be exact or the
+// guard in test/pulse.test.ts goes red, but listing it here widens the "outside the allowlist"
+// assertion below — so `NEVER_HERE` names it separately and is asserted on its own. Anything
+// added to PULSE_COUNTERS for another page belongs in both lists.
+const ALLOWED = ["landing_render", "landing_engage", "application_start", "follow_open"];
+const NEVER_HERE = ["follow_open"];
 
 // The one pulse on this page that asks nothing of the visitor. Every other name here is
 // interaction-gated, and that difference is what the assertions below are built around.
@@ -210,6 +216,12 @@ test.describe("landing instrument validity — does the page emit what the exper
     expect(
       pulses.map((p) => p.name).filter((n) => !ALLOWED.includes(n)),
       "the page emitted a pulse name outside the server-side allowlist",
+    ).toEqual([]);
+    // Allowlisted for another page is not allowlisted for this one. A feed-page counter firing
+    // from `/` would put views of the landing page into a name read as feed engagement.
+    expect(
+      pulses.map((p) => p.name).filter((n) => NEVER_HERE.includes(n)),
+      "a pulse belonging to another page fired on the landing page",
     ).toEqual([]);
     expect(
       pulses.filter((p) => p.status !== 204),

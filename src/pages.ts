@@ -328,7 +328,19 @@ document.querySelectorAll(".chip[data-cat]").forEach(chip => {
 const fbtn = document.getElementById("follow-btn");
 if (fbtn) {
   const dlg = document.getElementById("follow-dlg");
-  fbtn.addEventListener("click", () => dlg.showModal());
+  // The rung between "this feed was viewed" and "someone followed it". Same mechanism as the
+  // landing page's pulses — one POST, no body, no cookie, no identifier, same-origin only,
+  // at most once per page load. Opening the dialog is the deliberate act; a scanner does not
+  // perform it and neither does a reader who looked and left, which is what makes a zero on
+  // follow_submit readable. Guarded by the fbtn test above, so this block is inert on the
+  // studio page, which shares this script and has no follow button.
+  let opened = false;
+  fbtn.addEventListener("click", () => {
+    dlg.showModal();
+    if (opened) return;
+    opened = true;
+    fetch("/api/pulse/follow_open", { method: "POST", keepalive: true }).catch(() => {});
+  });
   document.getElementById("follow-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("follow-email").value;
