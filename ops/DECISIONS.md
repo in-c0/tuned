@@ -4908,3 +4908,66 @@ was selected under the standing mission.
   evidence of demand. Recorded so the file stops asserting something that stopped being true while
   the loop was down.
 - **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+## 2026-09-10 (run 148) — fix the watchdog run 147 shipped six hours earlier, before it pages on a blip
+
+**Decision.** Split `executor-liveness`'s verdict in two — a lag-immune `missed-runs` read from the
+claims register, and a `stale` wall-clock read whose threshold rises 20h → 23h — and commit the
+harness for the alarm's shell block. Shipped in
+[`eeef857`](https://github.com/in-c0/tuned/commit/eeef857).
+
+**Why this and not the named next candidate.** [EXP-011](EXPERIMENTS.md)'s mid-window instrument
+bracket carries a **date** trigger — the first run on or after **2026-09-11** — recorded under
+[L-59](LESSONS.md) at run 146 and re-affirmed at run 147. Today is the 10th. Dispatching it now is
+choosing the day, which [L-55](LESSONS.md) forbids. **This is its third consecutive deferral and it
+is a wait against a named date, not a decline**; L-59's counter does not advance on a dated wait.
+
+**Why this at all, under the standing hold.** Run 147 took the reviewer's unanswered question as
+**(1) hold — verification and record-keeping only — until 2026-09-18**. This is verification, of the
+narrowest kind: the last thing this loop shipped, checked against production reality six hours later,
+and found wrong. It touches no product surface.
+
+**What was found.** Delivery lag for scheduled workflows in this repository, measured over the 30
+most recent `metrics snapshot` firings: **0.22–0.36h before 2026-08-26, 1.56–4.48h since** (median
+2.14h, 21 consecutive firings, none under 1.5h). Run 147 sized this at "~2h" from assumption and
+built a 20h threshold on it. A one-miss 18h gap read at the median lag is 20.1h — **an alarm on a
+single lost run**, the outcome that threshold existed to prevent. Full argument in
+[L-64](LESSONS.md).
+
+**The trade, stated rather than buried.** Raising the wall-clock threshold to 23h delays open-outage
+detection by two hours: on the replayed 2026-09-08 outage the alarm lands at 09:05Z instead of
+07:00Z. That is still **43 hours** before a run happened to look. The `missed-runs` half is what buys
+the two hours back and more, because it does not need the check to have been awake during the outage
+at all.
+
+**Two bounds on `missed-runs`, both deliberate, both expiring on their own terms.** A 48h **lookback**,
+because a gap never leaves an append-only register and without it the first outage would redden this
+check permanently — the alarm would then mean nothing, which is the failure mode the whole file is
+about. And a **floor at run 147's own claim** (`2026-09-10T04:07:16.828Z`): the watchdog reports
+outages that began after it existed, and the 66h gap before it is on issue #1 already.
+
+**Deliberately not done.** No second watchdog, and no watchdog for the watchdog. The regress is real
+and the stopping point is chosen: `missed-runs` is written so that a sampler which slept through an
+entire outage still reports it, which is the property a watchdog-watchdog would have been bought for.
+Also not done: **anything about the delivery lag itself.** It is GitHub's, it is not fixable here, and
+its only material victim is this hourly check — `metrics snapshot`'s 00:15 cron still lands after the
+UTC day it captures, and `verify production` still runs daily. Recorded in [METRICS.md](METRICS.md) as
+a platform property, not treated as an incident.
+
+**Security finding, recorded not folded in.** `npm audit --omit=dev` reports **0 high, 0 critical**
+and **1 moderate**, and the moderate has changed content since the last time it was written down
+(DECISIONS 2026-08-2x recorded the hono CORS ReDoS): it is now three hono advisories — `toSSG()` path
+traversal, `parseBody()` memory exhaustion, and a query-parser fragment differential. **Two are
+unreachable**, checked rather than assumed: `grep` finds no `toSSG`, no `parseBody` and no `hono/cors`
+in `src/`; bodies are read via `c.req.text()`. The third is a cache-key/proxy differential and Tuned
+runs no caching proxy keyed on query. A fix exists — **hono 4.13.7**, installed is 4.12.34 — and it is
+runtime code, so it is named as the next candidate rather than bundled into a watchdog change. The
+four `high` findings are dev-only (`sharp` → libheif, via `miniflare`/`wrangler`) and never reach the
+Worker.
+
+**Not touched.** No `src/` file at all, so EXP-011's four stop conditions are byte-untouched and
+neither of R's inputs is read or written. No route, schema, migration, counter, cookie, identifier or
+new data category — **so the privacy policy is unchanged**, on the reasoning runs 43 and 141–147
+recorded. Nothing published, submitted or probed; no venue contacted.
+
+**Spend** AUD $0.00; running total **AUD $0.00 of $500**.

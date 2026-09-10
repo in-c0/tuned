@@ -1,7 +1,91 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-10 14:20 Sydney (04:20 UTC), run 147 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143–146 and not re-argued here, per [L-07](LESSONS.md).** **The loop stopped
+**Last updated:** 2026-09-10 20:20 Sydney (10:20 UTC), run 148 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143–147 and not re-argued here, per [L-07](LESSONS.md).** **The watchdog
+shipped six hours ago reads a clock that is running late, and would have paged the owner on a blip.**
+
+**Run 147's watchdog was wrong on arrival, and green.** Its 20h threshold sits on the wall-clock age
+of the newest run-lock claim. One paragraph of its header named the residual — a scheduled run can be
+delayed, and a delay inflates the age it reads — **sized it at "~2h", and accepted the trade.** The
+number was reasoned about, not measured, and the measurement was already in this repository's own
+Actions history.
+
+**Measured this run, over the 30 most recent scheduled `metrics snapshot` firings:** delivery lag was
+**0.22–0.36h through 2026-08-25**, and has been **1.56–4.48h (median 2.14h) across the 21 firings
+since 2026-08-27**. The regime changed on 2026-08-26 and has held for two weeks; nothing recorded it,
+because until run 147 no check here cared what time it ran. **A one-miss 18h gap read at the median
+lag is an age of 20.1h** — over the threshold. At the measured median the watchdog **pages the owner
+on a single lost run**, the exact outcome run 147 chose 20h to prevent, on the grounds that paging on
+a blip teaches the owner to ignore the alarm. It had not fired only because the loop had not yet
+missed a firing in the six hours since it shipped. [L-64](LESSONS.md).
+
+**Shipped in [`eeef857`](https://github.com/in-c0/tuned/commit/eeef857): stop asking the wall clock
+the question that matters.** Two verdicts now. **`missed-runs`** compares two **register** timestamps
+— the gap between consecutive claims, threshold **20h** — so no delivery delay can move it, and,
+the property that actually matters, **it can see an outage that has already ended**, because the gap
+stays in the register after the loop recovers. **`stale`** still reads the clock, so its threshold
+absorbs the worst measured lag (18 + 4.48, rounded to **23h**, still under the 24h at which a two-miss
+outage recovers by itself) and is demoted to what it is good at: catching an outage **early**, not
+catching it at all. **Neither subsumes the other.**
+
+**The cost is stated rather than buried.** On the replayed 2026-09-08 outage the alarm now lands at
+**09:05Z instead of 07:00Z** — still **43 hours** before a run happened to look. `missed-runs` buys
+that back and more, because it does not require the check to have been awake while the outage was open.
+
+**Two bounds, both deliberate.** A **48h lookback**, because a gap never leaves an append-only
+register and without it the first outage would redden this check permanently — an alarm that is always
+on is the failure mode the whole file is about. And a **floor at run 147's own claim**: the watchdog
+reports outages that began after it existed, and the 66h gap before it is on issue #1 already.
+
+**Nine of ten mutations refused; the tenth is an equivalent mutant and is reported as one.** Two
+survived the first pass and **neither was a hole in the code.** One was a test that derived its
+horizon from the very constant it existed to pin, so raising that constant to eleven years built a
+longer fixture and passed — **a test that moves with the value it holds down asserts nothing.** The
+other was a property no test mentioned: which verdict wins when the register holds an open outage and
+a healed one at once.
+
+**[`scripts/liveness-alarm.test.mjs`](../scripts/liveness-alarm.test.mjs) is new, and it is the gap
+this change made unignorable.** The alarm's shell block executes only during an outage, when nobody is
+watching it. Run 147 exercised it by hand, **found two real defects that way** — a `grep -Fq` that
+inverted the dedupe under `pipefail` via EPIPE, and a `-f` that would have posted the literal string
+`@alarm.md` — and **did not commit the harness**, so nothing would have caught the next one. This run
+edited that block. The harness **extracts the `run:` body from the shipped YAML** rather than copying
+it, and **its own first draft passed 9/9 while both of run 147's defects survived reintroduction**:
+the stub ignored the flag before the value, and returned three short strings where the real endpoint
+returns megabytes, so `grep` never won the race that produces EPIPE. Fixed; **six of six** workflow
+mutations now refused.
+
+**Unresolved and deliberately not resolved by assumption.** `executor-liveness` requests hourly; from
+04:16Z to 10:20Z **one** scheduled run was delivered, at 09:06:55Z, against six due. That is
+consistent with a ~4.5h phase shift *and* with a reduced rate, and a sample of two cannot separate
+them. **`missed-runs` was written so the answer does not matter** — it reports the outage whether the
+sampler was late, early, or asleep throughout. Recorded in [METRICS.md](METRICS.md) with the reading
+rules.
+
+Gates: `check` **0** · **17 files, 261 tests** · `test:ops` **49/49** (was 40) · workflow and
+nomination validators ok · `npm audit --omit=dev` **0 high, 0 critical** · CI
+[233](https://github.com/in-c0/tuned/actions/runs/34465464106) **success** ·
+[executor liveness 3](https://github.com/in-c0/tuned/actions/runs/34465474574) **success** on
+`eeef857`, reporting `maxAge 23h / maxGap 20h`, `gap null`, `live`. **No rollback.**
+
+**Security, found this run and named rather than folded in.** `npm audit --omit=dev` is **0 high, 0
+critical, 1 moderate**, and the moderate's content has changed since it was last written down: three
+`hono` advisories — `toSSG()` path traversal, `parseBody()` memory exhaustion, a query-parser fragment
+differential. **Two are unreachable, checked rather than assumed** (`grep` finds no `toSSG`, no
+`parseBody`, no `hono/cors` in `src/`; bodies are read via `c.req.text()`). A fix exists — **hono
+4.13.7**, installed **4.12.34** — and it is runtime code, so it is the **next candidate**, not a
+rider on a watchdog change. The four `high` findings are dev-only (`sharp` → libheif via
+`miniflare`/`wrangler`) and never reach the Worker.
+
+**The honest point of the run. This is the second consecutive run spent on the machinery that watches
+the machinery, and that is two runs in a row with no user and no dollar.** It was worth doing — a
+safety device that cries wolf is worse than none, and this one was six hours from its first false
+positive — but it is not a plan. **25 days remain and every standing figure is zero.** Both
+distribution items are still the owner's; the landing surface is still frozen by EXP-011 until
+2026-09-18. **This is the sixth run asking the reviewer to name what this executor should do with its
+remaining runs.**
+
+**Previously, run 147 (2026-09-10 14:20 Sydney) — the loop stopped
 for seven firings and the only thing that could have noticed was the loop.**
 
 **Seven scheduled firings between run 146 and this one produced no run at all.** The numbering is

@@ -2081,3 +2081,47 @@ until run 144, it could not have known.
 **No metric moved this run and none is claimed.** `applications` 0 · `members` 1 ·
 `members_ever_active` 0 · `followers` 0 · `items_public` 84 · gross cash **AUD $0**, from *no billing
 exists*.
+
+## 2026-09-10 (run 148) — scheduled-workflow delivery lag, a platform property nothing here had ever measured
+
+**Not a product metric, and it must never be read as one.** No visitor, no member and no dollar is
+involved. It is recorded here because two shipped checks now carry thresholds that are only correct
+if this number is what it is, and because it changed silently a fortnight ago.
+
+**Definition.** For a scheduled GitHub Actions run: `run_started_at` minus the cron instant the run
+belongs to, in hours. Source: the Actions API, `event=schedule`, workflow `metrics-snapshot.yml`
+(crons `40 20 * * *` and `15 0 * * *`) — chosen because it fires twice a day and so has the densest
+history in this repository. Read 2026-09-10 during run 148, over the 30 most recent scheduled runs.
+
+| window | firings | min | median | max |
+| --- | --- | --- | --- | --- |
+| 2026-08-18 … 2026-08-25 | 8 | 0.22h | 0.29h | 0.36h |
+| **2026-08-27 … 2026-09-10** | **21** | **1.56h** | **2.14h** | **4.48h** |
+
+**The regime changed on 2026-08-26 and has held since.** No firing in the later window has been
+delivered in under 1.5h; none in the earlier window took over 22 minutes. One firing — 2026-08-26 —
+is **missing entirely** from the series, which is the drop [run 108](DECISIONS.md) recorded at the
+time and did not generalise from.
+
+**Binding reading rules.**
+
+1. **This is GitHub's number, not Tuned's.** It says nothing about the product, the funnel or demand,
+   and it cannot appear in any commercial reading.
+2. **Lag inflates a wall-clock age; it never deflates one.** Any check that computes
+   `now − something` and compares it to a threshold is biased toward **false alarm** by exactly this
+   quantity. That is the whole of [L-64](LESSONS.md) and the reason `executor-liveness` now carries a
+   23h wall-clock threshold rather than 20h.
+3. **The requested rate is not the delivered rate, and the two are separately unknown.**
+   `executor-liveness` requests hourly (`35 * * * *`). Between its first appearance on `master`
+   (2026-09-10T04:16Z) and 10:20Z, **one** scheduled run was delivered, at 09:06:55Z. Six firings
+   were due. That is consistent with a ~4.5h phase shift *and* with a reduced rate, and **21 firings
+   of a twice-daily workflow cannot distinguish them** — the two `metrics snapshot` crons are 3h35m
+   apart and both arrive daily, which argues for phase, but an hourly cron is a different regime and
+   this is a sample of two. **Unresolved, and deliberately not resolved by assumption.**
+4. **Which is why the `missed-runs` verdict does not depend on the answer.** It reads two register
+   timestamps, so it reports the outage whether the sampler was late, early, or asleep for all of it.
+   Rule 3 is a question about how *promptly* a lost run is noticed, never about *whether* it is.
+5. **Nothing else in this repository is materially affected, checked rather than assumed.**
+   `metrics snapshot`'s `15 0 * * *` cron exists to capture a complete UTC day and still lands after
+   that day ends at a 4.5h lag; `verify production` is daily and its assertions are not time-relative.
+   The hourly watchdog is the only consumer for which the lag was load-bearing.

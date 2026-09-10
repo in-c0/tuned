@@ -2472,3 +2472,53 @@ changes with repetition.
 - **Prevention check.** For any scheduled thing, ask: **if this stopped firing tonight, what would
   go red, and how long would that take?** If the honest answer is *"the next run would notice"*,
   there is no monitor — that is the failure describing itself.
+
+## L-64 — the watchdog measured the fault and assumed the property of its own instrument (2026-09-10, run 148)
+
+**What happened.** Run 147 shipped `executor-liveness` with a 20h threshold on the wall-clock age of
+the newest run-lock claim, derived from the executor's 04:00/10:00/22:00 firing cadence: above every
+one-miss gap (12h, 18h), below every two-miss gap (24h). One paragraph of its header named the
+residual — a scheduled run can be delayed by GitHub, and a delay inflates the age this reads —
+**sized it at "~2h", and accepted the trade.** The number was not measured. It was reasoned about.
+
+**The measurement was already sitting in the repository's own Actions history.** Across the 30 most
+recent scheduled firings of `metrics snapshot`, `run_started_at` minus the cron instant reads:
+
+| window | firings | lag |
+| --- | --- | --- |
+| 2026-08-18 … 2026-08-25 | 8 | 0.22h … 0.36h |
+| 2026-08-27 … 2026-09-10 | 21 | **1.56h … 4.48h**, median **2.14h** |
+
+Delivery lag in this repository rose by an order of magnitude on 2026-08-26 and has held there for
+two weeks. Nothing recorded it, because until run 147 no check here had ever cared what time it ran.
+
+**The consequence.** A one-miss 18h gap read by a check delivered at the median lag is an age of
+20.1h — over the threshold. **At the measured median the watchdog pages the owner on a single lost
+run**, which is a blip, and which run 147 chose 20h specifically to avoid on the grounds that paging
+on a blip teaches the owner to ignore the alarm. It had not yet fired only because the loop had not
+yet missed a firing in the six hours since it shipped. The device was wrong on arrival and green.
+
+**Lesson. A monitor's threshold is a claim about its own delivery, not only about the fault** — and
+the delivery is a property of the platform, measurable, and usually already recorded somewhere the
+author is not looking. L-63 said *sample faster than the fault is long*; this is the same sentence
+about the other axis: **you do not control when you are sampled, so do not build the verdict that
+matters on a quantity that moves when your sampler is late.**
+
+**What replaces it.** Split the verdict by what each half depends on. `missed-runs` compares two
+**register** timestamps, so no delivery delay can move it, and — the property that actually matters —
+it can see an outage that has **already ended**, because the gap stays in the register after the loop
+recovers. `stale` still reads the clock, so its threshold absorbs the worst measured lag (18 + 4.48,
+rounded to 23h) and it is demoted to what it is good at: catching an outage **early**, not catching
+it at all. Neither subsumes the other.
+
+**Prevention check.** For any check with a threshold, ask: **which of these numbers can move because
+of when I happened to run, rather than because of what I am measuring?** Then find that quantity's
+actual distribution in the record before choosing the threshold — and if it cannot be found, that
+absence is the finding.
+
+**A corollary, on the same run and worth its own line.** Two of the ten mutations against the new
+verdict survived the first pass, and **neither was a hole in the code**. One was a test that derived
+its horizon from the very constant it existed to pin, so raising that constant to eleven years built
+a longer fixture and passed. **A test that moves with the value it holds down asserts nothing** — pin
+a boundary with a literal, or you have written a tautology. The other was a property (which verdict
+wins when the register holds both an open outage and a healed one) that no test mentioned at all.
