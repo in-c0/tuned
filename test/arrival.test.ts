@@ -383,6 +383,52 @@ describe("the ooh.directory tag is registered on the route that venue takes", ()
   });
 });
 
+// A tag must come from the query string and from nowhere else.
+//
+// hono <= 4.13.4 read query parameters that sat AFTER a `#`, so `GET /sportstech#x?src=…`
+// returned a `src` from a URL with no query string at all (GHSA-crvj-82cr-hjcx, closed by the
+// 4.13.7 bump). That is a write into the numerator of two pre-registered experiments through a
+// part of the URL a browser is never supposed to send, and it would have passed any reasoning
+// that says "we only count an explicit ?src=" — there was no ?src= to see.
+//
+// What these tests do NOT establish, so no later run reads more into them: whether Cloudflare
+// forwards a request-line fragment to the Worker at all is untested here and untestable from
+// this session. The claim is about the parser, not about live traffic. Nothing is inferred
+// about any value already recorded — see ops/METRICS.md for the standing attribution rule.
+describe("a `src` hiding behind a URL fragment writes no arrival tag", () => {
+  it("counts the feed view but not the tag, on the route EXP-012 grades", async () => {
+    await seedFeed("sportstech");
+
+    const res = await visit("/sportstech#x?src=ooh-directory", HUMAN_UA);
+
+    expect(res.status).toBe(200);
+    expect(await countersToday()).toEqual({
+      feed_view: 1,
+      "feed_view:sportstech": 1,
+    });
+  });
+
+  it("counts the fetch but not the tag, on the route EXP-009 grades", async () => {
+    await seedFeed("sportstech");
+
+    await visit("/sportstech/rss.xml#x?src=awesome-rss-feeds", HUMAN_UA);
+
+    const counters = await countersToday();
+    expect(counters["arrival_fetch:awesome-rss-feeds"]).toBeUndefined();
+    expect(counters).toMatchObject({ feed_fetch: 1 });
+  });
+
+  it("still reads a real query string when a fragment follows it", async () => {
+    // The other half of the fix, and the one a naive "reject any URL containing #" would
+    // break: a legitimate `?src=` before the fragment must keep counting.
+    await seedFeed("sportstech");
+
+    await visit("/sportstech?src=ooh-directory#x", HUMAN_UA);
+
+    expect(await countersToday()).toMatchObject({ "arrival:ooh-directory": 1 });
+  });
+});
+
 describe("countEach writes every name in one round trip", () => {
   it("increments each distinct name, and increments an existing row rather than replacing it", async () => {
     await countEach(DB, ["alpha", "beta"]);
