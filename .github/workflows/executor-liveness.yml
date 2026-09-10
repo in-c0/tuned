@@ -4,7 +4,8 @@ name: executor liveness
 #
 # Between 2026-09-07T10:05:18Z and 2026-09-10T04:03:37Z the routine fired seven times on
 # its 04:00/10:00/22:00 UTC cron and produced nothing — no lock claim, no commit, no
-# execution report. It was found by reading the claims register by hand, 69 hours late, and
+# execution report. It was found by reading the claims register by hand — 66 hours after the
+# last run that did start, and 45 hours after this file would have raised the alarm — and
 # only because a run happened to look. `metrics snapshot` kept committing twice a day under
 # the same author line the executor uses, so the repository looked busy throughout.
 #

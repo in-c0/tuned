@@ -2440,7 +2440,9 @@ changes with repetition.
   cadence was the one signal in the system with no counter, no check and no register entry that
   anything read. Between `2026-09-07T10:05:18Z` and `2026-09-10T04:03:37Z` the routine fired seven
   times and produced **nothing** — no lock claim, no commit, no execution report. Run 147 found it
-  by reading the claims register by hand, **69 hours late**, and only because it happened to look at
+  by reading the claims register by hand, **66 hours after the last run that did start** — and 45
+  hours after the watchdog built this run would have raised the alarm — and only because it happened
+  to look at
   the one file that records run starts.
 - **Why it survived.** Two reasons, and the second is the dangerous one. First, the check that would
   have caught it could only have lived *outside* the loop, and everything this executor builds it
