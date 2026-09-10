@@ -1,0 +1,129 @@
+name: executor liveness
+
+# Is the executor loop still firing? Nothing answered that until run 147.
+#
+# Between 2026-09-07T10:05:18Z and 2026-09-10T04:03:37Z the routine fired seven times on
+# its 04:00/10:00/22:00 UTC cron and produced nothing — no lock claim, no commit, no
+# execution report. It was found by reading the claims register by hand, 69 hours late, and
+# only because a run happened to look. `metrics snapshot` kept committing twice a day under
+# the same author line the executor uses, so the repository looked busy throughout.
+#
+# WHY IT IS HERE AND NOT IN THE LOOP. An alarm hosted inside the thing it watches is not an
+# alarm. This workflow runs on GitHub's cron and depends on nothing the Claude routine
+# provides; it fires whether or not the routine still exists.
+#
+# WHY IT INSTALLS NOTHING. No `npm ci`, no setup-node beyond the runner's own. The script
+# imports node builtins and one local module. A watchdog that needs the npm registry to be
+# up has a second way to be wrong about the thing it is watching.
+#
+# The mechanism, the 20h threshold and the reason the check is hourly are all derived in
+# the header of scripts/executor-liveness.mjs. The arithmetic is exercised by
+# scripts/executor-liveness.test.mjs, which replays this outage hour by hour.
+on:
+  schedule:
+    # Hourly, because the observed age only tracks the real gap if the check looks more
+    # often than the outage lasts. A three-a-day version of this file could not see a 24h
+    # outage at all; see the script header.
+    - cron: "35 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: executor-liveness
+  cancel-in-progress: false
+
+jobs:
+  liveness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # `continue-on-error` so the alarm below still runs; the job is failed explicitly at
+      # the end. Without that the comment step would be skipped on exactly the runs it
+      # exists for.
+      - name: Read the executor claims register
+        id: liveness
+        continue-on-error: true
+        run: node scripts/executor-liveness.mjs --json
+
+      # One comment per outage, not one per hour. The marker carries the timestamp of the
+      # newest claim, which is constant for as long as the loop stays down, so the dedupe
+      # is exact: a second outage with a different newest claim gets its own comment, and a
+      # continuing one gets none.
+      - name: Raise the alarm on issue #1
+        if: steps.liveness.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REASON: ${{ steps.liveness.outputs.reason }}
+          STALE_SINCE: ${{ steps.liveness.outputs.stale_since }}
+          AGE_HOURS: ${{ steps.liveness.outputs.age_hours }}
+          HOLDER: ${{ steps.liveness.outputs.holder }}
+          CYCLE: ${{ steps.liveness.outputs.cycle }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          marker="<!-- executor-liveness-alarm stale-since=${STALE_SINCE:-unknown} -->"
+
+          # Search the issue's own comments rather than a label or a state file: the
+          # comment is the thing being deduplicated, so it is also the only record that
+          # cannot drift out of step with what the owner actually received.
+          #
+          # Written to a file rather than piped into grep on purpose. Under `pipefail`,
+          # `grep -Fq` exits at the first match and closes the pipe, so gh dies of EPIPE
+          # and the pipeline reports failure on exactly the runs where the marker WAS
+          # found — the dedupe would invert and comment every hour.
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/1/comments" \
+            --jq '.[].body' > comments.txt
+
+          if grep -Fq "$marker" comments.txt; then
+            echo "Alarm for ${STALE_SINCE:-unknown} already posted; not repeating it."
+            exit 0
+          fi
+
+          {
+            echo "$marker"
+            echo
+            echo "## Executor loop is not firing"
+            echo
+            echo "The scheduled executor routine claims the run lock as step 0 of every run, before"
+            echo "any commit or comment. No claim has been appended for longer than the watchdog's"
+            echo "threshold allows, so runs are being lost."
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Verdict | \`${REASON}\` |"
+            echo "| Newest executor claim | ${STALE_SINCE:-none found} |"
+            echo "| Age at detection | ${AGE_HOURS:-n/a}h |"
+            echo "| Last holder / cycle | ${HOLDER:-n/a} / ${CYCLE:-n/a} |"
+            echo "| Detected by | [${GITHUB_WORKFLOW} run](${RUN_URL}) |"
+            echo
+            echo "**What this does and does not say.** It says no executor session reached step 0."
+            echo "It does not say why, and it is not a product or production signal — production is"
+            echo "verified separately by \`verify production\`, which is unaffected by this. The"
+            echo "repository may still look active: \`metrics snapshot\` commits twice a day on its"
+            echo "own schedule, under the same author line the executor uses."
+            echo
+            echo "**Owner action.** Check that the routine is enabled and firing. This comment is"
+            echo "posted once per outage; it will not repeat until the loop claims again and a new"
+            echo "outage begins."
+            echo
+            echo "---"
+            echo "_Generated by [Claude Code](https://claude.ai/code)_"
+          } > alarm.md
+
+          # -F, not -f: `@` reads the value from a file, which keeps the body out of the
+          # argument list and out of any shell quoting.
+          gh api "repos/${GITHUB_REPOSITORY}/issues/1/comments" -F "body=@alarm.md"
+
+      # The job's own conclusion has to reflect the verdict, or the Actions list shows a
+      # green run for a down loop — which is the failure mode this whole file is about.
+      - name: Fail the run when the loop is stale
+        if: steps.liveness.outcome == 'failure'
+        run: |
+          echo "Executor liveness check failed: ${{ steps.liveness.outputs.reason }}" >&2
+          exit 1

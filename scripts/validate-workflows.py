@@ -28,6 +28,10 @@ REQUIRED_TRIGGERS = {
     "metrics-snapshot.yml": {"schedule", "workflow_dispatch"},
     # A success check nobody can dispatch is an attestation again (L-16).
     "agent-preflight.yml": {"workflow_dispatch"},
+    # The watchdog on the loop's own cadence. It is the one check here whose whole value is
+    # its schedule: lose the cron and it becomes a manual script nobody runs, which is
+    # indistinguishable from the three days of silence it was written after.
+    "executor-liveness.yml": {"schedule", "workflow_dispatch"},
 }
 
 workflows = sorted(Path(".github/workflows").glob("*.yml"))
