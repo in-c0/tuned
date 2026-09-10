@@ -2522,3 +2522,53 @@ its horizon from the very constant it existed to pin, so raising that constant t
 a longer fixture and passed. **A test that moves with the value it holds down asserts nothing** — pin
 a boundary with a literal, or you have written a tautology. The other was a property (which verdict
 wins when the register holds both an open outage and a healed one) that no test mentioned at all.
+
+---
+
+## L-65 — "unreachable" is a claim about your call sites, not about the advisory's headline (2026-09-11, run 149)
+
+**What happened.** Run 148 read the production audit's one moderate, found three `hono` advisories
+behind it, and triaged them. Two were checked properly — `grep` for `toSSG`, `parseBody` and
+`hono/cors` in `src/`, none present, bodies read via `c.req.text()`. The third, a **query-parser
+fragment differential**, was dismissed in one clause: *"Tuned runs no caching proxy keyed on query."*
+
+That sentence answers the advisory's **title** — which names cache-key and proxy differentials — and
+never asks the only question that matters here: **does this repository read query parameters, and
+through which function.** It does, at three call sites, one of them the arrival tag that two
+pre-registered experiments count.
+
+**The measurement, taken this run against both versions rather than reasoned about:**
+
+| request | 4.12.34 | 4.13.7 |
+| --- | --- | --- |
+| `/sportstech#x?src=ooh-directory` | `src = "ooh-directory"` | `undefined` |
+| `/sportstech?src=ooh-directory#x` | `src = "ooh-directory#x"` | `"ooh-directory"` |
+
+**Both arrival readings were wrong, in opposite directions.** A fragment before the tag mints a count
+no query string asked for; a fragment after it destroys a count one did. The instrument could
+over-count *and* under-count, which is strictly worse than an instrument that only over-counts,
+because every fork in EXP-009 and EXP-012 is written against a numerator assumed to move only when
+somebody arrives.
+
+**Lesson. A dependency advisory's headline describes the reporter's threat model, not yours.** The
+triage question is never *"is this exploit scenario ours?"* — it is **"which of our call sites reach
+the changed code, and what does it now return there?"** Answer it by running both versions against
+your own inputs. That took four minutes here and produced a table; the sentence it replaced took ten
+seconds and was wrong.
+
+**And the sharper half:** two of the three advisories were dismissed by `grep` for a symbol name, and
+that method was **sound** — an API you never call cannot hurt you. The third could not be dismissed
+that way, because the function *is* called, everywhere, under a name (`c.req.query`) that appears in
+no advisory. **The advisory that names an API you don't use is the cheap one. The dangerous one names
+a behaviour of an API you use constantly, and no grep finds it.**
+
+**Prevention check.** For each advisory, before writing "unreachable": *what is the changed function,
+and how many times does this repository call it?* If the answer is not zero, the reachability
+argument has to be about **behaviour**, and behaviour is measured, not asserted.
+
+**Corollary, from the tests this shipped with.** All three regression cases were pinned by
+**reinstalling the vulnerable version and watching them fail** — 3 failed, 28 passed. A regression
+test written after the fix, against only the fixed version, is indistinguishable from a test that
+asserts nothing (L-64's corollary, on a different axis). The third case exists for the same reason:
+it fails on a naive fix that rejects any URL containing `#`, which would have destroyed the counter
+it was written to protect.

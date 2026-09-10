@@ -4971,3 +4971,98 @@ new data category — **so the privacy policy is unchanged**, on the reasoning r
 recorded. Nothing published, submitted or probed; no venue contacted.
 
 **Spend** AUD $0.00; running total **AUD $0.00 of $500**.
+## 2026-09-11 — run 149: the dated bracket came due, and the advisory next to it turned out to be reachable
+
+**Two things were due this run and both were discharged; the second is the one that changed a fact.**
+
+**1. EXP-011's mid-window instrument bracket — the registered obligation, triggered by date.** Run
+140 registered a cadence of *"once more inside the window"* and run 148 deferred it to *the first run
+on or after 2026-09-11*. Today is 2026-09-11 Sydney, so it was dispatched, not chosen.
+[qa-browser 34535674639](https://github.com/in-c0/tuned/actions/runs/34535674639),
+`22:06:10Z → 22:06:16Z`, production serving `63e2fa9` per `/api/version`. All three landing pulses
+answered **204**; `landing_render_observed: 1`; `page_errors: []`; `console_errors: []`; the form was
+typed into and never submitted. **Fork R-D is excluded mid-window as well as at day 1.** The
+mobile projection is skipped by `test.skip(... "instrument check runs once")` — deliberate, so the
+instrument fires exactly once, and unchanged from run 140's bracket.
+
+**The registered trigger did not fire.** Run 140's addendum said: if any bracket inside the window
+reports a page error preceding the render pulse, hoist the beacon immediately and grade EXP-011 on the
+complete days before the edit. `page_errors: []`, so the ordering hazard is not firing on the build
+serving. **No hoist, no early grading, window intact.** Contamination: none — the headless user-agent
+put every increment this caused into the `_bot` names, as the stop conditions permit.
+
+**2. The `hono` bump, and the correction it forces to what this file said last run.** Run 148 wrote,
+of the third advisory: *"The third is a cache-key/proxy differential and Tuned runs no caching proxy
+keyed on query."* **That sentence is answering the advisory's title and not this repository's code,
+and it is wrong.** `src/index.ts` calls `c.req.query("src")` on `GET /:handle` (1006) and
+`GET /:handle/rss.xml` (1091), and `c.req.query()` for `{ code, state, error }` on the Spotify OAuth
+callback (447). Measured against both versions:
+
+| request | 4.12.34 | 4.13.7 |
+| --- | --- | --- |
+| `/sportstech#x?src=ooh-directory` | `src = "ooh-directory"` | `undefined` |
+| `/sportstech?src=ooh-directory#x` | `src = "ooh-directory#x"` | `"ooh-directory"` |
+| `…/callback?code=A&state=GOOD#x?state=EVIL` | `state = "GOOD#x?state=EVIL"` | `"GOOD"` |
+
+**Decision: ship the bump now rather than after EXP-011's window closes.** The two names affected are
+`arrival:ooh-directory` and `arrival_fetch:awesome-rss-feeds` — the numerators of EXP-012 and EXP-009,
+at the two venues sitting in the owner-action cards. The old parser could both **mint** a tag from a
+URL with no query string and **destroy** a tag that had one, and an instrument wrong in both
+directions cannot be read in either. Waiting seven days would have meant that any listing made in
+between was measured through it.
+
+**Admissible under EXP-011's stop conditions, checked clause by clause rather than asserted.** No
+`src/` file is touched, so the landing page's copy, layout, offer and form are unchanged; nothing adds
+`landing_render` to another page; no second reading is taken and the window is not extended. The
+bump is dependency code, and neither of R's inputs (`landing_render`, `landing_view`) passes through
+the changed function.
+
+**The OAuth path is named and expressly NOT claimed as a vulnerability.** `state` is compared with
+strict equality against the `sp_state` cookie, so a fragment-carrying value **fails** the check and
+the callback redirects to `badstate`. It fails closed. The differential there is a broken connection,
+not a CSRF bypass, and overstating it would be a fabricated security claim.
+
+**What is not established, and is recorded as not established.** Whether Cloudflare forwards a
+request-line fragment to the Worker at all is **untested** — this session has no egress to production
+and the harness cannot send a raw request line. The claim is about the parser, not about live
+traffic. **No value already recorded in `ops/metrics/` is reinterpreted in either direction**, and the
+standing attribution rule for `arrival_fetch:awesome-rss-feeds` (run 147) is unchanged.
+
+**Verification, and the part that makes the tests worth having.** The three new cases in
+`test/arrival.test.ts` were pinned by **reintroducing 4.12.34**: 3 failed, 28 passed. Restored, all
+31 pass. `check` 0 · 17 files, **264** tests (was 261) · `test:ops` 49/49 · workflow and nomination
+validators ok · `npm audit --omit=dev` **0 vulnerabilities**, from 1 moderate carrying 3 advisories.
+
+**Also measured, and it closes a question this file left open last run.** Run 148 recorded as
+unresolved whether `executor-liveness`'s hourly cron was **phase-shifted** or **rate-reduced**, on a
+sample of two. Four consecutive scheduled deliveries — 09:06:55Z, 13:46:08Z, 17:49:29Z, 21:08:47Z on
+2026-09-10 — give intervals of **4.65h, 4.05h, 3.32h** across 12 hours. A phase shift still delivers
+hourly. **It is a reduced rate: roughly one delivery per 4h against 24 requested.** No code change
+follows and none is made: `missed-runs` compares register timestamps and reports a gap whenever it is
+next delivered, so the sampling rate changes only how promptly a lost run is noticed, never whether
+it is — which is the property run 148 built it for, now exercised rather than assumed.
+
+**The bracket was re-dispatched on the build the bump produced, and that is an addition to run 140's
+registered cadence rather than a substitution.** Leaving the window's only mid-window bracket
+describing a build that had stopped serving would have been worse than one extra dispatch, and the
+extra dispatch costs only `_bot` increments, which R does not read.
+[qa-browser 34536404000](https://github.com/in-c0/tuned/actions/runs/34536404000) on **`e9e2a00`**
+serving: three pulses **204**, `landing_render_observed: 1`, `page_errors: []`, `console_errors: []`
+— **identical to the pre-bump reading in every field.** The far-side bracket for 2026-09-19 stands.
+
+**Production.** [verify production 214](https://github.com/in-c0/tuned/actions/runs/34536201483)
+**success on `e9e2a00` serving** — the workflow waits for the expected commit before judging, so the
+pass is about the new build and not the old one. Every health assertion green, including the EXP-011
+render beacon, follow-funnel and feed-render gates. **No rollback.** Rollback path if one is ever
+needed: revert `e9e2a00`, which returns `hono` to 4.12.34 and removes three tests; no data step, no
+schema, nothing user-visible.
+
+**The executor still cannot reach production directly** — `justtuned.com:443` is **403 CONNECT** at
+this session's egress proxy, retested this run. Standing blocker, restated rather than assumed
+resolved.
+
+**Not done, deliberately.** Nothing published, submitted or probed; no venue contacted; no landing
+page change; no watchdog work. The two owner-action cards stand unchanged and are not re-argued
+([L-07](LESSONS.md)).
+
+**Spend** AUD $0.00; running total **AUD $0.00 of $500**.

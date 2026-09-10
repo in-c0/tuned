@@ -2329,6 +2329,75 @@ window** and **once after it closes on 2026-09-19, before the reading is recorde
 bracket EXP-007 needed, for the same reason. A single pre-window check cannot see an emitter that
 detached in between.
 
+### Instrument validity — mid-window bracket, run 149 (2026-09-11 08:20 Sydney)
+
+**The registered mid-window bracket, dispatched on its date. It is green, and the registered hoist
+trigger did not fire.** This addendum changes **no threshold, no fork, no cut point, no window and no
+reading date**, and takes **no reading of R** — day 7 of 14 is not the pre-named day, and reading
+early is choosing the day.
+
+Run 140 registered the cadence: dispatch this spec *"once more inside the window"* and *"once after
+it closes on 2026-09-19, before the reading is recorded"*. Runs 141-147 fell before the trigger; run
+148 deferred it to *the first run on or after 2026-09-11*, on a date rather than a preference. This
+is that run.
+
+**The observation, from a real Chromium against live production**
+([qa-browser 34535674639](https://github.com/in-c0/tuned/actions/runs/34535674639), spec
+`pulse-instrument.spec.mjs`, `22:06:10Z -> 22:06:16Z`, production serving `63e2fa9` per
+`/api/version`):
+
+| Assertion | Result |
+| --- | --- |
+| `landing_render` emitted on a **bare page load**, no interaction | **yes**, HTTP **204** |
+| `landing_engage` on interaction, `application_start` on a keystroke | **yes**, **204** each |
+| One-shot across the run | **yes** — `landing_render_observed: 1` |
+| `page_errors` | **`[]`** |
+| `console_errors` | **`[]`** |
+| Application form | typed into, **never submitted** |
+
+**The registered trigger did not fire, which is the point of the bracket.** Run 140 disclosed an
+ordering hazard — roughly fifteen lines of DOM decoration run before `pulse("landing_render")` in the
+same inline script, and anything throwing there suppresses the beacon while `landing_view` still
+increments, biasing R **down toward Fork R-A, the claim the loop already holds**. The registered
+response was: *if any bracket inside the window reports a page error preceding the render pulse,
+hoist it immediately and grade EXP-011 on the complete days before the edit.* `page_errors: []`, so
+**no hoist, no early grading, and the fourteen days remain one comparable window.**
+
+**Contamination: none, by construction, unchanged from run 140.** The Playwright user-agent declares
+`HeadlessChrome`, so `src/metrics.ts` classified every increment this caused as bot traffic — it
+landed in `landing_view_bot`, `landing_render_bot`, `landing_engage_bot` and `application_start_bot`
+on 2026-09-10, and **not one entered the unsuffixed names R is computed from.** Fork R-E remains
+armed and unfired. The mobile projection is skipped by
+`test.skip(testInfo.project.name !== "desktop-1440x900", "instrument check runs once")` —
+deliberate, so the instrument fires exactly once, and identical to the day-1 bracket.
+
+**Fork R-D is excluded mid-window as well as at day 1**, and by two independent means: this browser
+observation, and the committed snapshots, in which `landing_render` has written a **non-zero
+unsuffixed value on 2 of the 6 window days so far**. That second figure is a presence/absence check
+on the instrument and **nothing else** — the sums are deliberately not quoted here, because quoting
+both R's numerator and its denominator on day 7 is taking the reading early under another name.
+
+**A dependency bump landed on production during the window, and it is admissible.** Run 149 shipped
+`hono` 4.12.34 -> 4.13.7 ([`e9e2a00`](https://github.com/in-c0/tuned/commit/e9e2a00)). Checked clause
+by clause against the stop conditions rather than asserted: **no `src/` file is touched**, so the
+landing page's copy, layout, offer and form are unchanged; `landing_render` is not added to any other
+page; no second reading is taken and the window is not extended. Neither of R's inputs passes through
+the changed code — the fixed function is hono's query parser, and neither `landing_render` nor
+`landing_view` reads a query parameter.
+
+**The bracket was re-dispatched on the build the bump produced, and this is an addition to the
+registered cadence rather than a substitution — recorded as such rather than folded into the number
+above.** Leaving the window's only mid-window bracket describing a build that had stopped serving
+would have been worse than one extra dispatch, and the extra dispatch costs only `_bot` increments,
+which R does not read.
+[qa-browser 34536404000](https://github.com/in-c0/tuned/actions/runs/34536404000),
+`22:14:51Z -> 22:14:58Z`, production serving **`e9e2a00`** per `/api/version`: `landing_render`,
+`landing_engage` and `application_start` all **204**, `landing_render_observed: 1`,
+**`page_errors: []`**, `console_errors: []`, form typed into and never submitted. **Identical to the
+pre-bump reading in every field — the bump did not disturb the emitter.** The far-side bracket
+registered for 2026-09-19 stands unchanged.
+
+
 ---
 
 ## EXP-012 — if ooh.directory listed `/sportstech`, would Tuned see the arrivals? (2026-09-06, run 143)

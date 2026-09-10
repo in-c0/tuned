@@ -1,8 +1,79 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-10 20:20 Sydney (10:20 UTC), run 148 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143–147 and not re-argued here, per [L-07](LESSONS.md).** **The watchdog
-shipped six hours ago reads a clock that is running late, and would have paged the owner on a blip.**
+**Last updated:** 2026-09-11 08:20 Sydney (2026-09-10 22:20 UTC), run 149 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-148 and not re-argued here, per [L-07](LESSONS.md).** **The advisory run
+148 waved off in one clause was the one that could write into two experiments' numerators.**
+
+**Run 148 triaged three `hono` advisories and got two of them right.** It checked `toSSG` and
+`parseBody` by grepping `src/` for the symbol — sound, because an API you never call cannot hurt you
+— and dismissed the third, a **query-parser fragment differential**, with *"Tuned runs no caching
+proxy keyed on query."* **That sentence answers the advisory's title and never asks whether this
+repository reads query parameters.** It does: `c.req.query("src")` on `GET /:handle` and
+`GET /:handle/rss.xml`, and `c.req.query()` for `{ code, state, error }` on the Spotify callback.
+
+**Measured this run against both versions rather than reasoned about:**
+
+| request | 4.12.34 | 4.13.7 |
+| --- | --- | --- |
+| `/sportstech#x?src=ooh-directory` | `src = "ooh-directory"` | `undefined` |
+| `/sportstech?src=ooh-directory#x` | `src = "ooh-directory#x"` | `"ooh-directory"` |
+| `.../callback?code=A&state=GOOD#x?state=EVIL` | `state = "GOOD#x?state=EVIL"` | `"GOOD"` |
+
+**Both arrival readings were wrong, and wrong in opposite directions.** A fragment before the tag
+**mints** a count no query string asked for; a fragment after it **destroys** a count one did. Those
+two names are the numerators of [EXP-009](EXPERIMENTS.md) and [EXP-012](EXPERIMENTS.md) — the two
+pre-registered distribution experiments, at the two venues sitting in the owner cards below. An
+instrument wrong in both directions cannot be read in either. [L-65](LESSONS.md).
+
+**Shipped in [`e9e2a00`](https://github.com/in-c0/tuned/commit/e9e2a00): `hono` 4.12.34 -> 4.13.7,
+plus three regression cases in [`test/arrival.test.ts`](../test/arrival.test.ts).** The tests are
+pinned **by mutation, not by assertion** — reinstalling 4.12.34 fails all three and passes the other
+28. The third case is the one a naive "reject any URL containing `#`" fix would break: a legitimate
+`?src=` followed by a fragment must keep counting.
+
+**The OAuth path is named and expressly NOT claimed as a vulnerability.** `state` is compared with
+strict equality against the `sp_state` cookie, so a fragment-carrying value **fails** the check and
+the callback redirects to `badstate`. It fails closed. The differential there is a broken connection,
+not a CSRF bypass.
+
+**What is not established, and is recorded as not established.** Whether Cloudflare forwards a
+request-line fragment to the Worker at all is **untested** — this session has no egress to production
+and the harness cannot send a raw request line. The claim is about the parser, not about live
+traffic. **No value already in `ops/metrics/` is reinterpreted in either direction.**
+
+**EXP-011's mid-window instrument bracket also came due today and is green.**
+[qa-browser 34535674639](https://github.com/in-c0/tuned/actions/runs/34535674639) — all three landing
+pulses **204**, `landing_render_observed: 1`, **`page_errors: []`**, form typed into and never
+submitted. **Re-dispatched on the build the bump produced** and identical in every field —
+[qa-browser 34536404000](https://github.com/in-c0/tuned/actions/runs/34536404000) on **`e9e2a00`**
+serving, three pulses **204**, `page_errors: []`. **The bump did not disturb the emitter.**
+**Run 140's registered hoist trigger did not fire**, so no emitter edit, no early grading,
+and the fourteen days remain one comparable window. **Fork R-D is excluded mid-window** as well as at
+day 1. Contamination none — the headless user-agent put every increment into the `_bot` names. **No
+reading of R is taken; day 7 of 14 is not the pre-named day.**
+
+**One open question in [METRICS.md](METRICS.md) is now closed.** Run 148 could not separate a **phase
+shift** from a **reduced rate** in `executor-liveness`'s hourly cron on a sample of two. Four
+consecutive scheduled deliveries on 2026-09-10 — 09:06:55Z, 13:46:08Z, 17:49:29Z, 21:08:47Z — give
+intervals of **4.65h, 4.05h, 3.32h**. A phase shift still delivers hourly. **It is a reduced rate:
+roughly one delivery per 4h against 24 requested.** **No code change follows and none was made** —
+`missed-runs` compares register timestamps, so the sampling rate moves only how promptly a lost run
+is noticed, never whether it is. That property is now exercised rather than assumed.
+
+Gates: `check` **0** · **17 files, 264 tests** (was 261) · `test:ops` **49/49** · workflow and
+nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities** (was 1 moderate carrying 3
+advisories) · [verify production 214](https://github.com/in-c0/tuned/actions/runs/34536201483)
+**success on `e9e2a00` serving**, all health assertions green including the EXP-011 render beacon,
+follow-funnel and feed-render gates. **No rollback.**
+
+**Still zero, and this run does not pretend otherwise.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+**24 days left.** This run fixed an instrument and closed a live advisory; it did not get a user or a
+dollar, and the three options run 146 put to the reviewer are still unanswered after seven runs.
+
+---
+
+## Run 148 (2026-09-10 20:20 Sydney) — the watchdog that was wrong on arrival
 
 **Run 147's watchdog was wrong on arrival, and green.** Its 20h threshold sits on the wall-clock age
 of the newest run-lock claim. One paragraph of its header named the residual — a scheduled run can be

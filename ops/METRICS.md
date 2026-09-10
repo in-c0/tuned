@@ -2118,6 +2118,16 @@ time and did not generalise from.
    of a twice-daily workflow cannot distinguish them** — the two `metrics snapshot` crons are 3h35m
    apart and both arrive daily, which argues for phase, but an hourly cron is a different regime and
    this is a sample of two. **Unresolved, and deliberately not resolved by assumption.**
+
+   **RESOLVED 2026-09-11 (run 149): it is a reduced rate, not a phase shift.** Four consecutive
+   scheduled deliveries of `executor-liveness` on 2026-09-10 — **09:06:55Z, 13:46:08Z, 17:49:29Z,
+   21:08:47Z** — give intervals of **4.65h, 4.05h and 3.32h** across 12 hours. A phase shift still
+   delivers hourly, merely offset; three consecutive ~4h intervals cannot be a phase. **The delivered
+   rate is roughly one per 4h against 24 requested.** Binding consequence: an hourly `cron` in this
+   repository must be read as *"about every four hours"*, and any check whose promptness is quoted
+   from its cron expression is overstating itself by that factor. Run 147's *"hourly is why it can
+   see"* is superseded on this axis as well as on the lag axis. **No code change follows** — see
+   rule 4; the sampling rate moves only how promptly a lost run is noticed.
 4. **Which is why the `missed-runs` verdict does not depend on the answer.** It reads two register
    timestamps, so it reports the outage whether the sampler was late, early, or asleep for all of it.
    Rule 3 is a question about how *promptly* a lost run is noticed, never about *whether* it is.
