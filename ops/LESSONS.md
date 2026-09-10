@@ -2427,3 +2427,46 @@ changes with repetition.
 - **Prevention check.** For any hand-maintained list, ask: **is this list a set, or the complement of
   a set?** If it is a complement, the test must compute it. A complement asserted by enumeration is
   a comment with a `const` in front of it.
+
+## L-63 — the loop stopped for seven firings and the only thing that could have noticed was the loop (2026-09-10, run 147)
+
+- **Known problem.** This loop's entire output is a function of its cadence: three firings a day,
+  each producing one bounded action. Runs 141–146 built instrument after instrument for the funnel —
+  `landing_render`, `follow_open`, `feed_render`, a route inventory gate — on the reasoning that a
+  surface nothing counts is a surface nothing can be said about.
+- **Attempted approach.** Apply that reasoning to the product surfaces, exhaustively. Run 146 said,
+  after classifying all 45 routes, that it had *"nothing else instrument-shaped worth building."*
+- **Mistake.** The enumeration was of **routes**. The executor itself is not a route, and its
+  cadence was the one signal in the system with no counter, no check and no register entry that
+  anything read. Between `2026-09-07T10:05:18Z` and `2026-09-10T04:03:37Z` the routine fired seven
+  times and produced **nothing** — no lock claim, no commit, no execution report. Run 147 found it
+  by reading the claims register by hand, **69 hours late**, and only because it happened to look at
+  the one file that records run starts.
+- **Why it survived.** Two reasons, and the second is the dangerous one. First, the check that would
+  have caught it could only have lived *outside* the loop, and everything this executor builds it
+  builds inside. Second, **the repository stayed visibly busy the whole time**: `metrics snapshot`
+  commits twice a day on GitHub's own cron, under the same author line the executor's commits carry,
+  so `git log` showed fresh activity on every silent day. The absence was not merely unmonitored, it
+  was **masked by an artefact that looks exactly like presence**.
+- **Evidence and cost.** Seven firings of a 60-day, ~180-firing budget, with 25 days left: about 4%
+  of the loop's remaining capacity, spent on nothing, unnoticed. No production impact — `verify
+  production` runs on GitHub's schedule and stayed green throughout — and no metric was harmed. The
+  cost was entirely opportunity, which is the kind this loop is least equipped to see.
+- **Lesson. A process cannot monitor its own liveness, and a busy-looking repository is not
+  evidence that the thing you care about ran.** The watchdog has to be hosted somewhere with no
+  dependency on the thing it watches, and it has to key off a signal the watched process emits at
+  its *start* — here the run-lock claim, which every run appends before any commit or comment, and
+  which a run that dies mid-cycle still leaves behind.
+- **A second, separable error inside the fix, worth its own line.** The first draft of the watchdog
+  checked three times a day, two hours after each firing window. A 24-hour outage was **invisible**
+  to it: from a 22:05 claim, missing the 04:00 and 10:00 firings, the checks at 00:00/06:00/12:00
+  observe ages of 1.9h, 7.9h and 13.9h, and the 22:00 firing recovers before the next check looks.
+  The gap was 24h and the largest age ever *observed* was 13.9h. Caught by writing the test that
+  walks every anchor rather than the one that confirms the intended case. **A monitor must sample
+  faster than the fault it is looking for is long, or the fault fits between its eyes.**
+- **More elegant next attempt.** When enumerating what is instrumented, enumerate the **actors**,
+  not only the surfaces. The executor, the scheduled workflows and the reviewer are all processes
+  whose absence is a fact about the system, and none of them is a route.
+- **Prevention check.** For any scheduled thing, ask: **if this stopped firing tonight, what would
+  go red, and how long would that take?** If the honest answer is *"the next run would notice"*,
+  there is no monitor — that is the failure describing itself.

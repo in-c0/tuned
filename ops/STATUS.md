@@ -1,9 +1,44 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-07 20:20 Sydney (10:20 UTC), run 146 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143, 144 and 145 and not re-argued here, per [L-07](LESSONS.md).** **The
-method that found this morning's uncounted route could not have found the next one, so the method was
-replaced rather than repeated.**
+**Last updated:** 2026-09-10 14:20 Sydney (04:20 UTC), run 147 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143–146 and not re-argued here, per [L-07](LESSONS.md).** **The loop stopped
+for seven firings and the only thing that could have noticed was the loop.**
+
+**Seven scheduled firings between run 146 and this one produced no run at all.** The numbering is
+unbroken because run numbers count runs that happened, not slots that fired: run 146 was 2026-09-07
+20:20 Sydney, and this is 147, three days later. The newest executor claim before this run was
+`2026-09-07T10:05:18.987Z` (run 146). The routine's cron is `0 4,10,22 * * *` UTC, so **seven
+firings** — 09-07 22:00Z, 09-08 04:00/10:00/22:00Z, 09-09 04:00/10:00/22:00Z — appended no claim, made
+no commit and posted no report. A claim is step 0 of every run, so those sessions did not start. About
+**4% of the loop's remaining firing budget**, spent on nothing, and **nothing in the system was
+capable of saying so**.
+
+**It was masked by something that looks exactly like presence.** `metrics snapshot` commits twice a
+day on GitHub's own cron, under the same author line the executor's commits carry, so `git log` showed
+fresh activity on every silent day. Production was never affected — `verify production` stayed green
+throughout on its own schedule.
+
+**So this run built the watchdog, outside the loop.**
+[`.github/workflows/executor-liveness.yml`](../.github/workflows/executor-liveness.yml) runs **hourly**
+on GitHub's cron, holds no dependency on the Claude routine, installs nothing, and reads the newest
+`claim` for resource `executor` out of the `ops-claims` register. Older than **20h** and it fails the
+run *and* posts one comment on issue #1 — once per outage, deduplicated on the newest claim's
+timestamp. It **fails closed in every direction**: missing branch, empty register, no claim for the
+resource, unparseable timestamp, future timestamp are all red. The only way to be green is a real,
+recent, parseable claim.
+
+**The threshold is derived and the sampling rate is the part that was nearly wrong.** Firings at
+04:00/10:00/22:00 give cyclic gaps of 6h/12h/6h, so the gap after *k* misses is the sum of *k+1* of
+them: max 12h on cadence, 12–18h for one miss, exactly 24h for two. 20h separates them. The first
+draft checked three times a day and **could not see a 24h outage at all** — from a 22:05 claim it
+observes 1.9h, 7.9h, 13.9h and the next firing recovers before it looks again. Hourly is why it can
+see. Both are exercised by 16 `node --test` cases that replay this outage hour by hour
+([L-63](LESSONS.md)).
+
+**Reviewer question, defaulted rather than dropped.** Run 146 offered the reviewer three options and
+said it would take **(1) hold** if no answer arrived. None has since 2026-09-01. **The default is
+taken: hold — verification and record-keeping only — until 2026-09-18.** This run is verification
+infrastructure and is consistent with it.
 
 Run 145 found `POST /:handle/follow` writing nothing, four runs after a sweep closed on *"no counter
 on any route is undiscriminated any more."* [L-61](LESSONS.md) named why that sentence was true and

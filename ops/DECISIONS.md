@@ -4835,3 +4835,76 @@ was selected under the standing mission.
   makes. The correct figures are the ones in this file, [STATUS.md](STATUS.md),
   [METRICS.md](METRICS.md) and [L-62](LESSONS.md); the commit message is wrong in the direction that
   flatters the run, which is the direction that matters.
+
+## 2026-09-10 (run 147) — the loop's own cadence was the one unwatched signal, and it had already failed
+
+- **The finding this run exists for.** `node scripts/run-claim.mjs status` shows the newest executor
+  claim before this run at **`2026-09-07T10:05:18.987Z`** (run 146). The routine's cron is
+  `0 4,10,22 * * *` UTC, so **seven firings** — 09-07 22:00Z, 09-08 04:00/10:00/22:00Z,
+  09-09 04:00/10:00/22:00Z — appended **no claim**. A claim is step 0 of every run, before any
+  commit, comment or dispatch, so those runs did not start. There is no execution report between
+  run 146 and this one, and no `Claude`-authored commit on `master` in that interval, both of which
+  agree with the register.
+- **What it was not.** Not a production incident: `verify production` runs on GitHub's own schedule
+  and stayed green, and every product counter kept writing. Not a lock problem: no claim was held,
+  the TTL had long expired, and this run claimed on attempt 1. Not the ops record drifting: the two
+  `metrics snapshot` commits a day continued normally throughout. **The loop simply did not run, and
+  nothing in the system was capable of saying so.**
+- **Why nobody saw it.** `metrics snapshot` commits twice a day under the same author line the
+  executor's own commits carry. `git log` therefore showed fresh activity on every silent day. The
+  absence of runs was **masked by an artefact that looks exactly like presence** — see
+  [L-63](LESSONS.md).
+- **Decision: build the watchdog outside the loop, and key it off the run-lock claim.**
+  [`.github/workflows/executor-liveness.yml`](../.github/workflows/executor-liveness.yml) runs hourly
+  on GitHub's cron, calls [`scripts/executor-liveness.mjs`](../scripts/executor-liveness.mjs), and
+  reads the newest `claim` for resource `executor` from the `ops-claims` register.
+  - **The claim, not a commit or a comment,** because it is the earliest evidence a run started: a
+    run legitimately may make no commit, and a run that dies mid-cycle never reaches its report, but
+    every run claims first.
+  - **Hosted in Actions, not in the loop,** because an alarm inside the process it watches is not an
+    alarm. It installs nothing — no `npm ci` — so the npm registry is not a second way for it to be
+    wrong.
+  - **It fails closed in every direction:** a missing register branch, an empty register, no claim
+    for the resource, an unparseable timestamp and a timestamp in the future are all red. The only
+    way to be green is a real, recent, parseable claim. This is [L-61](LESSONS.md) applied to the
+    watchdog itself.
+  - **It raises the alarm where the owner already reads:** one comment on issue #1 per outage,
+    deduplicated on a marker carrying the newest claim's timestamp, which is constant for the
+    duration of an outage. A red check nobody opens is the failure mode this file is about.
+- **The threshold is derived, not picked.** Firings at 04:00/10:00/22:00 UTC give cyclic gaps of
+  6h, 12h, 6h. The gap after *k* consecutive misses is the sum of *k+1* of those in order: **max 12h
+  on cadence, 12–18h for one miss, exactly 24h for two, from every anchor.** **20h** is therefore
+  above every one-miss gap and below every two-miss gap.
+- **A second error, found inside the fix and recorded because it nearly shipped.** The first draft
+  checked three times a day, two hours after each firing window. It **could not see a 24h outage at
+  all**: from a 22:05 claim with 04:00 and 10:00 missed, the checks observe 1.9h, 7.9h and 13.9h and
+  the 22:00 firing recovers before the next look. Found by writing the test that walks **every**
+  anchor rather than the one that confirms the intended case. The check is hourly for this reason.
+- **The residual is stated rather than hidden.** A GitHub-delayed run reads a larger age, never a
+  smaller one, so a single missed firing on an 18h gap plus a >2h scheduling delay can raise a false
+  alarm. Accepted deliberately: a false alarm costs one comment and a red check that the next green
+  run clears; a missed alarm cost this loop seven firings.
+- **Verification.** 16 new `node --test` cases, including a replay of this outage hour by hour from
+  the real register contents; the alarm's shell path exercised against a stubbed `gh` for all three
+  dedupe cases (no prior alarm → posts; same outage → silent; different outage → posts again).
+  `check` 0 · 17 files, 261 tests · `test:ops` **30/30** (was 14/14) · workflow validator ok, with
+  `executor-liveness.yml` added to `REQUIRED_TRIGGERS` so losing the cron is a red build ([L-16](LESSONS.md)).
+- **Not done, deliberately.** No product change, no schema, no migration, no route, no counter, no
+  secret, no auth change, no new data category — **so the privacy policy is unchanged**, on the
+  reasoning runs 43 and 141–146 recorded. **EXP-011 and EXP-012 are byte-untouched**, and the
+  landing page is not opened: EXP-011's window runs to 2026-09-18 and this run has no business
+  inside it.
+- **Reviewer question, defaulted rather than dropped.** Run 146 asked the reviewer to pick one of
+  three (hold / product / name a surface) and said it would take **(1) hold** as the default if no
+  answer arrived. No reviewer comment has been posted since 2026-09-01. **The default is taken and
+  recorded: hold — verification and record-keeping only — until 2026-09-18.** This run's action is
+  verification infrastructure and is consistent with it. The question is not re-argued
+  ([L-07](LESSONS.md)); it stands.
+- **Correction to a standing statement in [METRICS.md](METRICS.md), carried out this run.**
+  `arrival_fetch:awesome-rss-feeds` was recorded as reading **1, on 2026-08-25, its only non-zero
+  day.** It read **2 on 2026-09-08**. The standing rule is unchanged and still binding: no
+  submission has been made, the tagged URL is published in this public repository, and any reading
+  between `2026-08-25T03:33:11Z` and `t0` is **not venue-attributable**. Total 3, none of it
+  evidence of demand. Recorded so the file stops asserting something that stopped being true while
+  the loop was down.
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**

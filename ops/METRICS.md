@@ -1583,12 +1583,20 @@ carries channel evidence, and only above the measured floor (`control_days` > 1)
 non-bot user-agent is a UA-shaped count, not a person, and the standing rule against inferring people
 from RSS, crawler, sitemap, robot or UA-shaped counts is unchanged.
 
-**`arrival_fetch:awesome-rss-feeds` read 1, on 2026-08-25 — its only non-zero day, and it is not venue
-traffic.** This file registered before the number existed that `t0` = **2026-08-25T03:33:11Z**, the
-moment the reviewer directive printed the joined tagged URL on issue #1, and that anything after `t0`
-is **issue-#1-attributable**. The single fetch landed on the day of that publication. It is reported
-here, separately, and is **not** evidence about `plenaryapp/awesome-rss-feeds` or about any submission
-— none has been made.
+**`arrival_fetch:awesome-rss-feeds` read 1 on 2026-08-25 and 2 on 2026-09-08 — total 3, and none of
+it is venue traffic.** This file registered before the number existed that `t0` =
+**2026-08-25T03:33:11Z**, the moment the reviewer directive printed the joined tagged URL on issue #1,
+and that anything after `t0` is **issue-#1-attributable**. The first fetch landed on the day of that
+publication; the two on 2026-09-08 fall under the same rule. Both readings are reported here,
+separately, and are **not** evidence about `plenaryapp/awesome-rss-feeds` or about any submission —
+**none has been made**, and the tagged URL is published in this public repository, so the tag can be
+written by anything that reads the repository.
+
+> **Corrected 2026-09-10 (run 147).** This paragraph read *"1, on 2026-08-25 — its only non-zero
+> day"* until then, which stopped being true on 2026-09-08 and stayed wrong for two days because the
+> executor loop did not run at all in that interval ([L-63](LESSONS.md)). The attribution rule it
+> states never changed; only the count did. Nothing downstream of it moves: the reading was not
+> admissible as demand evidence before the correction and is not after it.
 
 **Every commercial reading is unchanged and every one is zero.** `applications` **0** · `members` **1**
 (the owner) · `members_ever_active` **0** · `members_returned_after_first_day` **0** · `active_last_7d`
