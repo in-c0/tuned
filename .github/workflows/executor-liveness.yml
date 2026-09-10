@@ -17,14 +17,20 @@ name: executor liveness
 # imports node builtins and one local module. A watchdog that needs the npm registry to be
 # up has a second way to be wrong about the thing it is watching.
 #
-# The mechanism, the 20h threshold and the reason the check is hourly are all derived in
-# the header of scripts/executor-liveness.mjs. The arithmetic is exercised by
-# scripts/executor-liveness.test.mjs, which replays this outage hour by hour.
+# The two thresholds — 20h between consecutive claims, 23h of wall-clock silence — and the
+# reason there are two of them are derived in the header of scripts/executor-liveness.mjs.
+# The short version: this repository's scheduled runs have been delivered 1.6h to 4.5h late
+# every time since 2026-08-26, a late check reads an age that is too large, and the fix is
+# to take the verdict that matters from the register's own timestamps instead of the clock.
+# The arithmetic is exercised by scripts/executor-liveness.test.mjs, which replays the
+# outage hour by hour and again at each measured lag.
 on:
   schedule:
     # Hourly, because the observed age only tracks the real gap if the check looks more
     # often than the outage lasts. A three-a-day version of this file could not see a 24h
-    # outage at all; see the script header.
+    # outage at all; see the script header. Note this is the requested rate, not the
+    # delivered one — GitHub owes nothing here, which is why the `missed-runs` verdict is
+    # written to survive a sampler that slept through the entire outage.
     - cron: "35 * * * *"
   workflow_dispatch:
 
@@ -51,24 +57,30 @@ jobs:
         continue-on-error: true
         run: node scripts/executor-liveness.mjs --json
 
-      # One comment per outage, not one per hour. The marker carries the timestamp of the
-      # newest claim, which is constant for as long as the loop stays down, so the dedupe
-      # is exact: a second outage with a different newest claim gets its own comment, and a
-      # continuing one gets none.
+      # One comment per outage, not one per hour. The marker carries the script's alarm
+      # key: for an open outage that is the newest claim (constant while the loop stays
+      # down), and for one the register proves has already ended it is the last claim
+      # BEFORE the gap — which stays constant after the loop recovers, where the newest
+      # claim does not. A second outage gets its own key and its own comment; a continuing
+      # one, and the same outage re-observed after recovery, get none.
       - name: Raise the alarm on issue #1
         if: steps.liveness.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REASON: ${{ steps.liveness.outputs.reason }}
+          ALARM_KEY: ${{ steps.liveness.outputs.alarm_key }}
           STALE_SINCE: ${{ steps.liveness.outputs.stale_since }}
           AGE_HOURS: ${{ steps.liveness.outputs.age_hours }}
           HOLDER: ${{ steps.liveness.outputs.holder }}
           CYCLE: ${{ steps.liveness.outputs.cycle }}
+          GAP_FROM: ${{ steps.liveness.outputs.gap_from }}
+          GAP_TO: ${{ steps.liveness.outputs.gap_to }}
+          GAP_HOURS: ${{ steps.liveness.outputs.gap_hours }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
-          marker="<!-- executor-liveness-alarm stale-since=${STALE_SINCE:-unknown} -->"
+          marker="<!-- executor-liveness-alarm key=${ALARM_KEY:-unknown} -->"
 
           # Search the issue's own comments rather than a label or a state file: the
           # comment is the thing being deduplicated, so it is also the only record that
@@ -92,17 +104,26 @@ jobs:
             echo "## Executor loop is not firing"
             echo
             echo "The scheduled executor routine claims the run lock as step 0 of every run, before"
-            echo "any commit or comment. No claim has been appended for longer than the watchdog's"
-            echo "threshold allows, so runs are being lost."
+            echo "any commit or comment. The claims register says runs are being lost."
             echo
             echo "| | |"
             echo "| --- | --- |"
             echo "| Verdict | \`${REASON}\` |"
+            if [ -n "${GAP_FROM:-}" ]; then
+              echo "| Runs missed between | ${GAP_FROM} and ${GAP_TO} |"
+              echo "| Length of that gap | ${GAP_HOURS:-n/a}h with no run at all |"
+            fi
             echo "| Newest executor claim | ${STALE_SINCE:-none found} |"
             echo "| Age at detection | ${AGE_HOURS:-n/a}h |"
             echo "| Last holder / cycle | ${HOLDER:-n/a} / ${CYCLE:-n/a} |"
             echo "| Detected by | [${GITHUB_WORKFLOW} run](${RUN_URL}) |"
             echo
+            if [ "${REASON}" = "missed-runs" ]; then
+              echo "**The loop has since recovered.** This gap is read from the register itself, not"
+              echo "from the clock, so it is reported even though the outage has ended — the runs"
+              echo "inside it are still lost, and nothing else would ever have said so."
+              echo
+            fi
             echo "**What this does and does not say.** It says no executor session reached step 0."
             echo "It does not say why, and it is not a product or production signal — production is"
             echo "verified separately by \`verify production\`, which is unaffected by this. The"

@@ -43,11 +43,45 @@
 // outage if it looks while the outage is open, so it has to look more often than the
 // outage is long. Hourly makes the observed age track the true gap within the hour.
 //
-// THE RESIDUAL, STATED RATHER THAN HIDDEN. A scheduled run can be delayed by GitHub under
-// load, and a delay makes the age this reads larger, never smaller. So a single missed
-// firing on an 18h gap, plus a check delayed more than ~2h, can raise a false alarm. That
-// trade is deliberate and not close: a false alarm costs one issue comment and a red check
-// that the next green run clears, and a missed alarm cost this loop seven firings.
+// AND THE PART RUN 147 GOT WRONG, MEASURED BY RUN 148 SIX HOURS LATER. The paragraph that
+// used to sit here called the delivery delay a residual and sized it at "~2h" from
+// assumption. It is not a residual. Across the 30 most recent scheduled firings of
+// `metrics snapshot` in this repository, delivery lag — `run_started_at` minus the cron
+// instant — reads:
+//
+//   2026-08-18 … 2026-08-25   0.22h … 0.36h      (8 firings, all under 22 minutes)
+//   2026-08-27 … 2026-09-10   1.56h … 4.48h      (21 firings, median 2.14h, none under 1.5h)
+//
+// Something changed on 2026-08-26 and has held for two weeks. Nothing in this repository
+// recorded it, because no check in this repository had ever cared what time it ran.
+//
+// A LATE CHECK READS AN AGE THAT IS TOO LARGE, NEVER TOO SMALL. So the wall-clock age is
+// biased upward by the lag, and the one-miss/two-miss separation run 147 derived does not
+// survive it: a single missed firing on an 18h gap, read by a check delivered 2.14h late,
+// is an age of 20.1h — over the 20h threshold. At the measured median this watchdog pages
+// the owner on ONE lost run, which is the exact thing run 147 chose the threshold to avoid,
+// on the grounds that paging on a blip trains the owner to ignore the alarm.
+//
+// THE FIX IS TO STOP ASKING THE WALL CLOCK THE QUESTION THAT MATTERS. There are two
+// verdicts here now, and only one of them can be poisoned by a late delivery:
+//
+//   1. MISSED RUNS — the gap between two CONSECUTIVE CLAIMS in the register exceeds
+//      MAX_GAP_HOURS (20h). Both endpoints are register timestamps, so this reading is
+//      identical whether the check runs on time, four hours late, or a day later. It is
+//      exact, and 20h is run 147's derivation applied where the derivation is actually
+//      true. It is also the only half that can see an outage which has already ENDED —
+//      the gap stays in the register, so a sampler that slept through the whole thing
+//      still finds it.
+//
+//   2. STALE — the loop is quiet RIGHT NOW: `now` minus the newest claim exceeds
+//      MAX_AGE_HOURS. This one does read the wall clock, so its threshold has to absorb
+//      the lag: 18h (worst one-miss gap) + 4.48h (worst measured lag) = 22.5h, rounded to
+//      23h, still under the 24h at which a two-miss outage recovers on its own. Its job is
+//      to catch an outage EARLY, while it is open; verdict 1 is what guarantees the outage
+//      is caught at all.
+//
+// Neither subsumes the other, which is why both are here: 1 cannot see an outage that has
+// not ended yet, and 2 cannot be trusted at a threshold tight enough to be prompt.
 //
 // FAIL CLOSED, IN EVERY DIRECTION. A missing register branch, an empty register, a
 // register with no claim for this resource, an unparseable timestamp, or a timestamp in
@@ -58,7 +92,8 @@
 //
 //   node scripts/executor-liveness.mjs            # exit 0 live, exit 1 stale or unreadable
 //
-// Options: --max-age-hours N  --resource NAME  --remote NAME  --now ISO  --json  --repo PATH
+// Options: --max-age-hours N  --max-gap-hours N  --gap-lookback-hours N  --gap-watch-from ISO
+//          --resource NAME  --remote NAME  --now ISO  --json  --repo PATH
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -71,7 +106,27 @@ import {
   readRegisterRaw,
 } from "./lib/run-claim.mjs";
 
-export const DEFAULT_MAX_AGE_HOURS = 20;
+// Wall-clock staleness. Sized to absorb the measured delivery lag: 18h is the longest gap
+// a single missed firing can produce, 4.48h is the worst lag observed across 21 consecutive
+// firings, and 23h clears their sum while staying under the 24h at which a two-miss outage
+// recovers by itself. Raised from 20h by run 148 — see the header.
+export const DEFAULT_MAX_AGE_HOURS = 23;
+
+// Register-to-register. Both endpoints are claim timestamps, so no delivery lag can move
+// this number: 20h sits above every one-miss gap (12h, 18h) and below every two-miss gap
+// (24h), exactly as run 147 derived, and here the derivation actually holds.
+export const DEFAULT_MAX_GAP_HOURS = 20;
+
+// A gap never leaves an append-only register, so without a lookback the first outage would
+// redden this check forever and the signal would be worth nothing. 48h is long enough that
+// an hourly check delivered up to ~4.5h late still sees the gap many times over, and short
+// enough that a handled incident stops shouting.
+export const DEFAULT_GAP_LOOKBACK_HOURS = 48;
+
+// The watchdog reports outages that began after it existed. Run 147's own claim, the first
+// one appended while this file was on master; the 66-hour gap before it is the outage that
+// caused this file to be written, is on issue #1 already, and must not be re-raised as news.
+export const GAP_WATCH_FROM = "2026-09-10T04:07:16.828Z";
 
 // The watchdog clock and the claim clock are different machines. Five minutes is well
 // under the threshold's slack and well over any plausible runner skew, so it separates
@@ -85,8 +140,18 @@ const HOUR_MS = 3_600_000;
  * Pure verdict over an already-parsed register. Every non-`live` outcome is a failure;
  * `reason` distinguishes them so the alarm can say which one without re-deriving it.
  */
-export function evaluateLiveness(records, { resource = DEFAULT_RESOURCE, now, maxAgeMs } = {}) {
-  const base = { resource, now: new Date(now).toISOString(), maxAgeMs };
+export function evaluateLiveness(
+  records,
+  {
+    resource = DEFAULT_RESOURCE,
+    now,
+    maxAgeMs,
+    maxGapMs = DEFAULT_MAX_GAP_HOURS * HOUR_MS,
+    gapLookbackMs = DEFAULT_GAP_LOOKBACK_HOURS * HOUR_MS,
+    gapWatchFromMs = Date.parse(GAP_WATCH_FROM),
+  } = {},
+) {
+  const base = { resource, now: new Date(now).toISOString(), maxAgeMs, maxGapMs };
 
   if (!Array.isArray(records) || records.length === 0) {
     return { ...base, ok: false, reason: "empty-register", claims: 0 };
@@ -113,10 +178,10 @@ export function evaluateLiveness(records, { resource = DEFAULT_RESOURCE, now, ma
   }
 
   const ageMs = now - newest.at;
-  return {
+  const gap = findMissedRuns(timed, { now, maxGapMs, gapLookbackMs, gapWatchFromMs });
+
+  const common = {
     ...base,
-    ok: ageMs <= maxAgeMs,
-    reason: ageMs <= maxAgeMs ? "live" : "stale",
     ageMs,
     ageHours: Number((ageMs / HOUR_MS).toFixed(2)),
     newestAt: newest.record.at,
@@ -124,7 +189,41 @@ export function evaluateLiveness(records, { resource = DEFAULT_RESOURCE, now, ma
     cycle: newest.record.cycle ?? null,
     claims: timed.length,
     claimsLast48h: timed.filter((t) => now - t.at <= 48 * HOUR_MS).length,
+    gap,
   };
+
+  // An outage that is still open outranks one that has ended: it is the one where the next
+  // scheduled run is also going to be lost, so it is the one the owner has to act on now.
+  if (ageMs > maxAgeMs) return { ...common, ok: false, reason: "stale", alarmKey: newest.record.at };
+  if (gap) return { ...common, ok: false, reason: "missed-runs", alarmKey: gap.from };
+  return { ...common, ok: true, reason: "live", alarmKey: null };
+}
+
+/**
+ * The most recent completed outage the register can prove: consecutive claims more than
+ * `maxGapMs` apart, the gap beginning at or after `gapWatchFromMs` and ending within
+ * `gapLookbackMs` of now. Both endpoints are register timestamps, so this verdict does not
+ * move when the check itself is delivered late — which is the whole reason it exists.
+ */
+function findMissedRuns(timed, { now, maxGapMs, gapLookbackMs, gapWatchFromMs }) {
+  for (let i = timed.length - 1; i > 0; i--) {
+    const from = timed[i - 1];
+    const to = timed[i];
+    if (from.at < gapWatchFromMs) return null; // sorted, so everything earlier is older still
+    if (now - to.at > gapLookbackMs) return null;
+    const gapMs = to.at - from.at;
+    if (gapMs > maxGapMs) {
+      return {
+        from: from.record.at,
+        to: to.record.at,
+        gapMs,
+        gapHours: Number((gapMs / HOUR_MS).toFixed(2)),
+        fromHolder: from.record.holder ?? null,
+        toHolder: to.record.holder ?? null,
+      };
+    }
+  }
+  return null;
 }
 
 /** Read the register from the remote register branch. `null` tip means no branch at all. */
@@ -152,11 +251,18 @@ function appendOutputs(verdict) {
   const lines = [
     `ok=${verdict.ok}`,
     `reason=${verdict.reason}`,
+    // The dedupe key, and deliberately not `stale_since`: for a completed outage the stable
+    // identifier is the last claim BEFORE the gap, which never changes once the loop
+    // recovers, whereas the newest claim does. One comment per outage needs the former.
+    `alarm_key=${verdict.alarmKey ?? verdict.newestAt ?? "unknown"}`,
     `stale_since=${verdict.newestAt ?? ""}`,
     `age_hours=${verdict.ageHours ?? ""}`,
     `holder=${verdict.holder ?? ""}`,
     `cycle=${verdict.cycle ?? ""}`,
     `claims_last_48h=${verdict.claimsLast48h ?? ""}`,
+    `gap_from=${verdict.gap?.from ?? ""}`,
+    `gap_to=${verdict.gap?.to ?? ""}`,
+    `gap_hours=${verdict.gap?.gapHours ?? ""}`,
   ];
   fs.appendFileSync(file, `${lines.join("\n")}\n`);
 }
@@ -170,7 +276,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const remote = flags.remote ?? "origin";
   const resource = flags.resource ?? DEFAULT_RESOURCE;
   const maxAgeMs = Number(flags["max-age-hours"] ?? DEFAULT_MAX_AGE_HOURS) * HOUR_MS;
+  const maxGapMs = Number(flags["max-gap-hours"] ?? DEFAULT_MAX_GAP_HOURS) * HOUR_MS;
+  const gapLookbackMs = Number(flags["gap-lookback-hours"] ?? DEFAULT_GAP_LOOKBACK_HOURS) * HOUR_MS;
+  const gapWatchFromMs = Date.parse(flags["gap-watch-from"] ?? GAP_WATCH_FROM);
   const now = flags.now ? Date.parse(flags.now) : Date.now();
+  const opts = { resource, now, maxAgeMs, maxGapMs, gapLookbackMs, gapWatchFromMs };
 
   let verdict;
   try {
@@ -185,7 +295,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
             reason: "no-register-branch",
             branch: CLAIM_BRANCH,
           }
-        : { ...evaluateLiveness(records, { resource, now, maxAgeMs }), tip };
+        : { ...evaluateLiveness(records, opts), tip };
   } catch (err) {
     // A register that cannot be read is indistinguishable from a loop that is not
     // running, and both need the same person to look. Never exit 0 on an exception.
@@ -207,10 +317,17 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(
       `LIVE  ${verdict.resource} — newest claim ${verdict.newestAt} ` +
         `(${verdict.ageHours}h ago, holder ${verdict.holder}, cycle ${verdict.cycle}); ` +
-        `${verdict.claimsLast48h} claim(s) in the last 48h, threshold ${maxAgeMs / HOUR_MS}h`,
+        `${verdict.claimsLast48h} claim(s) in the last 48h, thresholds ` +
+        `${maxAgeMs / HOUR_MS}h age / ${maxGapMs / HOUR_MS}h gap`,
     );
   } else {
     console.log(`STALE ${verdict.resource} — ${verdict.reason}`);
+    if (verdict.gap) {
+      console.log(
+        `  missed runs: ${verdict.gap.gapHours}h between ${verdict.gap.from} ` +
+          `and ${verdict.gap.to}`,
+      );
+    }
     // `ageHours` is absent on the fail-closed paths that never got as far as an age
     // (no branch, no claims, a corrupt or future timestamp). Printing "undefinedh ago"
     // there reads as a broken watchdog at the exact moment its output matters most.
@@ -219,9 +336,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       console.log(`  newest claim: ${verdict.newestAt}${age}`);
     }
     if (verdict.error) console.log(`  error: ${verdict.error}`);
-    console.log(`  threshold: ${maxAgeMs / HOUR_MS}h`);
+    console.log(`  thresholds: ${maxAgeMs / HOUR_MS}h age / ${maxGapMs / HOUR_MS}h gap`);
     console.log(
       `::error title=Executor loop is not firing::${verdict.reason}` +
+        (verdict.gap ? ` — ${verdict.gap.gapHours}h with no run, ending ${verdict.gap.to}` : "") +
         (verdict.newestAt
           ? ` — newest executor claim ${verdict.newestAt}` +
             (verdict.ageHours === undefined ? "" : `, ${verdict.ageHours}h ago`)
