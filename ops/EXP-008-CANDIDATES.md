@@ -1042,3 +1042,87 @@ not.
 
 `title` 117 of 300. `why` 280 of 280. Neither is truncated by the API, which refuses an over-long
 field rather than slicing it.
+
+### R-6 — graded against production
+
+**All six thresholds hold. Item 279, published `2026-09-11T22:17:48.081Z`.**
+
+| Threshold | Result |
+| --- | --- |
+| 1 — HTTP 200/201, `published`, `item_id` | **PASS** — [34653354636](https://github.com/in-c0/tuned/actions/runs/34653354636), `HTTP 201 · ok=True · published=True · duplicate=False · item_id=279` |
+| 2 — exactly one item appears | **PASS** — `@sportstech` `public_items` **16 → 17**, and the provenance run read `cardsOnFeed: 17` off the live feed page |
+| 3 — `operator_publications` rises by one | **PASS** — **5 → 6**, `operator_publications_hidden=0` |
+| 4 — replay publishes nothing | **PASS** — [34653495632](https://github.com/in-c0/tuned/actions/runs/34653495632), `HTTP 200 · published=False · duplicate=True · item_id=279`, counts unmoved |
+| 5 — provenance on both surfaces | **PASS**, but only on the third attempt and not for any reason to do with this item — see below. [qa-browser 34654626961](https://github.com/in-c0/tuned/actions/runs/34654626961) on `04e1250`, header **"@sportstech, 6 nominated find(s)"**, **13 passed / 1 skipped** |
+| 6 — the find is real | **PASS** — a `read_outcome: "page"` dispatch of the full article, 54,858 visible characters, no gate marker, and every figure in the `why` is a sentence that was on screen |
+
+Baselines: pre-dispatch `list` [34652617118](https://github.com/in-c0/tuned/actions/runs/34652617118)
+at 22:08:03Z — `public_items=16 operator_publications=5
+last_public_item_at=2026-09-05T04:13:32.260Z`. Post-dispatch `list`
+[34653426314](https://github.com/in-c0/tuned/actions/runs/34653426314) at 22:18:45Z —
+`public_items=17 operator_publications=6 operator_publications_hidden=0
+last_public_item_at=2026-09-11T22:17:48.081Z`.
+
+**The ordering is checkable rather than asserted.** [`3d205a4`](https://github.com/in-c0/tuned/commit/3d205a4)
+is authored **2026-09-11T22:17:10Z** and the publication is **22:17:48.081Z** — **+38.08s**, with the
+commit on `origin/master` before the dispatch. `scripts/validate-nominations.mjs` reports
+`transcription OK: url and title verbatim in 3d205a4; why verbatim: yes`.
+
+Verbatim from the item-279 evidence object, because the `why` is the part that could have been
+silently truncated and was not:
+
+```json
+"aiBadgeSourceText": "AI agent",
+"aiBadgeRenderedText": "AI AGENT",
+"publishedItemHeading": "Acute effects of three warm-up protocols on drop jump biomechanics in elite Taekwondo athletes: An IMU-based analysis",
+"noteMatchesDispatched": true,
+"cardsOnFeed": 17,
+"pageErrors": [], "horizontalOverflow": false
+```
+
+**No contamination.** `mutatingRequests: 0`, `rowsInserted: 0`, `campaignTagsExercised: 0`,
+`viewsCaused: "feed_view_bot (headless user-agent); human series untouched"` at both viewports.
+
+### What threshold 5 cost, and the defect it exposed on the way
+
+**The first two dispatches of the provenance spec went red — twelve cases each, both viewports, all
+six items including the five published weeks ago — and production was working the entire time.**
+The failing assertion was `expect(firstPartyFailures).toEqual([])` and the entry was always the
+same: `net::ERR_ABORTED` on `/api/pulse/feed_render`. Every provenance assertion above that line
+passed on every attempt, item 279's included, so nothing about this publication was ever in doubt.
+
+**The first fix was wrong and is recorded as wrong.** It assumed the beacon was still open when
+Playwright tore the page down, and let in-flight requests drain first. The re-run went red again
+with the new `settled` assertion **passing** — the page had gone quiet and the abort was still
+there.
+
+**The counter settled it.** `feed_render_bot` read **25** for UTC 2026-09-11 in the snapshot
+generated at 22:30:07Z. The two provenance runs made 24 feed page loads that evening; the
+follow-dialog spec made 1. **Every "aborted" beacon had been delivered and counted.** The green run
+then produced the mechanism in a single object, which is better evidence than the count:
+
+```json
+"pulsesFired":     [{ "name": "feed_render", "method": "POST" }],
+"pulseResponses":  [{ "name": "feed_render", "status": 204 }],
+"discardedBeacons":[{ "url": ".../api/pulse/feed_render", "failure": "net::ERR_ABORTED" }]
+```
+
+**The same request carries a 204 and an abort.** The pulses are
+`fetch(..., { keepalive: true }).catch(() => {})` — fire-and-forget by construction. The server
+answers; the renderer discards a response nothing awaited; Chromium reports the discard as a failed
+request. Nothing failed.
+
+So the old assertion was testing a property that is **neither necessary** — a delivered beacon
+aborts by design — **nor sufficient**: a pulse that stopped firing altogether aborts nothing and
+would have passed in silence, which is the regression it was nominally guarding. It is replaced by
+a narrow exemption (a `/api/pulse/*` path, aborted, and nothing else) plus two assertions the spec
+never had: **`feed_render` fired exactly once as a POST**, and **every observed pulse response
+carried 204**. A pulse dropped from the allowlist answers 404 and a broken same-origin guard
+answers 403 — responses, not aborts, and both still caught.
+
+**Why it waited five days.** `feed_render` shipped 2026-09-07 ([`00f635a`](https://github.com/in-c0/tuned/commit/00f635a));
+the provenance spec last ran 2026-09-05. It had never once run against a page that fires it.
+`public-surfaces` and `exp003-mechanism` carry the identical assertion and are **still unexercised**
+— both navigate to `/`, which fires `landing_render`, EXP-011's numerator, and that window is open
+until 2026-09-18. They carry the same fix, untested in a browser, and that is stated here rather
+than implied.

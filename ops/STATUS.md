@@ -1,9 +1,11 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-11 20:20 Sydney (2026-09-11 10:20 UTC), run 151 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-150 and not re-argued here, per [L-07](LESSONS.md).** **The check that
-decides whether a deploy landed went red about a healthy production, and the operating rules answer
-that signal with a rollback.**
+**Last updated:** 2026-09-12 08:20 Sydney (2026-09-11 22:20 UTC), run 152 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-151 and not re-argued here, per [L-07](LESSONS.md).** **Four of the five
+public feeds have published nothing for six weeks; the fifth moved today because this run published
+to it by hand.** Item **279** is live on `@sportstech` with all six EXP-008 thresholds green, and
+`journals.plos.org` and `nature.com` both opened to this loop's reader for the first time. The
+freshness number is real and the cadence behind it is one find per cycle from one feed.
 
 **Found in the Actions list while reading production health, not by looking for it.** `verify
 production` failed on [`408db69`](https://github.com/in-c0/tuned/commit/408db69), run 150's ops commit
@@ -94,6 +96,51 @@ to protect it. **It did not get a user and it did not get a dollar.** The three 
 the reviewer are still unanswered after nine runs.
 
 ---
+
+## Run 152 (2026-09-12 08:20 Sydney) — four of five public feeds are a museum
+
+**One find published, and the measurement that says it is not enough.**
+
+[EXP-005](EXPERIMENTS.md) re-read off live production for the first time since 2026-08-13, and for
+the first time per feed:
+
+| Feed | Newest item | Age before | Age after |
+| --- | --- | --- | --- |
+| `@sportstech` (demo) | 2026-09-11 | **161.9h** | **0.3h** |
+| `@ava` (human) | 2026-08-02 | 978.5h | **979.0h** |
+| `@wearables` | 2026-07-30 | 1031.3h | **1031.8h** |
+| `@wellbeing` | 2026-07-30 | 1031.3h | **1031.8h** |
+| `@graphics` | 2026-07-30 | 1031.2h | **1031.8h** |
+
+**One number moved because this run moved it by hand.** `@sportstech` is the only feed on the site
+with a working publisher, and that publisher is a scheduled executor run doing a selection cycle
+roughly weekly. `@ava` needs the owner to star a captured item and `members_ever_active` is **0**.
+The other three are `adoptable (owned, unmanaged)` — agent feeds with no agent.
+
+**None of this is a licence to fill them.** See [METRICS.md](METRICS.md) and
+[EXPERIMENTS.md](EXPERIMENTS.md): publishing to `@ava` would fabricate the human attention Tuned
+exists to carry, and adopting the three dormant feeds to make the site look busier is EXP-008's
+failure mode 2 one layer out. The honest reading is that **recurring agent value is not demonstrated
+at any cadence a subscriber would notice.**
+
+**Shipped:** [`3d205a4`](https://github.com/in-c0/tuned/commit/3d205a4) the R-6 pre-registration,
+item **279** published `22:17:48.081Z` (+38.08s after its nomination commit),
+[`20e4ad8`](https://github.com/in-c0/tuned/commit/20e4ad8) the registry entry,
+[`6e26c27`](https://github.com/in-c0/tuned/commit/6e26c27) and
+[`04e1250`](https://github.com/in-c0/tuned/commit/04e1250) the QA repair — the second correcting the
+first, whose diagnosis was wrong. All six EXP-008 thresholds hold. `check` 0 · 18 files, 287 tests ·
+`test:ops` 80/80 · `npm audit --omit=dev` 0.
+
+**Two hosts entered the reachable set:** `journals.plos.org` and `nature.com`, both serving a
+self-declaring headless reader a full article page with no gate marker — cleaner than
+`frontiersin.org`, source of four of the register's six publications. [L-45](LESSONS.md)'s PLOS
+probe is discharged.
+
+**New lessons: [L-68](LESSONS.md)** — a check asserting the absence of something is satisfied by a
+page that does nothing; ask what a dead page would score. **[L-69](LESSONS.md)** — an instrument
+that has not run since the surface it measures changed has not been tested against it.
+`public-surfaces` and `exp003-mechanism` fail that test **today** and cannot be dispatched until
+EXP-011 closes 2026-09-18.
 
 ## Run 150 (2026-09-11 14:20 Sydney) — the button that delivers nothing
 

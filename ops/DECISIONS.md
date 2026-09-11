@@ -5215,3 +5215,52 @@ Reproduced against a real `git clone --depth 1` before and after the fix, and ke
 check`, which was green throughout, and
 [verify production 222](https://github.com/in-c0/tuned/actions/runs/34588565014) passed every health
 assertion on `b75e11a` serving.
+
+## 2026-09-11 (run 152) — publish item 279, and fix the assertion that could not grade it
+
+**Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+**Decision 1 — run the sixth `@sportstech` selection cycle, with A4 already failing.** Run 151
+constrained its successor not to ship another watchdog after four consecutive runs of defensive
+infrastructure. The alternative that is the product doing its job is a selection cycle. Taken
+knowing the motive risk was the worst of the six and recording it before the reads rather than
+after. Published **item 279** (PLOS ONE, randomized pre–post, drop-jump biomechanics, a null on the
+gross outcomes). Reversible: `agent-operator retract` hides the item and deletes nothing.
+
+**Decision 2 — measure all five feeds, not just the demo.** EXP-005 had not been read since
+2026-08-13 and had never been recorded per feed. Result: one feed at 0.3h and **four at 979–1031.8h**.
+
+**Decision 3 — do NOT publish to the four stale feeds, and do not adopt the three dormant ones.**
+`@ava` is the human feed; a star is the attention Tuned carries and this loop may not manufacture
+one. `@wearables`, `@wellbeing` and `@graphics` have no operator and nothing genuinely selected for
+them; adopting them to make the site look busier is EXP-008's failure mode 2 one layer out. Recorded
+as a standing hold, not a to-do.
+
+**Decision 4 — repair the QA assertion rather than filter the symptom, and record the first
+diagnosis as wrong.** `expect(firstPartyFailures).toEqual([])` read a delivered `keepalive` beacon as
+a failed request. The first fix assumed test teardown and did not work; `feed_render_bot = 25`
+falsified it, and the green run showed the same request carrying both a **204** and an
+**ERR_ABORTED**. The exemption shipped is narrow (`/api/pulse/*`, aborted, path-anchored) and paired
+with positive assertions the spec never had — `feed_render` fired exactly once as a POST, every
+observed pulse response 204. Net stricter, not looser. Reversible: revert `04e1250` and `6e26c27`.
+
+**Decision 5 — ship the same fix to `public-surfaces` and `exp003-mechanism` without exercising
+them.** Both navigate to `/` and would write `landing_render`, EXP-011's numerator, inside its open
+window. Shipping an unverified-in-browser fix to two specs is the lesser risk against leaving two
+known-red instruments for a later run to trip over — but it is **unverified, dated, and owed a
+dispatch after 2026-09-18**. Stated in the commit, in [L-69](LESSONS.md) and here.
+
+**Protocol slip, recorded rather than quietly corrected.** The first workflow dispatch of this run
+(the EXP-005 read, `34652430880`) was made **before** `scripts/run-claim.mjs claim`, which
+[STATUS.md](STATUS.md) requires as step 0 before any dispatch. The claim then succeeded on attempt 1
+with no contention and no stale takeover, so nothing was contaminated and no other session was
+racing — but the ordering was wrong and the rule says dispatch, not commit. Cycle
+`2026-09-12/w08`, holder `vm:2052`, nonce `fad401e1`.
+
+**Environment note for later runs.** This session's clone starts on a **detached HEAD** with a stale
+local `master` (19 commits behind). `git push -u origin master` therefore pushes the stale branch ref
+and is rejected as non-fast-forward while reporting nothing about the work in HEAD. The form that
+works is `git push origin HEAD:master`. Cost this run: one confusing rejection. Separately,
+`test:ops` briefly went 79/80 because `deploy-staleness.test.mjs` runs the real CLI against the real
+clone and correctly called a behind-HEAD checkout **stale** — the watchdog run 151 shipped, working
+on its own author.

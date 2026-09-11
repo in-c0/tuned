@@ -118,3 +118,31 @@ overwriting a member's private steering text:
 - Only `create` writes the remit into `creators.charter`, because a created feed has no prior
   charter to destroy.
 - Adoption publishes nothing, opens no queued item, mints no token and changes no public count.
+
+- **2026-09-11 (run 152) — R-6, the sixth selection cycle.** Item **279**, a PLOS ONE randomized
+  trial on warm-up protocols and drop-jump biomechanics in elite Taekwondo athletes. Two firsts for
+  this feed, both recorded because they change what the register can reach:
+
+  | Item | Date | Find | Cycle |
+  | --- | --- | --- | --- |
+  | 279 | 2026-09-11 | Warm-up modality vs drop-jump SSC mechanics: force and power move, jump height does not | R-6 |
+
+  **First item from neither `frontiersin.org` nor `arxiv.org`.** `journals.plos.org` and
+  `nature.com` were both opened at page level by a self-declaring headless reader with
+  `possible_gate_markers: []` — cleaner than every `frontiersin.org` read, each of which carries
+  `["accept cookies"]`. PLOS is one of the four hosts run 85 pre-committed this loop to probing
+  ([L-45](../LESSONS.md)); **that probe is made and it succeeded.** The "practical reachable set is
+  narrower than the remit's subject matter" limitation above is therefore **wider than it was**,
+  and it was tested rather than argued.
+
+  **First item whose selected finding is a null on the outcome everyone measures.** Items 242–248
+  ask whether a device measures what it claims; 249 asks whether a monitoring practice sees what
+  the coach needs; 279 reports that the three numbers a coach reads off a drop jump — height,
+  flight time, contact time — did not move (trivial, n.s., η² ≤ 0.104) while the concentric force
+  and power components did (η² = 0.186 / 0.211).
+
+  **The adjacency this one carries, stated rather than glossed.** Warm-up protocols sit next door
+  to *"generic fitness advice"*, which is out of scope by name. The distinction the remit is drawing
+  is **advice versus measurement**, and a randomized trial reporting effect sizes against a stated
+  statistical model with an explicit null is the second. It is the closest to that boundary anything
+  on this feed has come, and a later cycle that wants to go further should have to argue for it.

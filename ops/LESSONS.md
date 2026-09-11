@@ -2656,3 +2656,64 @@ finished is not a report, whatever it says. Run 150's verification section was a
 everything it had waited for and confident about the one thing it had not. **The honest ordering is:
 push, wait, read, then write** — and where the loop cannot wait, the sentence has to say which commit
 was verified and which was not.
+
+## L-68 — a fire-and-forget beacon reports a failure it did not have, and "no request failed" was never the property worth testing
+
+**2026-09-11, run 152.** Three QA specs ended with `expect(firstPartyFailures).toEqual([])`. On the
+first provenance run of the evening that assertion failed **twelve times** — both viewports, all six
+nominated items, including five published weeks earlier — against a production that was working. The
+entry was always `net::ERR_ABORTED` on `/api/pulse/feed_render`.
+
+**The first fix was wrong, and the wrongness is the lesson's first half.** It assumed the beacon was
+still open when Playwright tore the page down and let in-flight requests drain first. The re-run
+went red identically, with the **new `settled` assertion passing**: the page had gone quiet and the
+abort was still there. A plausible mechanism that explains the symptom is not the mechanism.
+
+**What settled it was a counter, not an argument.** `feed_render_bot` read **25** for UTC
+2026-09-11. The two provenance runs made 24 feed page loads; the follow-dialog spec made 1. Every
+"aborted" beacon had been delivered and counted. The green run then produced the mechanism in one
+object: the **same request** carries `pulseResponses: [{feed_render, 204}]` **and**
+`discardedBeacons: [{feed_render, net::ERR_ABORTED}]`. The pulses are
+`fetch(..., { keepalive: true }).catch(() => {})` — the server answers, and the renderer reports
+discarding a response nothing awaited.
+
+**The general lesson is about the assertion, not the beacon.** *"Nothing failed"* is a **negative**
+property, and a negative property is satisfied by a page that does nothing at all. It was:
+
+- **not necessary** — a delivered beacon aborts by design, so the check failed on healthy behaviour;
+- **not sufficient** — a pulse that stopped firing altogether aborts nothing, passes silently, and
+  is precisely the regression the assertion was nominally guarding.
+
+**So the repair is not a filter, it is a positive assertion.** Blanket-exempting `ERR_ABORTED` would
+be [L-31](#) — an instrument edited until it agrees with today's production — and blind ever after.
+What replaced it: the exemption is narrowed to one shape (a `/api/pulse/*` path, aborted, nothing
+else, path-anchored so a third-party URL containing the text cannot claim it), and it is **paired
+with what the spec should have asserted all along** — `feed_render` fired **exactly once as a POST**,
+and every observed pulse response carried **204**. A pulse dropped from the allowlist answers 404; a
+broken same-origin guard answers 403. Responses, not aborts, and both still caught. **The spec is
+stricter than it was that morning, not looser.**
+
+**When a check asserts the absence of something, ask what a page that does nothing would score.**
+
+## L-69 — an instrument that has not run since the thing it measures was built has not been tested against it
+
+**2026-09-11, run 152, and it is the timing half of L-68.** `feed_render` entered `src/pages.ts` on
+**2026-09-07** ([`00f635a`](https://github.com/in-c0/tuned/commit/00f635a)). `exp008-provenance.spec.mjs`
+last ran on **2026-09-05**. The spec had **never once executed against a page that fires that
+beacon**, which is why a five-day-old collision arrived all at once, in twelve cases, in the middle
+of grading an unrelated publication.
+
+Nothing was broken by the beacon and nothing was broken by the spec. What was broken is that **two
+things that interact were never in the same room.** Both were green on their own the whole time.
+
+**The condition is checkable and nobody was checking it:** for every instrument, *is its last run
+newer than the last change to the surface it measures?* Two of the three specs carrying this
+assertion — `public-surfaces` and `exp003-mechanism` — **still fail that test today** and cannot be
+run to fix it, because both navigate to `/` and would write `landing_render`, EXP-011's numerator,
+while that window is open until 2026-09-18. They carry the fix untested in a browser. **That is a
+known, dated, deliberate gap rather than an assumption of correctness**, and the next run after
+2026-09-18 should exercise both.
+
+This is [L-63](#) generalised from a watchdog to every instrument: *the only thing that could have
+noticed was the thing that had stopped looking* — and a spec that is only dispatched by hand stops
+looking the moment nobody dispatches it.

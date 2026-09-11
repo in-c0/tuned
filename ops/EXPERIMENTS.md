@@ -2548,3 +2548,53 @@ URL-assembling crawler as a channel, so both cut points clear both nulls with ro
   standing rule against printing the joined URL is kept — [`SUBMISSION-ooh-directory.md`](SUBMISSION-ooh-directory.md)
   names the route and the tag on separate lines — but that is compliance, **not** a privacy measure,
   and the reading's interpretability rests on the two controls above rather than on secrecy.
+
+## EXP-005 — re-read 2026-09-11 (run 152), and the first per-feed reading on record
+
+**EXP-005 stays CLOSED; this is a subsequent exercise of its instrument, recorded here so the
+reading is dated and does not get quoted as the 2026-08-13 one.**
+
+**Before:** the demo feed's newest item was **161.9 hours** old against the pre-registered 48-hour
+threshold — [34652430880](https://github.com/in-c0/tuned/actions/runs/34652430880), `22:06:08Z`,
+**red**. **After** item 279: **0.3 hours**, [34654799670](https://github.com/in-c0/tuned/actions/runs/34654799670),
+`22:37:51Z`, **green**. The threshold is at its pre-registered value; nothing was softened.
+
+`retiredClaimsStillPresent: []` in both readings — the two sentences production falsified on
+2026-08-13 ([L-18](LESSONS.md)) are still absent, which is the half of this instrument that keeps
+working after a feed goes stale again.
+
+**The reading that matters is not the one that changed.** Per-feed ages are in
+[METRICS.md](METRICS.md): the other four public feeds are **979–1031.8 hours** old and did not move.
+`@ava` is the human feed and may not be published to by this loop at all — a star is the attention
+Tuned carries, and manufacturing one would fabricate the only signal the product has. The other
+three are agent feeds that `agent-operator list` reports as `adoptable (owned, unmanaged)`: no
+operator, no publisher, seeded 2026-07-30 and never fed.
+
+**Binding on any later run: this is not an argument for adopting them.** An adopted feed with
+nothing genuinely selected for it is EXP-008's failure mode 2 one layer out — *"the path works and
+the loop misuses it"*. Four live-looking feeds fed by nobody would be worse than three dormant ones
+that are honestly dormant.
+
+## EXP-008 — sixth exercise of the operator plane, 2026-09-11 (run 152)
+
+**EXP-008 stays CLOSED; this is a subsequent exercise of the plane it graded.** Item **279**, all six
+thresholds hold against live production, full record and the case against the find in
+[EXP-008-CANDIDATES.md](EXP-008-CANDIDATES.md) R-6.
+
+**The cycle ran from the worst motive position of the six and named it first.** A4 was failing —
+161.9h against a 72h bar, read from production *before* any candidate was surfaced. R-5 could open by
+recording that freshness was not at stake; this one could not. The rule bound unchanged: **four of
+six candidates were rejected at result level on remit clauses, and one of the two pages actually
+opened was rejected on its own abstract** (no cohort, no observation period, no injury count, and
+91.5% accuracy quoted for a rare event with no base rate). *Publish nothing* was live until the
+dispatch and would have left A4 exactly where it already was.
+
+**Two hosts entered the reachable set**, which is the durable result independent of what published:
+`journals.plos.org` and `nature.com` both served a self-declaring headless reader a complete article
+page with `possible_gate_markers: []`. PLOS is one of the four hosts run 85 pre-committed this loop
+to probing ([L-45](LESSONS.md)); that probe is discharged. The standing "hosts carrying most
+on-remit material do not allow it" limitation is **narrower than it was**, tested rather than argued.
+
+**Threshold 5 took three dispatches and none of the reasons concerned item 279** — see
+[L-68](LESSONS.md) and [L-69](LESSONS.md). Every provenance assertion passed on every attempt; the
+red was a QA assertion that read a delivered fire-and-forget beacon as a failed request.

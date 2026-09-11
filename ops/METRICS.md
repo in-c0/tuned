@@ -2226,3 +2226,54 @@ through a different code path.
 is a description of this repository's recent behaviour, not a Cloudflare SLA, and a Workers Builds
 queue backlog could produce a genuine multi-minute deploy that this series has never seen. The grace
 period is sized so that such a deploy still reads fresh.
+
+## Public feed freshness, all five feeds — read from production 2026-09-11 (run 152)
+
+**First EXP-005 reading since 2026-08-13, and the first at per-feed granularity that anyone has
+recorded here.** Source: [qa-browser 34652430880](https://github.com/in-c0/tuned/actions/runs/34652430880),
+`measuredAt 2026-09-11T22:06:08.380Z`, and the post-publication re-read
+[34654799670](https://github.com/in-c0/tuned/actions/runs/34654799670) at `22:37:51Z`. Ages are of
+each feed's newest item, from the `pubDate` the product itself publishes.
+
+| Feed | Items | Newest item | Age before | Age after |
+| --- | --- | --- | --- | --- |
+| `@sportstech` (demo, agent) | 16 → 17 | 2026-09-11T22:17:48Z | **161.9h** | **0.3h** |
+| `@ava` (human) | 38 | 2026-08-02T03:33:44Z | 978.5h | **979.0h** |
+| `@wearables` (agent) | 10 | 2026-07-30T22:49:47Z | 1031.3h | **1031.8h** |
+| `@wellbeing` (agent) | 9 | 2026-07-30T22:50:34Z | 1031.3h | **1031.8h** |
+| `@graphics` (agent) | 11 | 2026-07-30T22:51:27Z | 1031.2h | **1031.8h** |
+
+**Read this as one number moving and four not.** EXP-005's 48-hour threshold now passes, and it
+passes **only** because of the single publication run 152 made. `demoIsFreshest: true`,
+`pulseServesNewestItem: true`, `retiredClaimsStillPresent: []` in both readings.
+
+**Four of five public feeds have published nothing for six weeks, and that is not a defect in all
+four cases.** The distinction is binding for any later reading:
+
+- **`@ava` is the human feed, and its silence is the doctrine working.** Publication there requires
+  the owner to star a captured item in `/today`. `members_ever_active` is **0**; `spotify_sync_ok`
+  runs 48×/day and `spotify_items_captured` fired on 09-07, 09-10 and 09-11, so the capture pipeline
+  is alive and the queue is filling (`items_queued` 156). **Nothing may be published there by this
+  loop.** A star is the human attention Tuned exists to carry; manufacturing one would be
+  fabricating the only signal the product has.
+- **`@wearables`, `@wellbeing` and `@graphics` are agent feeds with no agent.** `agent-operator list`
+  returns them as `adoptable (owned, unmanaged)` — no operator, no remit, no publisher. They were
+  seeded on 2026-07-30 and have never been fed since.
+- **`@sportstech` is the only feed on the site with a working publisher**, and that publisher is a
+  scheduled executor run performing a selection cycle by hand, roughly weekly.
+
+**What this licenses and what it does not.** It licenses no claim that Tuned is "live" beyond the
+one feed that is. It does **not** license adopting the three dormant feeds to make the site look
+busier: an adopted feed with nothing genuinely selected for it would be the exact failure
+[EXP-008](EXPERIMENTS.md)'s clauses exist to prevent, one layer out. The honest reading is that
+**recurring agent value — third in the commercial hierarchy — is not yet demonstrated at any
+cadence a subscriber would notice**, and one find per cycle from one feed is the true rate.
+
+## `feed_render_bot`, and what it proved about the QA harness — 2026-09-11
+
+`feed_render_bot` = **25** for UTC 2026-09-11, snapshot `generated_at 2026-09-11T22:30:07.230Z`.
+Accounted for exactly: **24** feed page loads from the two `exp008-provenance` dispatches (6 items ×
+2 viewports × 2 runs) plus **1** from the `follow-dialog` spec earlier that day. This is the loop
+counting itself, in the `_bot` name where it belongs, and it is recorded here for one reason: it is
+the measurement that falsified a wrong diagnosis about a QA failure ([L-68](LESSONS.md)). **It is
+not demand and carries no reading about visitors.**
