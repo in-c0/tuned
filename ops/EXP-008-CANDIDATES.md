@@ -890,3 +890,155 @@ than four. Run 85's vacuous pass is the failure this ordering exists to prevent.
 **One thing this cycle does not claim.** Item 249 is on a feed with **0 followers**. Threshold 5 is
 the assertion that a reader *would* see the label and the find; it is not evidence that a reader
 exists, and no view of it is sought.
+
+## R-6 — the sixth `@sportstech` selection cycle, 2026-09-12 (run 152)
+
+**Written before the dispatch, not after it.** No reviewer directive is outstanding; the newest
+comment on issue #1 is run 151's execution report. Run 151 closed by constraining its successor —
+*"the next run should not ship a watchdog"* — after four consecutive runs of defensive
+infrastructure. A selection cycle is the other thing this loop can do, and it is the product doing
+its actual job rather than scaffolding around it.
+
+### The motive risk, named before the reads rather than after them
+
+**This cycle starts from the worst motive position of the six, and says so first.** R-5 could open
+by recording that *"freshness is not at stake this run"*. This one cannot. A4 is **failing**, read
+from production before any candidate was surfaced:
+
+- `agent-operator list` [34652617118](https://github.com/in-c0/tuned/actions/runs/34652617118) at
+  **2026-09-11T22:08:03Z** — `last_public_item_at=2026-09-05T04:13:32.260Z`, `public_items=16`,
+  `operator_publications=5`.
+- [EXP-005](EXPERIMENTS.md) re-read against live production,
+  [qa-browser 34652430880](https://github.com/in-c0/tuned/actions/runs/34652430880) at
+  **22:06:08Z** — the demo feed's newest item is **161.9 hours** old against a 48-hour threshold,
+  and the other four public feeds are **978–1031 hours** old.
+
+**So the pressure the standing rule exists to resist is live, and the rule binds unchanged:**
+*recency is not the test and staleness is not a reason.* The only honest test of whether this cycle
+selected for merit is whether the rejections turn on clauses that have nothing to do with freshness.
+**Four of six were rejected at result level on remit clauses, and one of the two pages actually
+opened was rejected on its own abstract.** A *publish nothing* outcome was live until the dispatch
+was made, and it would have left A4 exactly where it already is — which is to say it would have cost
+this cycle nothing it did not already lack.
+
+### The candidate slate, and why four of six were rejected before any page was opened
+
+Discovery is result level — a search result is a pointer, never an encounter — so the rejections
+below are made on what a result page states about itself. Only survivors were opened.
+
+| # | Candidate | Verdict, and the clause it turns on |
+| --- | --- | --- |
+| 1 | `journals.plos.org/…/journal.pone.0351884` — warm-up protocols and drop-jump biomechanics in elite Taekwondo athletes, IMU-based | **Read, and published.** See below |
+| 2 | `nature.com/articles/s41598-026-44199-9` — wearable-sensor injury patterns in professional tennis | **Read at page level, and rejected on its own abstract.** See below |
+| 3 | `nature.com/articles/s41598-025-34551-w` — real-time IMU + sEMG biomechanics framework, injury-risk prediction | **Rejected — one read per host per cycle, and #2 is the 2026 article on the same host and the same question.** Its title self-describes as a *framework*, which is the clause that killed R-4 #3, but it also carries numbers, so this is a **priority rejection and reversible**, not a judgement on the paper |
+| 4 | `peerj.com/articles/17658/` — "My Jump 2" app reliability and validity in professional athletes | **Rejected — near-repeat of a theme this feed has made four times.** Items 242, 246, 247 and 248 are all *does this instrument measure what it claims*. A fifth is the feed finding one theme rather than making one selection. 2024, where 2026 material was reachable |
+| 5 | `sportrxiv.org/…/preprint/view/998` — PCA-derived composite indicator of high-intensity external load, 11,335 elite-soccer player-observations over three seasons | **Rejected on the preprint clause, and recorded as the strongest candidate this cycle did not pursue.** The remit admits preprints only where they are not presented as settled, and two of this feed's five items already carry that caveat while peer-reviewed material was reachable today. This is R-5's reasoning applied to a better preprint — **pick it up on a later cycle** |
+| 6 | `journals.plos.org/…/journal.pone.0333884` — real-time sensor feedback in football training, 8-week RCT, 30 players | **Rejected — same host as #1 and the weaker of the two on remit.** Its outcomes are performance metrics defined by the same system under test. 2025, reversible |
+
+### The reads — 2026-09-11
+
+Both from `source-read.yml`, one page per dispatch, no link following, declared user agent
+`… HeadlessChrome/140.0.0.0 … tuned-source-reader (+https://justtuned.com)`.
+
+| # | URL | HTTP | Title as served | Page-level? | Run |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `journals.plos.org/plosone/article?id=10.1371/journal.pone.0351884` | **200** | `Acute effects of three warm-up protocols on drop jump biomechanics in elite Taekwondo athletes: An IMU-based analysis \| PLOS One` | **Yes** — 54,858 chars, `read_outcome: "page"`, `interstitial_signals: []`, `possible_gate_markers: []` | [34652718168](https://github.com/in-c0/tuned/actions/runs/34652718168) |
+| 2 | `nature.com/articles/s41598-026-44199-9` | **200** | `Wearable sensor big data analysis reveals spatiotemporal injury patterns in professional tennis players \| Scientific Reports` | **Yes** — 104,207 chars, `read_outcome: "page"`, `interstitial_signals: []`, `possible_gate_markers: []` | [34652902599](https://github.com/in-c0/tuned/actions/runs/34652902599) |
+
+**Two hosts entered the reachable set this cycle, and that is the durable result regardless of what
+was published.** `journals.plos.org` and `nature.com` both served a self-declaring headless agent a
+complete article page with **no gate marker at all** — cleaner than `frontiersin.org`, whose five
+reads all carry `possible_gate_markers: ["accept cookies"]`. PLOS is one of the four hosts run 85
+pre-committed this loop to probing ([L-45](LESSONS.md)); **that probe is now made and it succeeded.**
+Four of the register's six publications came from one host because that was the only host known to
+open. **That is no longer the constraint it was**, and it was tested rather than assumed.
+
+### Why read 2 was rejected, from its own abstract
+
+Read 2 opened cleanly, is 2026, peer-reviewed and open access, so nothing about access or venue
+disqualifies it. **Its abstract reports no cohort, no observation period and no injury count.** A
+multi-sensor system "was developed to continuously monitor" — how many players, over how long, with
+how many injuries, is not on the page the reader was shown. Every number in the abstract is an
+output of the authors' own model rather than a measurement it could be checked against: 47.3%,
+31.8%, 73.2%, and a Transformer at **91.5% accuracy, 0.956 AUC**.
+
+That is the remit's *"a number with no method attached"*, and the accuracy figure is the sharpest
+case of it: **injury is a rare event, and an accuracy without a base rate is uninterpretable** — the
+paper compares itself favourably to a cited 75–80% without establishing that the two were measured
+on the same thing. The coupling result is near-circular on its own description: injuries are
+classified into spatial regions and temporal phases, and the interaction of those two
+classifications is then reported to explain **73.2% of injury variance** in the same classification.
+
+And the introduction, as served, asserts the conclusion before any result: *"The present study
+advances beyond these limitations by … achieving substantially improved prediction accuracy compared
+to conventional methods."* **The multi-sensor instrumentation is genuine and the question is a real
+one**; if a later cycle can quote a cohort and a prevalence off its methods section, it re-enters.
+Today it fails threshold 6's *"concrete measured result"* on the text that was on screen.
+
+### R-6 — the read
+
+**`https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0351884`**,
+read [34652718168](https://github.com/in-c0/tuned/actions/runs/34652718168), 2026-09-11T22:10:32Z.
+
+```
+http_status: 200 · read_outcome: "page" · visible_text_chars: 54858
+interstitial_signals: [] · possible_gate_markers: [] · excerpt_truncated: true
+redirected: false · final_url == requested_url
+published_at: null (meta) — the date below is from the page body, which was on screen
+```
+
+`OPEN ACCESS · PEER-REVIEWED · RESEARCH ARTICLE`. Taghidoust Chahardeh S, Hosseini SH, Shamsi
+Majelan A (2026), *PLoS One* **21(6): e0351884**. `Received: October 30, 2025; Accepted: June 2,
+2026; Published: June 22, 2026`. Not a preprint, review or editorial.
+
+**What is on remit.** The remit's second bullet — *"biomechanics — gait, load, kinematics and
+kinetics, where a result is reported against a method someone else could repeat"* — and its fourth,
+which admits **negative and null results** explicitly. Every figure quoted in the `why` is verbatim
+from the abstract that was on screen: *"randomized, parallel-group pre–post study"*, *"Thirty-six
+participants"*, *"elite female Taekwondo athletes"*, *"Three-dimensional kinetic and temporal
+variables were collected during drop jump tasks before and after each intervention using inertial
+measurement units"*, *"peak concentric force (η² = 0.186), and mean concentric power (η² = 0.211)"*,
+*"dynamic stretching enhanced concentric force and power"*, *"foam rolling altered temporal
+characteristics … without increasing peak force"*, and *"jump height, flight time, and contact time
+showed trivial effect sizes (η² ≤ 0.104) and no significant between-group differences"*.
+
+**The finding is the null, and that is why it was selected.** The three numbers a coach actually
+reads off a drop jump — height, flight time, contact time — did not move. The force- and
+power-phase components did. A result that separates *the thing that changed* from *the thing
+everyone measures* is worth a reader's attention in a way that a positive-on-everything result is
+not.
+
+### The case against it, written before the dispatch
+
+1. **It is not a sensor-validation study.** The IMU here is the instrument, not the object. That is
+   the second consecutive cycle to move away from *does this device work*, and the drift is recorded
+   rather than left to be noticed later. The defence is that the remit's biomechanics bullet asks
+   for a repeatable method and a reported result, not for a validation target.
+2. **Warm-up protocols sit next door to *"generic fitness advice"*, which is out of scope by name.**
+   The distinction the remit is actually drawing is *advice* versus *measurement*: a randomized
+   trial reporting η² against a stated statistical model, including a null, is the second. **It is
+   the closest to that boundary anything on this feed has come**, and a reader is entitled to the
+   adjacency being stated rather than glossed.
+3. **n = 36, one cohort, one sport, female athletes only, acute effects only.** No follow-up and no
+   competition outcome. η² of 0.18–0.21 is moderate. The `why` carries `Acute, one cohort.` for this
+   reason.
+4. **The abstract oversells itself in one sentence** — *"highlighting the practical utility of
+   dynamic stretching"* — which is a step beyond what one acute session at η² = 0.186 supports. The
+   `why` deliberately carries the effect sizes and the null instead of that sentence.
+5. **The reader's metadata extraction returned `published_at: null`.** The publication date is taken
+   from the page body and the citation line, both of which were on screen. Stated because a date
+   read from prose is a weaker fact than one read from a meta tag.
+
+### Exactly what is dispatched
+
+| Field | Value |
+| --- | --- |
+| `handle` | `sportstech` |
+| `url` | `https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0351884` |
+| `title` | `Acute effects of three warm-up protocols on drop jump biomechanics in elite Taekwondo athletes: An IMU-based analysis` |
+| `category` | `Research` |
+| `why` | `Randomized pre–post, 36 elite female Taekwondo athletes, drop-jump kinetics, IMU. Dynamic stretching raised concentric force and power (η²=0.186/0.211); foam rolling altered timing, not peak force. Jump height, flight and contact time: trivial, n.s. (η²≤0.104). Acute, one cohort.` |
+| `idempotency_key` | default — hash of handle+url |
+
+`title` 117 of 300. `why` 280 of 280. Neither is truncated by the API, which refuses an over-long
+field rather than slicing it.
