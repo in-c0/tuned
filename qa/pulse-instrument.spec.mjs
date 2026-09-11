@@ -83,14 +83,15 @@ const PULSE_PREFIX = "/api/pulse/";
 // something this suite quietly counts. Kept in sync with PULSE_COUNTERS in src/index.ts — and the
 // reason this constant is load-bearing rather than decorative is that it went stale for a day
 // without anything failing (see the run-140 note above).
-// `follow_open` and `feed_render` are on this list because the server allows them, not because
-// this page emits them: both belong to a public feed page — one to its follow dialog, one to its
-// script running at all — and neither may ever fire on `/`, whose views are EXP-011's denominator.
+// `follow_open`, `feed_render` and `follow_rss` are on this list because the server allows them,
+// not because this page emits them: all three belong to a public feed page — its follow dialog,
+// its script running at all, and the RSS option inside that dialog — and none of them may ever
+// fire on `/`, whose views are EXP-011's denominator.
 // The mirror has to be exact or the guard in test/pulse.test.ts goes red, but listing them here
 // widens the "outside the allowlist" assertion below — so `NEVER_HERE` names them separately and
 // is asserted on its own. Anything added to PULSE_COUNTERS for another page belongs in both lists.
-const ALLOWED = ["landing_render", "landing_engage", "application_start", "follow_open", "feed_render"];
-const NEVER_HERE = ["follow_open", "feed_render"];
+const ALLOWED = ["landing_render", "landing_engage", "application_start", "follow_open", "feed_render", "follow_rss"];
+const NEVER_HERE = ["follow_open", "feed_render", "follow_rss"];
 
 // The one pulse on this page that asks nothing of the visitor. Every other name here is
 // interaction-gated, and that difference is what the assertions below are built around.

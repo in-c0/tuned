@@ -281,7 +281,10 @@ dialog::backdrop { background: #000a; backdrop-filter: blur(3px); }
 dialog h3 { margin-bottom: 6px; }
 dialog p { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
 dialog form { display: flex; gap: 8px; }
-dialog input { flex: 1; }
+dialog input { flex: 1; min-width: 0; }
+dialog .rss-cta { display: block; text-align: center; text-decoration: none; margin-bottom: 16px; }
+dialog form button { white-space: nowrap; }
+dialog .or { margin-bottom: 10px; }
 
 @media (max-width: 540px) {
   .thumb { width: 84px; height: 60px; }
@@ -350,6 +353,32 @@ if (fbtn) {
     opened = true;
     fetch("/api/pulse/follow_open", { method: "POST", keepalive: true }).catch(() => {});
   });
+  // follow_rss — which of the two paths a visitor who wants this feed actually takes.
+  //
+  // They are not equivalent and the dialog no longer pretends they are. An email row goes into
+  // "followers", which nothing on this platform reads and no code in src/ can deliver to: there
+  // is no mail provider, no sender, no digest job, and standing one up is an owner/auth step.
+  // The RSS URL is the only subscription on this page that does anything today, and until this
+  // run it was a 12px link in the corner while the path that does nothing had the primary
+  // button. Both distribution candidates in ops/DISTRIBUTION.md point at this page and one of
+  // them is an RSS directory.
+  //
+  // Counted for A5's reason, the same one follow_open was built on: without it a visitor who
+  // takes the working path is invisible here, and "feed_fetch" — which does move — cannot say
+  // the dialog sent them. Same mechanism as every other pulse: one POST, no body, no cookie, no
+  // identifier, same-origin only, at most once per page load.
+  //
+  // Read it as exactly one thing: the RSS option *inside the dialog* was clicked. The separate
+  // RSS link in the page header is deliberately not wired to it — a visitor who takes that one
+  // never expresses follow intent here and would blur the rung. It is a click, not a
+  // subscription: nothing here observes whether a reader was ever added on the other side.
+  const rssCta = document.getElementById("follow-rss");
+  let rssTaken = false;
+  if (rssCta) rssCta.addEventListener("click", () => {
+    if (rssTaken) return;
+    rssTaken = true;
+    fetch("/api/pulse/follow_rss", { method: "POST", keepalive: true }).catch(() => {});
+  });
   document.getElementById("follow-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("follow-email").value;
@@ -357,7 +386,7 @@ if (fbtn) {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email })
     });
     const out = document.getElementById("follow-out");
-    if (res.ok) { out.textContent = "You're in. Digest emails are coming soon — for now, bookmark this page or grab the RSS."; e.target.style.display = "none"; }
+    if (res.ok) { out.textContent = "You're on the list. Nothing sends until digests start — the RSS link above is live now."; e.target.style.display = "none"; }
     else { out.textContent = "That didn't work — check the email?"; }
   });
 }
@@ -696,8 +725,10 @@ export function publicPage(creator: Creator, items: Item[]): string {
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
     <h3>Follow ${esc(creator.name)}</h3>
-    <p>Leave an email to follow this feed. No spam, no account.</p>
-    <form id="follow-form"><input type="email" id="follow-email" required placeholder="you@..."><button class="btn primary">Follow</button></form>
+    <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them.</p>
+    <a class="btn primary rss-cta" id="follow-rss" href="/${esc(creator.handle)}/rss.xml" target="_blank" rel="noopener">Subscribe by RSS</a>
+    <p class="or">Or leave an email. <b>Digests are not sending yet</b> — you go on the list and nothing arrives until they start. No spam, no account.</p>
+    <form id="follow-form"><input type="email" id="follow-email" required placeholder="you@..."><button class="btn">Add me to the list</button></form>
     <div class="status" id="follow-out"></div>
   </dialog>`;
   // RSS autodiscovery. The page already carries a visible "RSS" link for a human who is

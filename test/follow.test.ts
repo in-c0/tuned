@@ -381,3 +381,104 @@ describe("the page actually emits it — the half a server test cannot see", () 
     );
   });
 });
+
+// The fork under `follow_open`, and the reason the dialog was changed rather than only counted.
+//
+// Two paths leave that dialog and they are not the same kind of thing. An accepted follow writes
+// a row into `followers` — a table nothing on this platform reads and no code in src/ can deliver
+// to, because there is no mail provider, no sender and no digest job. The RSS URL is the only
+// subscription on this page that does anything today, and it was a 12px header link while the
+// path that delivers nothing held the primary button and the dialog's only copy.
+//
+// The load-bearing assertion here is the ordering one. Telling a visitor that digests are not
+// sending yet is worth nothing if they read it *after* handing over an address, which is where
+// that sentence lived until this run — in the success message. A test that merely asserts the
+// disclosure is present on the page passes in both worlds, so the one below pins that it precedes
+// the email input in the served document.
+describe("follow_rss — the working path, disclosed before the ask and counted", () => {
+  const pulse = async (name: string, headers: Record<string, string>): Promise<Response> => {
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(
+      new Request(`${ORIGIN}/api/pulse/${name}`, { method: "POST", headers }),
+      env as never,
+      ctx
+    );
+    await waitOnExecutionContext(ctx);
+    return res;
+  };
+
+  const feedPage = async (path: string): Promise<string> => {
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(
+      new Request(`${ORIGIN}${path}`, { headers: { "user-agent": HUMAN_UA } }),
+      env as never,
+      ctx
+    );
+    await waitOnExecutionContext(ctx);
+    return res.text();
+  };
+
+  it("is accepted same-origin, counted, and split like every other pulse", async () => {
+    expect((await pulse("follow_rss", { origin: ORIGIN, "user-agent": HUMAN_UA })).status).toBe(204);
+    await pulse("follow_rss", { origin: ORIGIN, "user-agent": BOT_UA });
+
+    expect(await countersToday()).toEqual({ follow_rss: 1, follow_rss_bot: 1 });
+  });
+
+  it("is refused without this site's Origin, and writes nothing", async () => {
+    const res = await pulse("follow_rss", { "user-agent": HUMAN_UA });
+
+    expect(res.status).toBe(403);
+    expect(await countersToday()).toEqual({});
+  });
+
+  it("offers the feed's own RSS URL inside the dialog, not some other feed's", async () => {
+    await seedFeed("sportstech");
+    const html = await feedPage("/sportstech");
+
+    expect(html, "the dialog no longer offers an RSS subscription").toContain('id="follow-rss"');
+    expect(html, "the dialog's RSS link does not point at this feed").toMatch(
+      /id="follow-rss"[^>]*href="\/sportstech\/rss\.xml"/
+    );
+  });
+
+  it("discloses that digests are not sending BEFORE the email input, not after the submit", async () => {
+    await seedFeed("sportstech");
+    const html = await feedPage("/sportstech");
+
+    const disclosure = html.indexOf("Digests are not sending yet");
+    const input = html.indexOf('id="follow-email"');
+    expect(disclosure, "the dialog no longer says digests are not sending yet").toBeGreaterThan(-1);
+    expect(input, "the dialog no longer has an email input").toBeGreaterThan(-1);
+    expect(
+      disclosure,
+      "the disclosure moved back after the email input — a visitor learns nothing is sent only once they have handed over an address"
+    ).toBeLessThan(input);
+  });
+
+  it("wires the beacon to the dialog's link only, and fires it at most once", async () => {
+    await seedFeed("sportstech");
+    const html = await feedPage("/sportstech");
+
+    expect(html, "the follow_rss beacon is not on the served feed page").toContain("/api/pulse/follow_rss");
+    expect(html, "the follow_rss beacon is no longer one-shot").toMatch(
+      /if \(rssTaken\) return;[\s\S]{0,120}follow_rss/
+    );
+    // The header RSS link is a different act: it carries no follow intent, and wiring it here
+    // would fold two populations into one rung. Asserted as a count rather than as the absence of
+    // one particular shape, because a second wiring can be written a dozen ways and "not this
+    // regex" passes for eleven of them.
+    expect(
+      html.match(/\/api\/pulse\/follow_rss/g),
+      "follow_rss is wired more than once — a second entry point folds two acts into one rung"
+    ).toHaveLength(1);
+    expect(
+      html.match(/id="follow-rss"/g),
+      "more than one element carries the dialog's RSS id"
+    ).toHaveLength(1);
+  });
+
+  it("does not reach the landing page, whose views are EXP-011's denominator", async () => {
+    expect(await feedPage("/"), "follow_rss reached the landing page").not.toContain("follow_rss");
+  });
+});

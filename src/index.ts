@@ -259,7 +259,29 @@ app.post("/waitlist", async (c) => {
 // and not of the studio. What follows from that pair: `feed_render` ÷ `feed_view` is sound
 // site-wide, `feed_render` ÷ `feed_view:<handle>` is sound only while one feed dominates views, and
 // `feed_render` is the honest denominator for `follow_open`, which is gated on the same element.
-const PULSE_COUNTERS = new Set(["landing_render", "landing_engage", "application_start", "follow_open", "feed_render"]);
+//
+// `follow_rss` is the fork under `follow_open`, and it exists because the two paths out of that
+// dialog are not the same kind of thing. An accepted `follow_submit` writes a row into `followers`
+// — a table nothing on this platform reads and no code in src/ can deliver to, because there is no
+// mail provider, no sender and no digest job, and standing one up is an owner/auth step. The RSS
+// URL is the only subscription on this page that does anything today. Until this run the dialog
+// offered the first as a primary button and the second nowhere, with the page's only RSS link at
+// 12px in the header; the dialog now discloses that before asking for an address and offers both.
+// `follow_rss` is what makes the resulting choice readable at all: `feed_fetch` moves when a reader
+// actually polls, but it cannot say the dialog sent them, and a visitor who takes the working path
+// would otherwise leave no trace on this rung. Site-wide and handle-free for the same reason as
+// `follow_open`, gated on the same element, and counted at most once per page load. It is a click
+// and not a subscription — nothing here observes whether a reader was added on the other side — and
+// it is emitted only by the link inside the dialog, never by the header link, which carries no
+// follow intent and would blur the rung.
+const PULSE_COUNTERS = new Set([
+  "landing_render",
+  "landing_engage",
+  "application_start",
+  "follow_open",
+  "feed_render",
+  "follow_rss",
+]);
 app.post("/api/pulse/:name", (c) => {
   const name = c.req.param("name");
   if (!PULSE_COUNTERS.has(name)) return c.body(null, 404);
