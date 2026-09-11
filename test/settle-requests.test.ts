@@ -1,20 +1,32 @@
-// The tracker that decides whether a "first-party request failure" is a failure or a test ending.
+// Telling a delivered beacon from a failed request, and the tracker that says a page went quiet.
 //
 // This is the pure half of the fix for the 2026-09-11 provenance run, where twelve cases failed on
-// `net::ERR_ABORTED` against a production that was working: a `keepalive` pulse was still open when
-// Playwright tore the page down. The spec half can only be exercised by dispatching a browser at
-// production, which costs a run and cannot be mutated; this half can be pinned exactly, so it is.
+// `net::ERR_ABORTED` for /api/pulse/feed_render against a production that was working. The browser
+// half costs a dispatch and cannot be mutated; this half can be pinned exactly, so it is.
 //
-// The load-bearing property is the one a careless fix would break. It would be easy — and wrong —
-// to make the specs green by filtering ERR_ABORTED out of the results, which is an instrument
-// edited until it agrees with today's production (L-31) and blind to a real abort ever after.
-// This helper therefore has NO access to the failure list at all: it only lets requests finish.
-// The test below pins that a request which genuinely fails still drops out of the pending set
-// without being rescued, so the spec's own assertion keeps seeing it.
+// The first attempt at that fix assumed the abort happened at Playwright's teardown and tried to
+// let the request finish first. It did not work — `settled` came back true and the abort was still
+// there — and the counter then said why: `feed_render_bot` read 25 for UTC 2026-09-11, exactly the
+// 24 feed page loads of the two provenance runs plus 1 from the follow-dialog spec. Every aborted
+// beacon had been delivered and counted. The abort is the renderer discarding a response nothing
+// awaited, which is what `fetch(..., { keepalive: true }).catch(() => {})` asks for by design.
+//
+// The load-bearing property is the one a careless fix would break. Making the specs green by
+// filtering ERR_ABORTED out wholesale would be an instrument edited until it agrees with today's
+// production (L-31), blind to a real failure ever after. The exemption is therefore narrowed to
+// one shape — a pulse path, aborted — and the tests below pin both halves of that narrowing: a
+// pulse that failed any OTHER way is still a failure, and a non-pulse abort is still a failure.
 
 import { describe, expect, it } from "vitest";
 
-import { SETTLE_POLL_MS, SETTLE_TIMEOUT_MS, trackInFlight } from "../qa/settle-requests.mjs";
+import {
+  SETTLE_POLL_MS,
+  SETTLE_TIMEOUT_MS,
+  isPulseUrl,
+  partitionFailures,
+  pulseName,
+  trackInFlight,
+} from "../qa/settle-requests.mjs";
 
 /** A stand-in for Playwright's Page: it emits the three request events and nothing else. */
 function fakePage() {
@@ -163,5 +175,64 @@ describe("trackInFlight", () => {
   it("ships a timeout loose enough that only something stuck can reach it", () => {
     expect(SETTLE_TIMEOUT_MS).toBeGreaterThanOrEqual(5_000);
     expect(SETTLE_POLL_MS).toBeLessThanOrEqual(100);
+  });
+});
+
+const ABORT = "net::ERR_ABORTED";
+const RESET = "net::ERR_CONNECTION_RESET";
+
+describe("isPulseUrl / pulseName", () => {
+  it("matches a pulse by path, not by substring anywhere in the URL", () => {
+    expect(isPulseUrl("https://justtuned.com/api/pulse/feed_render")).toBe(true);
+    expect(pulseName("https://justtuned.com/api/pulse/feed_render")).toBe("feed_render");
+    // The exemption must not be claimable by a URL that merely mentions the path.
+    expect(isPulseUrl("https://evil.example/?next=/api/pulse/feed_render")).toBe(false);
+    expect(isPulseUrl("https://justtuned.com/sportstech?x=/api/pulse/feed_render")).toBe(false);
+  });
+
+  it("is not fooled by a prefix that only looks like the pulse root", () => {
+    expect(isPulseUrl("https://justtuned.com/api/pulsex/feed_render")).toBe(false);
+    expect(pulseName("https://justtuned.com/api/pulse/")).toBeNull();
+  });
+
+  it("returns null rather than throwing on a URL it cannot parse", () => {
+    expect(isPulseUrl("not a url")).toBe(false);
+    expect(pulseName("not a url")).toBeNull();
+  });
+});
+
+describe("partitionFailures", () => {
+  it("exempts a pulse beacon that aborted — the delivered-and-discarded case", () => {
+    const r = partitionFailures([{ url: "https://justtuned.com/api/pulse/feed_render", failure: ABORT }]);
+    expect(r.failures).toEqual([]);
+    expect(r.discarded).toEqual([
+      { url: "https://justtuned.com/api/pulse/feed_render", failure: ABORT, pulse: "feed_render" },
+    ]);
+  });
+
+  it("does NOT exempt a pulse that failed some other way — this is the narrowing that matters", () => {
+    const r = partitionFailures([{ url: "https://justtuned.com/api/pulse/feed_render", failure: RESET }]);
+    expect(r.discarded).toEqual([]);
+    expect(r.failures).toHaveLength(1);
+  });
+
+  it("does NOT exempt a non-pulse request that aborted", () => {
+    const r = partitionFailures([{ url: "https://justtuned.com/sportstech", failure: ABORT }]);
+    expect(r.discarded).toEqual([]);
+    expect(r.failures).toHaveLength(1);
+  });
+
+  it("keeps every other failure untouched alongside an exempted beacon", () => {
+    const r = partitionFailures([
+      { url: "https://justtuned.com/api/pulse/feed_render", failure: ABORT },
+      { url: "https://justtuned.com/style.css", failure: RESET },
+      { url: "https://justtuned.com/api/pulse/follow_open", failure: ABORT },
+    ]);
+    expect(r.discarded.map((d) => d.pulse)).toEqual(["feed_render", "follow_open"]);
+    expect(r.failures).toEqual([{ url: "https://justtuned.com/style.css", failure: RESET }]);
+  });
+
+  it("passes an empty list straight through", () => {
+    expect(partitionFailures([])).toEqual({ failures: [], discarded: [] });
   });
 });

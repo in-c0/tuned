@@ -30,3 +30,17 @@ export declare function trackInFlight(
   isFirstParty: (url: string) => boolean,
   deps?: { now?: () => number; sleep?: (ms: number) => Promise<void> },
 ): InFlightTracker;
+
+export declare const PULSE_PATH_PREFIX: string;
+export declare function isPulseUrl(url: string): boolean;
+export declare function pulseName(url: string): string | null;
+
+export interface FailureRecord {
+  url: string;
+  failure: string;
+}
+
+export declare function partitionFailures(
+  firstPartyFailures: FailureRecord[],
+  opts?: { abortText?: string },
+): { failures: FailureRecord[]; discarded: Array<FailureRecord & { pulse: string | null }> };

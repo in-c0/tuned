@@ -17,7 +17,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { trackInFlight } from "./settle-requests.mjs";
+import { partitionFailures, trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -50,10 +50,8 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
       failedRequests.push({ url: req.url(), failure: req.failure()?.errorText ?? "" });
     });
 
-    // Registered before the first navigation. See qa/settle-requests.mjs: the pulses on these
-    // pages are `keepalive` fetches fired during load, and a spec that asserts on the failure
-    // list without letting them land reads its own teardown as a production fault. Removes
-    // nothing from `failedRequests`.
+    // Registered before the first navigation. `inFlight` asserts the page actually went quiet
+    // before the failure list is read, so an empty list is a pass the spec earned (L-61).
     const firstParty = (u) => u === "" || hostOf(u) === target.host;
     const inFlight = trackInFlight(page, firstParty);
 
@@ -106,7 +104,11 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
 
     const scriptConsoleErrors = consoleErrors.filter((e) => firstParty(e.url));
     const thirdPartyConsoleErrors = consoleErrors.filter((e) => !firstParty(e.url));
-    const firstPartyFailures = failedRequests.filter((f) => firstParty(f.url));
+    // A pulse abort is a delivered beacon whose response the page discarded on purpose; every
+    // other first-party failure stays a failure. See qa/settle-requests.mjs.
+    const { failures: firstPartyFailures, discarded: discardedBeacons } = partitionFailures(
+      failedRequests.filter((f) => firstParty(f.url)),
+    );
     const thirdPartyFailures = failedRequests.filter((f) => !firstParty(f.url));
 
     const summary = {
@@ -126,6 +128,7 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
       documentScrollWidth: overflow.scrollWidth,
       viewportInnerWidth: overflow.innerWidth,
       pageErrors,
+      discardedBeacons,
       requestsSettled: settle.settled,
       settleWaitedMs: settle.waitedMs,
       requestsStillOpen: settle.outstanding,
@@ -154,7 +157,7 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
       settle.settled,
       `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
     ).toBe(true);
-    expect(firstPartyFailures, "first-party request failures").toEqual([]);
+    expect(firstPartyFailures, "first-party request failures (pulse beacon aborts excluded)").toEqual([]);
     expect(
       overflow.scrollWidth,
       `feed overflows horizontally: scrollWidth ${overflow.scrollWidth} > innerWidth ${overflow.innerWidth}`,

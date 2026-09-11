@@ -1,36 +1,44 @@
-// Wait for a page's own in-flight requests to finish before judging whether any of them failed.
+// Telling a beacon that was delivered from a request that failed — because Chromium reports both
+// to the page as `net::ERR_ABORTED`.
 //
 // Why this exists. Three specs in this directory — exp008-provenance, public-surfaces and
 // exp003-mechanism — end with `expect(firstPartyFailures).toEqual([])`, collecting Playwright's
-// `requestfailed` events into a list and asserting the list is empty. That assertion is correct
-// about what it wants and wrong about what it measures, and on 2026-09-11 it failed twelve times
-// in a row against a production that was working.
+// `requestfailed` events and asserting the list is empty. On 2026-09-11 that assertion failed
+// twelve times in a row, on all six nominated items at both viewports, against a production that
+// was working perfectly.
 //
-// The mechanism. Every pulse on this site is fired as `fetch(..., { keepalive: true })` — see
-// CLIENT_JS in src/pages.ts. `keepalive` exists precisely so a beacon may outlive the document
-// that sent it, so the request is still open when a spec finishes its assertions and Playwright
-// tears the page down. Chromium reports the teardown as `requestfailed` with `net::ERR_ABORTED`,
-// and the spec reads that as a first-party request failure. It is not one. Nothing failed; the
-// test stopped watching.
+// THE MECHANISM, and it is not what the first fix assumed. Every pulse on this site is fired as
+// `fetch(..., { keepalive: true }).catch(() => {})` — see CLIENT_JS in src/pages.ts. It is
+// fire-and-forget by construction: nothing awaits the promise. `keepalive` hands the request to
+// the browser process, which completes it independently of the document, and the renderer then
+// discards a response no one is waiting for. Chromium surfaces that discard to the page as
+// `requestfailed` / `net::ERR_ABORTED`. The request was sent. The server answered. The page threw
+// the answer away on purpose.
 //
-// This is L-67 in a third location, and worth naming as such: a deadline inside a verdict. The
-// spec had an implicit deadline — "however long the assertions happen to take" — and on either
-// side of it sat two different facts, *the beacon has not landed yet* and *the beacon will never
-// land*, reported identically. `feed_render` shipped 2026-09-07 (00f635a); this spec last ran
-// 2026-09-05. It has never once run against a page that fires it, which is why the collision
-// waited five days to be seen and then arrived all at once.
+// This was established by counter rather than by argument, after a first fix that assumed the
+// abort happened at test teardown and did not work. `feed_render_bot` read **25** for UTC
+// 2026-09-11 in the snapshot generated at 22:30:07Z — exactly the 24 feed page loads the two
+// provenance runs made that evening, plus the 1 from the follow-dialog spec. **Every single
+// "aborted" beacon was delivered and counted.** The corroborating case is follow-dialog.spec.mjs,
+// which sees ordinary `response` events for the same pulses because it *awaits* them with
+// `waitForResponse`, so the renderer keeps the stream long enough to deliver it.
 //
-// What this does NOT do, because it is the whole point. **It removes nothing from the failure
-// list.** Filtering ERR_ABORTED out of the results would be editing an instrument until it agrees
-// with today's production, which is L-31, and it would also blind the spec to a real abort. What
-// it does instead is give the page's own requests a bounded chance to *finish*, so a beacon that
-// lands never enters the list at all and a beacon that genuinely fails still does. The assertion
-// downstream stays byte-identical and stays strict.
+// So the old assertion could not be made green by waiting, and the honest reading is that
+// "no first-party request was aborted" was never the property worth testing. What matters about a
+// pulse is whether it was FIRED and whether the server ACCEPTED it, and both are observable.
 //
-// And the drain is reported rather than assumed. `settle()` returns whether the page actually went
-// quiet or the deadline expired with requests still open, so a caller can tell "we waited and
-// nothing was pending" from "we gave up and asserted into a half-finished page". The second is a
-// silent pass (L-61) if it is not surfaced, so callers assert on it.
+// What this does NOT do, because it is the whole point. It does not blanket-filter ERR_ABORTED,
+// which would be an instrument edited until it agrees with today's production (L-31) and blind to
+// a real failure ever after. It narrows the exemption to exactly one shape — a POST to
+// /api/pulse/* that the page deliberately did not await — and pairs it with POSITIVE assertions
+// the old spec never had: the expected pulse fired, and every pulse response that was observed
+// carried 204. A pulse that 404s or 403s produces a response with that status, not an abort, and
+// is still caught. A pulse that silently stopped firing produces no request at all, and is now
+// caught for the first time. The spec ends up stricter than it was, not looser.
+//
+// `trackInFlight` below is kept from that first fix. It no longer carries the diagnosis, but the
+// property it asserts is worth having on its own: an empty failure list read off a page that still
+// had requests open is a pass the spec did not earn (L-61).
 
 /** How long to let a page's own requests finish before giving up on them, in ms. Generous: the
  *  beacons this is waiting on are a single POST with no body against the same origin, and every
@@ -90,4 +98,44 @@ export function trackInFlight(page, isFirstParty, deps = {}) {
   }
 
   return { settle, outstanding, pendingCount: () => pending.size };
+}
+
+/** The one request shape a page here deliberately abandons: a fire-and-forget pulse beacon. */
+export const PULSE_PATH_PREFIX = "/api/pulse/";
+
+/** True for a URL that is one of this site's pulse beacons. Path-anchored, not a substring match:
+ *  "…/api/pulse/x" must be the path, so a third-party URL merely *containing* the text cannot
+ *  claim the exemption. */
+export function isPulseUrl(url) {
+  try {
+    return new URL(url).pathname.startsWith(PULSE_PATH_PREFIX);
+  } catch {
+    return false;
+  }
+}
+
+/** The pulse name, or null when the URL is not a pulse. */
+export function pulseName(url) {
+  if (!isPulseUrl(url)) return null;
+  const name = new URL(url).pathname.slice(PULSE_PATH_PREFIX.length);
+  return name === "" ? null : name;
+}
+
+/**
+ * Split a spec's first-party `requestfailed` list into the failures that matter and the beacon
+ * aborts that do not.
+ *
+ * `discarded` is the narrow exemption: a pulse URL whose failure is an abort. EVERYTHING else
+ * stays in `failures`, including a pulse that failed for any other reason (DNS, connection reset,
+ * blocked) and any non-pulse request that aborted. The caller asserts `failures` is empty exactly
+ * as before; `discarded` goes into the evidence so the exemption is visible rather than silent.
+ */
+export function partitionFailures(firstPartyFailures, { abortText = "net::ERR_ABORTED" } = {}) {
+  const discarded = [];
+  const failures = [];
+  for (const f of firstPartyFailures) {
+    if (isPulseUrl(f.url) && f.failure === abortText) discarded.push({ ...f, pulse: pulseName(f.url) });
+    else failures.push(f);
+  }
+  return { failures, discarded };
 }

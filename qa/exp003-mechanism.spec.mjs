@@ -14,7 +14,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { trackInFlight } from "./settle-requests.mjs";
+import { partitionFailures, trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -53,9 +53,8 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
       failedRequests.push({ url: req.url(), failure: req.failure()?.errorText ?? "" });
     });
 
-    // Registered before any navigation. See qa/settle-requests.mjs: the landing page's pulses are
-    // `keepalive` fetches fired during load, and asserting on the failure list without letting
-    // them land reads the test's own teardown as a production fault. Removes nothing.
+    // Registered before any navigation. `inFlight` asserts the page actually went quiet before
+    // the failure list is read, so an empty list is a pass the spec earned (L-61).
     const firstParty = (u) => u === "" || hostOf(u) === target.host;
     const inFlight = trackInFlight(page, firstParty);
 
@@ -166,7 +165,11 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
 
     const scriptConsoleErrors = consoleErrors.filter((e) => firstParty(e.url));
     const thirdPartyConsoleErrors = consoleErrors.filter((e) => !firstParty(e.url));
-    const firstPartyFailures = failedRequests.filter((f) => firstParty(f.url));
+    // A pulse abort is a delivered beacon whose response the page discarded on purpose; every
+    // other first-party failure stays a failure. See qa/settle-requests.mjs.
+    const { failures: firstPartyFailures, discarded: discardedBeacons } = partitionFailures(
+      failedRequests.filter((f) => firstParty(f.url)),
+    );
     const thirdPartyFailures = failedRequests.filter((f) => !firstParty(f.url));
 
     const summary = {
@@ -189,6 +192,7 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
       successBranchReached: true,
       pageErrors,
       firstPartyConsoleErrors: scriptConsoleErrors,
+      discardedBeacons,
       requestsSettled: settle.settled,
       settleWaitedMs: settle.waitedMs,
       requestsStillOpen: settle.outstanding,
@@ -214,7 +218,7 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
       settle.settled,
       `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
     ).toBe(true);
-    expect(firstPartyFailures, "first-party request failures").toEqual([]);
+    expect(firstPartyFailures, "first-party request failures (pulse beacon aborts excluded)").toEqual([]);
   });
 
   // Criterion 6. Runs once, from the desktop project only: it is a property of the live route, not

@@ -34,7 +34,7 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { loadNominations } from "./nominations/index.mjs";
-import { trackInFlight } from "./settle-requests.mjs";
+import { partitionFailures, pulseName, trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -77,12 +77,27 @@ for (const handle of HANDLES) {
           failedRequests.push({ url: req.url(), failure: req.failure()?.errorText ?? "" });
         });
 
-        // Registered before the navigation, because the request this exists for — the
-        // `feed_render` pulse — is fired during page load. See qa/settle-requests.mjs: it lets
-        // the page's own beacons finish so a `keepalive` fetch is never mistaken for a failure
-        // when the test ends. It removes nothing from `failedRequests`.
+        // Registered before the navigation, because the requests this watches — the `feed_render`
+        // pulse among them — are fired during page load. `inFlight` asserts the page actually went
+        // quiet before the failure list is read, so an empty list is a pass the spec earned (L-61).
+        // It is NOT what makes a discarded beacon legible; see qa/settle-requests.mjs for that.
         const firstParty = (u) => u === "" || hostOf(u) === target.host;
         const inFlight = trackInFlight(page, firstParty);
+
+        // What the page actually fired, and what the server said to it. This is the positive half
+        // the old spec never had: it could only assert that nothing aborted, which is neither
+        // necessary (a delivered beacon aborts by design) nor sufficient (a pulse that stopped
+        // firing aborts nothing at all and would have passed silently).
+        const pulsesFired = [];
+        const pulseResponses = [];
+        page.on("request", (req) => {
+          const n = pulseName(req.url());
+          if (n && firstParty(req.url())) pulsesFired.push({ name: n, method: req.method() });
+        });
+        page.on("response", (res) => {
+          const n = pulseName(res.url());
+          if (n && firstParty(res.url())) pulseResponses.push({ name: n, status: res.status() });
+        });
 
         const res = await page.goto(`/${handle}`, { waitUntil: "load" });
         expect(res, `no response for GET /${handle}`).not.toBeNull();
@@ -126,7 +141,11 @@ for (const handle of HANDLES) {
         const settle = await inFlight.settle();
 
         const firstPartyConsoleErrors = consoleErrors.filter((e) => firstParty(e.url));
-        const firstPartyFailures = failedRequests.filter((f) => firstParty(f.url));
+        // A pulse abort is a delivered beacon whose response the page discarded on purpose; every
+        // other first-party failure stays a failure. See qa/settle-requests.mjs.
+        const { failures: firstPartyFailures, discarded: discardedBeacons } = partitionFailures(
+          failedRequests.filter((f) => firstParty(f.url)),
+        );
 
         // Evidence is written BEFORE the assertions, so a failing run is still a readable one.
         const summary = {
@@ -152,6 +171,9 @@ for (const handle of HANDLES) {
           cardsOnFeed: totalCards,
           horizontalOverflow: overflow.scrollWidth > overflow.innerWidth + 1,
           pageErrors,
+          pulsesFired,
+          pulseResponses,
+          discardedBeacons,
           requestsSettled: settle.settled,
           settleWaitedMs: settle.waitedMs,
           requestsStillOpen: settle.outstanding,
@@ -191,7 +213,19 @@ for (const handle of HANDLES) {
           settle.settled,
           `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
         ).toBe(true);
-        expect(firstPartyFailures, "first-party request failures").toEqual([]);
+        expect(firstPartyFailures, "first-party request failures (pulse beacon aborts excluded)").toEqual([]);
+        // The feed page must fire feed_render exactly once. A page that stopped firing it would
+        // have sailed through every assertion this spec had before today.
+        expect(
+          pulsesFired.filter((p) => p.name === "feed_render").map((p) => p.method),
+          "the feed page should fire feed_render exactly once, as a POST",
+        ).toEqual(["POST"]);
+        // And where a response was observed at all, it must be the 204 the route promises. A pulse
+        // that 404d off the allowlist or 403d the same-origin guard answers, it does not abort.
+        expect(
+          pulseResponses.filter((p) => p.status !== 204),
+          "every observed pulse response should be 204",
+        ).toEqual([]);
         expect(
           overflow.scrollWidth,
           `feed overflows horizontally: ${overflow.scrollWidth} > ${overflow.innerWidth}`,
