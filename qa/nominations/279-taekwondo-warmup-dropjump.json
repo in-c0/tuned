@@ -1,0 +1,17 @@
+{
+  "itemId": 279,
+  "handle": "sportstech",
+  "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0351884",
+  "title": "Acute effects of three warm-up protocols on drop jump biomechanics in elite Taekwondo athletes: An IMU-based analysis",
+  "category": "Research",
+  "why": "Randomized pre–post, 36 elite female Taekwondo athletes, drop-jump kinetics, IMU. Dynamic stretching raised concentric force and power (η²=0.186/0.211); foam rolling altered timing, not peak force. Jump height, flight and contact time: trivial, n.s. (η²≤0.104). Acute, one cohort.",
+  "preregistration": {
+    "commit": "3d205a4a116452de19ce841d302f0bab63e5680c",
+    "committedAt": "2026-09-11T22:17:10Z",
+    "form": "nomination-markdown",
+    "transcribedAt": "2026-09-11T22:19:40Z",
+    "verifyWith": "git show 3d205a4 -- ops/EXP-008-CANDIDATES.md"
+  },
+  "publishedAt": "2026-09-11T22:17:48.081Z",
+  "notes": "R-6, run 152. The four strings are transcribed from the `Exactly what is dispatched` table of the nomination commit above, which was pushed to master 38.08 seconds before the dispatch — not read back from production. Same guarantee class as 247, 248 and 249: the strings came from a commit that predates the dispatch, and scripts/validate-nominations.mjs checks url and title verbatim against that commit whenever it is present in the clone. First item on this feed from a host other than frontiersin.org or arxiv.org — journals.plos.org opened to a self-declaring headless reader with no gate marker at all, discharging one of the four host probes run 85 pre-committed in L-45. Also the first item whose selected finding is a null on the outcome everyone measures rather than a positive on the one the authors built: drop-jump height, flight time and contact time did not move while the concentric force and power components did. The `why` deliberately does not carry the abstract's own closing sentence about \"practical utility\", which overstates one acute session at η² = 0.186. The item id is 279 rather than 250 because the items table allocates ids across queued Spotify captures too; 249 was the previous operator publication, not the previous row."
+}
