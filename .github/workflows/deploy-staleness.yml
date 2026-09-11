@@ -1,0 +1,185 @@
+name: deploy staleness
+
+# Is production serving the code that is on master? Between pushes, nothing asked.
+#
+# `verify production` is a gate: it runs on push, waits up to 8 minutes for that commit to
+# be live, and fails closed. This is a watchdog for the same pipeline, and it exists because
+# a gate cannot do a watchdog's job. On 2026-09-11 run 150 pushed `408db69` at 04:23:24Z,
+# posted an execution report saying "deployed and verified green" at 04:24:18Z, and the
+# verification went red at 04:31:42Z having never seen it serve
+# (https://github.com/in-c0/tuned/actions/runs/34562017390). Two things were wrong at once:
+#
+#   * Nothing read the red. The executor is the only reader of its own Actions list and had
+#     already finished the run. It sat unexamined for 5h34m.
+#   * The red could not say which failure it was. Production was in fact fine — `d53b0c0`
+#     landed at 04:41 and contained `408db69` — but "never landed" and "landed after the
+#     window" are the same reading, and the operating rules prescribe ROLLBACK for the
+#     first. Acting on that signal would have reverted a healthy site.
+#
+# So this asks a question with no timeout in it, on a schedule that does not depend on
+# anyone pushing: does the build production is serving contain the newest commit on master
+# that has had 90 minutes to deploy? The derivation of the 90 minutes, and why a late
+# delivery cannot bias the answer, are in the header of scripts/deploy-staleness.mjs.
+#
+# WHY IT INSTALLS NOTHING. No `npm ci`, no setup-node. The script imports node builtins and
+# shells out to git and to scripts/prod-http.sh. A watchdog that needs the npm registry has
+# a second way to be wrong about the thing it is watching — the same rule executor
+# liveness follows.
+#
+# WHY NOT INSIDE `executor liveness`. That file watches whether the Claude loop is firing,
+# and its own header says in as many words that it "is not a product or production signal".
+# Two questions, two verdicts, two alarm keys. Folding them together would mean an outage in
+# one could mask an outage in the other, which is how a watchdog with two jobs ends up doing
+# neither.
+#
+# NO SECRETS. The production read is anonymous, so it can see identity and availability and
+# nothing else. That is all this check needs.
+
+on:
+  schedule:
+    # Hourly, offset from `executor liveness` at :35 so the two never contend for the same
+    # minute. This is the requested rate, not the delivered one — scheduled runs in this
+    # repository have arrived 1.6h–4.5h late on every firing since 2026-08-26, which costs
+    # detection speed here and cannot change the verdict.
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: deploy-staleness
+  cancel-in-progress: false
+
+jobs:
+  staleness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Full history: the verdict compares the serving commit against master's first-parent
+      # line, and a shallow clone would report a commit it simply cannot see as "not on
+      # master" — a false alarm in the loudest direction.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Under the shared request contract, not a bare curl and never a borrowed browser
+      # user-agent — see the header of scripts/prod-http.sh. Only the status reaches the
+      # log; the body goes to a file the next step reads.
+      - name: Read the production build stamp
+        id: version
+        run: |
+          set -uo pipefail
+          chmod +x scripts/prod-http.sh
+          code=$(scripts/prod-http.sh get https://justtuned.com/api/version version.json 'application/json')
+          echo "status=${code}" | tee -a "$GITHUB_OUTPUT"
+
+      # `continue-on-error` so the alarm below still runs; the job is failed explicitly at
+      # the end. Without that the comment step would be skipped on exactly the runs it
+      # exists for.
+      - name: Compare it against master
+        id: staleness
+        continue-on-error: true
+        run: |
+          node scripts/deploy-staleness.mjs \
+            --version-file version.json \
+            --status "${{ steps.version.outputs.status }}" \
+            --json
+
+      # One comment per outage, keyed on the oldest commit that has not deployed — constant
+      # for as long as that commit is the blocker, and different the moment another one is.
+      #
+      # The `alarm_key` guard is what keeps an unreachable production silent here. A single
+      # failed probe from a runner is a blip, and run 148 shipped a watchdog that would have
+      # paged the owner on one. Site availability is `verify production`'s question, asked on
+      # every push and on its own daily schedule; this file only ever raises a build that
+      # provably did not deploy.
+      - name: Raise the alarm on issue #1
+        if: steps.staleness.outcome == 'failure' && steps.staleness.outputs.alarm_key != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REASON: ${{ steps.staleness.outputs.reason }}
+          ALARM_KEY: ${{ steps.staleness.outputs.alarm_key }}
+          SERVING: ${{ steps.staleness.outputs.serving }}
+          SERVING_AT: ${{ steps.staleness.outputs.serving_at }}
+          DUE: ${{ steps.staleness.outputs.due }}
+          DUE_AT: ${{ steps.staleness.outputs.due_at }}
+          BEHIND: ${{ steps.staleness.outputs.behind }}
+          STALE_HOURS: ${{ steps.staleness.outputs.stale_hours }}
+          GRACE_MINUTES: ${{ steps.staleness.outputs.grace_minutes }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          marker="<!-- deploy-staleness-alarm key=${ALARM_KEY} -->"
+
+          # Written to a file rather than piped into grep: under `pipefail`, `grep -Fq`
+          # exits at the first match and closes the pipe, so gh dies of EPIPE and the
+          # pipeline fails on exactly the runs where the marker WAS found — the dedupe
+          # would invert and comment every hour. (Learned the hard way in
+          # executor-liveness.yml; the same shape, so the same note.)
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/1/comments" \
+            --jq '.[].body' > comments.txt
+
+          if grep -Fq "$marker" comments.txt; then
+            echo "Alarm for ${ALARM_KEY} already posted; not repeating it."
+            exit 0
+          fi
+
+          {
+            echo "$marker"
+            echo
+            if [ "${REASON}" = "unknown-serving" ]; then
+              echo "## Production is serving a build that is not on \`master\`"
+            else
+              echo "## Production is not serving \`master\`"
+            fi
+            echo
+            echo "Cloudflare Workers Builds deploys every push to \`master\`, normally inside a minute."
+            echo "A commit that has been on \`master\` for longer than the grace period below and is"
+            echo "still not live means the build was dropped or the pipeline is stuck."
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Verdict | \`${REASON}\` |"
+            echo "| Production is serving | \`${SERVING:-unknown}\`${SERVING_AT:+ (${SERVING_AT})} |"
+            echo "| Oldest commit not live | \`${DUE:-n/a}\`${DUE_AT:+ (${DUE_AT})} |"
+            if [ -n "${STALE_HOURS:-}" ]; then
+              echo "| Undeployed for | ${STALE_HOURS}h |"
+              echo "| Commits behind | ${BEHIND:-n/a} |"
+            fi
+            echo "| Grace period | ${GRACE_MINUTES:-90} minutes |"
+            echo "| Detected by | [${GITHUB_WORKFLOW} run](${RUN_URL}) |"
+            echo
+            echo "**What this says, and what it does not.** It says a commit that should be live is not."
+            echo "It does not say the site is down — this check reads the build stamp from a site that"
+            echo "answered, and an unreachable production raises nothing here on purpose. It also does"
+            echo "**not** mean roll back: the last-known-good build is the one currently serving, so a"
+            echo "revert would ship a change, not undo one."
+            echo
+            echo "**What usually clears it.** On the 2026-08-12 pattern a single dropped build was"
+            echo "recovered by the next real push. If pushing does not clear it, telling a stuck queue"
+            echo "from a disconnected Git integration from a failing Cloudflare-side build needs the"
+            echo "Cloudflare dashboard, which is owner authority — the executor holds no Cloudflare"
+            echo "credential and no egress to the site."
+            echo
+            echo "This comment is posted once per outage. It will not repeat while the same commit is"
+            echo "the blocker."
+            echo
+            echo "---"
+            echo "_Generated by [Claude Code](https://claude.ai/code)_"
+          } > alarm.md
+
+          # -F, not -f: `@` reads the value from a file, which keeps the body out of the
+          # argument list and out of any shell quoting.
+          gh api "repos/${GITHUB_REPOSITORY}/issues/1/comments" -F "body=@alarm.md"
+
+      # The job's own conclusion has to reflect the verdict, or the Actions list shows a
+      # green run for a production that is not serving master — which is the failure mode
+      # this whole file is about.
+      - name: Fail the run when production is behind
+        if: steps.staleness.outcome == 'failure'
+        run: |
+          echo "Deploy staleness check failed: ${{ steps.staleness.outputs.reason }}" >&2
+          exit 1
