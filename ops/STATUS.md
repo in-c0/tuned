@@ -50,7 +50,19 @@ production signal", and two verdicts folded together let an outage in one mask t
 lag** measured by run 148 costs detection speed here and **cannot move the verdict** — unlike the
 wall-clock half of the executor watchdog, which had to be rewritten around exactly that.
 
-**30 new ops tests, four mutations refused.** Both centrepieces replay **real** timelines with real
+**CI went red on the first push, and the fix belonged in the script rather than the test.**
+[check 241](https://github.com/in-c0/tuned/actions/runs/34588565016) failed **78/79** while the same
+suite passed 79/79 locally. `.github/workflows/check.yml` checks out at `actions/checkout`'s **default
+depth of 1**, so `git log --first-parent` returned exactly one commit — and every commit the run could
+see was then younger than the grace period. The first draft read that as **"nothing is due yet, all
+clear" and returned green**: *a green verdict from a watchdog that cannot see*, which is the silent
+pass [L-61](LESSONS.md) is about, and it would have been invisible in any workflow that forgot
+`fetch-depth: 0`. **Every commit I can see is younger than the grace period** is not the same fact as
+**every commit on master is**. That branch is now `insufficient-history` — **red, and deliberately not
+an alarm**, because the owner's production is not implicated by a runner's clone depth. Reproduced
+against a real `--depth 1` clone before and after the fix.
+
+**31 new ops tests, four mutations refused.** Both centrepieces replay **real** timelines with real
 commits and real timestamps: the 2026-09-11 false alarm is quiet at **every** hourly firing after it,
 and the 2026-08-27 stall is red at the first firing past the grace period under **one alarm key for
 the whole outage**. Refused: a grace period widened to 600 minutes, `unreachable` given an alarm key,
@@ -69,7 +81,7 @@ found by auditing the previous defensive change, it is a defect in the **deploy 
 action depends on**, and its failure mode is a rollback of a healthy site. That is an answer for this
 run and not a licence for a fifth. **The next run should not ship a watchdog.**
 
-Gates: `check` **0** · **17 files, 270 tests** · `test:ops` **79/79** (was 49) · workflow and
+Gates: `check` **0** · **17 files, 270 tests** · `test:ops` **80/80** (was 49) · workflow and
 nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities** ·
 [verify production 221](https://github.com/in-c0/tuned/actions/runs/34588278775) **success on
 `1165ccc` serving**, 57 seconds · `deploy staleness` **run 1 green against live production**. **No

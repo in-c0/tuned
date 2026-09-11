@@ -133,8 +133,26 @@ export function evaluateDeployStaleness(
   // and its deploy, without a timeout anywhere in the reading.
   const dueIndex = timed.findIndex((c) => c.at <= now - graceMs);
   if (dueIndex === -1) {
-    // Every commit on master is younger than the grace period. Nothing is owed yet.
-    return { ...base, ok: true, reason: "no-due-commit", newest: timed[0].sha, alarmKey: null };
+    // Every commit this run can SEE is younger than the grace period, which is not the
+    // same fact as every commit on master being younger than it. A shallow clone produces
+    // exactly this input — `actions/checkout` defaults to depth 1, so the history is the
+    // tip and nothing else — and the tempting reading, "nothing is due yet, all clear", is
+    // a green verdict from a watchdog that cannot see. That is the silent pass L-61 is
+    // about, and it is how this check first went red in CI: the test asserting `fresh`
+    // against a depth-1 checkout got `no-due-commit` and a pass it had not earned.
+    //
+    // So the honest answer is that the question cannot be answered from here. The
+    // workflow checks out with `fetch-depth: 0`; if this verdict ever appears, that is
+    // what regressed.
+    return {
+      ...base,
+      ok: false,
+      reason: "insufficient-history",
+      commits: timed.length,
+      oldestSeen: timed[timed.length - 1].iso,
+      newest: timed[0].sha,
+      alarmKey: null,
+    };
   }
   const due = timed[dueIndex];
 

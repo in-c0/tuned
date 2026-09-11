@@ -5198,3 +5198,20 @@ runtime surface, no secret, no schema: nothing in this change is served to a vis
 Worker.
 
 **Spend this run AUD $0.00. Running total AUD $0.00 of $500.**
+
+**Correction, same run (2026-09-11 20:30 Sydney).** The first push went **red in CI** and the defect
+was in the watchdog, not in the test that caught it.
+[check 241](https://github.com/in-c0/tuned/actions/runs/34588565016) reported **78/79** against a suite
+that passed **79/79** locally. `.github/workflows/check.yml` checks out at `actions/checkout`'s
+**default depth of 1**, so `git log --first-parent` returned a single commit and **every commit the run
+could see was younger than the 90-minute grace period**. The first draft read that as *"nothing is due
+yet"* and returned **green** — a green verdict from a watchdog that cannot see, which is exactly the
+silent pass [L-61](LESSONS.md) names, and it would have been invisible in any future workflow that
+forgot `fetch-depth: 0`. **"Every commit I can see is younger than the grace period" is not the same
+fact as "every commit on master is."** That branch is now `insufficient-history`: **red, and
+deliberately not an alarm** — a runner's clone depth says nothing about the owner's production.
+Reproduced against a real `git clone --depth 1` before and after the fix, and kept as an assertion.
+`test:ops` **80/80**. Deployment was never affected: Cloudflare's own build runs `npm ci && npm run
+check`, which was green throughout, and
+[verify production 222](https://github.com/in-c0/tuned/actions/runs/34588565014) passed every health
+assertion on `b75e11a` serving.

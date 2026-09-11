@@ -194,12 +194,30 @@ describe("fail-closed surface", () => {
     assert.equal(v.alarmKey, "unknown:deadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
   });
 
-  it("is green, not red, when every commit is younger than the grace period", () => {
+  // The failure this check actually shipped with, kept as an assertion. `actions/checkout`
+  // defaults to depth 1, so a workflow that forgets `fetch-depth: 0` hands this the tip and
+  // nothing else — and every commit it can see is then younger than the grace period. The
+  // tempting reading is "nothing is due yet, all clear", which is a green verdict from a
+  // watchdog that cannot see. It must be red instead, and it must not page: the owner's
+  // production is not implicated by this runner's clone depth.
+  it("refuses a history too shallow to answer, rather than calling it all clear", () => {
     const v = evaluateDeployStaleness("d53b0c098fa2c94ace635edf8fae5a1730a12c62", SEPT_11.slice(0, 1), {
       now: at("2026-09-11T04:45:00+00:00"),
     });
+    assert.equal(v.ok, false);
+    assert.equal(v.reason, "insufficient-history");
+    assert.equal(v.commits, 1);
+    assert.equal(v.alarmKey, null);
+  });
+
+  // ...and the same depth is fine once the tip itself is older than the grace period,
+  // because then the commit that is due is one this run can see.
+  it("answers from a one-commit history when that commit is itself past the grace period", () => {
+    const v = evaluateDeployStaleness("d53b0c098fa2c94ace635edf8fae5a1730a12c62", SEPT_11.slice(0, 1), {
+      now: at("2026-09-11T10:35:00+00:00"),
+    });
     assert.equal(v.ok, true);
-    assert.equal(v.reason, "no-due-commit");
+    assert.equal(v.reason, "fresh");
   });
 
   it("accepts a short serving stamp as the commit it prefixes", () => {
@@ -245,15 +263,25 @@ describe("as a CLI", () => {
   };
 
   // HEAD is what a checkout of master serves, so a production claiming to serve it must
-  // read fresh at any clock. This exercises the git path end to end — reading master's
-  // real first-parent line — which the pure tests above cannot reach.
+  // read fresh. This exercises the git path end to end — reading master's real first-parent
+  // line — which the pure tests above cannot reach.
+  //
+  // The clock is pinned to a day after HEAD's own commit date rather than left at `now`,
+  // and that is not tidiness. Left at `now`, this test's verdict depends on how deep the
+  // checkout is: CI clones at depth 1, so HEAD is the only commit, and until HEAD is itself
+  // past the grace period the answer is `insufficient-history`, not `fresh`. Pinning the
+  // clock asks the same question of a shallow and a full clone.
   it("exits 0 and reports fresh against this repository's real history", async () => {
     const { stdout: head } = await execFileAsync("git", ["-C", REPO, "rev-parse", "HEAD"]);
+    const { stdout: headDate } = await execFileAsync("git", ["-C", REPO, "show", "-s", "--format=%cI", "HEAD"]);
+    const now = new Date(Date.parse(headDate.trim()) + 24 * 3_600_000).toISOString();
     const body = path.join(os.tmpdir(), `deploy-staleness-${process.pid}.json`);
     fs.writeFileSync(body, JSON.stringify({ commit: head.trim(), built: "test" }));
     try {
-      const { code, stdout } = await run(["--repo", REPO, "--json", "--status", "200", "--version-file", body]);
-      assert.equal(code, 0);
+      const { code, stdout } = await run([
+        "--repo", REPO, "--json", "--status", "200", "--version-file", body, "--now", now,
+      ]);
+      assert.equal(code, 0, stdout);
       assert.match(stdout, /"reason": "fresh"/);
       assert.match(stdout, /"alarmKey": null/);
     } finally {
