@@ -5114,3 +5114,87 @@ allowlist, the six tests go with it, `test` returns to 264. No data step: the co
 being written and any rows stay harmlessly in `metric_days`.
 
 **Spend this run AUD $0.00. Running total AUD $0.00 of $500.**
+
+## 2026-09-11 — run 151: the deploy gate went red about a healthy site, and the prescribed response to that signal is a rollback
+
+**What was found, and how.** Not by looking for it. Step 2 of this run — inspect checks — showed one
+red run in the Actions list: `verify production` on `408db69`, run 150's ops commit
+([34562017390](https://github.com/in-c0/tuned/actions/runs/34562017390)). Run 150's report, posted
+**54 seconds after that verification started and 7 minutes before it ended**, says *"Deployed and
+verified green on the shipped commit."* That sentence was true of `206dc60` and `43a6f53` and was
+never true of `408db69`.
+
+**Production was and is healthy, and that is the uncomfortable half.** A dispatched verification this
+run ([34587516939](https://github.com/in-c0/tuned/actions/runs/34587516939)) matched on the first
+probe: `d53b0c0` is serving, and it contains `408db69`. So the red run was a **false alarm about a
+deploy that landed 10 minutes after the window closed** — and the operating rules in issue #1 say to
+**roll back on a failed post-deploy verification**. Following the rule at `04:31:42Z` would have
+reverted a healthy production. The rule is not wrong; the signal it is attached to cannot tell the
+two states apart. [L-67](LESSONS.md).
+
+**Two faults, one red run.**
+
+1. **Nothing reads the red.** The executor is the only reader of its own Actions list, and by the time
+   the verification finished it had already posted and stopped. 5h34m unexamined. This is
+   [L-63](LESSONS.md) in a second location.
+2. **A timeout collapses "not yet" and "never".** [L-60](LESSONS.md) fixed the *equality* version of
+   this on 2026-09-07 (a newer build superseding the expected one read as "never deployed") by asking
+   containment instead. The deadline stayed in the question, so the same defect survived wearing a
+   clock.
+
+**Decision: build the second reading, do not widen the window.** Widening was considered and the
+evidence refuses it. Across the 19 most recent **successful** push-triggered verifications
+(2026-09-05 … 2026-09-11) total job duration was **0.9–1.7 minutes, median 1.0** — every one matched
+on its first or second probe, so a deploy normally lands inside a minute. Both failures in that window
+(`ea902e1` 2026-09-06, `408db69` 2026-09-11) burned the **full 8 minutes** without landing at all.
+**Deploys land in about a minute or they are dropped and wait for the next push.** There is no tail,
+so a longer window would buy nothing and would blunt the gate.
+
+**What shipped instead.** `.github/workflows/deploy-staleness.yml` + `scripts/deploy-staleness.mjs`,
+an **hourly** watchdog that asks a question with **no timeout in it**: does the build production is
+serving contain the newest commit on master that has had **90 minutes** to deploy? A dropped build
+recovered by the next push reads fresh; a stuck pipeline reads stale at every firing until it is
+fixed.
+
+- **Grace period 90 minutes, derived:** ~90x the median deploy and ~11x the longest unsuccessful wait
+  ever observed here. The incident it is sized against is **2026-08-27**, where three consecutive
+  commits did not deploy and production served a ~19h-old build — found ~19h in, by a run that
+  happened to look. This catches that inside two hours.
+- **Immune to late delivery**, unlike the wall-clock half of the executor watchdog. Both sides of the
+  comparison are read at the moment the check runs, so the 1.6h–4.5h scheduling lag measured in
+  [run 148](#2026-09-10-run-148--fix-the-watchdog-run-147-shipped-six-hours-earlier-before-it-pages-on-a-blip)
+  costs detection speed and cannot move the verdict.
+- **It does not page on an unreachable site.** One failed probe from a runner is a blip, and run 148
+  shipped a watchdog that would have paged on one. `unreachable` fails the job and raises nothing;
+  availability is `verify production`'s question, asked on every push and daily on its own schedule.
+- **It does not recommend a rollback**, and the alarm body says so: when a commit has not deployed,
+  the build currently serving **is** the last-known-good one, so reverting would ship a change rather
+  than undo one.
+- **It is a separate workflow, not a step inside `executor liveness`.** That file's own header says it
+  "is not a product or production signal". Two questions, two verdicts, two alarm keys; folded
+  together, an outage in one masks the other.
+
+**Why this and not the standing hold.** Run 147's recorded default — hold, verification and
+record-keeping only, until 2026-09-18 — is what this run did: this **is** verification work, and it
+touches no product surface, no route, no schema, no counter and no copy. **EXP-011 is untouched by
+construction** — nothing this run shipped executes in a browser or on any page.
+
+**And the objection this run holds against itself.** Run 150 named it: runs 147, 148 and 149 were a
+watchdog, a fix to that watchdog, and a dependency bump found while auditing that fix — *"that
+sequence terminates in itself"*, and this is a fourth entry in the same register. The defence is that
+this one was **not** found by auditing the previous defensive change; it was found in the Actions list
+while reading production health, it is a defect in the **deploy gate every other action depends on**,
+and its failure mode is a rollback of a healthy site. That is a real answer and it is not a
+justification for a fifth. **The next run should not ship a watchdog.**
+
+**What is expressly NOT claimed.** No commercial metric moved and none is claimed. `applications` 0,
+`members` 1, `members_ever_active` 0, `followers` 0, gross cash **AUD $0** from *no billing exists*.
+This run made a failure legible and removed a way to break production while trying to protect it. It
+did not get a user and it did not get a dollar, with 24 days left.
+
+**Rollback.** Delete `.github/workflows/deploy-staleness.yml`, `scripts/deploy-staleness.mjs` and
+`scripts/deploy-staleness.test.mjs` — or revert `1165ccc`. `test:ops` returns to 49. No data step, no
+runtime surface, no secret, no schema: nothing in this change is served to a visitor or read by the
+Worker.
+
+**Spend this run AUD $0.00. Running total AUD $0.00 of $500.**

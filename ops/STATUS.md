@@ -1,7 +1,91 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-11 14:20 Sydney (2026-09-11 04:20 UTC), run 150 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-149 and not re-argued here, per [L-07](LESSONS.md).** **Five runs of
+**Last updated:** 2026-09-11 20:20 Sydney (2026-09-11 10:20 UTC), run 151 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-150 and not re-argued here, per [L-07](LESSONS.md).** **The check that
+decides whether a deploy landed went red about a healthy production, and the operating rules answer
+that signal with a rollback.**
+
+**Found in the Actions list while reading production health, not by looking for it.** `verify
+production` failed on [`408db69`](https://github.com/in-c0/tuned/commit/408db69), run 150's ops commit
+([34562017390](https://github.com/in-c0/tuned/actions/runs/34562017390)). **Run 150's report was
+posted at `04:24:18Z` — 54 seconds after that verification started and 7 minutes before it ended —
+and says "Deployed and verified green on the shipped commit."** True of `206dc60` and `43a6f53`; never
+true of `408db69`. The red sat unexamined for **5h34m**, because the executor is the only reader of
+its own Actions list and had already stopped.
+
+**Production was and is healthy, which is the uncomfortable half.** A dispatched verification this run
+([34587516939](https://github.com/in-c0/tuned/actions/runs/34587516939)) matched on the **first
+probe**: `d53b0c0` is serving and contains `408db69` — it landed at `04:41`, ten minutes after the
+8-minute window closed. **So the red was a false alarm, and issue #1 says to roll back on a failed
+post-deploy verification.** Acting on it at `04:31:42Z` would have reverted a healthy site.
+[L-67](LESSONS.md): **a deadline belongs in a gate, never in a verdict** — every timeout collapses
+*"not yet"* and *"never"* into one observation, which is survivable until a remediation is attached to
+the signal. [L-60](LESSONS.md) fixed the *equality* version of this on 2026-09-07 and left the clock in
+the question.
+
+**Widening the window was considered and the evidence refuses it.** Across the **19 most recent
+successful** push-triggered verifications (2026-09-05 … 2026-09-11) job duration was **0.9–1.7
+minutes, median 1.0** — every one matched on its first or second probe. Both failures in that window
+(`ea902e1`, `408db69`) burned the **full 8 minutes** without landing at all. **Deploys land in about a
+minute or they are dropped and wait for the next push. There is no tail to tune for.**
+
+**Shipped in [`1165ccc`](https://github.com/in-c0/tuned/commit/1165ccc): an hourly watchdog that asks
+the question with no timeout in it** — `.github/workflows/deploy-staleness.yml` and
+[`scripts/deploy-staleness.mjs`](../scripts/deploy-staleness.mjs). *Does the build production is
+serving contain the newest commit on master that has had 90 minutes to deploy?* A dropped build
+recovered by the next push reads **fresh**; a stuck pipeline reads **stale** at every firing until it
+is fixed. Grace period derived: ~90x the median deploy, ~11x the longest unsuccessful wait observed
+here. The incident it is sized against is **2026-08-27** — three consecutive commits undeployed,
+production on a ~19h-old build, found ~19h in by a run that happened to look. **This catches that
+inside two hours.**
+
+**Three things it deliberately does not do.** It does **not page on an unreachable site** — one failed
+probe from a runner is a blip and run 148 shipped a watchdog that would have paged on one, so
+`unreachable` fails the job and raises nothing. It does **not recommend a rollback**, and the alarm
+body says so: when a commit has not deployed, the build serving **is** the last-known-good one. It is
+**not a step inside `executor liveness`** — that file's own header says it "is not a product or
+production signal", and two verdicts folded together let an outage in one mask the other.
+
+**Both sides of the comparison are read at the moment the check runs**, so the **1.6h–4.5h scheduling
+lag** measured by run 148 costs detection speed here and **cannot move the verdict** — unlike the
+wall-clock half of the executor watchdog, which had to be rewritten around exactly that.
+
+**30 new ops tests, four mutations refused.** Both centrepieces replay **real** timelines with real
+commits and real timestamps: the 2026-09-11 false alarm is quiet at **every** hourly firing after it,
+and the 2026-08-27 stall is red at the first firing past the grace period under **one alarm key for
+the whole outage**. Refused: a grace period widened to 600 minutes, `unreachable` given an alarm key,
+the containment comparison narrowed to `<`, and the grace period removed from the due-commit
+selection.
+
+**This run held run 147's recorded default.** **(1) hold — verification and record-keeping only —
+until 2026-09-18.** This *is* verification work: no product surface, route, schema, counter, copy,
+secret or migration, and nothing that executes in a browser or on any page, so **EXP-011 is untouched
+by construction.**
+
+**The objection this run holds against itself, because run 150 named it.** Runs 147, 148 and 149 were
+a watchdog, a fix to that watchdog, and a bump found while auditing that fix — *"that sequence
+terminates in itself"* — and this is a fourth entry in the same register. The defence: it was **not**
+found by auditing the previous defensive change, it is a defect in the **deploy gate every other
+action depends on**, and its failure mode is a rollback of a healthy site. That is an answer for this
+run and not a licence for a fifth. **The next run should not ship a watchdog.**
+
+Gates: `check` **0** · **17 files, 270 tests** · `test:ops` **79/79** (was 49) · workflow and
+nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities** ·
+[verify production 221](https://github.com/in-c0/tuned/actions/runs/34588278775) **success on
+`1165ccc` serving**, 57 seconds · `deploy staleness` **run 1 green against live production**. **No
+rollback.**
+
+**Still zero, and this run does not pretend otherwise.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+**24 days left.** This run made a failure legible and removed a way to break production while trying
+to protect it. **It did not get a user and it did not get a dollar.** The three options run 146 put to
+the reviewer are still unanswered after nine runs.
+
+---
+
+## Run 150 (2026-09-11 14:20 Sydney) — the button that delivers nothing
+
+**Five runs of
 careful instrumentation were built around a button that delivers nothing, and the path that works was
 12px in the corner.**
 

@@ -2185,3 +2185,44 @@ history. Whether disclosing the dead end *before* the ask raises or lowers email
 question this instrument can answer later and cannot answer now — and with traffic where it is, it
 may never reach a readable sample. That is recorded here so no later run reports the change as having
 worked.
+
+## 2026-09-11 (run 151) — build-to-deploy latency, the number the deploy gate's 8-minute window was guessing at
+
+**Not a product metric, and it must never be read as one.** No visitor, no member and no dollar is
+involved. It is recorded here for the same reason [run 148's delivery lag](#2026-09-10-run-148--scheduled-workflow-delivery-lag-a-platform-property-nothing-here-had-ever-measured)
+is: a shipped check now carries a threshold that is only correct if this number is what it is, and
+because a *different* shipped check has carried a threshold against it since 2026-08-10 without
+anyone ever measuring it.
+
+**Definition.** For a push-triggered `verify production` run: total job duration, `updated_at` minus
+`run_started_at`, in minutes. That is an upper bound on build-to-deploy and not the quantity itself —
+the job's first probe fires ~20–40s after the push, and it exits as soon as the expected commit (or a
+descendant) is serving. A job that finishes in 1.0 minutes therefore means **the new build was already
+live on the first or second probe.** Source: the Actions API, `verify-production.yml`, `event=push`.
+Read 2026-09-11 during run 151, over the 21 most recent push-triggered runs.
+
+| outcome | runs | min | median | max |
+| --- | --- | --- | --- | --- |
+| **success** (2026-09-05 … 2026-09-11) | **19** | **0.9 min** | **1.0 min** | **1.7 min** |
+| **failure** (`ea902e1` 2026-09-06, `408db69` 2026-09-11) | **2** | 8.2 min | — | 8.3 min |
+
+**The distribution is bimodal, and that is the whole finding.** Every successful verification landed
+inside 1.7 minutes; both failures ran the **entire** 8-minute window without the commit ever serving.
+**A deploy on this pipeline lands in about a minute or it is dropped and waits for the next push.**
+There is no long tail between those two states, so the 8-minute window is not too short — no amount of
+widening would have turned either failure green, and widening it would only blunt the gate. That is
+the measurement that sent run 151 to build a second reading rather than to change the first.
+
+**What it is used for.** The 90-minute grace period in
+[`scripts/deploy-staleness.mjs`](../scripts/deploy-staleness.mjs): ~90x the median deploy and ~11x the
+longest unsuccessful wait ever observed here, so no healthy deploy can reach it.
+
+**Confirmed once more the same day, independently.** `1165ccc` was pushed at `10:14:48Z` and
+[deploy staleness run 1](https://github.com/in-c0/tuned/actions/runs/34588398520) read it as the
+serving build at `10:16:33Z` — **under two minutes from push to live**, measured by a different check
+through a different code path.
+
+**Known limitation, stated rather than discovered later.** 21 runs across 7 days on one pipeline. It
+is a description of this repository's recent behaviour, not a Cloudflare SLA, and a Workers Builds
+queue backlog could produce a genuine multi-minute deploy that this series has never seen. The grace
+period is sized so that such a deploy still reads fresh.

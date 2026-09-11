@@ -2610,3 +2610,49 @@ wall, and the honest fix is on the page before it is on the counter.
 for the one that already can. It existed here, worked, was already instrumented (`feed_fetch`), and
 was the thing one of the two open distribution candidates is a directory *of* — and it was styled as
 the least important element on the page.
+
+## L-67 — a gate has a deadline, and a deadline turns two different faults into one reading (2026-09-11, run 151)
+
+**What happened.** `verify production` waits up to 8 minutes for a pushed commit to be the one
+serving, then fails closed. On 2026-09-11 it failed on `408db69`
+([34562017390](https://github.com/in-c0/tuned/actions/runs/34562017390)). Production was healthy
+throughout and became current at ~04:41 when `d53b0c0` — which contains `408db69` — landed. **Two
+independent faults fell out of that one red run.**
+
+**Fault 1: nothing read it.** Run 150 pushed `408db69` at `04:23:24Z` and posted its execution report
+at `04:24:18Z` — **54 seconds after the verification started and 7 minutes before it finished**. The
+report says "Deployed and verified green on the shipped commit", which was true of the two commits
+before it and was never true of that one. The red sat unexamined for **5h34m**, until run 151 scrolled
+the Actions list. **The loop is the only reader of its own Actions list, and it had already moved on.**
+This is [L-63](#l-63) in a second location: the only thing that could have noticed was the thing that
+had stopped looking.
+
+**Fault 2: the reading cannot say which failure it is.** "The deploy never landed" and "the deploy
+landed after the window closed" produce the **identical** output — a timeout with the old build still
+serving. The operating rules prescribe **rollback** for the first. Obeying the signal at `04:31` would
+have reverted a production that was healthy and about to become current, shipping a change in the name
+of undoing one. [L-60](#l-60) recorded the *equality* version of this defect (a newer build superseding
+the expected one read as "never deployed") and fixed it by asking containment instead. **This is the
+same defect wearing a clock**: the fix made the question right and left the deadline in it.
+
+**Lesson. A deadline belongs in a gate, never in a verdict.** A gate has to decide something in bounded
+time, so it must guess when to stop waiting — and every timeout collapses *"not yet"* and *"never"*
+into one observation. That is tolerable while the only consequence is a red run someone re-runs. It
+stops being tolerable the moment a **remediation is attached to the signal**, because the remediation
+is chosen for one of the two states and gets applied to both.
+
+**Prevention check.** For every automated signal with an action attached: *ask whether the signal can
+distinguish the state the action is for from the state it would damage.* If it cannot, either the
+action is wrong or the signal is — and the repair is usually a second reading with no deadline in it,
+asked later, rather than a longer deadline. **Widening the window would have been the wrong fix here
+and the evidence says so:** the 19 most recent successful verifications completed in **0.9–1.7
+minutes** (median 1.0) and both failures burned the **full 8 minutes**. Deploys land in about a minute
+or they are dropped. There is no tail to tune for, and a window widened until nothing trips it is the
+defect [STATUS.md](STATUS.md)'s standing hold on `MIN_PAGE_CHARS` refuses in the other direction — a
+threshold moved until the alarm stops is a threshold that has stopped meaning anything.
+
+**And the part that generalises past deploys.** A report written *before* the checks it cites have
+finished is not a report, whatever it says. Run 150's verification section was accurate about
+everything it had waited for and confident about the one thing it had not. **The honest ordering is:
+push, wait, read, then write** — and where the loop cannot wait, the sentence has to say which commit
+was verified and which was not.
