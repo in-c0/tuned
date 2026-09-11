@@ -2572,3 +2572,41 @@ test written after the fix, against only the fixed version, is indistinguishable
 asserts nothing (L-64's corollary, on a different axis). The third case exists for the same reason:
 it fails on a naive fix that rejects any URL containing `#`, which would have destroyed the counter
 it was written to protect.
+
+## L-66 — five counters were built around an action, and nobody asked what the action does (2026-09-11, run 150)
+
+**What happened.** Runs 145 and 146 found that the Follow button — the only thing a stranger on a
+Tuned feed page can do — had never been counted, and closed the gap properly: `follow_submit`,
+`follow_submit:<handle>`, `follow_invalid`, the `offpage` axis, `follow_duplicate` to make
+`totals.followers` readable, then `follow_open` as the rung above and `feed_render` as its
+denominator. Five runs of careful work on one button. **In all of it nothing asked what happens after
+a follow succeeds.**
+
+It writes a row into `followers`. **That table has exactly one reader in the entire codebase** — the
+`COUNT(*)` that produces `totals.followers` — and **`src/` contains no mail provider, no sender and no
+digest job**, so there is no code path that could ever deliver to it. The one sentence that admitted
+this lived in the *success message*, which a visitor reads **after** handing over an address. Two
+metres away, the RSS URL — the only subscription on that page that does anything today — was a 12px
+link in `var(--faint)` in the header.
+
+**Why it survived five runs of review.** Every one of those runs read the route, the counters and the
+page. **The instrument and the action were both correct.** What was never opened was the *table the
+route writes to*, and the question that would have opened it is not a question about instrumentation
+at all. A counter's correctness is a property of the counter; whether the thing it counts is worth
+doing is a property of everything downstream of it, and the review kept stopping at the write.
+
+**Lesson. An instrument on a conversion measures whether people take the action. It says nothing
+about whether the action does anything for them, and it cannot — a dead end and a working path
+produce identical counts.** The more careful the instrumentation, the more convincing the dead end
+looks: five names, an axis, a denominator and a duplicate detector, all correct, all around a button
+that delivers nothing.
+
+**Prevention check, for every conversion this loop instruments.** *Name the code path that delivers
+what the user was promised.* Not the table the row lands in — the code that reads it and acts. If you
+cannot name it, you have not built a funnel rung; you have built a meter on a door that opens onto a
+wall, and the honest fix is on the page before it is on the counter.
+
+**And the corollary that made this run's fix small.** When a promised path cannot be delivered, look
+for the one that already can. It existed here, worked, was already instrumented (`feed_fetch`), and
+was the thing one of the two open distribution candidates is a directory *of* — and it was styled as
+the least important element on the page.

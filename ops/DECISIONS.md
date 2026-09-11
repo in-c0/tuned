@@ -5066,3 +5066,51 @@ page change; no watchdog work. The two owner-action cards stand unchanged and ar
 ([L-07](LESSONS.md)).
 
 **Spend** AUD $0.00; running total **AUD $0.00 of $500**.
+
+## 2026-09-11 — run 150: the follow button collects an address nothing can deliver to, and the path that works was 12px
+
+**Decision. Change the page rather than add a fourteenth instrument.** The follow dialog now leads
+with RSS, discloses that digests are not sending **before** asking for an address, and keeps the
+email option under a label that says what it is. One new counter, `follow_rss`, registered in
+[METRICS.md](METRICS.md). Shipped in [`206dc60`](https://github.com/in-c0/tuned/commit/206dc60).
+
+**The finding, stated as what it is rather than as a discovery.** `POST /:handle/follow` writes a row
+into `followers`. That table has **one reader in the whole codebase** — the `COUNT(*)` behind
+`totals.followers` — and `src/` has **no mail provider, no sender and no digest job**. The row is
+undeliverable and always has been. The sentence that said so was in the **success message**, i.e.
+after the address was handed over. This is [L-66](LESSONS.md).
+
+**Why this and not the standing hold.** Run 147 recorded **(1) hold — verification and record-keeping
+only — until 2026-09-18** as the default when the reviewer did not answer, and runs 148 and 149 held
+it. This run does not hold it, and that is a departure worth naming rather than sliding past. Three
+reasons, in order:
+
+1. **The hold's purpose was to avoid disturbing EXP-011, and this does not disturb it.** Checked
+   clause by clause against the four stop conditions rather than asserted: the **landing page's copy,
+   layout, offer and form are byte-untouched** — no `/` surface is edited; **`landing_render` is not
+   added to any other page** — `follow_rss` is a different name on a different page and a test pins
+   that it never reaches `/`; **no second reading and no extension** — no reading of R is taken; and R
+   is not a number of people, which this run does not claim it is.
+2. **It is not verification, and this is now three consecutive runs of defensive work found by
+   auditing the previous run.** Runs 147, 148 and 149 were a watchdog, a fix to that watchdog, and a
+   dependency bump found while auditing that fix. That sequence terminates in itself.
+3. **It is the surface both owner-gated distribution items point at.** If either lands, this dialog
+   is what a stranger meets. Fixing it after a listing is fixing it for the second visitor.
+
+**What is expressly NOT claimed.** No metric moved. `followers` 0, `follow_open` and `follow_submit`
+never written unsuffixed, `follow_rss` deployed today with no history. **Whether disclosure before
+the ask raises or lowers follows is unmeasured and may never reach a readable sample at current
+traffic.** This run improved the honesty of a page and opened a path that already worked. It did not
+get a user and it did not get a dollar.
+
+**The privacy policy is unchanged, deliberately.** It already says *"We do not currently send any
+automated marketing email."* The page now agrees with it; that direction — product copy moved to
+match a published document — is the opposite of a material terms change and is not on the stop list.
+No new data category, no cookie, no identifier, no per-visitor state, no schema, no migration, no new
+route.
+
+**Rollback.** Revert `206dc60`. The dialog returns to its previous copy, `follow_rss` leaves the
+allowlist, the six tests go with it, `test` returns to 264. No data step: the counter simply stops
+being written and any rows stay harmlessly in `metric_days`.
+
+**Spend this run AUD $0.00. Running total AUD $0.00 of $500.**

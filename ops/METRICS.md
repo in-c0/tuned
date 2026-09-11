@@ -2135,3 +2135,53 @@ time and did not generalise from.
    `metrics snapshot`'s `15 0 * * *` cron exists to capture a complete UTC day and still lands after
    that day ends at a 4.5h lag; `verify production` is daily and its assertions are not time-relative.
    The hourly watchdog is the only consumer for which the lag was load-bearing.
+
+## 2026-09-11 (run 150) — `follow_rss`, and the follow row that nothing can deliver to
+
+### What this registers, and the thing it makes readable
+
+`POST /:handle/follow` writes a row into `followers`. **Nothing on this platform reads that table**
+except the `COUNT(*)` that produces `totals.followers` in [`src/metrics.ts`](../src/metrics.ts), and
+**no code in `src/` can deliver to it** — there is no mail provider, no sender, no digest job, and
+standing one up is an owner/auth step. So an accepted `follow_submit` has always been an expression
+of intent and never a subscription, and until this run the page did not say so before asking.
+
+The RSS URL is the only subscription on a feed page that does anything today. It was rendered as an
+`.rss` link — `font-size: 12px`, `color: var(--faint)` — in the page header, while the path that
+delivers nothing held the primary button and the dialog's only copy. Shipped in
+[`206dc60`](https://github.com/in-c0/tuned/commit/206dc60).
+
+### The name
+
+| Counter | What writes it |
+| --- | --- |
+| `follow_rss` / `follow_rss_bot` | the **RSS option inside the follow dialog** was clicked, reported by the page |
+
+Same mechanism as `follow_open` and `feed_render`: one POST, no body, no cookie, no identifier,
+same-origin only, at most once per page load, `_bot` split on the same user-agent heuristic, and
+forgeable by anyone willing to set one header.
+
+### Binding reading rules
+
+1. **It is a click, not a subscriber and not a person.** Nothing on this service observes whether a
+   reader was ever added on the other side. `feed_fetch:<handle>` is where an actual poll appears,
+   and it cannot be attributed to this dialog.
+2. **`follow_rss` + `follow_submit` is not a total.** A visitor can take both, or neither. The two
+   are not alternatives of the same kind and the dialog no longer presents them as one.
+3. **Its honest denominator is `follow_open`**, which is gated on the same dialog. It is site-wide
+   and carries no handle for the same reason `follow_open` is, so it cannot be attributed to a
+   destination and a ratio against `feed_view:<handle>` is sound only while one feed dominates views.
+4. **It under-counts by construction and can never over-count.** The separate RSS link in the page
+   header is deliberately not wired to it — that click carries no follow intent and folding the two
+   would blur the rung. A visitor who takes the header link is invisible on this name.
+5. **It reads 0 on every day before 2026-09-11 because it did not exist.** That is a statement about
+   the instrument, not about traffic. Counters do not backfill.
+
+### What is deliberately not claimed
+
+**No reading is taken this run and none is available.** `followers` is 0, `follow_open` and
+`follow_submit` have never been written in their unsuffixed form, and a counter deployed today has no
+history. Whether disclosing the dead end *before* the ask raises or lowers email follows is a
+question this instrument can answer later and cannot answer now — and with traffic where it is, it
+may never reach a readable sample. That is recorded here so no later run reports the change as having
+worked.

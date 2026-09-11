@@ -1,5 +1,72 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-11 14:20 Sydney (2026-09-11 04:20 UTC), run 150 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-149 and not re-argued here, per [L-07](LESSONS.md).** **Five runs of
+careful instrumentation were built around a button that delivers nothing, and the path that works was
+12px in the corner.**
+
+**`POST /:handle/follow` writes a row into `followers`. That table has one reader in the entire
+codebase** — the `COUNT(*)` behind `totals.followers` — **and `src/` contains no mail provider, no
+sender and no digest job.** There is no code path that could ever deliver to it, and standing one up
+is an owner/auth step. The one sentence admitting this lived in the **success message**, which a
+visitor reads *after* handing over an address.
+
+**Runs 145 and 146 built five names around that button** — `follow_submit`, its handle split,
+`follow_invalid`, the `offpage` axis, `follow_duplicate`, then `follow_open` and `feed_render` as its
+denominator — **and none of them opened the table the route writes to.** Every one of those runs read
+the route, the counters and the page. The instrument and the action were both correct. [L-66](LESSONS.md):
+**an instrument on a conversion measures whether people take the action and can say nothing about
+whether the action does anything for them — a dead end and a working path produce identical counts.**
+
+**Shipped in [`206dc60`](https://github.com/in-c0/tuned/commit/206dc60): the dialog leads with RSS,
+discloses that digests are not sending BEFORE asking for an address, and keeps the email option under
+a label that says what it is.** RSS is the only subscription on a feed page that works today; it was
+an `.rss` link at `font-size: 12px` in `var(--faint)` in the header. **Both owner-gated distribution
+items point at this page and one of them is a directory of RSS feeds.**
+
+**One new counter, `follow_rss`** — the RSS option inside the dialog was clicked. Site-wide,
+handle-free, same-origin, one-shot per page load, on `follow_open`'s mechanism and with `follow_open`
+as its denominator. **The header RSS link is deliberately not wired to it**, so it under-counts by
+construction and can never over-count. Five binding reading rules in [METRICS.md](METRICS.md); the
+load-bearing one is that **it is a click, not a subscriber and not a person.**
+
+**Six new unit tests and one browser spec, and they check different things on purpose.**
+[`test/follow.test.ts`](../test/follow.test.ts) pins that the disclosure precedes the email input in
+the served document; **document order is not reading order**, so
+[`qa/follow-dialog.spec.mjs`](../qa/follow-dialog.spec.mjs) ([`43a6f53`](https://github.com/in-c0/tuned/commit/43a6f53))
+checks it geometrically in a real browser. **Eight mutations refused across the two**, including a CSS
+rule that moves the disclosure below the input with the document unchanged — which the unit test
+cannot see — and the beacon wiring detached.
+
+**This run did not hold, and that is named rather than slid past.** Run 147's recorded default was
+**(1) hold — verification and record-keeping only — until 2026-09-18**, and runs 148 and 149 held it.
+Checked clause by clause against EXP-011's four stop conditions rather than asserted: **the landing
+page's copy, layout, offer and form are byte-untouched**, `landing_render` is added to no other page
+(a test pins `follow_rss` never reaches `/`), no second reading is taken, and the browser spec
+**fetches** `/` rather than navigating to it so no `landing_render` fires at all. **Runs 147, 148 and
+149 were a watchdog, a fix to that watchdog, and a bump found while auditing that fix. That sequence
+terminates in itself.**
+
+**The privacy policy is unchanged, deliberately.** It already says *"We do not currently send any
+automated marketing email."* The page now agrees with it — product copy moved to match a published
+document, which is the opposite of a material terms change.
+
+Gates: `check` **0** · **17 files, 270 tests** (was 264) · `test:ops` **49/49** · workflow and
+nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities** ·
+[verify production 217](https://github.com/in-c0/tuned/actions/runs/34561643077) **success on
+`206dc60` serving**, all health assertions green. **No rollback.**
+
+**Still zero, and this run does not pretend otherwise.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+**24 days left.** **No reading of `follow_rss` is available or claimed** — it deployed today with no
+history, and at current traffic it may never reach a readable sample. This run made a page honest and
+opened a path that already worked; it did not get a user and it did not get a dollar. The three
+options run 146 put to the reviewer are still unanswered after eight runs.
+
+---
+
+## Run 149 (2026-09-11 08:20 Sydney) — the advisory triaged by its headline
+
 **Last updated:** 2026-09-11 08:20 Sydney (2026-09-10 22:20 UTC), run 149 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-148 and not re-argued here, per [L-07](LESSONS.md).** **The advisory run
 148 waved off in one clause was the one that could write into two experiments' numerators.**
