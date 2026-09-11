@@ -34,6 +34,7 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { loadNominations } from "./nominations/index.mjs";
+import { trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -76,6 +77,13 @@ for (const handle of HANDLES) {
           failedRequests.push({ url: req.url(), failure: req.failure()?.errorText ?? "" });
         });
 
+        // Registered before the navigation, because the request this exists for — the
+        // `feed_render` pulse — is fired during page load. See qa/settle-requests.mjs: it lets
+        // the page's own beacons finish so a `keepalive` fetch is never mistaken for a failure
+        // when the test ends. It removes nothing from `failedRequests`.
+        const firstParty = (u) => u === "" || hostOf(u) === target.host;
+        const inFlight = trackInFlight(page, firstParty);
+
         const res = await page.goto(`/${handle}`, { waitUntil: "load" });
         expect(res, `no response for GET /${handle}`).not.toBeNull();
         expect(res.status(), `GET /${handle} status`).toBe(200);
@@ -113,7 +121,10 @@ for (const handle of HANDLES) {
           await cardLink.first().screenshot({ path: shot("3-published-card") });
         }
 
-        const firstParty = (u) => u === "" || hostOf(u) === target.host;
+        // Let the page's own requests land before reading the failure list. Until this existed,
+        // the deadline was "however long the assertions happened to take" and the beacon lost.
+        const settle = await inFlight.settle();
+
         const firstPartyConsoleErrors = consoleErrors.filter((e) => firstParty(e.url));
         const firstPartyFailures = failedRequests.filter((f) => firstParty(f.url));
 
@@ -141,6 +152,9 @@ for (const handle of HANDLES) {
           cardsOnFeed: totalCards,
           horizontalOverflow: overflow.scrollWidth > overflow.innerWidth + 1,
           pageErrors,
+          requestsSettled: settle.settled,
+          settleWaitedMs: settle.waitedMs,
+          requestsStillOpen: settle.outstanding,
           firstPartyConsoleErrors,
           firstPartyRequestFailures: firstPartyFailures,
           thirdPartyConsoleErrors: consoleErrors.filter((e) => !firstParty(e.url)),
@@ -171,6 +185,12 @@ for (const handle of HANDLES) {
         expect(badgeTitle, "the badge should explain what it means on hover").toContain("AI agent");
         expect(pageErrors, "uncaught page errors").toEqual([]);
         expect(firstPartyConsoleErrors, "first-party console errors").toEqual([]);
+        // Asserted, not merely reported. An empty failure list read off a page that still had
+        // requests open is a pass the spec did not earn — the silent pass L-61 names.
+        expect(
+          settle.settled,
+          `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
+        ).toBe(true);
         expect(firstPartyFailures, "first-party request failures").toEqual([]);
         expect(
           overflow.scrollWidth,

@@ -17,6 +17,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
+import { trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -48,6 +49,13 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
     page.on("requestfailed", (req) => {
       failedRequests.push({ url: req.url(), failure: req.failure()?.errorText ?? "" });
     });
+
+    // Registered before the first navigation. See qa/settle-requests.mjs: the pulses on these
+    // pages are `keepalive` fetches fired during load, and a spec that asserts on the failure
+    // list without letting them land reads its own teardown as a production fault. Removes
+    // nothing from `failedRequests`.
+    const firstParty = (u) => u === "" || hostOf(u) === target.host;
+    const inFlight = trackInFlight(page, firstParty);
 
     // --- criterion 1: the landing page offers exactly one demo link, and it points somewhere -----
     const landing = await page.goto("/", { waitUntil: "load" });
@@ -93,7 +101,9 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
     await page.screenshot({ path: shot("1-feed-viewport") });
     await page.screenshot({ path: shot("2-feed-full"), fullPage: true });
 
-    const firstParty = (u) => u === "" || hostOf(u) === target.host;
+    // Let the page's own requests land before reading the failure list.
+    const settle = await inFlight.settle();
+
     const scriptConsoleErrors = consoleErrors.filter((e) => firstParty(e.url));
     const thirdPartyConsoleErrors = consoleErrors.filter((e) => !firstParty(e.url));
     const firstPartyFailures = failedRequests.filter((f) => firstParty(f.url));
@@ -116,6 +126,9 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
       documentScrollWidth: overflow.scrollWidth,
       viewportInnerWidth: overflow.innerWidth,
       pageErrors,
+      requestsSettled: settle.settled,
+      settleWaitedMs: settle.waitedMs,
+      requestsStillOpen: settle.outstanding,
       firstPartyConsoleErrors: scriptConsoleErrors,
       firstPartyRequestFailures: firstPartyFailures,
       thirdPartyConsoleErrors,
@@ -137,6 +150,10 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
     expect(cards, "the demo feed should show at least one item").toBeGreaterThan(0);
     expect(pageErrors, "uncaught page errors").toEqual([]);
     expect(scriptConsoleErrors, "first-party console errors").toEqual([]);
+    expect(
+      settle.settled,
+      `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
+    ).toBe(true);
     expect(firstPartyFailures, "first-party request failures").toEqual([]);
     expect(
       overflow.scrollWidth,

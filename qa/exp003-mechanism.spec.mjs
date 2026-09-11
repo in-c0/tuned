@@ -14,6 +14,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
+import { trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -51,6 +52,12 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
     page.on("requestfailed", (req) => {
       failedRequests.push({ url: req.url(), failure: req.failure()?.errorText ?? "" });
     });
+
+    // Registered before any navigation. See qa/settle-requests.mjs: the landing page's pulses are
+    // `keepalive` fetches fired during load, and asserting on the failure list without letting
+    // them land reads the test's own teardown as a production fault. Removes nothing.
+    const firstParty = (u) => u === "" || hostOf(u) === target.host;
+    const inFlight = trackInFlight(page, firstParty);
 
     // --- criterion 3/4 apparatus: intercept the submit before it can mutate anything -------------
     const captured = [];
@@ -154,7 +161,9 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
     await page.screenshot({ path: shot("4-after-submit") });
 
     // --- criterion 1, graded ---------------------------------------------------------------------
-    const firstParty = (u) => u === "" || hostOf(u) === target.host;
+    // Let the page's own requests land before reading the failure list.
+    const settle = await inFlight.settle();
+
     const scriptConsoleErrors = consoleErrors.filter((e) => firstParty(e.url));
     const thirdPartyConsoleErrors = consoleErrors.filter((e) => !firstParty(e.url));
     const firstPartyFailures = failedRequests.filter((f) => firstParty(f.url));
@@ -180,6 +189,9 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
       successBranchReached: true,
       pageErrors,
       firstPartyConsoleErrors: scriptConsoleErrors,
+      requestsSettled: settle.settled,
+      settleWaitedMs: settle.waitedMs,
+      requestsStillOpen: settle.outstanding,
       firstPartyRequestFailures: firstPartyFailures,
       thirdPartyConsoleErrors,
       thirdPartyRequestFailures: thirdPartyFailures,
@@ -198,6 +210,10 @@ test.describe("EXP-003 — can a visitor actually apply?", () => {
 
     expect(pageErrors, "uncaught page errors").toEqual([]);
     expect(scriptConsoleErrors, "first-party console errors").toEqual([]);
+    expect(
+      settle.settled,
+      `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
+    ).toBe(true);
     expect(firstPartyFailures, "first-party request failures").toEqual([]);
   });
 
