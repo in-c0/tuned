@@ -18,49 +18,43 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **This morning we found a blind spot by hand. This evening we made the site refuse to have another one.**
+> # **`@sportstech` now has a publisher that is not a person. Its first bar was about the wrong people, and nobody saw it.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
 > `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
-> neither is re-argued here. This run published nothing, submitted nothing, spent nothing, and
-> changed nothing a visitor can see.
+> neither is re-argued here.
 >
-> **The background.** This morning's run found that the Follow button — the only thing a stranger on a
-> Tuned feed page can actually do — had never been counted. It was found by reading, and the reason it
-> had survived 145 runs is worth stating plainly: **we had been checking our counters, and this was a
-> page with no counter to check.** You cannot find a missing thing by inspecting the things you have.
+> **What changed today.** Until this morning every item on every agent feed on Tuned was placed by a
+> person reading a research session's notes. Yesterday's run measured what that costs: six
+> publications in 24 days, four of five public feeds silent for six weeks, and **"recurring agent
+> value" not demonstrated at any cadence a subscriber would notice.** Today `@sportstech` got a real
+> selector. It screened 35 open-access papers, read 12 full texts, and published **one** — item
+> **280**, a whole-body vibration trial on thirteen highly trained adolescent soccer players that
+> found **nothing**, which is exactly the kind of result a press release never carries.
 >
-> **What we did about it.** Instead of fixing that one gap and moving on, we wrote down **every one of
-> the 45 addresses this site answers on**, and what each of them records. Eleven record something.
-> Thirty-four deliberately record nothing, and each of those now carries a written reason. That list
-> is checked automatically on every change, so **the next time someone adds a page and forgets to
-> decide whether it should be counted, the build fails.** It is the difference between fixing a hole
-> and closing the way holes get made.
+> **The part worth your attention is what went wrong first.** The selector's first live screen picked
+> 10 of 50 papers — a respectable-looking 20% — and **four of the ten were clinical rehabilitation**:
+> cerebral palsy, stroke, physiotherapy, neck pain. All four are real science with real statistics and
+> none belongs on a feed about athletes. Clinical movement labs use the same instruments and the same
+> words as sport science, and the rule had been written so that a word describing a *method* could
+> answer a question about *whom the study was on*. Fixed before anything reached a reader; the second
+> screen picked 9 of 35 and every one was on remit.
 >
-> **One of those 34 reasons expires by itself, and it is written down as such.** Twenty of them are
-> uncounted because Tuned currently has **one member — you**. Counting what you do on your own desk
-> would just be recording ourselves. The moment there is a second member, that reason stops being
-> true, and the file says so rather than leaving a future run to notice.
+> **And the decision that went against us.** The experiment had pre-registered "at most 25% selected"
+> as the quality bar, with "disable the schedule" attached if it failed. The corrected screen read
+> **25.7%** — a miss by seven-tenths of a percentage point. The number is a poor one (it also reads
+> 50% on a different, equally fair denominator, and the thing it was guarding is already capped at one
+> publication per run), but it was written down in advance, so **the daily schedule now screens and
+> publishes nothing.** Publishing needs a dispatch by someone who has read the record. Re-arming it is
+> one line, and what has to be true first is written next to that line.
 >
-> **The one gap worth closing today, closed.** A feed page could tell us a request arrived, but not
-> whether a *browser* was on the other end — as opposed to a scanner, an uptime checker, or a link
-> preview. The landing page already had that distinction; feed pages did not, and feed pages are where
-> both items in §1 would send people. It starts counting from today and nothing fills in the past,
-> which is why it had to be before a listing lands rather than after.
->
-> **The part worth your scepticism.** We also went looking for holes in the *new* work by deliberately
-> breaking it sixteen different ways to see whether the tests noticed. Fifteen were caught
-> immediately. One was not — an older check that would have quietly stopped protecting a measurement
-> we are in the middle of taking. It is fixed. We would not have found it by reading the code, and it
-> had been there before today.
->
-> **The honest bottom line, same as this morning's.** This is real work on the instruments and it is
-> **still not a user and not a dollar.** 27 days remain; applications, active members, followers and
-> cash are all zero. The two items in §1 are the only distribution moves left, and both are yours.
+> **What did not happen.** The three dormant feeds were not adopted, not published to, not touched.
+> Nothing a visitor can see on the landing page changed. No money was spent. **And nobody follows
+> `@sportstech`, so no subscriber noticed any of this** — today produced supply, not demand.
 >
 > ---
 >
-> **Previously, this morning (run 145).** `/sportstech` has a **Follow** button. Someone who likes what an agent is
+> **Previously (run 145).** `/sportstech` has a **Follow** button. Someone who likes what an agent is
 > pointing at presses it, leaves an email, and that is the whole conversion this site currently
 > offers a stranger. It has never been counted. The only record was one running total of followers,
 > reading **0** — and a total that does not move cannot tell you *nobody tried* from *someone tried
@@ -859,6 +853,22 @@ Full reading and caveats in [METRICS.md](METRICS.md).
 
 ## 6. Current experiment
 
+**Two are open.**
+
+- **EXP-013 — can an agent feed publish on a cadence with no person selecting? OPEN. Reading due on
+  the complete 14 days 2026-09-12 … 2026-09-25** (run 153, pre-registered **in the same commit as the
+  bar, before it had screened a candidate**). Canonical: [EXPERIMENTS.md](EXPERIMENTS.md).
+  `@sportstech`'s publisher was a scheduled executor run doing a cycle whenever it chose to — six
+  publications in 24 days. It now has a selector: a remit translated into an explicit public bar,
+  applied to the **open-access full text the agent fetches for itself**, publishing at most **one**
+  find per run through the operator plane. **Interim, and not a graded reading:** threshold 1
+  satisfied, threshold 3 satisfied (item **280** carries its provenance on feed page and RSS, 15
+  assertions green), **threshold 2 FAILED at 25.7% against a 25% bar** so Fork B was taken and
+  scheduled runs now publish nothing, threshold 5 is the one that caught the defect — four clinical
+  rehabilitation papers in the first screen's ten selections — and **threshold 4 cannot be met while
+  the schedule is disarmed.** What is demonstrated is the capability, not yet the cadence. **None of
+  it is demand:** `followers` is **0**, so no subscriber noticed.
+
 - **EXP-011 — is `landing_view` a browser at all? OPEN. Reading due on the complete UTC day
   2026-09-18** (run 138, pre-registered 2026-09-04 22:20 UTC, **before the counter existed**).
   Canonical: [EXPERIMENTS.md](EXPERIMENTS.md). **The claim that has steered nineteen days of work
@@ -958,9 +968,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
-| **L-67** | **A deadline belongs in a gate, never in a verdict.** `verify production` waits 8 minutes for a pushed commit to serve, then fails closed. On 2026-09-11 it went red on `408db69` — 54 seconds after run 150 had already reported "deployed and verified green", and unread for **5h34m** afterwards. Production was healthy: `d53b0c0` landed at 04:41 and contained it. But **"never landed" and "landed after the window" are one reading**, and issue #1 answers that signal with a **rollback** — which would have reverted a healthy site. [L-60](LESSONS.md) fixed the *equality* version of this and left the clock in the question. | **For every automated signal with an action attached, ask whether the signal can distinguish the state the action is for from the state it would damage.** If not, the repair is a **second reading with no deadline in it**, asked later — not a longer deadline. Widening was refused on evidence: 19 successful verifications ran **0.9–1.7 min** (median 1.0) and both failures burned the **full 8**. Deploys land in a minute or they are dropped; there is no tail to tune for. **And a report written before the checks it cites have finished is not a report.** |
-| **L-66** | **Five counters were built around a button that delivers nothing.** Runs 145–146 closed a real gap — the Follow button had never been counted — and shipped `follow_submit`, its handle split, `follow_invalid`, the `offpage` axis, `follow_duplicate`, then `follow_open` and `feed_render` as its denominator. **None of them opened the table the route writes to.** `followers` has one reader in the whole codebase (a `COUNT`), and `src/` has no mail provider, no sender and no digest job, so the row is undeliverable. The one sentence saying so was in the **success message** — read after the address was handed over. | **Name the code path that delivers what the user was promised.** Not the table the row lands in: the code that reads it and acts. If you cannot name it, you have built a meter on a door that opens onto a wall, and the fix belongs on the page before it belongs on the counter. **An instrument on a conversion cannot tell a dead end from a working path — both produce identical counts.** |
-| **L-65** | **"Unreachable" was a claim about the advisory's headline, not about our call sites.** Run 148 dismissed a `hono` query-parser advisory with *"Tuned runs no caching proxy keyed on query"* — answering the advisory's title and never asking whether this repository reads query parameters. It does, at three call sites. Measured against both versions: on 4.12.34, `/sportstech#x?src=ooh-directory` returned `src = "ooh-directory"` from a URL with **no query string**, and `/sportstech?src=ooh-directory#x` returned `"ooh-directory#x"`, silently dropping a real tag. Those are the numerators of EXP-009 and EXP-012, **wrong in both directions**. | **Triage by call site, not by threat model.** The question is never *is this exploit scenario ours* but **which of our call sites reach the changed code, and what does it now return there** — answered by running both versions against your own inputs. The advisory naming an API you never call is the cheap one; the dangerous one names a *behaviour* of an API you use constantly, and no grep finds it. |
+| **L-71** | **The clause you expect to be the gatekeeper is not the one doing the work.** The commit shipping `@sportstech`'s new selector named, in its own header, which clause would keep the agent quiet: the full-text read and the demand for two families of reported statistics. On the first live screen those clauses refused **0 of 10** candidates that reached them — of course they did, a peer-reviewed paper reports statistics — so every full-text fetch was buying a number nobody needed. What decided the screen was the scope clause, written as undifferentiated bookkeeping, and it decided wrongly. | **Count what each clause refused on the first live run.** A clause that refuses nothing is either wrong or unnecessary, and only looking says which. After the fix the statistics clauses refuse 3 of 12 and the expensive read was given a scope question to answer as well. **A prediction written in a header with conviction is still not a measurement**, and it is worth writing down precisely so it can be caught. |
+| **L-70** | **A selection rate is not a quality threshold.** EXP-013 pre-registered "selection rate ≤ 25%" as the bar that would catch a selector too loose to trust with a public feed. Its first live screen selected **10 of 50 — 20%, comfortably green — and four of the ten were clinical rehabilitation** on a feed about athletes. Four minutes later the corrected bar read **25.7%, a failure**, with **nine of nine on remit**. The ratio was green when the output was wrong and red when it was right. | **Every pre-registered ratio needs a companion threshold expressed as an inspection**, naming who looks and at what. EXP-013's was written as an afterthought at the bottom of the table and was the only one that caught anything. And when a number invented before any data turns out ill-posed, **say so and honour it anyway inside its own window** — the schedule was disarmed rather than the threshold rewritten. |
+| **L-67** | **A deadline belongs in a gate, never in a verdict.** `verify production` waits 8 minutes for a pushed commit to serve, then fails closed. On 2026-09-11 it went red on `408db69` — 54 seconds after run 150 had already reported "deployed and verified green", and unread for **5h34m** afterwards. Production was healthy: `d53b0c0` landed at 04:41 and contained it. But **"never landed" and "landed after the window" are one reading**, and issue #1 answers that signal with a **rollback** — which would have reverted a healthy site. | **For every automated signal with an action attached, ask whether the signal can distinguish the state the action is for from the state it would damage.** If not, the repair is a **second reading with no deadline in it**, asked later — not a longer deadline. **And a report written before the checks it cites have finished is not a report.** |
 
 
 
@@ -976,11 +986,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-11 20:20 Sydney (2026-09-11 10:20 UTC) |
-| **Run** | 151 — **the check that decides whether a deploy landed went red about a healthy production, and the operating rules answer that signal with a rollback.** `verify production` failed on `408db69` ([34562017390](https://github.com/in-c0/tuned/actions/runs/34562017390)) **54 seconds after run 150 reported "deployed and verified green"**, and sat unread for **5h34m**. Production was fine — `d53b0c0` landed at 04:41 and contains it. **"Never landed" and "landed after the window" are one reading**, and issue #1 prescribes rollback for the first. Shipped an **hourly watchdog with no timeout in its question**: does the build production serves contain the newest commit that has had 90 minutes to deploy? [L-67](LESSONS.md). |
-| **Repository commit at time of writing** | [`1165ccc`](https://github.com/in-c0/tuned/commit/1165ccc) — `.github/workflows/deploy-staleness.yml`, `scripts/deploy-staleness.mjs`, `scripts/deploy-staleness.test.mjs` — plus this run's ops commit. [verify production 221](https://github.com/in-c0/tuned/actions/runs/34588278775) **success on `1165ccc` serving**, 57 seconds. [deploy staleness run 1](https://github.com/in-c0/tuned/actions/runs/34588398520) **green against live production**: `/api/version` **200**, serving `1165ccc`, due `d53b0c0`, `behind: 0`, `fresh`, alarm step skipped. **Nothing shipped this run executes in a browser or on any page**, so EXP-011 is untouched by construction. |
+| **Last materially updated** | 2026-09-12 14:20 Sydney (2026-09-12 04:20 UTC) |
+| **Run** | 153 — **`@sportstech` got a publisher that is not a person, its first bar selected four papers about the wrong people, and the schedule was disarmed rather than armed** |
+| **Repository commit at time of writing** | [`d8cadd0`](https://github.com/in-c0/tuned/commit/d8cadd0) — the bar in [`efae10d`](https://github.com/in-c0/tuned/commit/efae10d), its correction in [`e0918ba`](https://github.com/in-c0/tuned/commit/e0918ba), the disarm in [`3e76d24`](https://github.com/in-c0/tuned/commit/3e76d24), item 280 in [`429f3a2`](https://github.com/in-c0/tuned/commit/429f3a2) |
 | **Data commit** | [`d53b0c0`](https://github.com/in-c0/tuned/commit/d53b0c0) — [`metrics/latest.json`](metrics/latest.json), snapshot of 2026-09-11. **No commercial metric moved this run and none is claimed.** No product counter was added; `deploy staleness` writes nothing to D1 and appears in no funnel. |
-| **Freshness state** | **PARTIALLY RESYNCHRONIZED, and saying so rather than claiming FRESH.** Run 151 rewrote §7 and §8's own rows. §1 is verified against STATUS — **TWO**, undeadlined, unchanged since run 143. **§4 is deliberately untouched: no commercial metric moved, so copying it forward would be motion, not freshness.** The headline card above is run 146's and is **five runs stale**; §2, §3, §5 and §6 were last materially checked by run 140, and EXP-011's entry there is current through its 2026-09-18 reading. Where this file and a canonical file disagree, the canonical file is right. |
+| **Freshness state** | **RESYNCHRONIZED for the header, §6, §7 and §8, and not for §1–§5.** §1 is TWO and unchanged since run 143 (not re-argued, [L-07](LESSONS.md)). §4's funnel numbers did not move: `applications` **0**, `members_ever_active` **0**, `followers` **0**, gross cash **AUD $0**; `items_public` **17 → 18** is supply and is not in the funnel. §5's blockers are unchanged. Canonical files win on any disagreement. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
