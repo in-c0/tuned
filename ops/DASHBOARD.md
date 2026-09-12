@@ -18,44 +18,44 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **`@sportstech` stopped describing itself and started quoting the papers. Its first attempt quoted the wrong sentence, and nobody saw it.**
+> # **The agent can correct its own public line now. The first thing it tried to correct, it left alone — because the paper gave it nothing honest to say.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
 > `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
 > neither is re-argued here.
 >
-> **What changed today.** This morning's item on `@sportstech` carried a line that read: *"Selected by
-> @sportstech from 35 open-access candidates screened 2026-09-12: full text read (46,097 characters).
-> Design terms present: … Reported: …"* Every word of that is true and it tells you nothing about the
-> paper. If someone arrives at `/sportstech` from a directory of feeds, **that line is the product.**
+> **What was missing.** Yesterday `@sportstech` could put a find in front of a reader and take it away
+> again. It could not **fix what it said about one.** So the item published on Friday morning — whose
+> entire public line is *"Selected by @sportstech from 35 open-access candidates screened 2026-09-12:
+> full text read (46,097 characters)…"*, true and useless — had two possible futures: stay wrong, or be
+> hidden. For a product whose whole pitch is "you can see exactly why this was chosen", **deleting the
+> find because the explanation is weak is the least honest of the three options.**
 >
-> So the agent now quotes the paper instead. Item **281** carries, as its entire public line, one
-> sentence the authors wrote:
+> **What changed.** It can now correct a line, and it cannot do it quietly. Three things are enforced by
+> the server rather than trusted to the agent: the old line is **kept forever** alongside the new one
+> and a stated reason; the corrected line carries a visible **`(corrected 2026-09-13)`** mark; and that
+> mark is added by the server, so the agent cannot leave it off or backdate it. It can only touch the
+> *explanation* — never the link, the title or which paper the find points at.
 >
-> > "Onset showed excellent reliability across all seven muscles (ICC = 0.943-0.995); offset,
-> > moderate-to-excellent (0.524-0.907); peak position, poor-to-excellent (0.114-0.948); active
-> > duration, poor-to-good (0.077-0.814)."
+> **And then it declined to use it, which is the part worth your attention.** Pointed at Friday's item,
+> it read the paper's abstract, looked at the three sentences in the results section, and refused all
+> three: two report nothing a reader could check, one is too long to quote without trimming it — and
+> trimming a quote is misquoting it. **So the line stays as it is.** I could have written a better
+> sentence about that paper in ten seconds. That is exactly the thing this agent must never do.
 >
-> In plain terms: when you strap EMG sensors on a rower, *when* a muscle switches on repeats almost
-> perfectly a week later, and *how long* it stays on barely repeats at all. A coach trusting an EMG
-> trace would want to know which half of it to trust. **No word of that sentence was written by us** —
-> it is checked character-for-character against the authors' own abstract before it can be published,
-> and when no sentence passes, the agent goes back to describing its screening rather than inventing
-> a summary. It never shortens a quote to make it fit, either: a trimmed sentence in quotation marks
-> is a misquotation.
+> **What went wrong first, again.** Its first attempt produced *"Methods Thirteen male soccer players
+> (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed a counterbalanced crossover study…"* — a
+> description of the experiment, with the word "Methods" glued to the front as though the authors wrote
+> it there. Two separate rules existed to stop precisely that and both missed: one wanted a colon after
+> "Methods" and this journal doesn't use one, the other wanted two words next to each other and the
+> ages sat between them. **Caught on a dry run. Nothing reached the site.** That is three consecutive
+> days of the same class of mistake, and three consecutive days of it costing a reader nothing — the
+> dry run is why, and it is the practice I would keep if I could keep only one.
 >
-> **The part worth your attention is what went wrong first.** The very first sentence the agent chose
-> to quote was *"Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and
-> Bland-Altman analysis."* Faithful, verbatim — and it describes **how the authors did their sums**,
-> not what they found. It is arguably worse than the line it replaced, because a sentence in quotation
-> marks looks like news. It slipped through because the test for "does this sentence report a result"
-> was borrowed from the test for "does this paper report statistics at all", and those are different
-> questions. **Caught on a dry run, fixed, and nothing reached the site.** That is yesterday's mistake
-> repeated one level in, and it is written down as such.
->
-> **One thing I can prove rather than assure you of.** The screens before and after the fix return
-> *identical* numbers — 35 papers screened, 9 selected, 16 left unread against the budget — so the
-> correction changed what the agent *says* and not what it *chooses*.
+> **One thing I checked rather than assumed.** The correction mark costs 23 of the 280 characters a
+> line gets, so it was possible that *my own design decision this morning* is what blocked the fix. It
+> isn't: the longer, uncorrected budget refuses that abstract too. I would rather tell you the mark was
+> the problem than not know.
 >
 > **What did not happen.** The daily schedule is still switched off and was not switched back on: the
 > quality number it failed yesterday is a bad number, and I have written down a replacement as a
@@ -980,7 +980,7 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
-| **L-71** | **The clause you expect to be the gatekeeper is not the one doing the work.** The commit shipping `@sportstech`'s new selector named, in its own header, which clause would keep the agent quiet: the full-text read and the demand for two families of reported statistics. On the first live screen those clauses refused **0 of 10** candidates that reached them — of course they did, a peer-reviewed paper reports statistics — so every full-text fetch was buying a number nobody needed. What decided the screen was the scope clause, written as undifferentiated bookkeeping, and it decided wrongly. | **Count what each clause refused on the first live run.** A clause that refuses nothing is either wrong or unnecessary, and only looking says which. After the fix the statistics clauses refuse 3 of 12 and the expensive read was given a scope question to answer as well. **A prediction written in a header with conviction is still not a measurement**, and it is worth writing down precisely so it can be caught. |
+| **L-73** | **A clause is defeated by the exact case it was written for, wearing different punctuation.** Two rules existed to refuse *"Methods Thirteen male soccer players (16.2 ± 0.3 years…) completed a counterbalanced crossover study…"* and both were walked past: one required a colon after the section label and that journal writes none, the other required a noun and its verb to be adjacent and the demographics sat between them. **The dangerous half is the first — a restriction that fails open.** When the label pattern matched nothing, the code did not refuse; it widened the pool to the whole abstract and the log stayed cheerful. Third in three days, all three caught on a dry run. | **A restriction must fail closed, and a refusal over prose must tolerate an intervening clause.** If the structure a restriction depends on is absent, that is a fact to report and narrow on, never a licence to widen. And **write the test from the live string before writing the fix, for both directions** — the case that must now be refused and a neighbour that must still be admitted. Both defects in this fix were in the fix itself, and both were caught that way within a minute; neither by re-reading the regex. |
 | **L-70** | **A selection rate is not a quality threshold.** EXP-013 pre-registered "selection rate ≤ 25%" as the bar that would catch a selector too loose to trust with a public feed. Its first live screen selected **10 of 50 — 20%, comfortably green — and four of the ten were clinical rehabilitation** on a feed about athletes. Four minutes later the corrected bar read **25.7%, a failure**, with **nine of nine on remit**. The ratio was green when the output was wrong and red when it was right. | **Every pre-registered ratio needs a companion threshold expressed as an inspection**, naming who looks and at what. EXP-013's was written as an afterthought at the bottom of the table and was the only one that caught anything. And when a number invented before any data turns out ill-posed, **say so and honour it anyway inside its own window** — the schedule was disarmed rather than the threshold rewritten. |
 | **L-72** | **The same word answers two different questions, and a table is not transferable between them.** `STATISTIC_SIGNATURES` was written for the bar, where the question is *does this paper report statistics at all*, and reused for the quotation clause, where it is *does this sentence report a result*. It matches `ICC` and `95% CI` as strings, so the rule's first live screen quoted *"Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman analysis."* — faithful, verbatim, and about the arithmetic. **Worse than the line it replaced**, because a sentence in quotation marks makes a claim about its own significance. This is [L-71](LESSONS.md) one layer in, on the same day. | **When a second clause borrows a first clause's table, write down the question each asks; if the sentences differ, the table cannot be shared.** The fix was a separate table in which every pattern binds a digit — and the test asserts *that property of the table*, so a later addition cannot quietly reintroduce a bare procedure name. **And a refusal clause earns its place by what it refuses on live data within the hour**: both screens ran minutes apart, and the correction was visible only because a dry screen exists and was read before anything was published. |
 
@@ -998,11 +998,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-12 20:30 Sydney (2026-09-12 10:30 UTC) |
-| **Run** | 154 — **the agent's public line became the paper's own sentence; its first attempt quoted a methods sentence and was caught on a dry run** |
-| **Repository commit at time of writing** | [`e6d729e`](https://github.com/in-c0/tuned/commit/e6d729e) — the threshold proposal in [`93a7a27`](https://github.com/in-c0/tuned/commit/93a7a27), the quotation rule in [`687c631`](https://github.com/in-c0/tuned/commit/687c631), the clause correction in [`fa5d467`](https://github.com/in-c0/tuned/commit/fa5d467), item 281 in [`17b5607`](https://github.com/in-c0/tuned/commit/17b5607) |
-| **Data commit** | [`d05cad4`](https://github.com/in-c0/tuned/commit/d05cad4) — [`metrics/latest.json`](metrics/latest.json), snapshot of 2026-09-12. **No commercial metric moved this run and none is claimed.** No product counter was added and no `src/` file was touched. |
-| **Freshness state** | **RESYNCHRONIZED for the header, §6, §7 and §8, and not for §1–§5.** §1 is TWO and unchanged since run 143 (not re-argued, [L-07](LESSONS.md)). §4's funnel numbers did not move: `applications` **0**, `members_ever_active` **0**, `followers` **0**, gross cash **AUD $0**; `items_public` **18 → 19** is supply and is not in the funnel. §5's blockers are unchanged, the executor's lack of direct egress to justtuned.com included. Canonical files win on any disagreement. |
+| **Last materially updated** | 2026-09-13 08:40 Sydney (2026-09-12 22:40 UTC) |
+| **Run** | 155 — **an agent can correct its own public line now, and the first correction it attempted was refused by its own rule before anyone saw it** |
+| **Repository commit at time of writing** | [`54a199e`](https://github.com/in-c0/tuned/commit/54a199e) — the amendment capability in [`078d1f6`](https://github.com/in-c0/tuned/commit/078d1f6), the identifier resolver in [`2c3b4f1`](https://github.com/in-c0/tuned/commit/2c3b4f1), the clause fixes in [`4749912`](https://github.com/in-c0/tuned/commit/4749912), the budget attribution in [`d7893e8`](https://github.com/in-c0/tuned/commit/d7893e8) |
+| **Data commit** | [`aada5a1`](https://github.com/in-c0/tuned/commit/aada5a1) — [`metrics/latest.json`](metrics/latest.json), snapshot of 2026-09-12 22:30 UTC. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored; `operator_amendments` reads **0** off live production. |
+| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143 (not re-argued, [L-07](LESSONS.md)). §4's funnel numbers did not move: `applications` **0**, `members_ever_active` **0**, `followers` **0**, gross cash **AUD $0**, and `items_public` did not move either — this run added nothing to any feed. §5's blockers are unchanged, the executor's lack of direct egress to justtuned.com included. §6 still describes EXP-011, whose reading is owed on 2026-09-18 and is unaffected by this run. Canonical files win on any disagreement. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
