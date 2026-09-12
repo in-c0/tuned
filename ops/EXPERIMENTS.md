@@ -2721,3 +2721,68 @@ authoring.
 
 **Reading due 2026-09-26.** No threshold above is graded before the window closes, and Fork B and
 Fork C act immediately rather than waiting for it.
+
+### EXP-013 — interim record, 2026-09-12 (run 153). NOT a graded reading; the window closes 2026-09-25
+
+Three live screens and one publication on the day the bar shipped. Recorded now because two of the
+thresholds were answered immediately and one of them was answered against this run's own interest.
+
+| Screen | Run | Screened | Selected | Rate | On remit, by human reading |
+| --- | --- | --- | --- | --- | --- |
+| 1 — original bar | [34672702607](https://github.com/in-c0/tuned/actions/runs/34672702607) | 50 | 10 | **20%** | **6 of 10** — four were clinical rehabilitation |
+| 2 — corrected bar | [34672935681](https://github.com/in-c0/tuned/actions/runs/34672935681) | 35 | 9 | **25.7%** | **9 of 9** |
+| 3 — publishing | [34673111073](https://github.com/in-c0/tuned/actions/runs/34673111073) | 35 | 9 | 25.7% | 9 of 9; **item 280 published** |
+
+**Threshold 1 — satisfied.** A live screen completes against Europe PMC and reports a per-candidate
+verdict for every record it read, with exactly one named clause per rejection. Fork E is excluded: the
+archive serves a self-declaring client without a challenge, for both search and `fullTextXML`.
+
+**Threshold 2 — FAILED, at 25.7% against a bar of 25%, and the failure is recorded rather than
+argued away.** Fork B says disable the schedule the same day. **Done**: scheduled runs now screen and
+publish nothing ([`agent-scout.yml`](../.github/workflows/agent-scout.yml)), and publication requires
+an explicit dispatch by someone who has read the screening record.
+
+The threshold is also **mis-specified, and it is not being rewritten inside its own window.** Two
+independent reasons, both visible in the table:
+
+1. **The denominator counts candidates the bar never decided.** 17 of screen 2's 35 were deferred
+   unread against the read budget. On the decided set the rate is **9 of 18 = 50%**, a larger failure.
+   Whether 25% was ever the right number cannot be answered while the two denominators differ by 2x.
+2. **It measures a risk that is already bounded elsewhere.** The worry behind it was attention
+   overload. The cap on this agent is **one publication per run**, enforced in code, so the feed's
+   volume is bounded whether the selection rate is 5% or 50%.
+
+And the sharpest evidence against it is screen 1 versus screen 2, four minutes apart: **the ratio was
+green when the output was wrong and red when the output was right.** [L-70](LESSONS.md).
+
+**Threshold 5 — the only threshold that caught anything, and it was written as an afterthought.** Six
+of screen 1's ten selections were on remit; four were clinical rehabilitation with impeccable
+instruments and statistics. The scope clause had been written as one list mixing "athlete" with
+"gait", "kinematic" and "neuromuscular", so a term describing a **method** satisfied a clause meant to
+ask **about whom**. Corrected in [`e0918ba`](https://github.com/in-c0/tuned/commit/e0918ba) before any
+reader saw anything: sport context required, movement vocabulary demoted to description only, clinical
+populations refused unless an athlete or named competitive sport is present, `TITLE_ABS` instead of
+unfielded search terms, and the full-text read given the scope question to answer as well. **Fork C
+was not triggered, because nothing off-remit was ever published.**
+
+**Threshold 3 — provenance on both public surfaces.** Item **280** is in the registry as
+[`280-wbv-soccer-neuromuscular.json`](../qa/nominations/280-wbv-soccer-neuromuscular.json), the first
+entry of pre-registration form `autonomous-bar`, and it is graded by the existing provenance spec
+alongside the six hand-made publications.
+
+**Threshold 4 — cannot be met, and saying so now rather than at the reading.** Continuous freshness
+with zero hand publications requires the schedule to publish, and the schedule is disarmed under Fork
+B. What this run demonstrated is the **capability**, not the cadence: one publication, at the moment a
+person dispatched it, from a selection a person did not make.
+
+**The state of the bar, measured rather than predicted** — and the prediction was wrong, which is
+[L-71](LESSONS.md). The commit that shipped it named the full-text encounter and the statistics clauses
+as *"the clause most likely to keep this agent quiet"*. They refused **0 of 10** on screen 1. After the
+correction they refused **3 of 12** on screen 2 — a conference poster with no design term, an
+association study with none, and an elite para-kayaker study reporting one statistic family — and the
+expensive read now also answers the scope question. A clause that refuses nothing is either wrong or
+unnecessary, and only counting says which.
+
+**Nothing commercial moved and nothing is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**. `public_items` **17 → 18**,
+which is supply.

@@ -1,99 +1,113 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-12 08:20 Sydney (2026-09-11 22:20 UTC), run 152 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-151 and not re-argued here, per [L-07](LESSONS.md).** **Four of the five
-public feeds have published nothing for six weeks; the fifth moved today because this run published
-to it by hand.** Item **279** is live on `@sportstech` with all six EXP-008 thresholds green, and
-`journals.plos.org` and `nature.com` both opened to this loop's reader for the first time. The
-freshness number is real and the cadence behind it is one find per cycle from one feed.
+**Last updated:** 2026-09-12 14:20 Sydney (2026-09-12 04:20 UTC), run 153 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-152 and not re-argued here, per [L-07](LESSONS.md).** **`@sportstech` has
+a publisher that is not a person.** Item **280** was selected by
+[`scripts/lib/agent-scout.mjs`](../scripts/lib/agent-scout.mjs) out of 35 open-access candidates it
+screened and 12 full texts it read, and published through the operator plane at
+`2026-09-12T04:29:56.560Z`. `public_items` **17 → 18**, `operator_publications` **6 → 7**, hidden 0.
+Until today every item on every agent feed on Tuned was placed by a person reading a research
+session's notes.
 
-**Found in the Actions list while reading production health, not by looking for it.** `verify
-production` failed on [`408db69`](https://github.com/in-c0/tuned/commit/408db69), run 150's ops commit
-([34562017390](https://github.com/in-c0/tuned/actions/runs/34562017390)). **Run 150's report was
-posted at `04:24:18Z` — 54 seconds after that verification started and 7 minutes before it ended —
-and says "Deployed and verified green on the shipped commit."** True of `206dc60` and `43a6f53`; never
-true of `408db69`. The red sat unexamined for **5h34m**, because the executor is the only reader of
-its own Actions list and had already stopped.
+**What run 152 said this run had to answer.** *"The rate at which `@sportstech` publishes is the rate
+at which a scheduled executor run happens to perform a selection cycle"* — six publications in 24
+days, four of five public feeds silent for six weeks — so **"recurring agent value without attention
+overload", third in issue #1's commercial hierarchy, was not demonstrated at any cadence a subscriber
+would notice.** That is a product question about what an agent on Tuned actually is, and it was not
+one more run of instrumentation. Run 151's constraint — *"the next run should not ship a watchdog"* —
+was honoured: **no watchdog shipped.**
 
-**Production was and is healthy, which is the uncomfortable half.** A dispatched verification this run
-([34587516939](https://github.com/in-c0/tuned/actions/runs/34587516939)) matched on the **first
-probe**: `d53b0c0` is serving and contains `408db69` — it landed at `04:41`, ten minutes after the
-8-minute window closed. **So the red was a false alarm, and issue #1 says to roll back on a failed
-post-deploy verification.** Acting on it at `04:31:42Z` would have reverted a healthy site.
-[L-67](LESSONS.md): **a deadline belongs in a gate, never in a verdict** — every timeout collapses
-*"not yet"* and *"never"* into one observation, which is survivable until a remediation is attached to
-the signal. [L-60](LESSONS.md) fixed the *equality* version of this on 2026-09-07 and left the clock in
-the question.
+**The bar is code, in git, shipped before it had seen a candidate.** The six hand-made publications
+each carry a pre-registration commit containing the four dispatched strings. A selector cannot
+pre-register an item it has not seen, so what replaces that guarantee is that **the rule predates the
+selection**: [EXP-013](EXPERIMENTS.md)'s thresholds and five forks are in the same commit as the bar
+([`efae10d`](https://github.com/in-c0/tuned/commit/efae10d)), and `qa/nominations/` now records this as
+the third pre-registration form, `autonomous-bar`, which must name the Actions run whose log shows the
+selection being made.
 
-**Widening the window was considered and the evidence refuses it.** Across the **19 most recent
-successful** push-triggered verifications (2026-09-05 … 2026-09-11) job duration was **0.9–1.7
-minutes, median 1.0** — every one matched on its first or second probe. Both failures in that window
-(`ea902e1`, `408db69`) burned the **full 8 minutes** without landing at all. **Deploys land in about a
-minute or they are dropped and wait for the next push. There is no tail to tune for.**
+**The encounter standard went up, not down.** `ops/agents/sportstech.md` says a find must be
+*genuinely encountered* at page level because *"a search result is a pointer, never an encounter"*.
+This selector fetches the **open-access full text** from Europe PMC's own machine endpoint — 46,097
+characters for item 280 — and **rejects a candidate whose full text cannot be fetched** rather than
+selecting it on its abstract.
 
-**Shipped in [`1165ccc`](https://github.com/in-c0/tuned/commit/1165ccc): an hourly watchdog that asks
-the question with no timeout in it** — `.github/workflows/deploy-staleness.yml` and
-[`scripts/deploy-staleness.mjs`](../scripts/deploy-staleness.mjs). *Does the build production is
-serving contain the newest commit on master that has had 90 minutes to deploy?* A dropped build
-recovered by the next push reads **fresh**; a stuck pipeline reads **stale** at every firing until it
-is fixed. Grace period derived: ~90x the median deploy, ~11x the longest unsuccessful wait observed
-here. The incident it is sized against is **2026-08-27** — three consecutive commits undeployed,
-production on a ~19h-old build, found ~19h in by a run that happened to look. **This catches that
-inside two hours.**
+**THE BAR'S FIRST LIVE SCREEN WAS WRONG IN THE WAY THAT MATTERED, AND NOTHING REACHED A READER.** 10
+of 50 selected — **20%, inside the pre-registered threshold — and four of the ten were clinical
+rehabilitation**: a paediatric cerebral palsy gait trainer, robot-aided upper-limb physiotherapy, foot
+muscle size in stroke, remission from non-specific neck pain. All four are real instrumented movement
+science with proper statistics. **Clinical movement labs use the same instruments and the same words as
+sport science**, and the scope clause had been written as one list mixing "athlete" with "gait",
+"kinematic" and "neuromuscular" — so a term describing a **method** satisfied a clause meant to ask
+**about whom**. Corrected in [`e0918ba`](https://github.com/in-c0/tuned/commit/e0918ba). Second screen:
+**9 of 35, every one on remit.**
 
-**Three things it deliberately does not do.** It does **not page on an unreachable site** — one failed
-probe from a runner is a blip and run 148 shipped a watchdog that would have paged on one, so
-`unreachable` fails the job and raises nothing. It does **not recommend a rollback**, and the alarm
-body says so: when a commit has not deployed, the build serving **is** the last-known-good one. It is
-**not a step inside `executor liveness`** — that file's own header says it "is not a product or
-production signal", and two verdicts folded together let an outage in one mask the other.
+**And the clause predicted to be the gatekeeper refused nothing.** The commit that shipped the bar
+named the full-text encounter and the statistics clauses as *"the clause most likely to keep this agent
+quiet"*. They refused **0 of 10**. Of course they did — a peer-reviewed research article reports
+statistics. After the fix they refuse **3 of 12**, and the expensive read now answers the scope
+question too. [L-70](LESSONS.md): **a selection rate is not a quality threshold.**
+[L-71](LESSONS.md): **count what each clause refused on the first live run; a prediction in a header is
+not a measurement.**
 
-**Both sides of the comparison are read at the moment the check runs**, so the **1.6h–4.5h scheduling
-lag** measured by run 148 costs detection speed here and **cannot move the verdict** — unlike the
-wall-clock half of the executor watchdog, which had to be rewritten around exactly that.
+**THE SCHEDULE WAS DISARMED RATHER THAN ARMED, AND THAT IS A DECISION AGAINST THIS RUN'S OWN
+INTEREST.** EXP-013's threshold 2 read **25.7%** on the second screen — a failure by 0.7 of a
+percentage point, Fork B attached. The threshold is also mis-specified: 17 of 35 were deferred unread,
+so the denominator counts candidates the bar never decided, and on the decided set it is **50%**.
+**Saying so is not permission to rewrite it inside its own window.** So scheduled runs screen and
+publish nothing, publication stays behind an explicit dispatch by someone who has read the record, and
+**re-arming is one expression in [`agent-scout.yml`](../.github/workflows/agent-scout.yml)** whose
+comment says what must be true first. **Consequence, stated plainly: EXP-013's threshold 4 — continuous
+freshness with zero hand publications — cannot be met while it is disarmed. What this run demonstrated
+is the capability, not yet the cadence.**
 
-**CI went red on the first push, and the fix belonged in the script rather than the test.**
-[check 241](https://github.com/in-c0/tuned/actions/runs/34588565016) failed **78/79** while the same
-suite passed 79/79 locally. `.github/workflows/check.yml` checks out at `actions/checkout`'s **default
-depth of 1**, so `git log --first-parent` returned exactly one commit — and every commit the run could
-see was then younger than the grace period. The first draft read that as **"nothing is due yet, all
-clear" and returned green**: *a green verdict from a watchdog that cannot see*, which is the silent
-pass [L-61](LESSONS.md) is about, and it would have been invisible in any workflow that forgot
-`fetch-depth: 0`. **Every commit I can see is younger than the grace period** is not the same fact as
-**every commit on master is**. That branch is now `insufficient-history` — **red, and deliberately not
-an alarm**, because the owner's production is not implicated by a runner's clone depth. Reproduced
-against a real `--depth 1` clone before and after the fix.
+**None of this touched the three dormant feeds.** Run 152's hold stands: `@wearables`, `@wellbeing` and
+`@graphics` were not adopted, not published to, not touched. The objection was to adoption *as a
+substitute for* a publisher, and the feed that got one is the one a directory of feeds would list.
 
-**31 new ops tests, four mutations refused.** Both centrepieces replay **real** timelines with real
-commits and real timestamps: the 2026-09-11 false alarm is quiet at **every** hourly firing after it,
-and the 2026-08-27 stall is red at the first firing past the grace period under **one alarm key for
-the whole outage**. Refused: a grace period widened to 600 minutes, `unreachable` given an alarm key,
-the containment comparison narrowed to `<`, and the grace period removed from the due-commit
-selection.
+**No `src/` file, no route, no schema, no counter, no page.** EXP-011's landing-page window is untouched
+by construction.
 
-**This run held run 147's recorded default.** **(1) hold — verification and record-keeping only —
-until 2026-09-18.** This *is* verification work: no product surface, route, schema, counter, copy,
-secret or migration, and nothing that executes in a browser or on any page, so **EXP-011 is untouched
-by construction.**
+Gates: `check` **0** · **18 files, 287 tests** · `test:ops` **133/133** (was 80) · workflow and
+nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities**. Scout suite **53 tests**, with
+mutations refusing a sport-mention floor of zero, movement terms returned to the admitting list, a bare
+substring match that counts "transport" as a mention of sport, one statistic family instead of two, a
+kept reference list, a dropped open-access requirement and a zero body-length floor.
 
-**The objection this run holds against itself, because run 150 named it.** Runs 147, 148 and 149 were
-a watchdog, a fix to that watchdog, and a bump found while auditing that fix — *"that sequence
-terminates in itself"* — and this is a fourth entry in the same register. The defence: it was **not**
-found by auditing the previous defensive change, it is a defect in the **deploy gate every other
-action depends on**, and its failure mode is a rollback of a healthy site. That is an answer for this
-run and not a licence for a fifth. **The next run should not ship a watchdog.**
-
-Gates: `check` **0** · **17 files, 270 tests** · `test:ops` **80/80** (was 49) · workflow and
-nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities** ·
-[verify production 221](https://github.com/in-c0/tuned/actions/runs/34588278775) **success on
-`1165ccc` serving**, 57 seconds · `deploy staleness` **run 1 green against live production**. **No
-rollback.**
-
-**Still zero, and this run does not pretend otherwise.** `applications` **0** · `members` **1** ·
+**Still zero, and one publication is not demand.** `applications` **0** · `members` **1** ·
 `members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
-**24 days left.** This run made a failure legible and removed a way to break production while trying
-to protect it. **It did not get a user and it did not get a dollar.** The three options run 146 put to
-the reviewer are still unanswered after nine runs.
+**23 days left.** Nobody follows `@sportstech`, so no subscriber noticed that it published. What
+changed is that Tuned can now produce agent attention without a person choosing each item — which is
+**supply**, and the thing its own positioning claims.
+
+---
+
+## Run 153 (2026-09-12 14:20 Sydney) — the feed got a publisher, and the publisher's first bar was about the wrong people
+
+**Item 280** — *The Effect of Three Work-Equivalent Whole-Body Vibration Protocols on Acute
+Neuromuscular Performance in Highly Trained Adolescent Soccer Players*, J Musculoskelet Neuronal
+Interact 26(3):378-391, 01 Sep 2026 — published `04:29:56.560Z`, **HTTP 201, `published=true`,
+`duplicate=false`**, selected by the bar and not by a person.
+
+**The find is a null**, which is the part of this remit hardest to get from a press release: thirteen
+highly trained adolescent male soccer players, counterbalanced crossover, three work-equivalent WBV
+protocols (1×3min, 3×1min, 6×30s), and **no significant main effect of protocol or protocol-by-time
+interaction** on knee-extensor MVIC, vastus lateralis EMG RMS or CMJ, with small estimated effects and
+wide confidence intervals. **That sentence was written by a person who read the abstract and is
+deliberately not in the agent's `why` line**, which reports only the screening it performed. The agent
+read 46,097 characters and has not understood the paper; a line claiming otherwise would be the
+summariser Tuned is not. Weaker than the lines on items 242–279, and the honest version of weaker. The
+improvement is **quotation of the source, not generation**.
+
+| Screen | Run | Screened | Selected | Rate | On remit |
+| --- | --- | --- | --- | --- | --- |
+| 1 — original bar | [34672702607](https://github.com/in-c0/tuned/actions/runs/34672702607) | 50 | 10 | 20% | **6 of 10** |
+| 2 — corrected bar | [34672935681](https://github.com/in-c0/tuned/actions/runs/34672935681) | 35 | 9 | 25.7% | **9 of 9** |
+| 3 — publishing | [34673111073](https://github.com/in-c0/tuned/actions/runs/34673111073) | 35 | 9 | 25.7% | 9 of 9, **280 published** |
+
+Full record and the forks in [EXPERIMENTS.md](EXPERIMENTS.md) (EXP-013), the three decisions and the
+reversal in [DECISIONS.md](DECISIONS.md), the feed's own account in
+[agents/sportstech.md](agents/sportstech.md). Hand cycles on this feed are **R-n** from here and
+autonomous ones **S-n**; item 280 is **S-1**.
 
 ---
 
