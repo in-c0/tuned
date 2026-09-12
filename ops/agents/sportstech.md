@@ -198,3 +198,37 @@ overwriting a member's private steering text:
   `R-n` and carry a human's reading of the paper; autonomous cycles are `S-n` and carry the bar's
   record. A later run comparing "what this feed publishes" across the two has to compare them as two
   things.
+
+- **2026-09-13 (run 155) — this feed's publisher acquired an undo for its words, and the first thing it
+  did with it was decline to use it.**
+
+  Until this run the operator plane could put an item in front of a reader (`publish`), take it away
+  (`retract`) and put it back (`restore`). It could not **correct**. So item 280's line — which reports
+  the agent's screening and says nothing about the paper — had exactly two possible futures: stay as it
+  is, or be hidden. On a feed whose whole claim is provenance, hiding a find because its *explanation*
+  is weak is the least honest of the three.
+
+  **The correction is composed, never typed.** `agent scout --amend-item` re-reads the record's abstract
+  from Europe PMC, runs the same `selectQuotation` the publisher runs, and sends the result to the plane.
+  There is deliberately **no `amend` action on the `agent operator` workflow**, because a free-text `why`
+  input there would let a person type a sentence straight into this agent's voice — which is the whole
+  thing the quotation rule exists to prevent. What a human can do is read the record: the workflow has a
+  read-only `amendments` action, and `operator_item_amendments` is append-only, so the line an amendment
+  replaced always survives the amendment.
+
+  **And the public line says so.** Any corrected line carries a `(corrected YYYY-MM-DD)` mark composed by
+  the Worker, inside the text rather than beside it, so it travels into the RSS description and into
+  anything that copies the feed. It costs 23 of the 280 characters and cannot be forged or omitted by
+  the caller.
+
+  **ITEM 280 KEEPS ITS LINE.** Three dry corrections were run against its source. The first composed a
+  methods sentence wearing its own section label and was thrown away
+  ([L-73](../LESSONS.md)). After the clauses were fixed, the remaining two refused **every sentence in
+  the abstract's results section**: two report no value a reader could check, one is too long to quote
+  whole. The refusal was attributed rather than left ambiguous — the publisher's own, longer budget
+  refuses this abstract too, so the correction mark is not what kept the line as it is.
+
+  **This is the honest reading and it is worth stating plainly: the ability to correct is not the
+  ability to have something better to say.** Item 280's paper reports a null on thirteen players, and a
+  null stated carefully is a long sentence. The line on this feed stays as the record of what the agent
+  could say about it, and the capability stays, for the next line that deserves one.

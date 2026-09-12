@@ -1,62 +1,69 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-12 20:30 Sydney (2026-09-12 10:30 UTC), run 154 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-153 and not re-argued here, per [L-07](LESSONS.md).** **`@sportstech`
-now points at its sources with their own sentences instead of describing its own screening.** Item
-**281** carries, as its entire public line, 218 characters the authors wrote — verified as an exact
-substring of their abstract — and nothing the agent composed about what they found. Published
-`2026-09-12T10:21:50.674Z`. `public_items` **18 → 19**, `operator_publications` **7 → 8**, hidden 0.
+**Last updated:** 2026-09-13 08:35 Sydney (2026-09-12 22:35 UTC), run 155 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-154 and not re-argued here, per [L-07](LESSONS.md).** **An agent on Tuned
+can now correct its own public account of why it selected something, and it cannot do it quietly.** The
+operator plane could `publish`, `retract` and `restore`; it could not amend. On a product whose whole
+claim is explicit provenance, the only available correction was deletion from view — the least honest of
+the three. Shipped, deployed and verified live: `operator_amendments` reads **0** off production
+([agent-operator list 34723019208](https://github.com/in-c0/tuned/actions/runs/34723019208), HTTP 200).
 
-**What this discharges, registered before the selector had published anything.** [EXP-013](EXPERIMENTS.md)
-named one limitation in advance: *"The `why` line is weaker than the hand-written ones and that is
-deliberate… **This is the first thing to improve and the improvement is quotation, not generation** — a
-verbatim sentence from the source is pointing; a paraphrase is authoring."* Item 280's line — *"Selected
-by @sportstech from 35 open-access candidates screened 2026-09-12: full text read (46,097 characters).
-Design terms present: … Reported: …"* — is true in every word and tells a reader nothing about the
-paper, on the one feed a stranger arriving from a directory of RSS feeds would land on.
+**Three properties make it a correction rather than a rewrite, and each is enforced in the Worker rather
+than left to a caller.** `operator_item_amendments` is **append-only** and keeps the replaced line
+verbatim with a required reason; the stored line carries a server-composed **`(corrected YYYY-MM-DD)`**
+mark, placed *inside the text* so it travels into the RSS description and anything that copies it; and
+the mark **cannot be forged or omitted** — a submitted line carrying one is refused. Only the why-line,
+only on an item this plane published, never on one the owner hid.
 
-**The invariant is a substring check, so the failure mode is silence and never invention.**
-`selectQuotation`'s last clause is `abstract.includes(quote)` applied to the string that would be
-published. When no sentence qualifies, the line falls back to the provenance-only form 280 carries and
-the run log names the clause that refused. A quotation is **never truncated**, not even on a clause
-boundary: an abridged sentence inside quotation marks is a misquotation, so an over-long one is refused.
+**AND IT CORRECTED NOTHING, WHICH IS THE RIGHT ANSWER AND THE WHOLE POINT.** Item 280 — this feed's first
+autonomous selection, carrying a line that reports the agent's own screening and says nothing about the
+paper — **keeps that line.** Its abstract's results section holds three sentences; two report no value a
+reader could check and one is too long to quote whole. Nothing was written to replace it, because the
+alternative to quoting nothing is writing something.
 
-**THE QUOTATION RULE'S FIRST LIVE SCREEN QUOTED THE STATISTICS SECTION'S METHOD, AND NOTHING REACHED A
-READER.** At `10:16Z` the top selection's line was *"Reliability was assessed by ICC(A,1) with 95% CIs,
-SEM, MDC 95 , CV%, and Bland-Altman analysis."* — verbatim, faithful, **a methods sentence**, admitted
-because `STATISTIC_SIGNATURES` matches `ICC` and `95% CI` as strings. That is the right question for the
-bar (*does this paper report statistics*) and the wrong one for a quotation (*does this sentence report a
-result*) — **run 153's scope bug exactly one layer in**, and [L-72](LESSONS.md) is about reusing a
-vocabulary across a change of question. Corrected in
-[`fa5d467`](https://github.com/in-c0/tuned/commit/fa5d467): the quotation clause has its own table in
-which **every pattern binds a digit**, a sentence whose subject is the analysis pipeline is refused even
-when it carries a real number, and a quote bearing the fingerprints of stripped inline markup
-(`MDC<sub>95</sub>,` → `MDC 95 ,`) is refused because it reads as a transcription error.
+**THE FIRST LIVE CORRECTION QUOTED A METHODS SENTENCE WEARING ITS OWN SECTION LABEL, AND NOTHING REACHED
+A READER.** At `22:19Z` the composed line was *"Methods Thirteen male soccer players (16.2 ± 0.3 years,
+BMI = 24.5 ± 1.5 kg/m2) completed a counterbalanced crossover study…"* — verbatim, and a textbook methods
+sentence with the label glued to its front as though the authors had written it there. **Two clauses
+existed to refuse exactly this and both were walked past**: `SECTION_LABEL` required a colon and that
+abstract writes `Methods Thirteen…`, so no sentence had a section, the results restriction never applied
+and the pool silently widened to the whole abstract; and `METHODS_STATEMENT` wanted
+`players`+`completed` *adjacent*, where the demographics sit between them. Fixed in
+[`4749912`](https://github.com/in-c0/tuned/commit/4749912). **[L-73](LESSONS.md)** — third in three days,
+and the new shape is *a restriction that fails open*: when the label pattern matched nothing the code did
+not refuse, it widened, and the log stayed cheerful.
 
-**THE BAR WAS NOT TOUCHED, AND THAT IS MEASURED RATHER THAN ASSERTED.** Both screens — before and after
-the clause fix — report **byte-identical counts: screened 35 · rejected 10 · selected 9 · deferred 16 ·
-12 full-text reads.** The correction moved the line and not the selection, so this window's selections
-and EXP-013's thresholds 1, 2, 4 and 5 are unaffected by construction.
+**WHOSE REFUSAL WAS IT — the abstract's, or this run's own budget?** A correction is held to a budget 23
+characters shorter than a publication's, because of the mark. That ambiguity was closed rather than
+argued: a refusal now re-runs the selection at the publisher's budget and says which.
+[Run 34723050831](https://github.com/in-c0/tuned/actions/runs/34723050831) reads **"not the mark's doing
+— the publisher's own budget refuses this abstract too"**. The mark is not what kept item 280 uncorrected.
 
-**THE SCHEDULE WAS NOT ARMED, AND THE THRESHOLD WAS PROPOSED RATHER THAN ENACTED.** Run 153 failed
-EXP-013's threshold 2 at 25.7%, took Fork B, disarmed the schedule, and left one instruction: *"the next
-run will propose one in a commit before screening and will not arm the schedule on its own reading of a
-threshold it wrote itself."* **No reviewer ruling has been posted.** The proposal
-([`93a7a27`](https://github.com/in-c0/tuned/commit/93a7a27), committed before this run's first screen)
-**deletes the rate as a gate rather than retuning it** — a band chosen after seeing 20%, 25.7% and 50% is
-fitted to the executor's own candidate set — and promotes the on-remit inspection, the only threshold
-here that has ever caught anything. **The original threshold stays in force as FAILED and the schedule
-stays disarmed.** Two questions are the reviewer's: accept it or state a number, and whether the daily
-schedule may then publish unattended.
+**Q4's refusal path is exercised for the first time**, which run 154 named as a gap it could not close:
+six clause names, one reported per refusal, and now a real refusal on a real record with the clause
+counts printed.
+
+**There is deliberately no `amend` action on the `agent operator` workflow.** A free-text `why` input
+there would let a person type a sentence straight into the agent's voice. The only caller that may
+correct a line is `agent scout`, which composes it from the source's own abstract and cannot invent one.
+The workflow gets a **read-only `amendments`** action instead.
+
+**The schedule is still disarmed and the threshold-2 proposal is still unruled.** Unchanged from run 154:
+the proposal ([`93a7a27`](https://github.com/in-c0/tuned/commit/93a7a27)) deletes the rate as a gate and
+promotes the on-remit inspection; **no reviewer ruling has been posted since 2026-09-01**, the original
+threshold stays in force as FAILED, and no run should arm the schedule on its own reading of a threshold
+the executor proposed.
 
 **None of this touched the three dormant feeds.** Run 152's hold stands: `@wearables`, `@wellbeing` and
 `@graphics` were not adopted, not published to, not touched.
 
-**No `src/` file, no route, no schema, no counter, no page, no secret.** EXP-011's landing-page window is
-untouched by construction.
+**EXP-011's landing-page window is untouched.** No landing page, script, copy, offer, form or counter
+changed. The `src/` change is the operator plane — an authenticated control-plane route no visitor
+reaches — plus one additive, self-applying table; the landing page's inputs to R are identical.
 
-Gates: `check` **0** · **18 files, 287 tests** · `test:ops` **150/150** (was 133) · scout suite **70
-tests** (was 53) · workflow and nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities**.
+Gates: `check` **0** · **18 files, 298 tests** (was 287) · `test:ops` **171/171** (was 150) · scout
+suite **91 tests** (was 70) · workflow and nomination validators ok · `npm audit --omit=dev` **0
+vulnerabilities**.
 Provenance on both public surfaces graded against the live item:
 [qa-browser 34688324375](https://github.com/in-c0/tuned/actions/runs/34688324375), **17 passed / 1
 skipped** (the skip is the RSS case's duplicate at the second viewport — it runs once, from desktop),

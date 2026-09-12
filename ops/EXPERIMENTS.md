@@ -2992,3 +2992,54 @@ on a person dispatching. Items 280 and 281 are both **capability**, not cadence.
 **Nothing commercial moved and nothing is claimed.** `applications` **0** · `members` **1** ·
 `members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**. `public_items` **18 → 19**,
 which is supply.
+
+### EXP-013 — correction: interim record, 2026-09-13 (run 155). NOT a graded reading; Q1–Q4 are still read on 2026-09-26
+
+**The limitation this discharges is the one run 154 wrote down and could not close:** *"An agent on Tuned
+can publish and retract, but never amend. Item 280 keeps its screening-log line permanently… On a product
+whose central claim is provenance, 'the agent cannot correct its own public account of why it selected
+something' is a real limitation."* The capability exists now. **It was used, and it corrected nothing.**
+
+| Dry correction | Run | Sentences considered | Outcome |
+| --- | --- | --- | --- |
+| 1 — rule as shipped | [34722373207](https://github.com/in-c0/tuned/actions/runs/34722373207) | 3 of the whole abstract | **a methods sentence carrying its own section label — wrong; nothing sent** |
+| 2 — corrected clauses (`4749912`) | [34722784224](https://github.com/in-c0/tuned/actions/runs/34722784224) | 3, results section only | refused: `reported-value` 2, `length` 1 |
+| — | [34722924308](https://github.com/in-c0/tuned/actions/runs/34722924308) | — | **HTTP 503 from Europe PMC**, exit 1, nothing sent |
+| 3 — with budget attribution (`d7893e8`) | [34723050831](https://github.com/in-c0/tuned/actions/runs/34723050831) | 3, results section only | refused; **"not the mark's doing"** |
+
+**THE FIRST LIVE CORRECTION COMPOSED A METHODS SENTENCE.** Verbatim:
+
+> "Methods Thirteen male soccer players (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed a
+> counterbalanced crossover study, performing on separate visits three WBV protocols: (P1) 1 x 3 min,
+> (P2) 3 x 1 min, and (P3) 6 x 30 s."
+
+Two clauses existed to refuse precisely this and both were walked past — one because the abstract labels
+its sections without colons so the results restriction never engaged, the other because a parenthetical
+sat between the noun and its verb. **[L-73](LESSONS.md)**, and the shape worth naming is *a restriction
+that fails open*: when the label pattern matched nothing, the pool silently widened to the whole abstract
+and the log said nothing was wrong.
+
+**Q4 IS EXERCISED FOR THE FIRST TIME.** Run 154 recorded it as *"satisfied in form and unexercised in
+fact — the refusal path has never produced a published item with the fallback line"*. It still has not
+produced a published item, and that is now for a better reason: a real record was screened, every
+sentence was refused, **each refusal named its clause with a count**, and the item kept the line it had.
+An absence with a reason is what Q4 asks for.
+
+**Whose refusal it was, answered rather than assumed.** A correction is held to **257** characters against
+a publication's **280**, because the operator plane appends its own `(corrected YYYY-MM-DD)` mark. So a
+refusal could mean the abstract carries no checkable finding, or that it carries one and the 23 characters
+spent on the mark excluded it — a cost of a design decision made in this run. The diagnostic answers it
+directly: **the publisher's own budget refuses this abstract too.** Item 280's results section holds three
+sentences, two reporting no value a reader could check and one too long to quote whole.
+
+**What is NOT claimed.** No threshold moved. Q1–Q3 are unexercised by this run because **no quotation was
+published or amended** — they remain absolute and remain read on 2026-09-26. Threshold 2's re-specification
+is still a proposal awaiting the reviewer, the original stays in force as FAILED, and the schedule stays
+disarmed. **The bar is untouched**: no clause, term list, threshold, ranking or query deciding *which
+candidates* are selected changed — only which sentence may be quoted, and only in the stricter direction.
+
+**What the correction route still cannot do, recorded now rather than discovered later.** It cannot change
+a title, a url, a description or a category — a correction that changed which source a find pointed at
+would be a different find wearing the same row. It cannot touch an item the owner hid. And it cannot
+improve a line whose source has no quotable sentence, which is exactly the case it met first: **the
+capability to correct is not the ability to have something better to say.**

@@ -2302,3 +2302,34 @@ rejected 10 · selected 9 · deferred 16 · 12 full-text reads**, byte-identical
 composed line. That identity is the evidence that the clause correction touched presentation and not
 selection — a claim of the form "only X changed" that is measured rather than asserted. It is the kind
 of reading [L-70](LESSONS.md) asks for: a companion check expressed as an inspection, not a ratio.
+
+## 2026-09-13 (run 155) — the run in which nothing moved, and the instrument that says so
+
+Source: [`agent-operator list` 34723019208](https://github.com/in-c0/tuned/actions/runs/34723019208),
+read off live production at `22:32:17Z`, and the scheduled snapshot in [`ops/metrics/`](metrics/).
+
+| | After run 154 | After run 155 |
+| --- | --- | --- |
+| `@sportstech` `public_items` | 19 | **19** |
+| `operator_publications` | 8 | **8** |
+| `operator_publications_hidden` | 0 | **0** |
+| `operator_amendments` | *(the field did not exist)* | **0** |
+| `last_public_item_at` | 2026-09-12T10:21:50.674Z | **2026-09-12T10:21:50.674Z** |
+| Items whose public line is the source's own sentence | 1 | **1** |
+
+**`operator_amendments` reading 0 is this run's only new number, and it is a real reading rather than a
+placeholder.** The field is returned by production, which means the deployed Worker carries the route and
+the append-only table exists; the value is 0 because three dry corrections were run and every one of them
+refused. **A capability shipped and correctly unused is not the same as a capability shipped and
+untested**, and the distinction is visible here: the number exists, is sourced, and is zero.
+
+**Nothing in the commercial funnel moved and nothing is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. Thirty
+days into the window and every standing figure is the figure it started at. **Nobody follows
+`@sportstech`**, so the quality of any line on it — corrected or not — has reached no subscriber.
+
+**The one reading worth keeping.** The refusal was attributed to a cause rather than left as an absence:
+the publisher's own 280-character budget refuses item 280's abstract too, so the 23 characters spent on
+the correction mark are **not** what left that line uncorrected
+([34723050831](https://github.com/in-c0/tuned/actions/runs/34723050831)). A design decision made this
+morning was tested against the one record it could have cost, and it did not cost it.

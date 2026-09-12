@@ -2807,3 +2807,62 @@ Three rules:
    is as much a reported value as an equality, and `95%` inside "95% confidence intervals" was matching
    a magnitude pattern — so every sentence merely *naming* an interval looked like one that reported a
    value. Patterns that read correctly are not patterns that discriminate correctly.
+
+---
+
+## L-73 — the clause is defeated by the exact case it was written for, wearing different punctuation (2026-09-13, run 155)
+
+Third in three days, and the repetition is the whole lesson.
+[L-71](#l-71--the-clause-you-expect-to-be-the-gatekeeper-is-not-the-one-doing-the-work-2026-09-12-run-153)
+was a term describing a **method** satisfying a clause meant to ask **about whom**.
+[L-72](#l-72--the-same-word-answers-two-different-questions-and-a-table-is-not-transferable-between-them-2026-09-12-run-154)
+was a term naming a **method** satisfying a clause meant to ask **about an outcome**. This one is
+different in kind and worse: **the clause named the case exactly, and the case walked past it anyway.**
+
+Run 155's first live correction of item 280
+([34722373207](https://github.com/in-c0/tuned/actions/runs/34722373207)) composed, verbatim:
+
+> "Methods Thirteen male soccer players (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed a
+> counterbalanced crossover study, performing on separate visits three WBV protocols: (P1) 1 x 3 min,
+> (P2) 3 x 1 min, and (P3) 6 x 30 s."
+
+Two clauses existed to refuse precisely this, and both were written *before* it, *for* it:
+
+1. **`METHODS_STATEMENT` already contained `(participants|players|athletes|subjects)
+   (were|completed|performed|underwent)`.** This sentence is "players … completed". It escaped
+   because the two words are not adjacent — the demographics sit between them. Zero tolerance for an
+   intervening clause, in a regex over natural prose, is a specification of a sentence rather than of
+   a pattern.
+2. **`SECTION_LABEL` already restricted quoting to a results section.** It required a colon. This
+   abstract writes `Methods Thirteen…`. So *no* sentence carried a section, `inResults` was empty,
+   the pool silently widened to the whole abstract, and the label itself was glued to the front of
+   the quote as though the authors had written it there.
+
+**The second is the more dangerous shape and it has a name: a restriction that fails open.** When the
+label pattern matched nothing, the code did not refuse — it fell back to "the whole abstract is the
+pool" and carried on looking successful. A guard whose non-match widens what is allowed is not a
+guard; the log said `9 selected` in the same cheerful tone either way.
+
+**And the fix reproduced the same class of error twice more, in the other direction.** The first
+version of the label pattern used a `(?=[A-Z0-9])` lookahead inside a case-insensitive regex — where
+`[A-Z]` matches lowercase — so *"Results showed a clear effect."* lost its first word and would have
+been published starting mid-clause. The first version of the participants fix bounded its gap with
+`[^.;]`, which cannot cross the `.` in `16.2`, so it still did not match the live sentence. **Both
+were caught by tests written from the live string, within a minute, and neither by reading.**
+
+Four rules:
+
+1. **A refusal clause over prose must tolerate an intervening clause.** Adjacency between a subject
+   and its verb is an accident of one sentence. Bound the gap; do not set it to zero.
+2. **A restriction must fail closed.** If the structure a restriction depends on is absent, that is a
+   fact to report and narrow on, never a licence to widen. "No section labels found" should be
+   visible in the log, not silently equal to "every section is quotable".
+3. **A character class written to stop at a boundary must be checked against the actual boundary
+   characters.** `.` is a decimal point far more often than a full stop inside one sentence.
+4. **Write the test from the live string before writing the fix**, and write it for both directions —
+   the case that must now be refused, and a neighbouring case that must still be admitted. Every one
+   of the three defects above was found that way and none by re-reading the regex.
+
+**Cost:** zero to readers, and that is the point worth keeping. Three consecutive days on which the
+quotation machinery was wrong, three times caught on a dry run before anything was published. The dry
+path is the only reason this is a lesson rather than an incident.
