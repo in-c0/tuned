@@ -767,6 +767,47 @@ export function splitSentences(text) {
 const SECTION_LABEL = /^([A-Z][A-Za-z &/-]{1,38})\s*:\s*/;
 const RESULT_SECTION = /^(results?|findings|main (results?|findings)|key (results?|findings)|results and discussion|outcomes?)$/i;
 
+/** THE SAME STRUCTURED ABSTRACT, LABELLED WITHOUT COLONS — and it cost the whole section
+ *  restriction on the first record the correction mode was pointed at.
+ *
+ *  Run 155's dry correction of item 280
+ *  (https://github.com/in-c0/tuned/actions/runs/34722373207) composed, verbatim:
+ *  *"Methods Thirteen male soccer players (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed
+ *  a counterbalanced crossover study…"* — a methods sentence wearing its own section label
+ *  inside the quotation marks. `SECTION_LABEL` requires a colon; that abstract writes
+ *  `Methods Thirteen…`, so NO sentence had a section, `inResults` was empty, the pool became
+ *  the entire abstract, and the label itself was glued to the front of the quote as though the
+ *  authors had written it there.
+ *
+ *  A closed list rather than a pattern, because "any capitalised word followed by a capital"
+ *  would strip the first word of half the sentences in any abstract. And the lookahead is
+ *  load-bearing in the other direction: *"Results showed a significant effect"* is a sentence
+ *  whose subject is the results, not a label — the next word is lowercase, so it is left
+ *  alone. Stripping it would publish a quotation starting mid-clause. */
+const BARE_SECTION_LABEL =
+  /^(background|objectives?|purpose|aims?|introduction|context|rationale|materials and methods|methods and materials|methodology|methods?|design|setting|participants|procedures?|interventions?|measurements?|results?|findings|outcomes?|conclusions?|discussion|summary|significance)\s+/i;
+
+/** The label at the head of a sentence, and the sentence without it. Kept as one function so
+ *  the colon and colon-free forms cannot drift apart. Only ever strips text this table names,
+ *  and what remains is still checked as a verbatim substring by the final clause. */
+export function splitSectionLabel(sentence) {
+  const colon = SECTION_LABEL.exec(sentence);
+  if (colon) return { label: colon[1].trim(), text: sentence.slice(colon[0].length).trim() };
+  const bare = BARE_SECTION_LABEL.exec(sentence);
+  if (bare) {
+    const rest = sentence.slice(bare[0].length);
+    // Both checks are made HERE and not in the pattern, because the pattern is
+    // case-insensitive and a case-insensitive `[A-Z]` lookahead matches lowercase — which is
+    // how the first version of this stripped the first word off *"Results showed a clear
+    // effect."* and would have published a quotation starting mid-clause. Caught by its own
+    // test; kept as this comment so it is not reintroduced by moving the check back inline.
+    const writtenAsLabel = bare[1] === bare[1].toUpperCase() || /^[A-Z][a-z]/.test(bare[1]);
+    const startsNewSentence = /^[A-Z0-9]/.test(rest);
+    if (writtenAsLabel && startsNewSentence) return { label: bare[1].trim(), text: rest.trim() };
+  }
+  return { label: "", text: sentence };
+}
+
 /** Openers that promise the reader a sentence they cannot see. A quotation is a standalone
  *  object in a feed, so a sentence whose subject is "these" or whose first word is "However"
  *  has had its meaning left behind in the paper. */
@@ -815,7 +856,17 @@ const METHODS_STATEMENT = [
   /\b(was|were|is|are)\s+(assessed|calculated|computed|determined|analy[sz]ed|evaluated|quantified|estimated|derived|performed|conducted|obtained|recorded|collected|used|examined|tested|expressed|interpreted|modell?ed|summari[sz]ed|compared)\s+(by|using|with|via|from|against|in)\b/i,
   /\bstatistical (analysis|analyses|significance was)\b/i,
   /\bwe (calculated|computed|used|applied|assessed|analy[sz]ed|performed|conducted|recruited)\b/i,
-  /\b(participants|players|athletes|subjects) (were|completed|performed|underwent)\b/i,
+  // A PARENTHETICAL DEFEATED THIS CLAUSE, and the clause had been written for exactly the
+  // sentence it then let through. It read `(participants|players|athletes|subjects)
+  // (were|completed|…)` — adjacent words — and run 155's dry correction produced *"Thirteen
+  // male soccer players (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed a counterbalanced
+  // crossover study…"*, where the demographics sit between the noun and its verb. The gap is
+  // bounded and stops at a sentence-internal boundary so it cannot reach across clauses.
+  /\b(participants|players|athletes|subjects|volunteers|men|women|boys|girls|adults|children)\b[^;]{0,80}?\b(were|was|completed|performed|underwent|attended|visited|took part|participated)\b/i,
+  // A sentence whose subject is the study design. The demographics in the sentence above are
+  // not what makes it methods — "completed a counterbalanced crossover study" is — so the
+  // design nouns are refused on their own account rather than only via the participants.
+  /\b(crossover|cross-over|counterbalanced|repeated[- ]measures|randomi[sz]ed|double[- ]blind|single[- ]blind|within[- ]subjects?|between[- ]subjects?|observational|longitudinal|pilot)\s+(study|trial|design|protocol|experiment)\b/i,
   /\b(alpha|significance) (level|was set)\b/i,
 ];
 
@@ -888,9 +939,9 @@ export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars
   const sentences = splitSentences(prose);
   let section = "";
   const entries = sentences.map((sentence, index) => {
-    const labelled = SECTION_LABEL.exec(sentence);
-    if (labelled) section = labelled[1].trim();
-    return { text: labelled ? sentence.slice(labelled[0].length).trim() : sentence, section, index };
+    const { label, text } = splitSectionLabel(sentence);
+    if (label !== "") section = label;
+    return { text, section, index };
   });
 
   // Where the abstract declares a results section, nothing outside it is quotable. An agent

@@ -29,6 +29,7 @@ import {
   CORRECTION_MARK_CHARS,
   selectQuotation,
   splitSentences,
+  splitSectionLabel,
   quoteFrames,
   QUOTE_MAX_CHARS,
   QUOTE_MIN_CHARS,
@@ -1048,4 +1049,81 @@ test("fetchRecord refuses an identifier it cannot pin to one record, before any 
   assert.equal(got, null);
   assert.match(error, /PMCID|DOI/);
   assert.equal(requested, 0, "a loose identifier is refused without spending someone else's request");
+});
+
+// ---------------------------------------------------------------------------
+// The sentence the first live CORRECTION composed, and the two clauses it walked past
+// ---------------------------------------------------------------------------
+//
+// Run 155 pointed the correction mode at item 280 in dry mode and it composed, verbatim, a
+// methods sentence wearing its own section label inside the quotation marks. Kept here as the
+// real string rather than a paraphrase of it, the way run 154 kept the previous one.
+
+const LIVE_CORRECTION_SENTENCE =
+  "Methods Thirteen male soccer players (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed a counterbalanced crossover study, performing on separate visits three WBV protocols: (P1) 1 x 3 min, (P2) 3 x 1 min, and (P3) 6 x 30 s.";
+
+test("the sentence the first live correction composed is refused now", () => {
+  const q = selectQuotation(LIVE_CORRECTION_SENTENCE);
+  assert.equal(q.quote, "", "a methods sentence must not be quotable, label or no label");
+});
+
+test("a structured abstract labelled without colons still has sections", () => {
+  // The failure that cost the section restriction entirely: SECTION_LABEL wanted a colon, this
+  // abstract writes `Methods Thirteen…`, so nothing had a section and the whole abstract became
+  // the pool.
+  assert.deepEqual(splitSectionLabel("Methods Thirteen male soccer players completed a study."), {
+    label: "Methods",
+    text: "Thirteen male soccer players completed a study.",
+  });
+  assert.deepEqual(splitSectionLabel("RESULTS Knee torque fell."), { label: "RESULTS", text: "Knee torque fell." });
+  assert.deepEqual(splitSectionLabel("Results: Knee torque fell."), { label: "Results", text: "Knee torque fell." });
+  // And the direction that matters more, because getting it wrong publishes a quotation
+  // starting mid-clause: a sentence ABOUT the results is not a label.
+  assert.deepEqual(splitSectionLabel("Results showed a clear effect."), {
+    label: "",
+    text: "Results showed a clear effect.",
+  });
+  assert.equal(splitSectionLabel("Conclusions were drawn carefully.").label, "");
+  assert.equal(splitSectionLabel("The methods Were unusual.").label, "");
+});
+
+test("with the labels recognised, only the results block is quotable in a colon-free abstract", () => {
+  const finding = "Knee-extensor torque fell by 4.1% after P1 and recovered within ten minutes (p = 0.03).";
+  const abstract = `${LIVE_CORRECTION_SENTENCE} Results ${finding} Conclusions Whole-body vibration protocols were work-equivalent and showed a large benefit (p = 0.01).`;
+  const q = selectQuotation(abstract);
+  assert.equal(q.quote, finding, "the results sentence, and not the conclusion's livelier claim");
+  assert.equal(q.source, "abstract results section");
+  assert.ok(abstract.includes(q.quote));
+});
+
+test("MUTATION: without the colon-free labels the methods sentence becomes quotable again", () => {
+  // The mutation is the old regex: a label only counts when it carries a colon.
+  const oldStyle = (sentence) => {
+    const m = /^([A-Z][A-Za-z &/-]{1,38})\s*:\s*/.exec(sentence);
+    return m ? { label: m[1].trim(), text: sentence.slice(m[0].length).trim() } : { label: "", text: sentence };
+  };
+  assert.equal(oldStyle(LIVE_CORRECTION_SENTENCE).label, "", "which is exactly why the pool was the whole abstract");
+  assert.notEqual(splitSectionLabel(LIVE_CORRECTION_SENTENCE).label, "");
+});
+
+test("a parenthetical between a noun and its verb no longer hides a methods sentence", () => {
+  // The clause had been written for this sentence shape and the demographics in the middle
+  // walked straight past it.
+  const withGap = "Thirteen male soccer players (16.2 ± 0.3 years, BMI = 24.5 ± 1.5 kg/m2) completed three protocols in a counterbalanced order.";
+  assert.equal(selectQuotation(`RESULTS: ${withGap}`).quote, "", "the gap must not defeat the clause");
+  assert.equal(selectQuotation(`RESULTS: ${withGap}`).refusedBecause, "not-methods");
+});
+
+test("a sentence whose subject is the study design is methods, demographics or not", () => {
+  const design = "The investigation used a counterbalanced crossover design with three work-equivalent conditions and a washout (p = 0.02).";
+  assert.equal(selectQuotation(`RESULTS: ${design}`).quote, "");
+  assert.equal(selectQuotation(`RESULTS: ${design}`).refusedBecause, "not-methods");
+});
+
+test("the tightenings do not refuse the sentence this feed actually published", () => {
+  // Item 281's live line. A clause that refuses a real finding is a regression, and this is
+  // the only published quotation there is to check against.
+  const published =
+    "Onset showed excellent reliability across all seven muscles (ICC = 0.943-0.995); offset, moderate-to-excellent (0.524-0.907).";
+  assert.equal(selectQuotation(`RESULTS: ${published}`).quote, published);
 });
