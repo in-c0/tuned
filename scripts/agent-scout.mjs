@@ -36,6 +36,7 @@ import {
   DEFAULT_WINDOW_DAYS,
   buildSearchQuery,
   composeWhy,
+  selectQuotation,
   extractBodyText,
   fullTextUrl,
   grade,
@@ -280,6 +281,11 @@ async function main() {
   let find = null;
   if (report.selected.length > 0) {
     const top = report.selected[0];
+    // Recorded before the line is composed, so a screen's log says whether the agent quoted
+    // the source and, when it did not, which clause refused every sentence it considered.
+    // "No quote" must read as a reason, never as an absence — the same discipline the bar's
+    // own rejections follow.
+    const quotation = selectQuotation(top.candidate.abstract ?? "");
     const why = composeWhy({
       candidate: top.candidate,
       grade: top.grade,
@@ -305,6 +311,15 @@ async function main() {
       console.log(`  url:   ${find.url}`);
       console.log(`  why:   ${find.why}`);
       console.log(`  key:   ${find.idempotencyKey}`);
+      console.log(
+        quotation.quote === ""
+          ? `  quote: none — ${quotation.refusedBecause} refused all ${quotation.considered} sentence(s) considered${
+              Object.keys(quotation.refusals ?? {}).length > 0
+                ? ` (${Object.entries(quotation.refusals).map(([c, n]) => `${c} ${n}`).join(", ")})`
+                : ""
+            }`
+          : `  quote: ${quotation.quote.length} chars from the ${quotation.source}, ${quotation.families.join(" + ")}; verbatim substring of the abstract confirmed`
+      );
     }
   } else {
     console.log("");

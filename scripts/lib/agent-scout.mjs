@@ -17,9 +17,12 @@
 // 2 is "selected by agent — the agent judged it relevant". That is what this is: a remit
 // translated into an explicit, public, falsifiable bar, applied to material the agent
 // actually fetched. It is NOT a summariser and NOT a generator — it writes no prose about a
-// source, it points at one. The `why` line it composes says what it *did* (what it read,
-// what the text contained, what it rejected) and never characterises a finding it has not
-// verified, because a machine that paraphrases a result it cannot check is authoring.
+// source, it points at one. The `why` line it composes is either the source's **own sentence,
+// quoted verbatim and labelled as the source's**, or a record of what the agent *did* (what it
+// read, what the text contained) — never a characterisation of a finding it has not verified,
+// because a machine that paraphrases a result it cannot check is authoring. See
+// `selectQuotation`, whose last clause is an exact-substring check, so its failure mode is
+// silence rather than invention.
 //
 // WHY THE BAR IS IN A FILE AND NOT IN A PROMPT. The six hand-made publications on
 // `@sportstech` each carry a pre-registration commit that predates the dispatch, because the
@@ -677,20 +680,262 @@ export function rankSelected(graded) {
 
 export const WHY_MAX = 280;
 
+// ---------------------------------------------------------------------------
+// Quotation: the agent points with the source's own sentence
+// ---------------------------------------------------------------------------
+
+// EXP-013 registered one known limitation before its first publication, and this is the
+// discharge of it: *"This is the first thing to improve and the improvement is quotation, not
+// generation — a verbatim sentence from the source is pointing; a paraphrase is authoring."*
+//
+// Item 280's line was `Selected by @sportstech from 35 open-access candidates screened
+// 2026-09-12: full text read (46,097 characters). Design terms present: ... Reported: ...` —
+// true, checkable, and it tells a reader nothing about the paper. A stranger arriving on
+// /sportstech from a directory of RSS feeds reads that line as the product.
+//
+// THE ONE RULE THAT MAKES THIS NOT A SUMMARISER. The agent never composes a sentence about a
+// source. It selects one the authors wrote and reproduces it character for character, inside
+// quotation marks, labelled as the source's words, next to a link. `selectQuotation` refuses
+// to return anything that is not an exact substring of the abstract it was given — the last
+// clause it applies is literally `abstract.includes(quote)` — so the failure mode of this
+// code is silence, never invention. When no sentence qualifies the line falls back to the
+// provenance-only form above, which is what item 280 carries.
+//
+// WHY THE ABSTRACT AND NOT THE FULL TEXT. The bar still requires the full-text read and that
+// is unchanged; this is only about which sentence is quotable. A sentence lifted out of a
+// results section is usually unreadable alone — "there was no significant main effect
+// (p = 0.43)" of what, in whom — because the paragraph around it carries the subject. An
+// abstract is written to be read standalone and detached from the paper, so a sentence from
+// it is the one place in a paper where quoting one sentence is not a distortion by
+// construction. Where the abstract is structured, only its results section is quotable, so
+// the agent cannot reach past a null finding for a livelier sentence in the discussion.
+//
+// WHAT THIS STILL CANNOT DO, stated here rather than discovered later. One sentence from a
+// paper reporting many outcomes is a selection, and a selection can mislead by omission even
+// when every word is the authors'. Three things bound that and none of them removes it: the
+// quote is labelled as one sentence rather than as a summary, the link to the source is in
+// the item, and the ranking prefers the sentence carrying the most reported statistics, which
+// in a structured results section is normally the primary outcome. It is a real residual risk
+// and the honest reading is that quoting is better than paraphrasing, not that it is safe.
+
+/** Quoting needs whole sentences, and an abstract's prose breaks a naive splitter in two
+ *  specific places. A decimal point is handled by the shape of the boundary itself — a period
+ *  inside `0.05` is not followed by whitespace — but an abbreviation is not, so "vs. Control"
+ *  and "et al. We" would each be split into two fragments, and a fragment is not a quotation. */
+const PROTECTED_ABBREVIATIONS = new Set([
+  "vs", "e.g", "i.e", "cf", "approx", "etc", "al", "dr", "prof", "mr", "ms", "st",
+  "fig", "figs", "eq", "eqs", "no", "nos", "ref", "refs", "ca", "min", "sec", "wk",
+  "mo", "yr", "sd", "se", "ci", "resp",
+]);
+
+function endsWithProtectedAbbreviation(head) {
+  // A personal initial — "Smith J." — and a unit at the end of a sentence — "1.4 N." — are the
+  // same two characters, so the discriminator is what precedes them: a surname is a word, a
+  // measurement is a number. Getting this wrong in the merging direction costs a refusal on
+  // length; getting it wrong in the splitting direction publishes half a sentence inside
+  // quotation marks, so where the two cannot be told apart the rule below merges.
+  if (/[A-Za-z]+\s+[A-Z]\.$/.test(head)) return true;
+  const m = /(?:^|[\s(])([A-Za-z][A-Za-z.]{0,5})\.$/.exec(head);
+  if (!m) return false;
+  return PROTECTED_ABBREVIATIONS.has(m[1].toLowerCase());
+}
+
+/** Prose into sentences, each ending in its own terminal punctuation. */
+export function splitSentences(text) {
+  if (typeof text !== "string") return [];
+  const prose = text.trim();
+  if (prose === "") return [];
+  const out = [];
+  let start = 0;
+  const boundary = /[.!?]\s+(?=[A-Z0-9("'“])/g;
+  let m;
+  while ((m = boundary.exec(prose)) !== null) {
+    const head = prose.slice(start, m.index + 1);
+    if (endsWithProtectedAbbreviation(head)) continue;
+    const sentence = head.trim();
+    if (sentence !== "") out.push(sentence);
+    start = m.index + m[0].length;
+  }
+  const tail = prose.slice(start).trim();
+  if (tail !== "") out.push(tail);
+  return out;
+}
+
+/** A structured abstract's section label, e.g. `RESULTS:` or `Materials and Methods:`. Only
+ *  matched at the head of a sentence, and stripping it leaves a string that is still a
+ *  verbatim substring of the abstract — which the final clause re-checks rather than trusts. */
+const SECTION_LABEL = /^([A-Z][A-Za-z &/-]{1,38})\s*:\s*/;
+const RESULT_SECTION = /^(results?|findings|main (results?|findings)|key (results?|findings)|results and discussion|outcomes?)$/i;
+
+/** Openers that promise the reader a sentence they cannot see. A quotation is a standalone
+ *  object in a feed, so a sentence whose subject is "these" or whose first word is "However"
+ *  has had its meaning left behind in the paper. */
+const ANTECEDENT_OPENERS =
+  /^(these|this|that|those|it|its|they|them|their|such|he|she|his|her|both|either|neither|the former|the latter|however|therefore|thus|moreover|furthermore|additionally|also|hence|consequently|conversely|similarly|in contrast|by contrast|in addition|nevertheless|nonetheless)\b/i;
+
+/** Cross-references that resolve inside a PDF and nowhere else. */
+const UNRESOLVABLE_REFERENCE = [
+  /\b(table|tables|fig|figs|figure|figures|appendix|supplementary)\b\s*\.?\s*\d/i,
+  /\bet al\b/i,
+  /\[\s*\d+\s*[\],]/,
+  /\bas (shown|described|reported|presented) (in|above|below)\b/i,
+  /\bsee (table|fig|figure|section)\b/i,
+];
+
+/** The frames the quotation can be published in, longest first and each strictly shorter than
+ *  the last. **Every rung carries "the source's own words"** and that phrase is the part which
+ *  is not negotiable: a sentence in quotation marks under an agent's handle must not be
+ *  readable as the agent's sentence. Provenance state 2 is "selected by agent" — the agent
+ *  selected this sentence, it did not write it, and the line has to say which.
+ *
+ *  The handle drops off the shortest rung and the attribution does not. That is the right way
+ *  round: the page and the RSS channel already name `@sportstech` on every item (the "via
+ *  @agent" attribution doctrine calls foundational), so the handle is recoverable from the
+ *  surface, whereas nothing but this line can tell a reader who wrote the sentence. */
+export function quoteFrames({ quote, observed, observedOn, bodyCharacters }) {
+  const screened = `${observed} candidate${observed === 1 ? "" : "s"} screened ${observedOn}`;
+  const chars = Number(bodyCharacters || 0).toLocaleString("en-US");
+  return [
+    `“${quote}” — the source's own words, quoted by @sportstech from ${screened}; full text read (${chars} characters).`,
+    `“${quote}” — the source's own words, quoted by @sportstech from ${screened}.`,
+    `“${quote}” — the source's own words, quoted by @sportstech.`,
+    `“${quote}” — the source's own words.`,
+  ];
+}
+
+/** Derived, never hardcoded: the longest quote that still fits the shortest frame. */
+export const QUOTE_MAX_CHARS =
+  WHY_MAX - quoteFrames({ quote: "", observed: 0, observedOn: "", bodyCharacters: 0 }).at(-1).length;
+
+/** Short enough and a sentence fragment stops being a quotation of anything. */
+export const QUOTE_MIN_CHARS = 80;
+
+/** The clause names a refusal reports, in the order they are applied. Same discipline as
+ *  `CLAUSES`: a run's log says which clause refused the quotation, so "this item has no quote"
+ *  is a reason rather than an absence. */
+export const QUOTE_CLAUSES = [
+  "no-abstract",
+  "length",
+  "reported-number",
+  "self-contained",
+  "resolvable",
+  "verbatim",
+];
+
+/** Choose the one sentence the agent will quote, or refuse and say which clause refused.
+ *
+ *  Deterministic: most distinct statistic families first, then earliest position in the
+ *  abstract. Two runs over the same record therefore quote the same sentence, which is what
+ *  makes a dry screen's output checkable against the publishing screen's. */
+export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars = QUOTE_MIN_CHARS } = {}) {
+  const prose = typeof abstract === "string" ? abstract.replace(/\s+/g, " ").trim() : "";
+  if (prose === "") return { quote: "", considered: 0, refusedBecause: "no-abstract", refusals: {} };
+
+  const sentences = splitSentences(prose);
+  let section = "";
+  const entries = sentences.map((sentence, index) => {
+    const labelled = SECTION_LABEL.exec(sentence);
+    if (labelled) section = labelled[1].trim();
+    return { text: labelled ? sentence.slice(labelled[0].length).trim() : sentence, section, index };
+  });
+
+  // Where the abstract declares a results section, nothing outside it is quotable. An agent
+  // that may quote the discussion can quote an enthusiastic sentence about a null result.
+  const inResults = entries.filter((e) => RESULT_SECTION.test(e.section));
+  const pool = inResults.length > 0 ? inResults : entries;
+
+  const refusals = Object.create(null);
+  const refuse = (clause) => {
+    refusals[clause] = (refusals[clause] ?? 0) + 1;
+    return false;
+  };
+
+  const passing = [];
+  for (const entry of pool) {
+    const quote = entry.text;
+    if (quote.length < minChars || quote.length > maxChars) {
+      refuse("length");
+      continue;
+    }
+    if (!/[.!?](\s*[)\]"”])?$/.test(quote)) {
+      refuse("length"); // a fragment, not a sentence — the same failure as a bad boundary
+      continue;
+    }
+    const families = matchedFamilies(quote, STATISTIC_SIGNATURES);
+    if (families.length === 0) {
+      refuse("reported-number");
+      continue;
+    }
+    if (ANTECEDENT_OPENERS.test(quote)) {
+      refuse("self-contained");
+      continue;
+    }
+    if (UNRESOLVABLE_REFERENCE.some((re) => re.test(quote))) {
+      refuse("resolvable");
+      continue;
+    }
+    // The clause that makes this quotation rather than authoring, applied last and applied to
+    // the string that would actually be published.
+    if (!prose.includes(quote)) {
+      refuse("verbatim");
+      continue;
+    }
+    passing.push({ quote, families, index: entry.index, section: entry.section });
+  }
+
+  if (passing.length === 0) {
+    const refusedBecause =
+      QUOTE_CLAUSES.find((clause) => refusals[clause] > 0) ?? "no-sentence";
+    return { quote: "", considered: pool.length, refusedBecause, refusals };
+  }
+
+  passing.sort((a, b) => b.families.length - a.families.length || a.index - b.index);
+  const best = passing[0];
+  return {
+    quote: best.quote,
+    families: best.families,
+    index: best.index,
+    section: best.section,
+    considered: pool.length,
+    source: inResults.length > 0 ? "abstract results section" : "abstract",
+    refusedBecause: "",
+    refusals,
+  };
+}
+
 /** The public "why selected" line.
  *
- *  This is the sentence a reader sees under the agent's name, so it is held to the rule the
- *  remit sets for everything this agent produces: **it describes what the agent did, never
- *  what the paper found.** The agent read the full text and can prove the text contained a
- *  randomised design and 95% confidence intervals; it has not understood the result, and a
- *  line claiming otherwise would be the summariser Tuned is not. Less useful than the
- *  hand-written lines on items 242–279, and honest in a way a generated paraphrase would
- *  not be — recorded as this agent's known limitation rather than as a finished answer.
+ *  Two forms, and which one appears is decided by whether the source wrote a sentence this
+ *  agent is allowed to quote.
  *
- *  Composed by dropping whole clauses, never by slicing mid-sentence: the publish route
- *  refuses an over-long `why` rather than truncating it (src/operator.ts), and the same
- *  reasoning applies to building one. */
+ *  **Quoting** — the source's own sentence, verbatim, labelled as the source's, with the
+ *  screening provenance after it. The agent points; it does not characterise.
+ *
+ *  **Provenance only** — the form item 280 carries. Used whenever no sentence passes
+ *  `selectQuotation`, and it is the correct output in that case rather than a degraded one:
+ *  the alternative to quoting nothing is writing something, and writing something about a
+ *  result this agent has not verified is the summariser Tuned is not.
+ *
+ *  Composed by dropping whole clauses, never by slicing mid-sentence — and a quotation is
+ *  never truncated at all, not even on a clause boundary, because an abridged sentence in
+ *  quotation marks is a misquotation. The publish route refuses an over-long `why` rather
+ *  than truncating it (src/operator.ts) and this follows the same rule. */
 export function composeWhy({ candidate, grade: g, observed, observedOn }) {
+  const quotation = selectQuotation(candidate?.abstract ?? "");
+  if (quotation.quote !== "") {
+    for (const line of quoteFrames({
+      quote: quotation.quote,
+      observed,
+      observedOn,
+      bodyCharacters: g.bodyCharacters,
+    })) {
+      if (line.length <= WHY_MAX) return line;
+    }
+    // Fall through rather than truncate the quotation. `QUOTE_MAX_CHARS` makes this
+    // unreachable for the shortest frame, and falling through is still the right behaviour if
+    // a later edit to the frames makes it reachable again.
+  }
+
   const chars = g.bodyCharacters.toLocaleString("en-US");
   const head = `Selected by @sportstech from ${observed} open-access candidate${observed === 1 ? "" : "s"} screened ${observedOn}: full text read (${chars} characters).`;
   const design = `Design terms present: ${g.designs.join(", ")}.`;

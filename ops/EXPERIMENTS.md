@@ -2843,3 +2843,82 @@ itself:**
    expression in [`agent-scout.yml`](../.github/workflows/agent-scout.yml) with the condition written
    beside it. **This run does not arm it**, and no later run should arm it on its own reading of a
    threshold the executor proposed.
+
+### EXP-013 — the known limitation discharged: the agent now quotes the source (2026-09-12, run 154)
+
+EXP-013 registered one limitation **before** its first publication and named its fix in the same
+breath: *"The `why` line is weaker than the hand-written ones and that is deliberate… **This is the
+first thing to improve and the improvement is quotation, not generation** — a verbatim sentence from
+the source is pointing; a paraphrase is authoring."* This is that improvement, shipped before the
+selector has quoted anything, so the rule again predates the output.
+
+**The baseline is one line, and it is the whole argument for doing this.** Item 280's public `why`, on
+the only feed a stranger arriving from a directory of RSS feeds would land on:
+
+> Selected by @sportstech from 35 open-access candidates screened 2026-09-12: full text read (46,097
+> characters). Design terms present: randomised, repeated measures, comparison. Reported: p-value,
+> confidence interval, effect size, agreement, error, dispersion.
+
+Every word of that is true and checkable, and it tells a reader nothing about the paper. The six
+hand-made lines on items 242–279 describe the finding because a person read it.
+
+### Change
+
+[`scripts/lib/agent-scout.mjs`](../scripts/lib/agent-scout.mjs) only — `selectQuotation`,
+`splitSentences`, `quoteFrames` and a rewritten `composeWhy`, plus the screen log line in
+[`scripts/agent-scout.mjs`](../scripts/agent-scout.mjs). **The bar is not touched.** No clause, term
+list, threshold, ranking or query changed, so which candidates are selected this window is
+unaffected and EXP-013's thresholds 1, 2, 4 and 5 are unaffected by construction. **No `src/` file,
+route, schema, counter, page or secret**, so EXP-011's landing-page window is untouched too.
+
+### The one invariant, and it is a substring check
+
+The agent never composes a sentence about a source. It selects one the authors wrote and reproduces
+it character for character, in quotation marks, labelled *"the source's own words"*, beside the link.
+`selectQuotation`'s last clause is `abstract.includes(quote)` applied to the string that would be
+published, so **the failure mode of this code is silence, not invention**: when no sentence qualifies,
+the line falls back to the provenance-only form item 280 carries.
+
+Six clauses refuse, each named in the run log the way the bar's own rejections are — `no-abstract`,
+`length`, `reported-number`, `self-contained`, `resolvable`, `verbatim`. Two of them are the ones that
+matter:
+
+- **Only the abstract, and where the abstract is structured, only its results section.** A sentence
+  lifted from a results *paragraph* is unreadable alone — "there was no significant main effect
+  (p = 0.43)" of what, in whom — because the surrounding prose carries the subject. An abstract is
+  written to be read detached from the paper. Restricting to the declared results section is what
+  stops the agent reaching past a null finding for the livelier sentence in the discussion, and there
+  is a mutation test that demonstrates the optimistic conclusion becomes quotable the moment the
+  restriction is dropped.
+- **A quotation is never truncated, not even on a clause boundary.** An abridged sentence inside
+  quotation marks is a misquotation, so an over-long sentence is refused and the line falls back.
+  `QUOTE_MAX_CHARS` is derived from the shortest frame rather than hardcoded, and no composed line
+  can contain an ellipsis.
+
+### Thresholds, graded at EXP-013's reading on 2026-09-26
+
+| # | Threshold | Fails if |
+| --- | --- | --- |
+| **Q1** | every quotation published in the window is a verbatim substring of the source's abstract, checkable by a reader against the linked page | one quotation is not verbatim → revert the change, retract the item |
+| **Q2** | every published line states that the sentence is the source's, not the agent's | one line is readable as the agent's own prose → revert |
+| **Q3** | no published line contains a truncated sentence or an ellipsis | one does → revert |
+| **Q4** | where no sentence qualifies, the line falls back to the provenance-only form and the run log names the clause that refused | a quotation appears that no clause admitted, or an absence is recorded without a reason |
+
+**Q1–Q3 are absolute rather than rates**, which is deliberate and is the shape
+[L-70](LESSONS.md) argues for: a misquotation is not a tolerable fraction of a feed.
+
+### What this does not fix, recorded now rather than discovered later
+
+**One sentence from a paper reporting many outcomes is a selection, and a selection can mislead by
+omission even when every word is the authors'.** Three things bound that and none removes it: the line
+labels the quote as one sentence rather than as a summary, the item carries the link, and the ranking
+prefers the sentence carrying the most reported statistics — which in a structured results section is
+normally the primary outcome. The honest reading is that quoting is better than paraphrasing, **not
+that it is safe.**
+
+**It does not reach item 280.** The operator plane publishes, retracts and restores; it has no
+`why`-update path, and adding one is a `src/` change inside EXP-011's window for a single row. Item 280
+keeps the provenance-only line and stands as the record of the limitation this discharges.
+
+**It is not demand.** `followers` is **0**. A better line on an unfollowed feed is a better line on an
+unfollowed feed.

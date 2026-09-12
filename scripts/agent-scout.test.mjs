@@ -21,6 +21,12 @@ import {
   hasStrongSportTerm,
   buildSearchQuery,
   composeWhy,
+  selectQuotation,
+  splitSentences,
+  quoteFrames,
+  QUOTE_MAX_CHARS,
+  QUOTE_MIN_CHARS,
+  QUOTE_CLAUSES,
   extractBodyText,
   fullTextUrl,
   grade,
@@ -563,4 +569,165 @@ test("MUTATION: matching a term as a bare substring counts 'transport' as a ment
   // symmetric with the leading one.
   assert.ok(countSportMentions("athletes") > 0);
   assert.ok(countSportMentions("sporting") > 0);
+});
+
+// ---------------------------------------------------------------------------
+// Quotation — the agent points with the source's own sentence (run 154)
+//
+// EXP-013 registered the weak `why` line as this agent's known limitation before it published
+// anything, and named the fix: quotation, not generation. So the question these cases have to
+// answer is not "does a quote appear" but **can this code ever emit a sentence the source did
+// not write** — including by truncating one, stitching two together, or reaching into a
+// section where one sentence does not stand alone. Every refusal below is a sentence a loop
+// optimising for a livelier feed would have taken.
+// ---------------------------------------------------------------------------
+
+/** A structured abstract in Europe PMC's shape: section labels inline, one results section. */
+const RESULTS_SENTENCE =
+  "There was no significant main effect of protocol on knee-extensor maximal voluntary isometric contraction or countermovement jump height (all p > 0.05, partial eta squared < 0.09).";
+
+function structuredAbstract({
+  background = "Whole-body vibration is widely used as a warm-up modality in team sports.",
+  methods = "Thirteen highly trained adolescent male soccer players completed three work-equivalent protocols in a counterbalanced crossover design.",
+  results = RESULTS_SENTENCE,
+  extraResults = "These results were consistent across all three protocols.",
+  conclusion = "Work-equivalent vibration protocols suggest a promising warm-up avenue for youth athletes (p = 0.41, 95% CI).",
+} = {}) {
+  return `BACKGROUND: ${background} METHODS: ${methods} RESULTS: ${results} ${extraResults} CONCLUSION: ${conclusion}`;
+}
+
+const quotableCandidate = (abstractText) => candidateOf({ abstractText });
+
+test("the quotation is the source's own sentence, verbatim, inside the publish budget", () => {
+  const abstract = structuredAbstract();
+  const q = selectQuotation(abstract);
+  assert.equal(q.quote, RESULTS_SENTENCE);
+  assert.ok(abstract.includes(q.quote), "the published string must be a substring of the abstract");
+  assert.equal(q.source, "abstract results section");
+  assert.deepEqual(q.families.sort(), ["effect size", "p-value"]);
+
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const why = composeWhy({ candidate: quotableCandidate(abstract), grade: g, observed: 35, observedOn: "2026-09-12" });
+  assert.ok(why.length <= 280, `why was ${why.length} characters`);
+  assert.ok(why.includes(RESULTS_SENTENCE), "the whole sentence, not part of it");
+  assert.match(why, /the source's own words/, "the reader must be told whose sentence this is");
+  // And the agent must not have authored a characterisation around it.
+  assert.ok(!/\b(shows|suggests|proves|demonstrates|we found|concludes)\b/i.test(why.replace(RESULTS_SENTENCE, "")), why);
+});
+
+test("a quotation is never truncated to fit — an over-long sentence is refused and the line falls back", () => {
+  const long = `Across every outcome the analysis returned no detectable difference between the three protocols at any timepoint, with p values above the alpha level throughout and partial eta squared values below the smallest effect considered worthwhile, ${"and the confidence intervals were wide in every case".repeat(2)} (p = 0.41, 95% CI).`;
+  assert.ok(long.length > QUOTE_MAX_CHARS);
+  const q = selectQuotation(structuredAbstract({ results: long, extraResults: "" }));
+  assert.equal(q.quote, "");
+  assert.equal(q.refusedBecause, "length");
+
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const why = composeWhy({ candidate: quotableCandidate(structuredAbstract({ results: long, extraResults: "" })), grade: g, observed: 35, observedOn: "2026-09-12" });
+  // The fallback is the provenance-only form item 280 carries — not a shortened quote.
+  assert.match(why, /^Selected by @sportstech/);
+  assert.ok(!/[…]|\.\.\./.test(why), `no ellipsis may ever appear in a why line: ${why}`);
+  assert.ok(!why.includes("“"), "a refused quotation must leave no quotation marks behind");
+});
+
+test("no qualifying sentence falls back to the provenance line rather than writing one", () => {
+  const q = selectQuotation("BACKGROUND: Vibration training is popular. METHODS: We tested it. CONCLUSION: It is interesting.");
+  assert.equal(q.quote, "");
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const why = composeWhy({ candidate: candidateOf(), grade: g, observed: 12, observedOn: "2026-09-12" });
+  assert.match(why, /^Selected by @sportstech from 12 open-access candidates/);
+  assert.ok(why.length > 0 && why.length <= 280);
+});
+
+test("an empty or missing abstract refuses by clause rather than throwing", () => {
+  for (const input of ["", "   ", undefined, null, 42]) {
+    const q = selectQuotation(input);
+    assert.equal(q.quote, "");
+    assert.equal(q.refusedBecause, "no-abstract");
+  }
+});
+
+test("sentence splitting survives decimals, abbreviations and initials", () => {
+  const s = splitSentences("Velocity differed (p = 0.03). Peak force was 1.2 vs. 1.4 N. Smith J. reported the same effect in 2024.");
+  assert.deepEqual(s, [
+    "Velocity differed (p = 0.03).",
+    "Peak force was 1.2 vs. 1.4 N.",
+    "Smith J. reported the same effect in 2024.",
+  ]);
+});
+
+test("the quotation is deterministic, and prefers more reported statistics then the earlier sentence", () => {
+  const thin = "Sprint time improved by a small margin across the intervention period in this cohort (p = 0.04).";
+  const rich = "Jump height increased by 2.1 cm relative to the control condition in this cohort (p = 0.01, 95% CI 0.8 to 3.4, Cohen's d = 0.62).";
+  const abstract = structuredAbstract({ results: `${thin} ${rich}`, extraResults: "" });
+  const first = selectQuotation(abstract);
+  assert.equal(first.quote, rich, "two statistic families outrank the earlier sentence's one");
+  assert.equal(selectQuotation(abstract).quote, first.quote, "the same record must quote the same sentence twice");
+
+  const tie = structuredAbstract({ results: `${rich} Knee extensor torque also increased in this cohort (p = 0.02, 95% CI 1.1 to 4.0, Cohen's d = 0.58).`, extraResults: "" });
+  assert.equal(selectQuotation(tie).quote, rich, "on a tie the earlier sentence wins");
+});
+
+test("MUTATION: quoting outside the results section lets the agent reach past a null for a livelier sentence", () => {
+  // The conclusion of the fixture is upbeat AND carries two statistic families, so it would
+  // outrank nothing but would be admitted the moment the section restriction is dropped.
+  const abstract = structuredAbstract();
+  const restricted = selectQuotation(abstract);
+  assert.equal(restricted.source, "abstract results section");
+  assert.ok(!restricted.quote.includes("promising"), "the discussion's optimism must not be quotable");
+
+  // Same sentences, no section labels: now everything is in the pool, and the optimistic
+  // sentence becomes reachable. This is the behaviour the labels are there to prevent.
+  const unlabelled = selectQuotation(abstract.replace(/\b(BACKGROUND|METHODS|RESULTS|CONCLUSION): /g, ""));
+  assert.equal(unlabelled.source, "abstract");
+  assert.ok(unlabelled.quote.length > 0);
+});
+
+test("MUTATION: dropping the reported-number clause admits a background sentence that measures nothing", () => {
+  const claim = "Whole-body vibration has been proposed as an effective warm-up strategy for adolescent athletes in team sports worldwide.";
+  const q = selectQuotation(structuredAbstract({ results: claim, extraResults: "" }));
+  assert.equal(q.quote, "");
+  assert.equal(q.refusedBecause, "reported-number");
+  // Same sentence with a reported number attached is admitted, so the clause is the thing
+  // doing the work rather than the sentence being unusable.
+  assert.notEqual(selectQuotation(structuredAbstract({ results: `${claim.slice(0, -1)} (p = 0.02, 95% CI 0.1 to 0.4).`, extraResults: "" })).quote, "");
+});
+
+test("MUTATION: dropping the self-contained clause admits a sentence whose subject is left in the paper", () => {
+  for (const opener of ["These", "This", "However, this", "Therefore these"]) {
+    const dependent = `${opener} differences remained below the smallest worthwhile change across every protocol tested (p = 0.44, 95% CI -0.2 to 0.3).`;
+    const q = selectQuotation(structuredAbstract({ results: dependent, extraResults: "" }));
+    assert.equal(q.quote, "", `"${opener}" must not open a quotation`);
+    assert.equal(q.refusedBecause, "self-contained");
+  }
+});
+
+test("MUTATION: dropping the resolvable clause admits a sentence pointing at a table the reader cannot see", () => {
+  for (const sentence of [
+    "Peak power output differed between the three protocols as shown in Table 2 of the present analysis (p = 0.03, 95% CI 0.2 to 1.1).",
+    "Jump height was unchanged across protocols, consistent with Ferreira et al. in a comparable cohort (p = 0.51, Cohen's d = 0.08).",
+    "Contact time was unaffected by the vibration stimulus in this cohort [14], as previously reported (p = 0.62, 95% CI).",
+  ]) {
+    const q = selectQuotation(structuredAbstract({ results: sentence, extraResults: "" }));
+    assert.equal(q.quote, "", sentence);
+    assert.equal(q.refusedBecause, "resolvable");
+  }
+});
+
+test("MUTATION: a fragment is not a quotation — a sentence with no terminal punctuation is refused", () => {
+  const q = selectQuotation("RESULTS: Jump height was unchanged across all three protocols in this cohort (p = 0.44, 95% CI -0.2 to 0.3)");
+  // The tail of an abstract with no final period is a fragment by this file's rule, and the
+  // honest outcome is silence rather than a sentence the agent closed itself.
+  assert.equal(q.quote, "");
+});
+
+test("the quote budget is derived from the shortest frame, so the floor always fits", () => {
+  const longest = "x".repeat(QUOTE_MAX_CHARS);
+  const frames = quoteFrames({ quote: longest, observed: 99, observedOn: "2026-09-12", bodyCharacters: 123456 });
+  assert.equal(frames.at(-1).length, 280, "the floor must use the budget exactly");
+  for (let i = 1; i < frames.length; i++) {
+    assert.ok(frames[i].length < frames[i - 1].length, "every rung must be strictly shorter than the last");
+  }
+  assert.ok(QUOTE_MIN_CHARS < QUOTE_MAX_CHARS);
+  assert.ok(QUOTE_CLAUSES.includes("verbatim"), "the clause that makes this quotation must be named in the log");
 });
