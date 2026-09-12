@@ -871,7 +871,11 @@ test("an identifier resolves to one record or to nothing — never to a loose se
   assert.equal(recordQuery("pmc999"), "EXT_ID:PMC999 AND SRC:PMC");
   assert.equal(recordQuery("10.3390/s26154914"), 'DOI:"10.3390/s26154914"');
   assert.equal(recordQuery("https://doi.org/10.3390/s26154914"), 'DOI:"10.3390/s26154914"');
-  for (const junk of ["", "  ", "whole body vibration", "https://example.test/paper", "PMC", undefined, null]) {
+  // The archive's reader URL and a bare PubMed id. Item 280 carries no DOI at all, so
+  // without these the first line this code exists to correct is unreachable by it.
+  assert.equal(recordQuery("https://europepmc.org/article/MED/42675941"), "EXT_ID:42675941 AND SRC:MED");
+  assert.equal(recordQuery("42675941"), "EXT_ID:42675941 AND SRC:MED");
+  for (const junk of ["", "  ", "whole body vibration", "https://example.test/paper", "PMC", "42", "1234567890123", undefined, null]) {
     assert.equal(recordQuery(junk), "", String(junk));
   }
 });

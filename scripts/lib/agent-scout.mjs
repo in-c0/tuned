@@ -1097,7 +1097,16 @@ export function recordQuery(source) {
   if (raw === "") return "";
   const pmcid = /^PMC\d+$/i.exec(raw);
   if (pmcid) return `EXT_ID:${pmcid[0].toUpperCase()} AND SRC:PMC`;
+  // The archive's own reader URL, which is what this feed records for a find that carries no
+  // DOI — item 280's does not, so without this clause the first line this code exists to
+  // correct would be unreachable by it.
+  const reader = /europepmc\.org\/(?:article|abstract)\/([A-Za-z]{3})\/([A-Za-z0-9]+)/.exec(raw);
+  if (reader) return `EXT_ID:${reader[2].toUpperCase()} AND SRC:${reader[1].toUpperCase()}`;
   const doi = /10\.\d{4,9}\/[^\s"?&#]+/.exec(raw);
   if (doi) return `DOI:"${doi[0].replace(/[).,;]+$/, "")}"`;
+  // A bare PubMed identifier. Bounded to PubMed's own width so a stray number in a title
+  // cannot become a query.
+  const pmid = /^\d{7,9}$/.exec(raw);
+  if (pmid) return `EXT_ID:${pmid[0]} AND SRC:MED`;
   return "";
 }
