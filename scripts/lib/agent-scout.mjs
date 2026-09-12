@@ -773,6 +773,58 @@ const RESULT_SECTION = /^(results?|findings|main (results?|findings)|key (result
 const ANTECEDENT_OPENERS =
   /^(these|this|that|those|it|its|they|them|their|such|he|she|his|her|both|either|neither|the former|the latter|however|therefore|thus|moreover|furthermore|additionally|also|hence|consequently|conversely|similarly|in contrast|by contrast|in addition|nevertheless|nonetheless)\b/i;
 
+/** A statistic that is a REPORTED VALUE rather than the NAME OF A PROCEDURE, and the
+ *  distinction is this clause's whole job.
+ *
+ *  THE FIRST LIVE SCREEN OF THE QUOTATION RULE PICKED A METHODS SENTENCE. Run 154's dry screen
+ *  (https://github.com/in-c0/tuned/actions/runs/34687978960) selected, verbatim and faithfully:
+ *  *"Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman
+ *  analysis."* Every word the authors'. It says how reliability was computed and not one thing
+ *  about what was found, and it passed because `STATISTIC_SIGNATURES` matches `ICC` and
+ *  `95% CI` as strings — which is correct for the bar, where the question is whether a paper
+ *  reports statistics at all, and wrong here, where the question is whether THIS SENTENCE
+ *  reports a result.
+ *
+ *  This is the same accident as run 153's scope bug exactly one layer in: a term describing a
+ *  METHOD satisfying a clause meant to ask about an OUTCOME ([L-71](../ops/LESSONS.md)). So the
+ *  quotation clause gets its own table, and every entry in it binds a number. */
+export const REPORTED_VALUE_SIGNATURES = {
+  "p-value": [/\bp[\s-]*(value)?\s*[=<>≤≥]\s*\.?\d/i],
+  "confidence interval": [/\b(95|90|99)\s*%\s*(ci|confidence interval)[^.;]{0,40}?[-−–]?\d/i],
+  "effect size": [
+    /\b(cohen'?s\s*d|hedges'?\s*g|glass'?s?\s*(delta|Δ))\s*[=<>≤≥:]\s*[-−]?\.?\d/i,
+    /\b(partial\s*)?(η|eta)\s*(2|²|-?squared)?\s*[=<>≤≥:]\s*\.?\d/i,
+  ],
+  agreement: [/\b(icc|kappa)\b[^.;]{0,25}?[=<>≤≥:]\s*[-−]?\.?\d/i],
+  correlation: [/\b(r|rho|ρ|R²|R2)\s*[=<>≤≥:]\s*[-−]?\.?\d/i],
+  dispersion: [/\d\s*(±|\+\/−|\+\/-)\s*\d/, /\b(sd|sem)\s*[=<>≤≥:]\s*\.?\d/i],
+  // The lookahead is the whole point of this entry: `95%` in "95% confidence intervals" is
+  // the name of an interval, not a magnitude, and without it every sentence merely NAMING a
+  // confidence interval reports a value. Found by a test, not by reading.
+  magnitude: [
+    /\b\d+(\.\d+)?\s*%(?!\s*(ci\b|confidence))/i,
+    /\bby\s+\d+(\.\d+)?\s*(cm|mm|m|s|ms|kg|n|w|°|deg|bpm|m\/s)\b/i,
+  ],
+};
+
+/** A sentence describing what the authors DID to their data. Refused even when it carries a
+ *  reported value, because a quotation whose subject is the analysis pipeline is a quotation
+ *  about the statistics and not about the athletes. Conservative on purpose: over-refusing
+ *  costs a fallback line, and under-refusing publishes a methods sentence as if it were news. */
+const METHODS_STATEMENT = [
+  /\b(was|were|is|are)\s+(assessed|calculated|computed|determined|analy[sz]ed|evaluated|quantified|estimated|derived|performed|conducted|obtained|recorded|collected|used|examined|tested|expressed|interpreted|modell?ed|summari[sz]ed|compared)\s+(by|using|with|via|from|against|in)\b/i,
+  /\bstatistical (analysis|analyses|significance was)\b/i,
+  /\bwe (calculated|computed|used|applied|assessed|analy[sz]ed|performed|conducted|recruited)\b/i,
+  /\b(participants|players|athletes|subjects) (were|completed|performed|underwent)\b/i,
+  /\b(alpha|significance) (level|was set)\b/i,
+];
+
+/** Stripped inline markup leaves its fingerprints in a normalised abstract — a subscript or an
+ *  italic tag becomes a stray space, so `MDC<sub>95</sub>,` arrives as `MDC 95 ,`. The text is
+ *  still faithful, and it reads as a transcription error, which is corrosive in exactly the
+ *  place this change is asking a reader for trust. A quotation has to look like one. */
+const MANGLED_SPACING = [/\s[,;:.](\s|$)/, /\(\s/, /\s\)/];
+
 /** Cross-references that resolve inside a PDF and nowhere else. */
 const UNRESOLVABLE_REFERENCE = [
   /\b(table|tables|fig|figs|figure|figures|appendix|supplementary)\b\s*\.?\s*\d/i,
@@ -816,9 +868,11 @@ export const QUOTE_MIN_CHARS = 80;
 export const QUOTE_CLAUSES = [
   "no-abstract",
   "length",
-  "reported-number",
+  "reported-value",
+  "not-methods",
   "self-contained",
   "resolvable",
+  "well-formed",
   "verbatim",
 ];
 
@@ -861,9 +915,13 @@ export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars
       refuse("length"); // a fragment, not a sentence — the same failure as a bad boundary
       continue;
     }
-    const families = matchedFamilies(quote, STATISTIC_SIGNATURES);
+    const families = matchedFamilies(quote, REPORTED_VALUE_SIGNATURES);
     if (families.length === 0) {
-      refuse("reported-number");
+      refuse("reported-value");
+      continue;
+    }
+    if (METHODS_STATEMENT.some((re) => re.test(quote))) {
+      refuse("not-methods");
       continue;
     }
     if (ANTECEDENT_OPENERS.test(quote)) {
@@ -872,6 +930,10 @@ export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars
     }
     if (UNRESOLVABLE_REFERENCE.some((re) => re.test(quote))) {
       refuse("resolvable");
+      continue;
+    }
+    if (MANGLED_SPACING.some((re) => re.test(quote))) {
+      refuse("well-formed");
       continue;
     }
     // The clause that makes this quotation rather than authoring, applied last and applied to

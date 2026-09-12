@@ -27,6 +27,7 @@ import {
   QUOTE_MAX_CHARS,
   QUOTE_MIN_CHARS,
   QUOTE_CLAUSES,
+  REPORTED_VALUE_SIGNATURES,
   extractBodyText,
   fullTextUrl,
   grade,
@@ -683,11 +684,11 @@ test("MUTATION: quoting outside the results section lets the agent reach past a 
   assert.ok(unlabelled.quote.length > 0);
 });
 
-test("MUTATION: dropping the reported-number clause admits a background sentence that measures nothing", () => {
+test("MUTATION: dropping the reported-value clause admits a background sentence that measures nothing", () => {
   const claim = "Whole-body vibration has been proposed as an effective warm-up strategy for adolescent athletes in team sports worldwide.";
   const q = selectQuotation(structuredAbstract({ results: claim, extraResults: "" }));
   assert.equal(q.quote, "");
-  assert.equal(q.refusedBecause, "reported-number");
+  assert.equal(q.refusedBecause, "reported-value");
   // Same sentence with a reported number attached is admitted, so the clause is the thing
   // doing the work rather than the sentence being unusable.
   assert.notEqual(selectQuotation(structuredAbstract({ results: `${claim.slice(0, -1)} (p = 0.02, 95% CI 0.1 to 0.4).`, extraResults: "" })).quote, "");
@@ -730,4 +731,70 @@ test("the quote budget is derived from the shortest frame, so the floor always f
   }
   assert.ok(QUOTE_MIN_CHARS < QUOTE_MAX_CHARS);
   assert.ok(QUOTE_CLAUSES.includes("verbatim"), "the clause that makes this quotation must be named in the log");
+});
+
+// ---------------------------------------------------------------------------
+// The first live screen of the quotation rule picked a METHODS sentence (run 154)
+//
+// Run 154 shipped the rule, dispatched a dry screen, and the top selection's quotation was
+// https://github.com/in-c0/tuned/actions/runs/34687978960 — faithful, verbatim, and about the
+// analysis pipeline rather than about any athlete. `STATISTIC_SIGNATURES` matches `ICC` and
+// `95% CI` as strings, which is right for the bar (does this paper report statistics at all)
+// and wrong for a quotation (does THIS SENTENCE report a result). The same accident as run
+// 153's scope bug one layer in: a term naming a METHOD satisfying a clause meant to ask about
+// an OUTCOME. These cases are the live sentences, kept verbatim so the regression is the real
+// one and not a paraphrase of it.
+// ---------------------------------------------------------------------------
+
+const LIVE_METHODS_SENTENCE =
+  "Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman analysis.";
+
+test("the methods sentence that passed the first live screen is refused now", () => {
+  const q = selectQuotation(`RESULTS: ${LIVE_METHODS_SENTENCE} Agreement between sessions was high for every channel examined in this cohort (ICC = 0.91, 95% CI 0.84 to 0.95).`);
+  assert.notEqual(q.quote, LIVE_METHODS_SENTENCE, "a procedure list is not a finding");
+  assert.match(q.quote, /Agreement between sessions was high/, "and the sentence reporting a value is taken instead");
+});
+
+test("naming a statistical procedure is not reporting a value", () => {
+  // The bar's table and the quotation's table must disagree about exactly this, because they
+  // are asking different questions of the same words.
+  for (const named of [
+    "Reliability was quantified with the intraclass correlation coefficient and Bland-Altman limits of agreement across all channels tested.",
+    "Differences between the three protocols were examined with repeated-measures analysis of variance and 95% confidence intervals throughout.",
+    "Effect sizes were expressed as Cohen's d and interpreted against established thresholds for trained populations.",
+  ]) {
+    const q = selectQuotation(`RESULTS: ${named}`);
+    assert.equal(q.quote, "", named);
+    assert.ok(["reported-value", "not-methods"].includes(q.refusedBecause), `${q.refusedBecause}: ${named}`);
+  }
+  // And a bound number is admitted, which is what makes the clause discriminating rather than
+  // merely strict.
+  const reported = "Agreement between the two sessions was excellent for every channel in this cohort (ICC = 0.94, 95% CI 0.88 to 0.97).";
+  assert.equal(selectQuotation(`RESULTS: ${reported}`).quote, reported);
+});
+
+test("MUTATION: a methods sentence carrying a real number is still not a finding", () => {
+  const both = "Knee extensor torque was calculated using a dynamometer at three angular velocities in this cohort (ICC = 0.93, 95% CI 0.87 to 0.96).";
+  const q = selectQuotation(`RESULTS: ${both}`);
+  assert.equal(q.quote, "", "the subject of the sentence is the method, so the quote is about the method");
+  assert.equal(q.refusedBecause, "not-methods");
+});
+
+test("stripped inline markup makes a faithful quote look like a transcription error, and is refused", () => {
+  // `MDC<sub>95</sub>,` arrives from the archive as `MDC 95 ,`. The text is faithful; it does
+  // not read as a quotation, which matters most in the change that asks a reader to trust one.
+  const mangled = "Session-to-session variation was small across every channel in this cohort: MDC 95 , CV% 4.1 and agreement throughout (ICC = 0.94).";
+  const q = selectQuotation(`RESULTS: ${mangled}`);
+  assert.equal(q.quote, "");
+  assert.equal(q.refusedBecause, "well-formed");
+});
+
+test("the two statistic tables are deliberately different, and the quotation's is the stricter", () => {
+  assert.ok(Object.keys(REPORTED_VALUE_SIGNATURES).length > 0);
+  for (const [family, patterns] of Object.entries(REPORTED_VALUE_SIGNATURES)) {
+    assert.ok(patterns.length > 0, family);
+    for (const re of patterns) {
+      assert.match(re.source, /\\d/, `${family}: every reported-value pattern must bind a digit — ${re}`);
+    }
+  }
 });
