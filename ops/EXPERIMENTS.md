@@ -2786,3 +2786,60 @@ unnecessary, and only counting says which.
 **Nothing commercial moved and nothing is claimed.** `applications` **0** · `members` **1** ·
 `members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**. `public_items` **17 → 18**,
 which is supply.
+
+### EXP-013 — threshold 2, re-specification PROPOSED (2026-09-12, run 154). NOT in force; not graded against; the schedule stays disarmed
+
+Run 153 failed threshold 2 at **25.7%** against a bar of 25%, took Fork B, disarmed the schedule, and
+then refused to rewrite the threshold inside its own window. It left its successor one instruction,
+quoted because it is the whole authority for this section: *"the next run will propose one in a commit
+before screening and will not arm the schedule on its own reading of a threshold it wrote itself."*
+**No reviewer ruling has been posted** — the newest comment on issue #1 is run 153's own report — so
+this is the proposal, committed **before this run's first screen**, and it is the discharge of that
+promise and nothing more.
+
+**What is in force right now, unchanged by this section:** threshold 2 as originally written, FAILED,
+Fork B taken, `agent-scout.yml` disarmed. Nothing below is graded against, used to arm anything, or
+cited as a pass.
+
+**The proposal: delete the rate as a gate, promote the inspection to one.**
+
+| | Original | Proposed |
+| --- | --- | --- |
+| **Gate** | selection rate ≤ 25% of **screened** candidates, every screen | **every selected candidate is on remit under a human reading** — selected, not merely published — and every rejection names exactly one clause. One off-remit selection is Fork C |
+| **Rate** | the gate | **reported, never graded**: selections over the **decided** set (metadata-refused + full-text-read), with candidates deferred unread against the read budget excluded from the denominator and stated separately |
+| **Pass-through detector** | the rate | **per-clause refusal counts every screen.** A clause that refuses nothing across the window is either wrong or unnecessary, and the record says which it was ([L-71](LESSONS.md)) |
+
+**Why this shape, and the argument does not depend on any number this run has seen.** Three reasons,
+in descending order of how much they would survive a reviewer disagreeing with me:
+
+1. **The rate measures a risk that is bounded in code elsewhere.** The worry behind 25% was attention
+   overload. `@sportstech` publishes **at most one item per run**, enforced in
+   [`scripts/agent-scout.mjs`](../scripts/agent-scout.mjs) and deliberately not in the schedule. The
+   feed's volume is identical whether the bar selects 5% or 50%, so the rate gates nothing that is
+   actually at risk.
+2. **A rate cannot say whether the refusals were the right refusals**, and on 2026-09-12 it said the
+   opposite: green at 20% when four of ten selections were about stroke and cerebral-palsy patients,
+   red at 25.7% when nine of nine were on remit, four minutes apart ([L-70](LESSONS.md)).
+3. **The inspection is the only threshold that has ever caught anything here** — it caught the scope
+   bug before a reader saw it. It was written as an afterthought at the bottom of the table.
+
+**What this proposal deliberately does not do, because it would be the sin Fork B exists to prevent.**
+It does not choose a new number. A band picked by the executor *after* seeing 20%, 25.7% and 50% is a
+threshold fitted to its own candidate set, and no amount of prose makes that falsifiable. So the
+proposal removes the number rather than retuning it, and the one new gate is a human reading that this
+executor cannot grade in its own favour without the grading being inspectable in the log.
+
+**The cost of the proposal, stated.** Dropping the rate gives up the one gate that could have fired
+automatically, same-day, with no human in it. Fork B acted within minutes on 2026-09-12 precisely
+because a number is cheap to check. The inspection gate is slower and needs a reader. That is a real
+loss and it is the reason this is a proposal rather than an edit.
+
+**Two questions only the reviewer can answer, and the executor will not answer either of them for
+itself:**
+
+1. **Is this re-specification accepted** — or is a re-tuned rate over the decided set preferred, in
+   which case the reviewer should state the number?
+2. **May the daily schedule publish unattended under it?** The schedule is disarmed. Re-arming is one
+   expression in [`agent-scout.yml`](../.github/workflows/agent-scout.yml) with the condition written
+   beside it. **This run does not arm it**, and no later run should arm it on its own reading of a
+   threshold the executor proposed.

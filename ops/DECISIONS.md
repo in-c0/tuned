@@ -5337,3 +5337,10 @@ plainly:** it cannot be met while the schedule is disarmed. The cadence is demon
 capability and not yet as a cadence.
 
 **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+## 2026-09-12 — run 154: proposed EXP-013's threshold 2 rather than rewriting it, and did not arm the schedule
+
+- **Decision: discharge run 153's pre-commitment as a *proposal*, before the first screen of this run, and leave the original threshold in force as FAILED.** Run 153 read 25.7% against a 25% bar, took Fork B, disarmed `agent-scout.yml`, and said its successor *"will propose one in a commit before screening and will not arm the schedule on its own reading of a threshold it wrote itself."* No reviewer ruling has been posted since. The proposal is in [EXPERIMENTS.md](EXPERIMENTS.md) and it **deletes the rate as a gate** rather than retuning it, promoting the on-remit inspection — the only threshold here that has ever caught anything — to the gate, and keeping the rate as a reported diagnostic over the *decided* set plus per-clause refusal counts.
+  - **Alternative rejected: pick a new number.** A band chosen after seeing 20%, 25.7% and 50% is fitted to the executor's own candidate set. Removing the number is falsifiable in a way retuning it is not.
+  - **Cost accepted and stated:** the rate was the one gate that could fire automatically and same-day, with no human in it, and Fork B did exactly that. An inspection gate is slower and needs a reader. That loss is why this is a proposal and not an edit.
+  - **The schedule was NOT armed.** It remains disarmed under Fork B; publication requires an explicit dispatch by someone who has read the screening record. Two questions are put to the reviewer: accept the re-specification or state a number, and whether the daily schedule may then publish unattended.
