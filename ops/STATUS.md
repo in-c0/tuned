@@ -1,83 +1,99 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-12 14:20 Sydney (2026-09-12 04:20 UTC), run 153 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-152 and not re-argued here, per [L-07](LESSONS.md).** **`@sportstech` has
-a publisher that is not a person.** Item **280** was selected by
-[`scripts/lib/agent-scout.mjs`](../scripts/lib/agent-scout.mjs) out of 35 open-access candidates it
-screened and 12 full texts it read, and published through the operator plane at
-`2026-09-12T04:29:56.560Z`. `public_items` **17 → 18**, `operator_publications` **6 → 7**, hidden 0.
-Until today every item on every agent feed on Tuned was placed by a person reading a research
-session's notes.
+**Last updated:** 2026-09-12 20:30 Sydney (2026-09-12 10:30 UTC), run 154 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-153 and not re-argued here, per [L-07](LESSONS.md).** **`@sportstech`
+now points at its sources with their own sentences instead of describing its own screening.** Item
+**281** carries, as its entire public line, 218 characters the authors wrote — verified as an exact
+substring of their abstract — and nothing the agent composed about what they found. Published
+`2026-09-12T10:21:50.674Z`. `public_items` **18 → 19**, `operator_publications` **7 → 8**, hidden 0.
 
-**What run 152 said this run had to answer.** *"The rate at which `@sportstech` publishes is the rate
-at which a scheduled executor run happens to perform a selection cycle"* — six publications in 24
-days, four of five public feeds silent for six weeks — so **"recurring agent value without attention
-overload", third in issue #1's commercial hierarchy, was not demonstrated at any cadence a subscriber
-would notice.** That is a product question about what an agent on Tuned actually is, and it was not
-one more run of instrumentation. Run 151's constraint — *"the next run should not ship a watchdog"* —
-was honoured: **no watchdog shipped.**
+**What this discharges, registered before the selector had published anything.** [EXP-013](EXPERIMENTS.md)
+named one limitation in advance: *"The `why` line is weaker than the hand-written ones and that is
+deliberate… **This is the first thing to improve and the improvement is quotation, not generation** — a
+verbatim sentence from the source is pointing; a paraphrase is authoring."* Item 280's line — *"Selected
+by @sportstech from 35 open-access candidates screened 2026-09-12: full text read (46,097 characters).
+Design terms present: … Reported: …"* — is true in every word and tells a reader nothing about the
+paper, on the one feed a stranger arriving from a directory of RSS feeds would land on.
 
-**The bar is code, in git, shipped before it had seen a candidate.** The six hand-made publications
-each carry a pre-registration commit containing the four dispatched strings. A selector cannot
-pre-register an item it has not seen, so what replaces that guarantee is that **the rule predates the
-selection**: [EXP-013](EXPERIMENTS.md)'s thresholds and five forks are in the same commit as the bar
-([`efae10d`](https://github.com/in-c0/tuned/commit/efae10d)), and `qa/nominations/` now records this as
-the third pre-registration form, `autonomous-bar`, which must name the Actions run whose log shows the
-selection being made.
+**The invariant is a substring check, so the failure mode is silence and never invention.**
+`selectQuotation`'s last clause is `abstract.includes(quote)` applied to the string that would be
+published. When no sentence qualifies, the line falls back to the provenance-only form 280 carries and
+the run log names the clause that refused. A quotation is **never truncated**, not even on a clause
+boundary: an abridged sentence inside quotation marks is a misquotation, so an over-long one is refused.
 
-**The encounter standard went up, not down.** `ops/agents/sportstech.md` says a find must be
-*genuinely encountered* at page level because *"a search result is a pointer, never an encounter"*.
-This selector fetches the **open-access full text** from Europe PMC's own machine endpoint — 46,097
-characters for item 280 — and **rejects a candidate whose full text cannot be fetched** rather than
-selecting it on its abstract.
+**THE QUOTATION RULE'S FIRST LIVE SCREEN QUOTED THE STATISTICS SECTION'S METHOD, AND NOTHING REACHED A
+READER.** At `10:16Z` the top selection's line was *"Reliability was assessed by ICC(A,1) with 95% CIs,
+SEM, MDC 95 , CV%, and Bland-Altman analysis."* — verbatim, faithful, **a methods sentence**, admitted
+because `STATISTIC_SIGNATURES` matches `ICC` and `95% CI` as strings. That is the right question for the
+bar (*does this paper report statistics*) and the wrong one for a quotation (*does this sentence report a
+result*) — **run 153's scope bug exactly one layer in**, and [L-72](LESSONS.md) is about reusing a
+vocabulary across a change of question. Corrected in
+[`fa5d467`](https://github.com/in-c0/tuned/commit/fa5d467): the quotation clause has its own table in
+which **every pattern binds a digit**, a sentence whose subject is the analysis pipeline is refused even
+when it carries a real number, and a quote bearing the fingerprints of stripped inline markup
+(`MDC<sub>95</sub>,` → `MDC 95 ,`) is refused because it reads as a transcription error.
 
-**THE BAR'S FIRST LIVE SCREEN WAS WRONG IN THE WAY THAT MATTERED, AND NOTHING REACHED A READER.** 10
-of 50 selected — **20%, inside the pre-registered threshold — and four of the ten were clinical
-rehabilitation**: a paediatric cerebral palsy gait trainer, robot-aided upper-limb physiotherapy, foot
-muscle size in stroke, remission from non-specific neck pain. All four are real instrumented movement
-science with proper statistics. **Clinical movement labs use the same instruments and the same words as
-sport science**, and the scope clause had been written as one list mixing "athlete" with "gait",
-"kinematic" and "neuromuscular" — so a term describing a **method** satisfied a clause meant to ask
-**about whom**. Corrected in [`e0918ba`](https://github.com/in-c0/tuned/commit/e0918ba). Second screen:
-**9 of 35, every one on remit.**
+**THE BAR WAS NOT TOUCHED, AND THAT IS MEASURED RATHER THAN ASSERTED.** Both screens — before and after
+the clause fix — report **byte-identical counts: screened 35 · rejected 10 · selected 9 · deferred 16 ·
+12 full-text reads.** The correction moved the line and not the selection, so this window's selections
+and EXP-013's thresholds 1, 2, 4 and 5 are unaffected by construction.
 
-**And the clause predicted to be the gatekeeper refused nothing.** The commit that shipped the bar
-named the full-text encounter and the statistics clauses as *"the clause most likely to keep this agent
-quiet"*. They refused **0 of 10**. Of course they did — a peer-reviewed research article reports
-statistics. After the fix they refuse **3 of 12**, and the expensive read now answers the scope
-question too. [L-70](LESSONS.md): **a selection rate is not a quality threshold.**
-[L-71](LESSONS.md): **count what each clause refused on the first live run; a prediction in a header is
-not a measurement.**
-
-**THE SCHEDULE WAS DISARMED RATHER THAN ARMED, AND THAT IS A DECISION AGAINST THIS RUN'S OWN
-INTEREST.** EXP-013's threshold 2 read **25.7%** on the second screen — a failure by 0.7 of a
-percentage point, Fork B attached. The threshold is also mis-specified: 17 of 35 were deferred unread,
-so the denominator counts candidates the bar never decided, and on the decided set it is **50%**.
-**Saying so is not permission to rewrite it inside its own window.** So scheduled runs screen and
-publish nothing, publication stays behind an explicit dispatch by someone who has read the record, and
-**re-arming is one expression in [`agent-scout.yml`](../.github/workflows/agent-scout.yml)** whose
-comment says what must be true first. **Consequence, stated plainly: EXP-013's threshold 4 — continuous
-freshness with zero hand publications — cannot be met while it is disarmed. What this run demonstrated
-is the capability, not yet the cadence.**
+**THE SCHEDULE WAS NOT ARMED, AND THE THRESHOLD WAS PROPOSED RATHER THAN ENACTED.** Run 153 failed
+EXP-013's threshold 2 at 25.7%, took Fork B, disarmed the schedule, and left one instruction: *"the next
+run will propose one in a commit before screening and will not arm the schedule on its own reading of a
+threshold it wrote itself."* **No reviewer ruling has been posted.** The proposal
+([`93a7a27`](https://github.com/in-c0/tuned/commit/93a7a27), committed before this run's first screen)
+**deletes the rate as a gate rather than retuning it** — a band chosen after seeing 20%, 25.7% and 50% is
+fitted to the executor's own candidate set — and promotes the on-remit inspection, the only threshold
+here that has ever caught anything. **The original threshold stays in force as FAILED and the schedule
+stays disarmed.** Two questions are the reviewer's: accept it or state a number, and whether the daily
+schedule may then publish unattended.
 
 **None of this touched the three dormant feeds.** Run 152's hold stands: `@wearables`, `@wellbeing` and
-`@graphics` were not adopted, not published to, not touched. The objection was to adoption *as a
-substitute for* a publisher, and the feed that got one is the one a directory of feeds would list.
+`@graphics` were not adopted, not published to, not touched.
 
-**No `src/` file, no route, no schema, no counter, no page.** EXP-011's landing-page window is untouched
-by construction.
+**No `src/` file, no route, no schema, no counter, no page, no secret.** EXP-011's landing-page window is
+untouched by construction.
 
-Gates: `check` **0** · **18 files, 287 tests** · `test:ops` **133/133** (was 80) · workflow and
-nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities**. Scout suite **53 tests**, with
-mutations refusing a sport-mention floor of zero, movement terms returned to the admitting list, a bare
-substring match that counts "transport" as a mention of sport, one statistic family instead of two, a
-kept reference list, a dropped open-access requirement and a zero body-length floor.
+Gates: `check` **0** · **18 files, 287 tests** · `test:ops` **150/150** (was 133) · scout suite **70
+tests** (was 53) · workflow and nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities**.
+Provenance on both public surfaces graded against the live item:
+[qa-browser 34688324375](https://github.com/in-c0/tuned/actions/runs/34688324375), **17 passed / 1
+skipped** (the skip is the RSS case's duplicate at the second viewport — it runs once, from desktop),
+header *"@sportstech, 8 nominated find(s)"*.
 
-**Still zero, and one publication is not demand.** `applications` **0** · `members` **1** ·
-`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
-**23 days left.** Nobody follows `@sportstech`, so no subscriber noticed that it published. What
-changed is that Tuned can now produce agent attention without a person choosing each item — which is
-**supply**, and the thing its own positioning claims.
+**Still zero, and a better line on an unfollowed feed is a better line on an unfollowed feed.**
+`applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** · gross cash
+**AUD $0**, from *no billing exists*. **23 days left.** What changed is that the agent now **points**
+instead of describing itself — which is doctrine, and is **supply**.
+
+---
+
+## Run 154 (2026-09-12 20:30 Sydney) — the agent's public line becomes the paper's own sentence, and its first attempt quoted the method
+
+**Item 281** — *How Stable Are Temporal EMG Parameters in Rowing? A Seven-Day Test-Retest Reliability
+Study Using Wearable sEMG*, Sensors 26(15):4914 — published `10:21:50.674Z`, **HTTP 201,
+`published=true`, `duplicate=false`**, selected by the bar and not by a person. Cycle **S-2**.
+
+**Its entire public line is the authors':**
+
+> "Onset showed excellent reliability across all seven muscles (ICC = 0.943-0.995); offset,
+> moderate-to-excellent (0.524-0.907); peak position, poor-to-excellent (0.114-0.948); active duration,
+> poor-to-good (0.077-0.814)." — the source's own words, quoted by @sportstech.
+
+EMG onset timing repeats almost perfectly across seven days; active duration barely repeats at all.
+That is a thing a coach reading an EMG trace would want to know before trusting one, and **no word of it
+was written here.**
+
+| Screen | Run | Screened | Selected | Deferred | Quotation |
+| --- | --- | --- | --- | --- | --- |
+| 1 — quotation rule as shipped | [34687978960](https://github.com/in-c0/tuned/actions/runs/34687978960) | 35 | 9 | 16 | **a methods sentence — wrong, nothing published** |
+| 2 — corrected clause | [34688153865](https://github.com/in-c0/tuned/actions/runs/34688153865) | 35 | 9 | 16 | the reliability result, 218 chars, verbatim confirmed |
+| 3 — publishing | [34688223326](https://github.com/in-c0/tuned/actions/runs/34688223326) | 35 | 9 | 16 | **281 published** |
+
+The identical counts across all three are the evidence that the clause fix touched the line and not the
+bar. Full record in [EXPERIMENTS.md](EXPERIMENTS.md) (EXP-013), the decisions and the pre-committed
+publication rule in [DECISIONS.md](DECISIONS.md), the lesson in [L-72](LESSONS.md).
 
 ---
 

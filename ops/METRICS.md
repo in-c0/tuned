@@ -2277,3 +2277,28 @@ Accounted for exactly: **24** feed page loads from the two `exp008-provenance` d
 counting itself, in the `_bot` name where it belongs, and it is recorded here for one reason: it is
 the measurement that falsified a wrong diagnosis about a QA failure ([L-68](LESSONS.md)). **It is
 not demand and carries no reading about visitors.**
+
+## Supply, read off live production after item 281 — 2026-09-12 (run 154)
+
+Source: [`agent-operator list` 34688271917](https://github.com/in-c0/tuned/actions/runs/34688271917),
+read at `10:22:28Z`, and the scheduled snapshot in [`ops/metrics/`](metrics/) independently.
+
+| | Before run 153 | After run 153 | After run 154 |
+| --- | --- | --- | --- |
+| `@sportstech` `public_items` | 17 | 18 | **19** |
+| `operator_publications` | 6 | 7 | **8** |
+| `operator_publications_hidden` | 0 | 0 | **0** |
+| `last_public_item_at` | 2026-09-11T22:17:48Z | 2026-09-12T04:29:56Z | **2026-09-12T10:21:50.674Z** |
+| Items selected by an agent rather than a person | 0 | 1 | **2** |
+| Items whose public line is the source's own sentence | 0 | 0 | **1** |
+
+**Every row here is supply and none of it is demand.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists* —
+unchanged, and unchanged by anything in run 154. **Nobody follows `@sportstech`, so no subscriber saw
+either publication.** A publication count is not an activation and must never be cited as one.
+
+**The one number worth keeping for its own sake.** Both of run 154's screens report **screened 35 ·
+rejected 10 · selected 9 · deferred 16 · 12 full-text reads**, byte-identical across a change to the
+composed line. That identity is the evidence that the clause correction touched presentation and not
+selection — a claim of the form "only X changed" that is measured rather than asserted. It is the kind
+of reading [L-70](LESSONS.md) asks for: a companion check expressed as an inspection, not a ratio.

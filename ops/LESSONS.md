@@ -2772,3 +2772,38 @@ Two rules fall out, and they are about instrument design rather than about this 
    the same commit as the code; it was wrong within twenty minutes, against real data, in the one
    direction that mattered. Predictions like it are worth writing down precisely because they can then
    be caught — but never worth citing afterwards as though they had been checked.
+
+## L-72 — the same word answers two different questions, and a table is not transferable between them (2026-09-12, run 154)
+
+`STATISTIC_SIGNATURES` was written for the bar, where the question is **does this paper report
+statistics at all**. Run 154 reused it for the quotation clause, where the question is **does this
+sentence report a result**. The table matches `ICC` and `95% CI` as strings, which is exactly right for
+the first question and exactly wrong for the second — and the first live screen of the quotation rule
+duly selected, verbatim and faithfully:
+
+> "Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman analysis."
+
+Every word the authors'. Nothing about what was found. It would have gone on a public feed looking
+like a finding, which is **worse than the provenance-only line it replaced**, because a sentence in
+quotation marks makes a claim about its own significance.
+
+This is [L-71](#l-71--the-clause-you-expect-to-be-the-gatekeeper-is-not-the-one-doing-the-work-2026-09-12-run-153)
+one layer in, and the repetition is the lesson. Run 153's bug was a term describing a **method**
+satisfying a clause meant to ask **about whom**. This one is a term naming a **method** satisfying a
+clause meant to ask **about an outcome**. Twice in one day, in two different clauses, the same
+mistake: **reusing a vocabulary across a change of question.**
+
+Three rules:
+
+1. **When a second clause borrows a first clause's table, write down the question each one asks.** If
+   the two sentences differ, the table cannot be shared. The fix here was a separate table in which
+   every pattern binds a digit — and the test asserts that *property of the table*, not the behaviour
+   of any one pattern, so a later addition cannot quietly reintroduce a bare procedure name.
+2. **A refusal clause earns its place by what it refuses on live data, within the hour.** Both of
+   run 154's screens ran against the live archive minutes apart; the correction was visible because
+   the dry screen exists and was read before anything was published. A rule shipped without a dry
+   screen in front of it is a rule graded by its readers.
+3. **Two tests found what reading did not**, and both were in the *new* table: a bound (`η² < 0.09`)
+   is as much a reported value as an equality, and `95%` inside "95% confidence intervals" was matching
+   a magnitude pattern — so every sentence merely *naming* an interval looked like one that reported a
+   value. Patterns that read correctly are not patterns that discriminate correctly.

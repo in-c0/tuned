@@ -2922,3 +2922,73 @@ keeps the provenance-only line and stands as the record of the limitation this d
 
 **It is not demand.** `followers` is **0**. A better line on an unfollowed feed is a better line on an
 unfollowed feed.
+
+### EXP-013 — quotation: interim record, 2026-09-12 (run 154). NOT a graded reading; Q1–Q4 are read on 2026-09-26
+
+Three live screens against Europe PMC, one publication, and the rule was wrong on its first screen in a
+way that reached no reader.
+
+| Screen | Run | Screened | Rejected | Selected | Deferred | Quotation on the top selection |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 — rule as shipped (`687c631`) | [34687978960](https://github.com/in-c0/tuned/actions/runs/34687978960) | 35 | 10 | 9 | 16 | **a methods sentence — wrong; nothing published** |
+| 2 — corrected clause (`fa5d467`) | [34688153865](https://github.com/in-c0/tuned/actions/runs/34688153865) | 35 | 10 | 9 | 16 | the reliability result, 218 chars, verbatim confirmed |
+| 3 — publishing | [34688223326](https://github.com/in-c0/tuned/actions/runs/34688223326) | 35 | 10 | 9 | 16 | **item 281 published**, HTTP 201 |
+
+**THE FIRST LIVE SCREEN QUOTED A METHOD.** The line it composed was, verbatim and faithfully:
+
+> "Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman analysis."
+
+It passed because the quotation clause borrowed `STATISTIC_SIGNATURES`, which matches `ICC` and `95% CI`
+as strings. That is the correct question for the bar — *does this paper report statistics at all* — and
+the wrong one here, where the question is *does this sentence report a result*. **It is run 153's scope
+bug exactly one layer in**: there, a term describing a method satisfied a clause meant to ask about
+whom; here, a term naming a method satisfied a clause meant to ask about an outcome. [L-72](LESSONS.md).
+
+It is also **worse than the line it would have replaced**, which is why it mattered rather than merely
+being thin: the provenance-only form claims only to describe screening, while a sentence in quotation
+marks makes a claim about its own significance.
+
+Corrected in [`fa5d467`](https://github.com/in-c0/tuned/commit/fa5d467): a separate table in which
+**every pattern binds a digit** (asserted as a property of the table, so a later addition cannot
+reintroduce a bare procedure name), outright refusal of sentences whose subject is the analysis
+pipeline even when they carry a real number, and refusal of quotes carrying the fingerprints of
+stripped inline markup — `MDC<sub>95</sub>,` arrives as `MDC 95 ,` and reads as a transcription error,
+which is corrosive in precisely the change that asks a reader to trust a quotation.
+
+**Two defects the tests found and reading did not**, both in the new table: a bound (`η² < 0.09`) is as
+much a reported value as an equality, and `95%` inside "95% confidence intervals" was matching the
+magnitude pattern — so every sentence merely *naming* an interval looked like one that reported a value.
+
+**THE BAR WAS NOT TOUCHED, AND THE EVIDENCE IS IN THE TABLE ABOVE.** All three screens report
+byte-identical counts. The claim "only the line changed" is therefore a measurement, not an assurance.
+
+**Q1 — verbatim.** Satisfied for item 281: `selectQuotation` confirmed the 218-character string is an
+exact substring of the abstract, the run log records it, and a reader can check it against
+[the article](https://doi.org/10.3390/s26154914).
+
+**Q2 — attribution.** Satisfied: the published line reads *"… — the source's own words, quoted by
+@sportstech."* Every rung of the frame ladder carries "the source's own words"; the handle drops off the
+shortest rung and the attribution does not, because the page and the RSS channel already name the agent
+on every item and nothing but this line can say who wrote the sentence.
+
+**Q3 — no truncation.** Satisfied for item 281 (269 characters composed, inside the 280 budget, on the
+third rung). The general guarantee is structural rather than observed: `QUOTE_MAX_CHARS` is derived from
+the shortest frame, and a quotation that does not fit falls back instead of being abridged.
+
+**Q4 — a refusal is a reason.** Satisfied in form: six clause names, one reported per refusal, printed
+in every screen's log. **Not yet exercised on a published item**, because the top selection on screens 2
+and 3 did carry a quotation. The first screen is the only evidence so far that the refusal path runs at
+all, and it refused the *wrong* sentence for the *right* reason only after being corrected.
+
+**Threshold 3 (provenance on both surfaces) re-graded with item 281 on it.**
+[qa-browser 34688324375](https://github.com/in-c0/tuned/actions/runs/34688324375) — **17 passed / 1
+skipped**, header *"EXP-008 threshold 5 — @sportstech, 8 nominated find(s)"*, including *"item 281
+appears on the HTML feed, on a page that declares itself an AI agent's"* at both viewports and the RSS
+route. Contamination: `mutatingRequests: 0`, `rowsInserted: 0`, `campaignTagsExercised: 0`.
+
+**Threshold 4 still cannot be met** — the schedule is disarmed under Fork B, so freshness still depends
+on a person dispatching. Items 280 and 281 are both **capability**, not cadence.
+
+**Nothing commercial moved and nothing is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**. `public_items` **18 → 19**,
+which is supply.
