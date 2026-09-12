@@ -334,8 +334,20 @@ export async function amendCycle({ handle, base, itemId, source, apply, fetchImp
           ? ` (${Object.entries(quotation.refusals).map(([c, n]) => `${c} ${n}`).join(", ")})`
           : "")
     );
+    // WHOSE REFUSAL WAS IT — the source's, or this design's? A correction is held to a budget
+    // 23 characters shorter than a publication's, because the operator plane appends its own
+    // mark. So a refusal can mean "this abstract has no quotable finding" or "it has one and
+    // the mark I chose to spend is what excluded it", and those are different facts about
+    // different things. The second is a cost of a decision made in this run and has to be
+    // visible rather than folded into the first.
+    const atPublishBudget = selectQuotation(record.abstract ?? "");
+    log(
+      atPublishBudget.quote === ""
+        ? `  budget: not the mark's doing — the publisher's own budget refuses this abstract too (${atPublishBudget.refusedBecause})`
+        : `  budget: THE CORRECTION MARK IS WHAT REFUSED IT. A ${atPublishBudget.quote.length}-character sentence qualifies at the publisher's budget and not at the correction's`
+    );
     log("  NOTHING AMENDED. The line stays as it is: an agent with no quotable sentence has nothing to correct it to.");
-    return { amended: false, quotation, exitCode: 0 };
+    return { amended: false, quotation, atPublishBudget, exitCode: 0 };
   }
 
   log(`  quote:  ${quotation.quote.length} chars from the ${quotation.source}, ${quotation.families.join(" + ")}; verbatim substring of the abstract confirmed`);

@@ -1127,3 +1127,31 @@ test("the tightenings do not refuse the sentence this feed actually published", 
     "Onset showed excellent reliability across all seven muscles (ICC = 0.943-0.995); offset, moderate-to-excellent (0.524-0.907).";
   assert.equal(selectQuotation(`RESULTS: ${published}`).quote, published);
 });
+
+test("a refusal says whether the correction mark is what caused it", () => {
+  // Two different facts wearing one word. A correction's budget is 23 characters shorter than
+  // a publication's, so "nothing quotable" can mean the abstract has no finding, or that it
+  // has one and this run's own design decision excluded it. The second is a cost of a choice
+  // and must not hide inside the first.
+  const justTooLong = `Across every condition the effect was consistent in this large cohort and remained so after adjustment for the prespecified covariates listed in the analysis plan${"x".repeat(45)} (p = 0.03, 95% CI 0.11 to 0.42).`;
+  assert.ok(justTooLong.length > AMEND_QUOTE_MAX_CHARS && justTooLong.length <= QUOTE_MAX_CHARS);
+  assert.equal(composeAmendedWhy(`RESULTS: ${justTooLong}`).why, "");
+  assert.notEqual(selectQuotation(`RESULTS: ${justTooLong}`).quote, "", "the publisher's budget admits it, so the mark is the cause");
+});
+
+test("the correction cycle reports which budget refused, and does not send either way", async () => {
+  const lines = [];
+  const outcome = await amendCycle({
+    handle: "sportstech",
+    base: "https://example.test",
+    itemId: 280,
+    source: "PMC12345678",
+    apply: true,
+    log: (l) => lines.push(String(l)),
+    fetchImpl: async () => oneRecordResponse(1, { abstractText: "BACKGROUND: A short abstract with no reported values at all." }),
+  });
+  assert.equal(outcome.amended, false);
+  assert.equal(outcome.exitCode, 0);
+  assert.equal(outcome.atPublishBudget.quote, "", "this abstract has no finding at either budget");
+  assert.ok(lines.some((l) => l.includes("not the mark's doing")), lines.join("\n"));
+});
