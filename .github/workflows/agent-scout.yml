@@ -57,6 +57,21 @@ on:
         required: false
         type: string
         default: "12"
+      amend_item:
+        description: "CORRECTION MODE. Item id whose public why-line should be replaced by a quotation from its own source. Screens nothing when set."
+        required: false
+        type: string
+        default: ""
+      amend_source:
+        description: "The item's source, as a PMCID or a DOI. Required with amend_item; anything looser is refused."
+        required: false
+        type: string
+        default: ""
+      apply:
+        description: "Send the corrected line to production. Leave false to compose it and print it without sending."
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -106,8 +121,37 @@ jobs:
           PUBLISH: ${{ inputs.publish }}
           WINDOW_DAYS: ${{ inputs.window_days || '60' }}
           MAX_READS: ${{ inputs.max_reads || '12' }}
+          AMEND_ITEM: ${{ inputs.amend_item }}
+          AMEND_SOURCE: ${{ inputs.amend_source }}
+          APPLY: ${{ inputs.apply }}
         run: |
           set -uo pipefail
+
+          # CORRECTION MODE runs instead of a screen. It re-reads one record's abstract,
+          # composes a quotation with the same rule the publisher uses, and sends it to the
+          # operator plane's amend route — which appends its own `(corrected YYYY-MM-DD)`
+          # mark and keeps the replaced line in an append-only record. It selects nothing,
+          # publishes nothing, and screens nothing, so no EXP-013 count comes from it.
+          if [ -n "${AMEND_ITEM:-}" ]; then
+            if ! printf '%s' "$AMEND_ITEM" | grep -Eq '^[0-9]{1,12}$'; then
+              echo "::error::amend_item must be digits only."
+              exit 1
+            fi
+            if [ -z "${AMEND_SOURCE:-}" ]; then
+              echo "::error::amend_item requires amend_source (a PMCID or a DOI)."
+              exit 1
+            fi
+            args=(--amend-item "$AMEND_ITEM" --amend-source "$AMEND_SOURCE")
+            if [ "$APPLY" = "true" ]; then
+              args+=(--apply)
+              echo "::notice::correction will be SENT — one item's why-line, through the operator plane."
+            else
+              echo "::notice::dry correction — the line is composed and printed, nothing is sent."
+            fi
+            node scripts/agent-scout.mjs "${args[@]}"
+            exit $?
+          fi
+
           args=(--window-days "$WINDOW_DAYS" --max-reads "$MAX_READS" --out scout-record.json)
           if [ "$PUBLISH" = "true" ]; then
             args+=(--publish)

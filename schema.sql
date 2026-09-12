@@ -160,3 +160,21 @@ CREATE TABLE IF NOT EXISTS operator_item_actions (
   principal TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
+
+-- One row per why-line correction the operator makes to an item it published (added
+-- 2026-09-13). Append-only by construction: nothing in src/operator.ts updates or deletes
+-- a row here, so the line an amendment replaced always survives the amendment. It is what
+-- separates correcting an agent's public account of a selection from silently rewriting
+-- it — the reader-facing half of the same guarantee is a `(corrected YYYY-MM-DD)` mark the
+-- Worker composes and appends itself, stored inside the line so it travels with the
+-- sentence into the RSS description and anything that copies it.
+CREATE TABLE IF NOT EXISTS operator_item_amendments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  creator_id INTEGER NOT NULL,
+  item_id INTEGER NOT NULL,
+  previous_why TEXT NOT NULL DEFAULT '',   -- the line as it stood, verbatim
+  new_why TEXT NOT NULL DEFAULT '',        -- the line that replaced it, mark included
+  reason TEXT NOT NULL DEFAULT '',         -- why it was corrected; required, never public
+  principal TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);

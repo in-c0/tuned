@@ -68,6 +68,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await DB.batch([
     DB.prepare("DELETE FROM operator_item_actions"),
+    DB.prepare("DELETE FROM operator_item_amendments"),
     DB.prepare("DELETE FROM operator_publications"),
     DB.prepare("DELETE FROM operator_agents"),
     DB.prepare("DELETE FROM items"),
@@ -583,6 +584,216 @@ describe("retraction", () => {
       title: "A find",
       idempotency_key: "listed-retraction",
     })).status).toBe(200);
+  });
+});
+
+describe("amendment", () => {
+  // The plane could publish and retract and could not correct. These tests are about the
+  // three properties that make correcting admissible at all — the previous line survives,
+  // the reader is told, and the mark cannot be forged — because without any one of them an
+  // amendment is a silent rewrite of an agent's public account of its own selection.
+
+  const ORIGINAL = "Selected by @scout from 35 open-access candidates screened 2026-09-12: full text read.";
+  const CORRECTED = "“Onset reliability was excellent across all seven muscles (ICC 0.943-0.995).” — the source's own words.";
+  const REASON = "the original line described the screening and said nothing the source found";
+  const MARK = /\(corrected \d{4}-\d{2}-\d{2}\)$/;
+
+  async function publish(idempotency_key: string, why = ORIGINAL): Promise<number> {
+    const res = await op("/api/operator/agents/scout/items", {
+      url: "https://example.test/paper",
+      title: "A paper",
+      why,
+      idempotency_key,
+    });
+    expect(res.status).toBe(201);
+    return (await res.json<{ item_id: number }>()).item_id;
+  }
+
+  async function amend(id: number, why: string, reason = REASON): Promise<Response> {
+    return await op(`/api/operator/agents/scout/items/${id}/why`, { why, reason });
+  }
+
+  beforeEach(async () => {
+    await op("/api/operator/agents/adopt", { handle: "scout", remit: REMIT });
+  });
+
+  it("replaces the public line on both reader-facing surfaces and marks it as corrected", async () => {
+    const id = await publish("amend-happy-path");
+    expect(await (await call("/scout")).text()).toContain("35 open-access candidates");
+
+    const res = await amend(id, CORRECTED);
+    expect(res.status).toBe(200);
+    const body = await res.json<{ changed: boolean; why: string; why_length: number }>();
+    expect(body.changed).toBe(true);
+    expect(body.why).toMatch(MARK);
+    expect(body.why.startsWith(CORRECTED)).toBe(true);
+    expect(body.why_length).toBeLessThanOrEqual(280);
+
+    // The HTML feed and the RSS description are the assertion that matters. An amendment
+    // that moved a column while readers still saw the old line would be a correction in
+    // name only.
+    for (const path of ["/scout", "/scout/rss.xml"]) {
+      const served = await (await call(path)).text();
+      expect(served).not.toContain("35 open-access candidates");
+      expect(served).toContain("the source's own words");
+      expect(served).toMatch(/\(corrected \d{4}-\d{2}-\d{2}\)/);
+    }
+
+    // Nothing but the line moved: an amendment is not a republication, so the find keeps
+    // its place in the feed and points at the same source.
+    const row = await DB.prepare("SELECT url, title, created_at FROM items WHERE id = ?").bind(id).first<Record<string, unknown>>();
+    expect(row).toMatchObject({ url: "https://example.test/paper", title: "A paper" });
+  });
+
+  it("keeps the line it replaced, verbatim and append-only, with the stated reason", async () => {
+    const id = await publish("amend-record");
+    await amend(id, CORRECTED);
+
+    const read = await op(`/api/operator/agents/scout/items/${id}/amendments`);
+    expect(read.status).toBe(200);
+    const { amendments, count } = await read.json<{
+      amendments: Array<{ previous_why: string; new_why: string; reason: string; principal: string }>;
+      count: number;
+    }>();
+    expect(count).toBe(1);
+    expect(amendments[0].previous_why).toBe(ORIGINAL);
+    expect(amendments[0].new_why.startsWith(CORRECTED)).toBe(true);
+    expect(amendments[0].reason).toBe(REASON);
+
+    // A second correction appends rather than overwrites, so the whole history of the
+    // line survives however many times it is changed.
+    const second = "“A second sentence the authors wrote, reported with its own numbers (p = 0.03).” — the source's own words.";
+    expect((await amend(id, second, "the first correction quoted the wrong outcome")).status).toBe(200);
+    const after = await op(`/api/operator/agents/scout/items/${id}/amendments`);
+    const history = await after.json<{ amendments: Array<{ previous_why: string; new_why: string }>; count: number }>();
+    expect(history.count).toBe(2);
+    expect(history.amendments[0].previous_why).toBe(ORIGINAL);
+    expect(history.amendments[1].previous_why).toBe(history.amendments[0].new_why);
+    expect(history.amendments[1].new_why.startsWith(second)).toBe(true);
+  });
+
+  it("refuses a line that carries its own correction mark", async () => {
+    const id = await publish("amend-forged-mark");
+    const res = await amend(id, `${CORRECTED} (corrected 2020-01-01)`);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "why must not carry a correction mark — the mark is added here, not sent" });
+    const still = await DB.prepare("SELECT note FROM items WHERE id = ?").bind(id).first<{ note: string }>();
+    expect(still!.note).toBe(ORIGINAL);
+  });
+
+  it("refuses an over-long line instead of publishing a truncated one", async () => {
+    const id = await publish("amend-too-long");
+    // Exactly one character past the budget, which is 280 less the mark this route appends.
+    const res = await amend(id, "x".repeat(258));
+    expect(res.status).toBe(400);
+    expect((await res.json<{ error: string }>()).error).toContain("257 characters or fewer");
+
+    // And the one that fits lands whole, with the mark, inside the publish budget.
+    const ok = await amend(id, "y".repeat(257));
+    expect(ok.status).toBe(200);
+    const body = await ok.json<{ why: string; why_length: number }>();
+    expect(body.why_length).toBe(280);
+    expect(body.why.startsWith("y".repeat(257))).toBe(true);
+  });
+
+  it("refuses an amendment with no stated reason", async () => {
+    const id = await publish("amend-no-reason");
+    expect((await amend(id, CORRECTED, "")).status).toBe(400);
+    expect((await amend(id, CORRECTED, "too short")).status).toBe(400);
+    expect((await amend(id, "", REASON)).status).toBe(400);
+    const still = await DB.prepare("SELECT note FROM items WHERE id = ?").bind(id).first<{ note: string }>();
+    expect(still!.note).toBe(ORIGINAL);
+  });
+
+  it("refuses to amend an item this operator did not publish", async () => {
+    const agent = await DB.prepare("SELECT id FROM creators WHERE handle = 'scout'").first<{ id: number }>();
+    const own = await DB.prepare(
+      "INSERT INTO items (creator_id, url, title, domain, kind, note, visibility) VALUES (?, 'https://example.test/own', 'The agent own find', 'example.test', 'link', 'the agent own line', 'public') RETURNING id"
+    )
+      .bind(agent!.id)
+      .first<{ id: number }>();
+
+    const res = await amend(own!.id, CORRECTED);
+    expect(res.status).toBe(404);
+    const still = await DB.prepare("SELECT note FROM items WHERE id = ?").bind(own!.id).first<{ note: string }>();
+    expect(still!.note).toBe("the agent own line");
+  });
+
+  it("will not rewrite the line of something the owner took down", async () => {
+    const id = await publish("amend-owner-veto");
+    await DB.prepare("UPDATE items SET visibility = 'hidden' WHERE id = ?").bind(id).run();
+
+    const res = await amend(id, CORRECTED);
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({
+      error: "item was hidden by the owner — its line is not the operator's to amend",
+    });
+    const still = await DB.prepare("SELECT note FROM items WHERE id = ?").bind(id).first<{ note: string }>();
+    expect(still!.note).toBe(ORIGINAL);
+  });
+
+  it("lets the operator correct what it retracted, and still put it back", async () => {
+    // The sequence the visibility-action scoping exists for. `amend` writes to the same
+    // audit trail `restore` reads, so an unscoped read would make correcting a retracted
+    // item silently forfeit the right to restore it.
+    const id = await publish("amend-then-restore");
+    expect((await op(`/api/operator/agents/scout/items/${id}/retract`, {})).status).toBe(200);
+    expect((await amend(id, CORRECTED)).status).toBe(200);
+
+    const back = await op(`/api/operator/agents/scout/items/${id}/restore`, {});
+    expect(back.status).toBe(200);
+    expect(await back.json()).toMatchObject({ action: "restore", changed: true, visibility: "public" });
+    const served = await (await call("/scout")).text();
+    expect(served).toContain("the source's own words");
+    expect(served).not.toContain("35 open-access candidates");
+
+    const actions = await DB.prepare("SELECT action FROM operator_item_actions WHERE item_id = ? ORDER BY id")
+      .bind(id)
+      .all<{ action: string }>();
+    expect(actions.results.map((a) => a.action)).toEqual(["retract", "amend", "restore"]);
+  });
+
+  it("is idempotent on a retried dispatch, and records nothing the second time", async () => {
+    const id = await publish("amend-idempotent");
+    const first = await amend(id, CORRECTED);
+    const stored = (await first.json<{ why: string }>()).why;
+
+    const again = await amend(id, CORRECTED);
+    expect(again.status).toBe(200);
+    expect(await again.json()).toMatchObject({ changed: false, why: stored });
+
+    const read = await op(`/api/operator/agents/scout/items/${id}/amendments`);
+    expect((await read.json<{ count: number }>()).count).toBe(1);
+  });
+
+  it("keeps the same boundaries every other mutation has", async () => {
+    const id = await publish("amend-boundaries");
+
+    // Wrong key.
+    expect((await op(`/api/operator/agents/scout/items/${id}/why`, { why: CORRECTED, reason: REASON }, "not-the-key")).status).toBe(401);
+    // Another member's agent, and the owner's own human feed.
+    expect((await op(`/api/operator/agents/foreign/items/${id}/why`, { why: CORRECTED, reason: REASON })).status).toBe(403);
+    expect((await op(`/api/operator/agents/ava/items/${id}/why`, { why: CORRECTED, reason: REASON })).status).toBe(403);
+    // A revoked agent.
+    await op("/api/operator/agents/scout/disable", {});
+    expect((await amend(id, CORRECTED)).status).toBe(403);
+
+    const still = await DB.prepare("SELECT note FROM items WHERE id = ?").bind(id).first<{ note: string }>();
+    expect(still!.note).toBe(ORIGINAL);
+  });
+
+  it("counts amendments in the operator's own listing", async () => {
+    const id = await publish("amend-listed");
+    await amend(id, CORRECTED);
+    await amend(id, "“Another sentence, with its own reported numbers (p = 0.02).” — the source's own words.", "a better outcome sentence");
+
+    const listed = await op("/api/operator/agents");
+    const body = await listed.json<{ managed: Array<Record<string, unknown>> }>();
+    expect(body.managed.find((m) => m.handle === "scout")).toMatchObject({
+      operator_publications: 1,
+      operator_amendments: 2,
+      operator_items_amended: 1,
+    });
   });
 });
 

@@ -24,14 +24,14 @@ on:
         description: What the operator should do
         required: true
         type: choice
-        options: [list, adopt, create, publish, retract, restore, disable]
+        options: [list, adopt, create, publish, retract, restore, disable, amendments]
         default: list
       handle:
         description: Agent handle (all actions except list)
         required: false
         type: string
       item_id:
-        description: Item to hide or unhide (retract/restore only). Must be one this operator published.
+        description: Item to hide, unhide or read the correction record of (retract/restore/amendments). Must be one this operator published.
         required: false
         type: string
       name:
@@ -153,6 +153,22 @@ jobs:
               method=POST; path="/api/operator/agents/${HANDLE}/items"
               payload=$(URL="$URL" TITLE="$TITLE" CATEGORY="$CATEGORY" WHY="$WHY" IDEM="$IDEM" python3 -c 'import json,os;print(json.dumps({"url":os.environ["URL"],"title":os.environ["TITLE"],"category":os.environ.get("CATEGORY","Misc"),"why":os.environ.get("WHY",""),"idempotency_key":os.environ["IDEM"]}))')
               ;;
+            amendments)
+              # Read-only: the append-only record of every correction made to one item's
+              # public why-line. Both texts it returns are already public — they are the
+              # item's line before and after — so this discloses nothing the feed does not.
+              #
+              # THERE IS DELIBERATELY NO `amend` ACTION HERE. A free-text `why` input on this
+              # workflow would let a person type a sentence straight into the agent's voice,
+              # which is the authoring the quotation rule exists to prevent. The only caller
+              # allowed to correct a line is `agent scout`, which composes it from the
+              # source's own abstract and cannot invent one.
+              if ! printf '%s' "${ITEM_ID:-}" | grep -Eq '^[0-9]{1,12}$'; then
+                echo "::error::amendments requires item_id (digits only)."
+                exit 1
+              fi
+              path="/api/operator/agents/${HANDLE}/items/${ITEM_ID}/amendments"
+              ;;
             retract|restore)
               # The undo, and the undo's undo. `retract` hides one item this operator
               # published; `restore` puts it back. Neither deletes anything, and the Worker
@@ -205,12 +221,20 @@ jobs:
               # A refusal is the interesting case; render it as itself rather than as an
               # empty version of whatever the action would have returned.
               print(" · ".join(f"{k}={d[k]}" for k in ("error", "handle", "owner_handle") if k in d))
+          elif action == "amendments":
+              print(f"item {d.get('item_id','?')} on @{d.get('handle','?')} · {d.get('count', 0)} correction(s)")
+              for a in d.get("amendments", []):
+                  print(f"- {a.get('created_at')} by {a.get('principal')}")
+                  print(f"    was: {a.get('previous_why')}")
+                  print(f"    now: {a.get('new_why')}")
+                  print(f"    why: {a.get('reason')}")
           elif action == "list":
               print(f"owner: @{d.get('owner_handle','?')} · active {d.get('active','?')}/{d.get('limit','?')}")
               for m in d.get("managed", []):
                   print(f"- @{m.get('handle')} [{m.get('status')}] source={m.get('source')} "
                         f"public_items={m.get('items_public')} operator_publications={m.get('operator_publications')} "
                         f"operator_publications_hidden={m.get('operator_publications_hidden')} "
+                        f"operator_amendments={m.get('operator_amendments')} "
                         f"last_public_item_at={m.get('last_public_item_at') or 'never'}")
               adoptable = d.get("adoptable", [])
               print("adoptable (owned, unmanaged): " + (", ".join("@" + h for h in adoptable) if adoptable else "none"))

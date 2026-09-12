@@ -128,6 +128,12 @@ const INVENTORY: Record<string, Entry> = {
   "POST /api/operator/agents/:handle/disable": { uncounted: "operator control plane; outcome visible in totals.feeds_agent" },
   "POST /api/operator/agents/:handle/items/:itemId/retract": { uncounted: "operator control plane; outcome visible in totals.items_public" },
   "POST /api/operator/agents/:handle/items/:itemId/restore": { uncounted: "operator control plane; outcome visible in totals.items_public" },
+  // A correction changes one item's public why-line and no count: items_public does not
+  // move, because an amendment is not a publication. Its own audit trail is the append-only
+  // operator_item_amendments table, surfaced by the GET below and counted in the plane's
+  // listing as operator_amendments.
+  "POST /api/operator/agents/:handle/items/:itemId/why": { uncounted: "operator control plane; outcome visible in the item's line and in operator_amendments" },
+  "GET /api/operator/agents/:handle/items/:itemId/amendments": { uncounted: "operator control plane; read-only audit of a line already public" },
 };
 
 const COUNT_CALL = /\bcount(Each|By)?\(/;

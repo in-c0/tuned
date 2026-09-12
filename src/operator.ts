@@ -18,6 +18,9 @@
 //     queued items or a member's skips;
 //   * provision members, approve the private queue, or delete anything;
 //   * hide or unhide any item it did not itself publish, or reverse a hide the owner made;
+//   * amend an item it did not itself publish, amend one the owner has hidden, amend any
+//     field but the public why-selected line, or amend one without leaving a public mark
+//     and an append-only record of the previous text;
 //   * run arbitrary SQL, proxy the admin API, or read any secret back;
 //   * manage more than MAX_MANAGED_AGENTS agents.
 //
@@ -45,6 +48,61 @@ export const MAX_MANAGED_AGENTS = 12;
 
 const REMIT_MAX = 600;
 const REMIT_MIN = 10;
+
+/** The public why-selected line's budget. One definition, shared by publish and amend, so
+ *  the two paths cannot drift into disagreeing about what fits. */
+export const WHY_MAX = 280;
+
+// ---------------------------------------------------------------------------
+// Correction: the agent's public account of a selection, changed in the open
+// ---------------------------------------------------------------------------
+//
+// THE GAP THIS CLOSES. Until now this plane could `publish`, `retract` and `restore` and
+// had no way to *correct*. An agent whose public why-line turned out to be poor had two
+// options: leave it wrong, or hide the find. On a product whose whole claim is explicit
+// provenance, "the agent cannot correct its own public account of why it selected
+// something" is not a missing convenience — the only available correction was deletion
+// from view, which is the least honest of the three.
+//
+// WHY AN AMEND IS NOT A REWRITE, and the three properties that make the difference. Each is
+// enforced here rather than left to a caller's discipline, because the caller is an
+// unattended script and the thing being protected is a reader's ability to trust the line.
+//
+//   1. **The previous text survives.** `operator_item_amendments` is append-only and keeps
+//      the line as it stood, the line that replaced it, and the stated reason. Nothing in
+//      this plane updates or deletes a row of it. A correction that erased what it
+//      corrected would be exactly the silent rewriting this route must not be.
+//   2. **The reader is told.** The stored line carries a server-composed
+//      `(corrected YYYY-MM-DD)` mark. It lives INSIDE the text rather than in a column or a
+//      joined table on purpose: the note is served on the HTML feed and again as the RSS
+//      description, and it is scraped, copied and re-syndicated by things this repository
+//      does not control. A disclosure that travels with the sentence cannot be dropped by a
+//      rendering path that forgot to join; one in a side table can. The cost is 23
+//      characters of the 280 budget and it is worth it.
+//   3. **The mark cannot be forged or omitted.** The caller supplies the clean line only.
+//      This route appends the mark from its own clock, and refuses a submitted line that
+//      carries one — so no caller can pass off an amendment as an original publication, or
+//      date one to a day of its choosing.
+//
+// WHAT IT STILL CANNOT REACH. Only the why-line, only on an item this plane published, and
+// never on one the owner has hidden — the same veto rule `restore` already follows. Title,
+// url, description and category are not amendable here: a "correction" that changed which
+// source a find pointed at would be a different find wearing the same row.
+
+/** Appended by this route, never by a caller. Fixed width, so the budget below is exact. */
+function correctionMark(now: Date): string {
+  return ` (corrected ${now.toISOString().slice(0, 10)})`;
+}
+
+/** Matches the mark anywhere in a line — used to refuse a forged one on the way in, and to
+ *  recognise this plane's own previous mark on the way out. */
+export const CORRECTION_MARK_PATTERN = /\s*\(corrected \d{4}-\d{2}-\d{2}\)/;
+
+/** Derived from the mark itself rather than written twice. */
+export const AMEND_WHY_MAX = WHY_MAX - correctionMark(new Date(0)).length;
+
+const AMEND_REASON_MIN = 10;
+const AMEND_REASON_MAX = 300;
 
 /** The remit is public — it lands in a public repo file, a public workflow input and the
  *  agent's charter. Control characters are stripped so nothing can smuggle formatting into
@@ -113,6 +171,21 @@ function ensureTables(db: D1Database): Promise<void> {
              creator_id INTEGER NOT NULL,
              item_id INTEGER NOT NULL,
              action TEXT NOT NULL,
+             principal TEXT NOT NULL DEFAULT '',
+             created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+           )`
+        ),
+        // Append-only, and it is the whole reason an amendment is admissible. Nothing in
+        // this file updates or deletes a row here; a correction that could erase what it
+        // corrected would be a rewrite wearing a better name.
+        db.prepare(
+          `CREATE TABLE IF NOT EXISTS operator_item_amendments (
+             id INTEGER PRIMARY KEY AUTOINCREMENT,
+             creator_id INTEGER NOT NULL,
+             item_id INTEGER NOT NULL,
+             previous_why TEXT NOT NULL DEFAULT '',
+             new_why TEXT NOT NULL DEFAULT '',
+             reason TEXT NOT NULL DEFAULT '',
              principal TEXT NOT NULL DEFAULT '',
              created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
            )`
@@ -239,7 +312,9 @@ operator.get("/agents", async (c) => {
             (SELECT MAX(i.created_at) FROM items i WHERE i.creator_id = o.creator_id AND i.visibility = 'public') AS last_public_item_at,
             (SELECT COUNT(*) FROM operator_publications p WHERE p.creator_id = o.creator_id) AS operator_publications,
             (SELECT COUNT(*) FROM operator_publications p JOIN items i ON i.id = p.item_id
-              WHERE p.creator_id = o.creator_id AND i.visibility <> 'public') AS operator_publications_hidden
+              WHERE p.creator_id = o.creator_id AND i.visibility <> 'public') AS operator_publications_hidden,
+            (SELECT COUNT(*) FROM operator_item_amendments a WHERE a.creator_id = o.creator_id) AS operator_amendments,
+            (SELECT COUNT(DISTINCT a.item_id) FROM operator_item_amendments a WHERE a.creator_id = o.creator_id) AS operator_items_amended
        FROM operator_agents o WHERE o.member_id = ? ORDER BY o.handle`
   )
     .bind(ownerId)
@@ -249,6 +324,8 @@ operator.get("/agents", async (c) => {
         last_public_item_at: string | null;
         operator_publications: number;
         operator_publications_hidden: number;
+        operator_amendments: number;
+        operator_items_amended: number;
       }
     >();
 
@@ -280,6 +357,8 @@ operator.get("/agents", async (c) => {
       last_public_item_at: m.last_public_item_at ?? "",
       operator_publications: m.operator_publications,
       operator_publications_hidden: m.operator_publications_hidden,
+      operator_amendments: m.operator_amendments,
+      operator_items_amended: m.operator_items_amended,
     })),
     adoptable: adoptable.map((a) => a.handle),
   });
@@ -404,7 +483,7 @@ operator.post("/agents/:handle/items", async (c) => {
     ["url", b.url, 2000],
     ["title", b.title, 300],
     ["description", b.description, 500],
-    ["why", b.why, 280],
+    ["why", b.why, WHY_MAX],
   ] as const;
   const overLong = bounds.find(([, value, max]) => (value ?? "").trim().length > max);
   if (overLong) {
@@ -563,11 +642,20 @@ async function operatorPublishedItem(db: D1Database, creatorId: number, itemId: 
     .first<OperatorItem>();
 }
 
-/** The last thing this plane did to the item, or "" if it has never touched it. This is
- *  what separates "the operator hid it" from "the owner hid it". */
-async function lastItemAction(db: D1Database, creatorId: number, itemId: number): Promise<string> {
+/** The last thing this plane did to the item's *visibility*, or "" if it has never moved
+ *  it. This is what separates "the operator hid it" from "the owner hid it".
+ *
+ *  Scoped to the two visibility actions rather than to the whole trail, and that scope is
+ *  load-bearing: `amend` also writes here, and a retract → amend → restore sequence must
+ *  still restore. Reading the newest row of any kind would have made correcting a retracted
+ *  item silently forfeit the right to put it back. */
+async function lastVisibilityAction(db: D1Database, creatorId: number, itemId: number): Promise<string> {
   const row = await db
-    .prepare("SELECT action FROM operator_item_actions WHERE creator_id = ? AND item_id = ? ORDER BY id DESC LIMIT 1")
+    .prepare(
+      `SELECT action FROM operator_item_actions
+        WHERE creator_id = ? AND item_id = ? AND action IN ('retract','restore')
+        ORDER BY id DESC LIMIT 1`
+    )
     .bind(creatorId, itemId)
     .first<{ action: string }>();
   return row?.action ?? "";
@@ -599,7 +687,7 @@ function itemRoute(action: ItemAction) {
     if (item.visibility !== from) {
       return c.json({ ok: false, error: `item is '${item.visibility}', not '${from}'`, item_id: itemId }, 409);
     }
-    if (action === "restore" && (await lastItemAction(c.env.DB, resolved.agent.id, itemId)) !== "retract") {
+    if (action === "restore" && (await lastVisibilityAction(c.env.DB, resolved.agent.id, itemId)) !== "retract") {
       return c.json(
         { ok: false, error: "item was not hidden by this operator — a human veto is not the operator's to reverse", item_id: itemId },
         409
@@ -627,5 +715,135 @@ function itemRoute(action: ItemAction) {
 
 operator.post("/agents/:handle/items/:itemId/retract", itemRoute("retract"));
 operator.post("/agents/:handle/items/:itemId/restore", itemRoute("restore"));
+
+// ---------- amend one operator-published item's public why-selected line ----------
+
+/** Everything a why-amendment has to survive before it reaches a reader. Separated from the
+ *  route so each refusal is one named condition rather than a step in a long handler. */
+function amendmentFrom(raw: { why?: string; reason?: string }): { why: string; reason: string } | { error: string } {
+  const why = (raw.why ?? "").trim();
+  if (why === "") return { error: "why required" };
+  // Refused, never truncated — the same rule `publish` states: a line sliced to fit stops
+  // mid-word under the agent's name while telling the caller it succeeded.
+  if (why.length > AMEND_WHY_MAX) {
+    return { error: `why must be ${AMEND_WHY_MAX} characters or fewer, leaving room for the correction mark` };
+  }
+  // The mark is this plane's, composed from this plane's clock. A caller that could submit
+  // one could date a correction to a day of its choosing, or pass an amendment off as an
+  // original publication by supplying a mark this route would then not add.
+  if (CORRECTION_MARK_PATTERN.test(why)) {
+    return { error: "why must not carry a correction mark — the mark is added here, not sent" };
+  }
+  const reason = (raw.reason ?? "").trim();
+  if (reason.length < AMEND_REASON_MIN || reason.length > AMEND_REASON_MAX) {
+    return { error: `reason must be ${AMEND_REASON_MIN}–${AMEND_REASON_MAX} characters` };
+  }
+  return { why, reason };
+}
+
+operator.post("/agents/:handle/items/:itemId/why", async (c) => {
+  const ownerId = c.get("ownerId");
+  const handle = normalizeHandle(c.req.param("handle"));
+  if (!handle) return c.json({ ok: false, error: "invalid handle" }, 400);
+  const itemId = Number(c.req.param("itemId"));
+  if (!Number.isSafeInteger(itemId) || itemId <= 0) return c.json({ ok: false, error: "invalid item id" }, 400);
+
+  const resolved = await resolveManaged(c.env.DB, ownerId, handle);
+  if ("error" in resolved) return c.json({ ok: false, error: resolved.error }, resolved.status);
+
+  const body = await c.req.json<{ why?: string; reason?: string }>().catch(() => ({}) as Record<string, string>);
+  const amendment = amendmentFrom(body);
+  if ("error" in amendment) return c.json({ ok: false, error: amendment.error }, 400);
+
+  const item = await c.env.DB.prepare(
+    `SELECT i.id, i.visibility, i.note FROM items i
+       JOIN operator_publications p ON p.item_id = i.id AND p.creator_id = i.creator_id
+      WHERE i.id = ? AND i.creator_id = ?`
+  )
+    .bind(itemId, resolved.agent.id)
+    .first<{ id: number; visibility: string; note: string }>();
+  if (!item) {
+    return c.json({ ok: false, error: "no such item, or it was not published by this operator" }, 404);
+  }
+
+  // A hidden item is amendable only when this plane is the one that hid it. The owner's
+  // veto is not the operator's to work around, and editing the line of something a human
+  // took down — so that it reads differently if they ever put it back — is working around
+  // it. Same rule as `restore`, same reason.
+  if (item.visibility !== "public" && (await lastVisibilityAction(c.env.DB, resolved.agent.id, itemId)) !== "retract") {
+    return c.json(
+      { ok: false, error: "item was hidden by the owner — its line is not the operator's to amend", item_id: itemId },
+      409
+    );
+  }
+
+  const previous = item.note ?? "";
+  // Idempotent across days, not merely within one. Comparing the *stripped* current line
+  // against the submitted one means a retried dispatch is a no-op even when the mark it
+  // would compose now carries a later date than the mark already stored.
+  if (previous.replace(CORRECTION_MARK_PATTERN, "").trim() === amendment.why) {
+    return c.json({ ok: true, handle, item_id: itemId, action: "amend", changed: false, why: previous });
+  }
+
+  const composed = `${amendment.why}${correctionMark(new Date())}`;
+  // Guarded on the line it was read at, so two concurrent amendments cannot both report a
+  // change and the recorded `previous_why` is always the text that was actually replaced.
+  const updated = await c.env.DB.prepare("UPDATE items SET note = ? WHERE id = ? AND creator_id = ? AND note = ?")
+    .bind(composed, itemId, resolved.agent.id, previous)
+    .run();
+  if (!updated.meta.changes) {
+    return c.json({ ok: false, error: "item changed underneath this request", item_id: itemId }, 409);
+  }
+
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO operator_item_amendments (creator_id, item_id, previous_why, new_why, reason, principal)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).bind(resolved.agent.id, itemId, previous, composed, amendment.reason, principalOf(c)),
+    c.env.DB.prepare(
+      "INSERT INTO operator_item_actions (creator_id, item_id, action, principal) VALUES (?, ?, 'amend', ?)"
+    ).bind(resolved.agent.id, itemId, principalOf(c)),
+  ]);
+
+  return c.json({
+    ok: true,
+    handle,
+    item_id: itemId,
+    action: "amend",
+    changed: true,
+    why: composed,
+    why_length: composed.length,
+  });
+});
+
+// ---------- read the append-only amendment record for one item ----------
+//
+// The record is what makes an amendment a correction rather than a rewrite, and a record
+// nobody can read is an assurance. Both texts here are already public — they are the item's
+// line before and after — so this discloses nothing the feed does not.
+operator.get("/agents/:handle/items/:itemId/amendments", async (c) => {
+  const ownerId = c.get("ownerId");
+  const handle = normalizeHandle(c.req.param("handle"));
+  if (!handle) return c.json({ ok: false, error: "invalid handle" }, 400);
+  const itemId = Number(c.req.param("itemId"));
+  if (!Number.isSafeInteger(itemId) || itemId <= 0) return c.json({ ok: false, error: "invalid item id" }, 400);
+
+  const resolved = await resolveManaged(c.env.DB, ownerId, handle);
+  if ("error" in resolved) return c.json({ ok: false, error: resolved.error }, resolved.status);
+
+  const item = await operatorPublishedItem(c.env.DB, resolved.agent.id, itemId);
+  if (!item) {
+    return c.json({ ok: false, error: "no such item, or it was not published by this operator" }, 404);
+  }
+
+  const { results } = await c.env.DB.prepare(
+    `SELECT previous_why, new_why, reason, principal, created_at
+       FROM operator_item_amendments WHERE creator_id = ? AND item_id = ? ORDER BY id`
+  )
+    .bind(resolved.agent.id, itemId)
+    .all<{ previous_why: string; new_why: string; reason: string; principal: string; created_at: string }>();
+
+  return c.json({ ok: true, handle, item_id: itemId, amendments: results, count: results.length });
+});
 
 export default operator;

@@ -1031,3 +1031,73 @@ export function idempotencyKeyFor(handle, url) {
   for (const byte of bytes) hash = (hash * 1099511628211n + BigInt(byte)) & 0xffffffffffffffffn;
   return `scout-${hash.toString(16).padStart(16, "0")}`;
 }
+
+// ---------------------------------------------------------------------------
+// Correction: a line already in front of readers, replaced with a quotation
+// ---------------------------------------------------------------------------
+//
+// WHY THIS IS A SEPARATE COMPOSER AND NOT `composeWhy` WITH A FLAG. The frames above lead
+// with the screening that produced the selection — "from 35 candidates screened
+// 2026-09-12", "full text read (46,097 characters)". Those are facts about a screening run
+// that happened once, and an amendment is not one: it re-reads a single record's abstract to
+// find a quotable sentence and performs no screen at all. A composer that carried those
+// clauses into a correction would be asserting a count this code did not observe, which is
+// the exact failure mode the whole register exists to refuse. So the amendment frames drop
+// every screening clause and keep only what an amendment can itself vouch for: whose words
+// these are, and who is quoting them.
+//
+// THE BUDGET IS 23 CHARACTERS SHORTER, and the 23 are not this file's to spend. The operator
+// plane appends its own `(corrected YYYY-MM-DD)` mark to any line it amends
+// (src/operator.ts), so the line composed here has to leave room for it. Both ends define
+// the number independently and they must agree: if they ever drift, the plane answers 400
+// naming ITS budget and nothing is amended — fail-closed, and the scout prints the refusal.
+
+/** Fixed width — the mark the operator plane appends, with its date at full length. */
+export const CORRECTION_MARK_CHARS = " (corrected 0000-00-00)".length;
+
+/** The longest line this side may send. Pinned against src/operator.ts's AMEND_WHY_MAX. */
+export const AMEND_WHY_MAX = WHY_MAX - CORRECTION_MARK_CHARS;
+
+/** Frames for a correction, longest first. Neither asserts a screening figure. */
+export function amendFrames({ quote }) {
+  return [
+    `“${quote}” — the source's own words, quoted by @sportstech.`,
+    `“${quote}” — the source's own words.`,
+  ];
+}
+
+/** Derived, never hardcoded: the longest quote that still fits the shortest amend frame
+ *  inside the shortened budget. */
+export const AMEND_QUOTE_MAX_CHARS = AMEND_WHY_MAX - amendFrames({ quote: "" }).at(-1).length;
+
+/** The replacement line for an item already published, or a refusal naming its clause.
+ *
+ *  Same `selectQuotation` the publisher uses, so a corrected line is held to EXP-013's Q1–Q3
+ *  by the same code path: verbatim substring of the abstract, labelled as the source's,
+ *  never truncated. Refusing is a normal outcome and leaves the existing line alone — an
+ *  agent that cannot find a quotable sentence has nothing to correct the line *to*, and
+ *  writing one would be the authoring this change exists to avoid. */
+export function composeAmendedWhy(abstract) {
+  const quotation = selectQuotation(abstract ?? "", { maxChars: AMEND_QUOTE_MAX_CHARS });
+  if (quotation.quote === "") return { why: "", quotation };
+  for (const line of amendFrames({ quote: quotation.quote })) {
+    if (line.length <= AMEND_WHY_MAX) return { why: line, quotation };
+  }
+  // Unreachable while AMEND_QUOTE_MAX_CHARS is derived from the shortest frame, and still
+  // the right behaviour if a later edit to the frames makes it reachable again.
+  return { why: "", quotation: { ...quotation, refusedBecause: "length" } };
+}
+
+/** One source identifier — a PMCID, a DOI, or a URL carrying a DOI — as a Europe PMC query
+ *  that can match at most the record asked for. Anything else is refused rather than turned
+ *  into a loose search: an amendment that quoted the wrong paper would be worse than the
+ *  line it replaced. */
+export function recordQuery(source) {
+  const raw = String(source ?? "").trim();
+  if (raw === "") return "";
+  const pmcid = /^PMC\d+$/i.exec(raw);
+  if (pmcid) return `EXT_ID:${pmcid[0].toUpperCase()} AND SRC:PMC`;
+  const doi = /10\.\d{4,9}\/[^\s"?&#]+/.exec(raw);
+  if (doi) return `DOI:"${doi[0].replace(/[).,;]+$/, "")}"`;
+  return "";
+}

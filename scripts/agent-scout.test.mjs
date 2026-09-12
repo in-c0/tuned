@@ -21,6 +21,12 @@ import {
   hasStrongSportTerm,
   buildSearchQuery,
   composeWhy,
+  composeAmendedWhy,
+  amendFrames,
+  recordQuery,
+  AMEND_WHY_MAX,
+  AMEND_QUOTE_MAX_CHARS,
+  CORRECTION_MARK_CHARS,
   selectQuotation,
   splitSentences,
   quoteFrames,
@@ -39,7 +45,7 @@ import {
   sameSource,
   searchUrl,
 } from "./lib/agent-scout.mjs";
-import { screen, publishedSources, USER_AGENT } from "./agent-scout.mjs";
+import { screen, publishedSources, amendCycle, fetchRecord, USER_AGENT } from "./agent-scout.mjs";
 
 const NOW = "2026-09-12T04:00:00.000Z";
 
@@ -797,4 +803,245 @@ test("the two statistic tables are deliberately different, and the quotation's i
       assert.match(re.source, /\\d/, `${family}: every reported-value pattern must bind a digit — ${re}`);
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// Correction: the composer for a line already in front of readers
+// ---------------------------------------------------------------------------
+
+test("the amend budget leaves exactly the room the operator plane's correction mark needs", () => {
+  // PINNED AGAINST src/operator.ts. That file derives AMEND_WHY_MAX the same way and must
+  // land on the same number; the two are independent definitions of one budget, and this is
+  // the assertion that says so out loud. A drift fails closed — the plane answers 400 naming
+  // its own budget and nothing is amended — but it fails at dispatch time, in production,
+  // which is the wrong place to discover it.
+  assert.equal(CORRECTION_MARK_CHARS, " (corrected 0000-00-00)".length);
+  assert.equal(AMEND_WHY_MAX, 280 - CORRECTION_MARK_CHARS);
+  assert.equal(AMEND_WHY_MAX, 257, "src/operator.ts must agree: WHY_MAX 280 less a 23-character mark");
+});
+
+test("the amend frames assert no screening figure, because an amendment performs no screen", () => {
+  // The whole reason this is a separate composer. `quoteFrames` leads with "from N
+  // candidates screened D"; a correction re-reads one record's abstract and screens nothing,
+  // so carrying that clause would assert a count this code did not observe.
+  for (const frame of amendFrames({ quote: "Q" })) {
+    assert.doesNotMatch(frame, /screened|candidate|full text read/, frame);
+    assert.match(frame, /the source's own words/, frame);
+  }
+});
+
+test("a corrected line is the source's own sentence and fits inside the shortened budget", () => {
+  const finding = "Onset showed excellent reliability across all seven muscles in this cohort (ICC = 0.943 to 0.995, 95% CI 0.88 to 0.99).";
+  const abstract = `BACKGROUND: Wearable sensors are increasingly used. RESULTS: ${finding} CONCLUSIONS: The method looks promising.`;
+  const { why, quotation } = composeAmendedWhy(abstract);
+
+  assert.equal(quotation.quote, finding);
+  assert.ok(abstract.includes(quotation.quote), "the quote must be a verbatim substring of the abstract it came from");
+  assert.ok(why.includes(finding), "the finding must survive whole into the line");
+  assert.ok(why.length <= AMEND_WHY_MAX, `${why.length} > ${AMEND_WHY_MAX}`);
+  // And the line the plane will actually store, mark included, is still inside the budget
+  // every other published why-line is held to.
+  assert.ok(why.length + CORRECTION_MARK_CHARS <= 280);
+});
+
+test("no qualifying sentence corrects nothing, rather than writing a replacement", () => {
+  // The failure mode of this whole change has to be silence. An agent that cannot find a
+  // quotable sentence has nothing to correct the line TO, and composing one would be the
+  // authoring the quotation rule exists to refuse.
+  const { why, quotation } = composeAmendedWhy("BACKGROUND: This paper considers whether wearables are useful for coaches.");
+  assert.equal(why, "");
+  assert.ok(QUOTE_CLAUSES.includes(quotation.refusedBecause), quotation.refusedBecause);
+});
+
+test("a sentence that fits the publish budget but not the amend budget is refused, not truncated", () => {
+  // The 23 characters the mark costs are real: a quote that a fresh publication could carry
+  // is refused on a correction. Refusing is right — an abridged sentence inside quotation
+  // marks is a misquotation whichever route composed it.
+  const long = `Across every condition the effect was consistent in this large cohort of trained athletes and remained so after adjustment for the prespecified covariates listed in the analysis plan${"x".repeat(30)} (p = 0.03, 95% CI 0.11 to 0.42).`;
+  const abstract = `RESULTS: ${long}`;
+  assert.ok(long.length > AMEND_QUOTE_MAX_CHARS && long.length <= QUOTE_MAX_CHARS, `${long.length}`);
+  assert.equal(selectQuotation(abstract).quote, long, "the publisher's budget admits it");
+  assert.equal(composeAmendedWhy(abstract).why, "", "the amend budget does not, and refuses rather than abridging");
+});
+
+test("an identifier resolves to one record or to nothing — never to a loose search", () => {
+  // An amendment that quoted the wrong paper would be worse than the line it replaced, so
+  // anything that is not a specific identifier is refused rather than broadened.
+  assert.equal(recordQuery("PMC12345678"), "EXT_ID:PMC12345678 AND SRC:PMC");
+  assert.equal(recordQuery("pmc999"), "EXT_ID:PMC999 AND SRC:PMC");
+  assert.equal(recordQuery("10.3390/s26154914"), 'DOI:"10.3390/s26154914"');
+  assert.equal(recordQuery("https://doi.org/10.3390/s26154914"), 'DOI:"10.3390/s26154914"');
+  for (const junk of ["", "  ", "whole body vibration", "https://example.test/paper", "PMC", undefined, null]) {
+    assert.equal(recordQuery(junk), "", String(junk));
+  }
+});
+
+test("MUTATION: an amend composer that fell back to the provenance line would invent a screen", () => {
+  // composeWhy's fallback names a candidate count and a screening date. Reached from an
+  // amendment — which screens nothing — every one of those numbers would be fabricated. This
+  // pins that composeAmendedWhy returns "" where composeWhy returns prose.
+  const abstract = "BACKGROUND: A short abstract with no reported values at all.";
+  assert.equal(composeAmendedWhy(abstract).why, "");
+  const invented = composeWhy({
+    candidate: { abstract, journal: "J", firstPublicationDate: "2026-09-01" },
+    grade: { bodyCharacters: 46097, designs: ["randomised"], statistics: ["p-value", "effect size"] },
+    observed: 35,
+    observedOn: "2026-09-12",
+  });
+  assert.match(invented, /35 open-access candidates screened 2026-09-12/);
+  assert.notEqual(composeAmendedWhy(abstract).why, invented);
+});
+
+// ---------------------------------------------------------------------------
+// The correction cycle end to end, against recorded responses
+// ---------------------------------------------------------------------------
+
+const FINDING =
+  "Onset showed excellent reliability across all seven muscles in this cohort (ICC = 0.943 to 0.995, 95% CI 0.88 to 0.99).";
+
+/** One search response carrying `n` copies of a record, for the resolve-to-exactly-one rule. */
+function oneRecordResponse(n, overrides = {}) {
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        hitCount: n,
+        resultList: {
+          result: Array.from({ length: n }, () => ({
+            source: "MED",
+            id: "40999111",
+            pmcid: "PMC12345678",
+            doi: "10.3390/s26154914",
+            title: "A reliability study",
+            abstractText: `BACKGROUND: Wearables are used widely. RESULTS: ${FINDING} CONCLUSIONS: Promising.`,
+            journalInfo: { journal: { title: "Sensors" } },
+            firstPublicationDate: "2026-08-01",
+            isOpenAccess: "Y",
+            inEPMC: "Y",
+            ...overrides,
+          })),
+        },
+      };
+    },
+  };
+}
+
+test("a dry correction composes the line, sends nothing, and exits 0", async () => {
+  const calls = [];
+  const outcome = await amendCycle({
+    handle: "sportstech",
+    base: "https://example.test",
+    itemId: 280,
+    source: "10.3390/s26154914",
+    apply: false,
+    log: () => {},
+    fetchImpl: async (url) => {
+      calls.push(String(url));
+      return oneRecordResponse(1);
+    },
+  });
+
+  assert.equal(outcome.exitCode, 0);
+  assert.equal(outcome.amended, false);
+  assert.ok(outcome.why.includes(FINDING));
+  assert.equal(calls.length, 1, "a dry correction reads one record and does nothing else");
+  assert.match(calls[0], /europepmc/);
+  assert.doesNotMatch(calls.join(" "), /operator/, "nothing may reach the operator plane on a dry run");
+});
+
+test("an applied correction sends exactly one amend request and no publish", async () => {
+  process.env.AGENT_OPERATOR_KEY = "test-key-local-only";
+  const calls = [];
+  try {
+    const outcome = await amendCycle({
+      handle: "sportstech",
+      base: "https://example.test",
+      itemId: 280,
+      source: "PMC12345678",
+      apply: true,
+      log: () => {},
+      fetchImpl: async (url, init) => {
+        calls.push({ url: String(url), init });
+        if (String(url).includes("europepmc")) return oneRecordResponse(1);
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({ ok: true, changed: true, item_id: 280, why: `${outcomeWhy(calls)} (corrected 2026-09-13)`, why_length: 200 });
+          },
+        };
+      },
+    });
+    assert.equal(outcome.amended, true);
+    assert.equal(outcome.exitCode, 0);
+  } finally {
+    delete process.env.AGENT_OPERATOR_KEY;
+  }
+
+  const sent = calls.filter((c) => c.url.includes("/api/operator/"));
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].url, /\/api\/operator\/agents\/sportstech\/items\/280\/why$/);
+  assert.doesNotMatch(sent[0].url, /items$/, "an amendment must never reach the publish route");
+  // The key rides in a header and never in the URL — the standing rule for every
+  // credentialed fetcher this repository ships.
+  assert.equal(sent[0].init.headers["x-operator-key"], "test-key-local-only");
+  assert.doesNotMatch(sent[0].url, /test-key-local-only/);
+  const body = JSON.parse(sent[0].init.body);
+  assert.ok(body.why.includes(FINDING));
+  assert.ok(body.why.length <= AMEND_WHY_MAX);
+  assert.doesNotMatch(body.why, /corrected \d{4}-\d{2}-\d{2}/, "the mark is the plane's to add, never sent");
+  assert.ok(body.reason.length >= 10, "an amendment without a stated reason is a silent rewrite");
+});
+
+function outcomeWhy(calls) {
+  const sent = calls.find((c) => c.url.includes("/api/operator/"));
+  return sent ? JSON.parse(sent.init.body).why : "";
+}
+
+test("an identifier that resolves to more than one record corrects nothing", async () => {
+  const outcome = await amendCycle({
+    handle: "sportstech",
+    base: "https://example.test",
+    itemId: 280,
+    source: "10.3390/s26154914",
+    apply: true,
+    log: () => {},
+    fetchImpl: async () => oneRecordResponse(2),
+  });
+  assert.equal(outcome.amended, false);
+  assert.equal(outcome.exitCode, 1, "an ambiguous identifier is a failure, not a quiet no-op");
+});
+
+test("an abstract with nothing quotable corrects nothing and is still a green run", async () => {
+  const calls = [];
+  const outcome = await amendCycle({
+    handle: "sportstech",
+    base: "https://example.test",
+    itemId: 280,
+    source: "PMC12345678",
+    apply: true,
+    log: () => {},
+    fetchImpl: async (url) => {
+      calls.push(String(url));
+      return oneRecordResponse(1, { abstractText: "BACKGROUND: This paper asks whether wearables help coaches." });
+    },
+  });
+  assert.equal(outcome.amended, false);
+  assert.equal(outcome.exitCode, 0, "refusing to quote is a normal outcome, not a failure");
+  assert.doesNotMatch(calls.join(" "), /operator/, "a refusal must not reach production at all");
+});
+
+test("fetchRecord refuses an identifier it cannot pin to one record, before any request", async () => {
+  let requested = 0;
+  const { record: got, error } = await fetchRecord({
+    source: "whole body vibration in adolescent players",
+    fetchImpl: async () => {
+      requested += 1;
+      return oneRecordResponse(1);
+    },
+  });
+  assert.equal(got, null);
+  assert.match(error, /PMCID|DOI/);
+  assert.equal(requested, 0, "a loose identifier is refused without spending someone else's request");
 });

@@ -4,6 +4,8 @@
 //
 //   node scripts/agent-scout.mjs                 # screen and report. Publishes NOTHING.
 //   node scripts/agent-scout.mjs --publish       # also publish the top selection, if any
+//   node scripts/agent-scout.mjs --amend-item 280 --amend-source 10.3390/x  # correct one line
+//                                               # ...and --apply to actually send it
 //
 // Options: --handle NAME  --window-days N  --page-size N  --max-reads N  --now ISO
 //          --base URL  --out PATH  --json
@@ -33,9 +35,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  AMEND_WHY_MAX,
   DEFAULT_WINDOW_DAYS,
   buildSearchQuery,
+  composeAmendedWhy,
   composeWhy,
+  recordQuery,
   selectQuotation,
   extractBodyText,
   fullTextUrl,
@@ -246,6 +251,122 @@ async function publishOne({ handle, base, key, find, fetchImpl = fetch, log = co
   return { status: res.status, published: Boolean(parsed.published), duplicate: Boolean(parsed.duplicate), itemId: parsed.item_id ?? null, error: parsed.error };
 }
 
+// ---------------------------------------------------------------------------
+// Correcting a line that is already in front of readers
+// ---------------------------------------------------------------------------
+//
+// Item 280 — this feed's first autonomous selection — carries a line that reports the
+// agent's own screening and says nothing about the paper: true, checkable, and useless to
+// the stranger who arrives from a directory of RSS feeds. The quotation rule shipped a day
+// later and could not reach it, because the operator plane could publish and retract and had
+// no way to correct.
+//
+// WHAT THIS MODE MAY AND MAY NOT DO. It re-reads ONE record's abstract, runs the same
+// `selectQuotation` the publisher runs, and sends the composed line to the plane's amend
+// route. It selects nothing, publishes nothing, and screens nothing. It never edits the
+// title, the url or the source — a "correction" that changed which paper a find pointed at
+// would be a different find wearing the same row — and it refuses outright when the
+// identifier does not resolve to exactly one record, because an amendment quoting the wrong
+// paper is worse than the line it replaced.
+//
+// REFUSING IS A NORMAL OUTCOME AND EXIT 0. When no sentence in the abstract qualifies, the
+// existing line stays exactly as it is. The alternative to quoting nothing is writing
+// something, and writing something about a result this agent has not understood is the
+// summariser Tuned is not.
+
+/** Exactly one Europe PMC record for one identifier, or a refusal with the reason. */
+export async function fetchRecord({ source, fetchImpl = fetch }) {
+  const query = recordQuery(source);
+  if (query === "") {
+    return { record: null, error: "source must be a PMCID (PMC1234567) or carry a DOI" };
+  }
+  const body = await getJson(searchUrl(query, { pageSize: 5 }), fetchImpl);
+  const records = parseSearchResults(body);
+  if (records.length !== 1) {
+    return { record: null, query, error: `expected exactly one record for this identifier, got ${records.length}` };
+  }
+  return { record: records[0], query };
+}
+
+/** Send one corrected line through the operator plane's amend route. */
+async function amendOne({ handle, base, key, itemId, why, reason, fetchImpl = fetch, log = console.log }) {
+  const res = await fetchImpl(`${base}/api/operator/agents/${handle}/items/${itemId}/why`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json",
+      "x-operator-key": key,
+      "x-operator-principal": "agent-scout",
+      "user-agent": USER_AGENT,
+    },
+    body: JSON.stringify({ why, reason }),
+  });
+  const text = await res.text();
+  let parsed = null;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    log(`  amend: HTTP ${res.status} with a body that is not JSON (${text.length} bytes, not printed)`);
+    return { status: res.status, changed: false };
+  }
+  log(
+    `  amend: HTTP ${res.status} · changed=${parsed.changed ?? false} item_id=${parsed.item_id ?? "none"} why_length=${parsed.why_length ?? "?"}${parsed.error ? ` error=${parsed.error}` : ""}`
+  );
+  return { status: res.status, changed: Boolean(parsed.changed), why: parsed.why ?? "", error: parsed.error };
+}
+
+/** The `--amend-item` cycle end to end. Dry unless `--apply`. */
+export async function amendCycle({ handle, base, itemId, source, apply, fetchImpl = fetch, log = console.log }) {
+  log(`amending the public why-line of item ${itemId} on @${handle} from its own source`);
+  const { record, query, error } = await fetchRecord({ source, fetchImpl });
+  if (!record) {
+    log(`::error::${error}${query ? ` (query ${query})` : ""}`);
+    return { amended: false, exitCode: 1 };
+  }
+  log(`  record: ${record.title}`);
+  log(`  url:    ${record.url}`);
+
+  const { why, quotation } = composeAmendedWhy(record.abstract);
+  if (why === "") {
+    log(
+      `  quote:  none — ${quotation.refusedBecause} refused all ${quotation.considered} sentence(s) considered` +
+        (Object.keys(quotation.refusals ?? {}).length > 0
+          ? ` (${Object.entries(quotation.refusals).map(([c, n]) => `${c} ${n}`).join(", ")})`
+          : "")
+    );
+    log("  NOTHING AMENDED. The line stays as it is: an agent with no quotable sentence has nothing to correct it to.");
+    return { amended: false, quotation, exitCode: 0 };
+  }
+
+  log(`  quote:  ${quotation.quote.length} chars from the ${quotation.source}, ${quotation.families.join(" + ")}; verbatim substring of the abstract confirmed`);
+  log(`  why:    ${why}`);
+  log(`  length: ${why.length} of ${AMEND_WHY_MAX} (the plane appends its own correction mark)`);
+
+  if (!apply) {
+    log("  dry run — nothing sent. Re-dispatch with apply to send this line.");
+    return { amended: false, why, quotation, exitCode: 0 };
+  }
+
+  const key = process.env.AGENT_OPERATOR_KEY ?? "";
+  if (key.trim() === "") {
+    log("::error::apply was requested but AGENT_OPERATOR_KEY is absent. Refusing to report a correction that did not happen.");
+    return { amended: false, why, quotation, exitCode: 1 };
+  }
+  // Composed from what this run did and nothing else. The reason is the field a human reads
+  // when auditing an amendment months later, so it states the mechanism — which rule chose
+  // the sentence, out of how many, and that it was checked — rather than characterising the
+  // line it replaced, which this run never read.
+  const reason = `agent-scout: line replaced by one sentence of ${quotation.considered} considered in the ${quotation.source}, ${quotation.quote.length} characters, verbatim substring confirmed, chosen by the same rule the publisher uses`;
+  const result = await amendOne({ handle, base, key, itemId, why, reason, fetchImpl, log });
+  return {
+    amended: result.changed,
+    why: result.why || why,
+    quotation,
+    result,
+    exitCode: result.status === 200 ? 0 : 1,
+  };
+}
+
 function renderTable(report) {
   const rows = report.observations.map((o) => {
     const verdict = o.verdict === "selected" ? "SELECTED" : o.verdict;
@@ -264,6 +385,41 @@ async function main() {
   const pageSize = Number(flags["page-size"] ?? 50);
   const maxReads = Number(flags["max-reads"] ?? 12);
   const wantPublish = flags.publish === true || flags.publish === "true";
+
+  // The correction mode runs INSTEAD of a screen, not alongside one. A run that screened and
+  // amended in the same pass would make "this run selected nothing" and "this run corrected
+  // something" share a log, and the counts EXP-013 grades come from screens only.
+  const amendItem = flags["amend-item"];
+  if (amendItem !== undefined && amendItem !== true) {
+    const itemId = Number(amendItem);
+    if (!Number.isSafeInteger(itemId) || itemId <= 0) {
+      console.log("::error::--amend-item must be a positive item id");
+      process.exitCode = 1;
+      return;
+    }
+    const outcome = await amendCycle({
+      handle,
+      base,
+      itemId,
+      source: typeof flags["amend-source"] === "string" ? flags["amend-source"] : "",
+      apply: flags.apply === true || flags.apply === "true",
+    });
+    if (outcome.exitCode !== 0) process.exitCode = outcome.exitCode;
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      fs.appendFileSync(
+        process.env.GITHUB_STEP_SUMMARY,
+        [
+          `### agent scout — correcting item ${itemId} on @${handle}`,
+          "",
+          outcome.why ? `Composed line (**${outcome.why.length}** chars):\n\n> ${outcome.why}` : "**No sentence in the abstract qualified. Nothing amended.**",
+          "",
+          outcome.amended ? "**Amended in production.**" : "Nothing was sent.",
+          "",
+        ].join("\n")
+      );
+    }
+    return;
+  }
 
   const report = await screen({ now, windowDays, pageSize, maxReads });
 
