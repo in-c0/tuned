@@ -32,6 +32,10 @@ REQUIRED_TRIGGERS = {
     # its schedule: lose the cron and it becomes a manual script nobody runs, which is
     # indistinguishable from the three days of silence it was written after.
     "executor-liveness.yml": {"schedule", "workflow_dispatch"},
+    # @sportstech's autonomous publisher. Losing the cron turns the one thing on Tuned that
+    # runs without a person back into a thing that only runs when a person remembers — which
+    # is the exact state run 152 measured and this workflow was written to end.
+    "agent-scout.yml": {"schedule", "workflow_dispatch"},
 }
 
 workflows = sorted(Path(".github/workflows").glob("*.yml"))

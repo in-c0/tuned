@@ -1,0 +1,111 @@
+name: agent scout
+
+# `@sportstech`'s publisher. The first thing on Tuned that selects without a person in it.
+#
+# WHY IT EXISTS. Run 152 read EXP-005 per feed off live production and found four of the five
+# public feeds had published nothing for six weeks, and the fifth moved only because that run
+# published to it by hand. Its own conclusion: *"the rate at which @sportstech publishes is
+# the rate at which a scheduled executor run happens to perform a selection cycle"* — six
+# finds in 24 days — so "recurring agent value without attention overload", third in issue
+# #1's commercial hierarchy, was not demonstrated at any cadence a subscriber would notice.
+# This is the cadence, and it is a schedule rather than a habit.
+#
+# WHAT IT MAY DO, AND THE SHAPE OF THE CAP. At most ONE publication per run, enforced in
+# scripts/agent-scout.mjs rather than here, because a schedule is configuration and a
+# doctrine constraint should not be. Combined with the daily cron below the ceiling is one
+# find a day; the expected rate is far lower, because the bar's job is to be quiet. A run
+# that screens forty papers and publishes nothing is a successful run and exits 0.
+#
+# WHY IT PUBLISHES THROUGH THE OPERATOR PLANE AND NOT AROUND IT. `/api/operator/...` already
+# owns owner scoping from a configured handle rather than from input, the field budgets, the
+# idempotency replay guard, and the retract/restore audit trail. An agent with its own write
+# path would be an authority nobody reviewed. The same secret, the same header, the same
+# rules as `agent operator` — see that file's header for why the key never enters a URL, why
+# no step here runs `set -x` or `curl -v`, and why response bodies are parsed for named
+# fields instead of echoed. This repository is public and so is every log it writes.
+#
+# THE UNDO. `agent operator` → `retract` with the item id hides anything this publishes and
+# deletes nothing; disabling this workflow stops the cadence without touching the feed. Both
+# are reversible, which is why an unattended publisher is admissible at all.
+#
+# WHY NO `npm ci`. The script imports node builtins only. A publisher that needs the npm
+# registry has a second way to fail at the moment it is supposed to be acting, which is the
+# rule `executor liveness` and `deploy staleness` already follow.
+
+on:
+  schedule:
+    # Daily at 02:40 UTC (12:40 Sydney). Offset from `deploy staleness` (:05) and the
+    # metrics snapshot so no two checks contend for the same minute. Scheduled runs in this
+    # repository have been delivered 1.6h–4.5h late on every firing since 2026-08-26
+    # (measured in scripts/executor-liveness.mjs); lateness costs this nothing, because
+    # nothing here is graded against a deadline.
+    - cron: "40 2 * * *"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the top selection, if any. Leave false for a dry screen.
+        required: false
+        type: boolean
+        default: false
+      window_days:
+        description: How far back to look for first publication (days)
+        required: false
+        type: string
+        default: "60"
+      max_reads:
+        description: Full-text reads allowed this cycle
+        required: false
+        type: string
+        default: "12"
+
+permissions:
+  contents: read
+
+# One scout at a time. Two concurrent runs could each select the same article and both try to
+# publish it; the operator plane's replay guard would refuse the second, but a race that
+# relies on a guard at the far end is a race we chose to have.
+concurrency:
+  group: agent-scout
+  cancel-in-progress: false
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # The dedupe list is read from qa/nominations/, so the screen knows what this feed has
+      # already put in front of a reader and refuses it with a named clause rather than
+      # leaving the duplicate for the operator plane to swallow silently.
+      - name: Screen and, on a scheduled run, publish
+        env:
+          # A scheduled firing is the cadence and publishes; a dispatch is a dry screen
+          # unless it asks. Absent secret + --publish is a hard error inside the script: it
+          # will not report a publication that did not happen.
+          AGENT_OPERATOR_KEY: ${{ secrets.AGENT_OPERATOR_KEY }}
+          PUBLISH: ${{ github.event_name == 'schedule' && 'true' || inputs.publish }}
+          WINDOW_DAYS: ${{ inputs.window_days || '60' }}
+          MAX_READS: ${{ inputs.max_reads || '12' }}
+        run: |
+          set -uo pipefail
+          args=(--window-days "$WINDOW_DAYS" --max-reads "$MAX_READS" --out scout-record.json)
+          if [ "$PUBLISH" = "true" ]; then
+            args+=(--publish)
+            echo "::notice::publishing is ON for this run — at most one item, through the operator plane."
+          else
+            echo "::notice::dry screen — nothing will be published."
+          fi
+          node scripts/agent-scout.mjs "${args[@]}"
+
+      # The record of what was observed and why each candidate was refused. It is the audit
+      # trail for an unattended publisher, and it is the only place a rejection can be
+      # checked after the fact — so it is uploaded whether the run passed or not.
+      - name: Upload the screening record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scout-record
+          path: scout-record.json
+          if-no-files-found: warn
+          retention-days: 90

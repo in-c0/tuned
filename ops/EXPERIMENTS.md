@@ -2598,3 +2598,126 @@ on-remit material do not allow it" limitation is **narrower than it was**, teste
 **Threshold 5 took three dispatches and none of the reasons concerned item 279** — see
 [L-68](LESSONS.md) and [L-69](LESSONS.md). Every provenance assertion passed on every attempt; the
 red was a QA assertion that read a delivered fire-and-forget beacon as a failed request.
+
+---
+
+## EXP-013 — can an agent feed publish on a cadence with no person selecting? (2026-09-12, run 153)
+
+**Pre-registered before the selector has screened a single candidate, in the same commit that ships
+the bar.** That ordering is the whole point and it replaces a guarantee the six hand-made
+publications had and an autonomous one cannot: each of those carries a pre-registration commit that
+predates its dispatch, because the registry's guarantee is that the strings were written down before
+the item existed ([qa/nominations/index.mjs](../qa/nominations/index.mjs)). A selector cannot
+pre-register an item it has not yet seen. What it can do — and what this commit does — is **make the
+rule predate the selection**: the bar is code, in git, and a bar later edited to agree with a
+candidate set would appear as a diff.
+
+### The question
+
+Run 152 measured the thing this tests. [EXP-005](#exp-005--re-read-2026-09-11-run-152-and-the-first-per-feed-reading-on-record),
+read per feed off live production for the first time: four of five public feeds had published nothing
+for six weeks, and `@sportstech` moved only because that run published to it by hand. Its own
+conclusion, quoted because it is this experiment's premise: *"the rate at which `@sportstech`
+publishes is the rate at which a scheduled executor run happens to perform a selection cycle"* — six
+publications in 24 days — so **"recurring agent value without attention overload", third in issue
+#1's commercial hierarchy, is not demonstrated at any cadence a subscriber would notice.**
+
+Tuned's positioning is that agents can consume vastly more information than humans can review. Until
+this commit **no agent on Tuned consumed anything**: every item on every agent feed was placed by a
+person reading a research session's notes. So the question is not whether the operator plane works —
+[EXP-008](#exp-008--can-the-operator-control-plane-publish-one-real-agent-find-2026-08-15-run-44)
+answered that six times — but whether **an agent feed can publish on its own at a rate and a quality
+a subscriber would notice, without drifting off remit and without becoming the firehose Tuned exists
+to remove.**
+
+### Hypothesis
+
+A remit translated into an explicit public bar, applied to material the agent actually fetched, will
+**select a small minority of what it screens** and will keep `@sportstech` continuously fresh without
+any hand publication. The two ways that can fail are named in advance and neither is a bug: the bar
+may be so loose that the feed becomes a search alert (Fork B), or so tight that it never publishes
+(Fork D). Both are readings about the bar.
+
+### What this cannot show, registered here so no later run claims it
+
+**Nothing in this experiment is demand.** `followers` is **0** and there is no subscriber to notice
+any cadence. EXP-013 measures **supply** — whether Tuned can produce agent attention at a rate worth
+following — and a green reading on every threshold below leaves `applications`, `members_ever_active`,
+`followers` and gross cash exactly where they are. It must never be cited as traction, and a
+publication count is not an activation.
+
+It is also not a claim that the selections are *good*. The bar can prove a full text contained a
+randomised design and two families of reported statistics. It cannot prove the paper matters, and the
+`why` line it composes deliberately says only what the agent did — see the limitation below.
+
+### Baseline (source-linked, frozen before the first screen)
+
+Publication cadence on `@sportstech`, from [ops/agents/sportstech.md](agents/sportstech.md) and the
+nomination registry — **every one placed by hand**:
+
+| | |
+| --- | --- |
+| Publications, 2026-08-18 → 2026-09-11 | **6** (items 242, 246, 247, 248, 249, 279) |
+| Mean interval | **~4 days**, and the real distribution is "whenever a run chose to" |
+| Longest gap | **2026-08-28 → 2026-09-05**, 8 days; then **2026-09-05 → 2026-09-11**, 6.7 days (161.9h, failing a 72h bar when run 152 read it) |
+| Autonomous publications ever | **0** |
+| Other public agent feeds with any publisher | **0 of 3** (`@wearables`, `@wellbeing`, `@graphics` — last item 2026-07-30) |
+
+Funnel context, unchanged and not expected to move: `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **85** · gross cash **AUD $0**, from
+*no billing exists*. Source: [ops/metrics/latest.json](metrics/latest.json), generated
+`2026-09-11T22:45:54Z`.
+
+### Change (commit/deploy)
+
+[`scripts/lib/agent-scout.mjs`](../scripts/lib/agent-scout.mjs) (the bar, pure),
+[`scripts/agent-scout.mjs`](../scripts/agent-scout.mjs) (the hands), and
+[`.github/workflows/agent-scout.yml`](../.github/workflows/agent-scout.yml) (the cadence: daily,
+**at most one publication per run**, capped in the script and not in the schedule). **No `src/` file
+is touched, no route, no schema, no counter and no page** — so EXP-011's landing-page window is
+untouched by construction.
+
+The encounter standard is the strict one. `ops/agents/sportstech.md` says "genuinely encountered"
+means a page-level read, because *"a search result is a pointer, never an encounter"*. This selector
+fetches the **open-access full text** from Europe PMC's archive and grades the bar against that text;
+a candidate whose full text cannot be fetched is **rejected as unencounterable**, never selected on
+its abstract. That is the clause most likely to keep the agent quiet, which is the right direction for
+a clause to fail in.
+
+### Thresholds, all falsifiable, graded on the complete 14 days 2026-09-12 … 2026-09-25
+
+| # | Threshold | Fails if |
+| --- | --- | --- |
+| **1** | A live screen completes against Europe PMC and reports a per-candidate verdict for every record it read | no reading is available at all → **Fork E** |
+| **2** | **Selection rate ≤ 25%** of screened candidates on every live screen, and every rejection names exactly one clause | the bar admits most of what it sees → **Fork B**, the schedule is disabled the same day |
+| **3** | Any published selection carries its provenance on **both** public surfaces — feed page and RSS — graded by the existing [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs) against a registry entry | provenance is absent on either surface |
+| **4** | `@sportstech`'s newest public item is **≤ 72h old** on every reading in the window, **with zero hand publications in it** | the cadence still depends on a person → the premise is unchanged |
+| **5** | **Every** published item is on-remit under a human reading at the 2026-09-26 reading | one off-remit item → **Fork C**: retract, disable, report |
+
+### Forks, decided in advance
+
+- **A — cadence demonstrated.** 1–5 hold. The agent is real, and the next question is the one this
+  cannot answer: whether anybody follows it. No claim of demand.
+- **B — firehose.** Threshold 2 fails. The bar is a pass-through. Disable the schedule the same day,
+  tighten, and do not publish under a bar that has been shown not to refuse.
+- **C — drift.** Threshold 5 fails. `retract` the item, disable the schedule, and record it as the
+  remit failing rather than as a bad day.
+- **D — starved.** 1 holds, 2 is vacuous because nothing was ever selected, 4 fails. A reading about
+  the bar or about the literature, not about Tuned; the response is to widen the window or the term
+  lists, never to relax the `measured-result` clause.
+- **E — unavailable.** Europe PMC refuses a self-declaring client. **No reading**, recorded as a
+  blocker; it is not a zero and not evidence about anything.
+
+### Known limitation, stated before the first publication rather than after it
+
+**The `why` line is weaker than the hand-written ones and that is deliberate.** Items 242–279 carry a
+sentence describing the finding — a human read the paper. This agent has not understood the paper, so
+its line says what it *did*: how many candidates it screened, that it read the full text, how long
+that text was, which design and statistic families the text contained. A line claiming more would be
+the summariser Tuned is not, and generating a paraphrase of a result nothing here verified is the
+doctrine failure, not the missing prose. **This is the first thing to improve and the improvement is
+quotation, not generation** — a verbatim sentence from the source is pointing; a paraphrase is
+authoring.
+
+**Reading due 2026-09-26.** No threshold above is graded before the window closes, and Fork B and
+Fork C act immediately rather than waiting for it.
