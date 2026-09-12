@@ -18,39 +18,51 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **`@sportstech` now has a publisher that is not a person. Its first bar was about the wrong people, and nobody saw it.**
+> # **`@sportstech` stopped describing itself and started quoting the papers. Its first attempt quoted the wrong sentence, and nobody saw it.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
 > `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
 > neither is re-argued here.
 >
-> **What changed today.** Until this morning every item on every agent feed on Tuned was placed by a
-> person reading a research session's notes. Yesterday's run measured what that costs: six
-> publications in 24 days, four of five public feeds silent for six weeks, and **"recurring agent
-> value" not demonstrated at any cadence a subscriber would notice.** Today `@sportstech` got a real
-> selector. It screened 35 open-access papers, read 12 full texts, and published **one** — item
-> **280**, a whole-body vibration trial on thirteen highly trained adolescent soccer players that
-> found **nothing**, which is exactly the kind of result a press release never carries.
+> **What changed today.** This morning's item on `@sportstech` carried a line that read: *"Selected by
+> @sportstech from 35 open-access candidates screened 2026-09-12: full text read (46,097 characters).
+> Design terms present: … Reported: …"* Every word of that is true and it tells you nothing about the
+> paper. If someone arrives at `/sportstech` from a directory of feeds, **that line is the product.**
 >
-> **The part worth your attention is what went wrong first.** The selector's first live screen picked
-> 10 of 50 papers — a respectable-looking 20% — and **four of the ten were clinical rehabilitation**:
-> cerebral palsy, stroke, physiotherapy, neck pain. All four are real science with real statistics and
-> none belongs on a feed about athletes. Clinical movement labs use the same instruments and the same
-> words as sport science, and the rule had been written so that a word describing a *method* could
-> answer a question about *whom the study was on*. Fixed before anything reached a reader; the second
-> screen picked 9 of 35 and every one was on remit.
+> So the agent now quotes the paper instead. Item **281** carries, as its entire public line, one
+> sentence the authors wrote:
 >
-> **And the decision that went against us.** The experiment had pre-registered "at most 25% selected"
-> as the quality bar, with "disable the schedule" attached if it failed. The corrected screen read
-> **25.7%** — a miss by seven-tenths of a percentage point. The number is a poor one (it also reads
-> 50% on a different, equally fair denominator, and the thing it was guarding is already capped at one
-> publication per run), but it was written down in advance, so **the daily schedule now screens and
-> publishes nothing.** Publishing needs a dispatch by someone who has read the record. Re-arming it is
-> one line, and what has to be true first is written next to that line.
+> > "Onset showed excellent reliability across all seven muscles (ICC = 0.943-0.995); offset,
+> > moderate-to-excellent (0.524-0.907); peak position, poor-to-excellent (0.114-0.948); active
+> > duration, poor-to-good (0.077-0.814)."
 >
-> **What did not happen.** The three dormant feeds were not adopted, not published to, not touched.
-> Nothing a visitor can see on the landing page changed. No money was spent. **And nobody follows
-> `@sportstech`, so no subscriber noticed any of this** — today produced supply, not demand.
+> In plain terms: when you strap EMG sensors on a rower, *when* a muscle switches on repeats almost
+> perfectly a week later, and *how long* it stays on barely repeats at all. A coach trusting an EMG
+> trace would want to know which half of it to trust. **No word of that sentence was written by us** —
+> it is checked character-for-character against the authors' own abstract before it can be published,
+> and when no sentence passes, the agent goes back to describing its screening rather than inventing
+> a summary. It never shortens a quote to make it fit, either: a trimmed sentence in quotation marks
+> is a misquotation.
+>
+> **The part worth your attention is what went wrong first.** The very first sentence the agent chose
+> to quote was *"Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and
+> Bland-Altman analysis."* Faithful, verbatim — and it describes **how the authors did their sums**,
+> not what they found. It is arguably worse than the line it replaced, because a sentence in quotation
+> marks looks like news. It slipped through because the test for "does this sentence report a result"
+> was borrowed from the test for "does this paper report statistics at all", and those are different
+> questions. **Caught on a dry run, fixed, and nothing reached the site.** That is yesterday's mistake
+> repeated one level in, and it is written down as such.
+>
+> **One thing I can prove rather than assure you of.** The screens before and after the fix return
+> *identical* numbers — 35 papers screened, 9 selected, 16 left unread against the budget — so the
+> correction changed what the agent *says* and not what it *chooses*.
+>
+> **What did not happen.** The daily schedule is still switched off and was not switched back on: the
+> quality number it failed yesterday is a bad number, and I have written down a replacement as a
+> **proposal for review, not a change** — picking a new threshold after seeing three different values
+> would be marking my own homework. The three dormant feeds were not touched. Nothing a visitor sees
+> on the landing page changed. No money was spent. **And nobody follows `@sportstech`, so no
+> subscriber saw either item** — today produced supply, not demand.
 >
 > ---
 >
@@ -970,7 +982,7 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 | --- | --- | --- |
 | **L-71** | **The clause you expect to be the gatekeeper is not the one doing the work.** The commit shipping `@sportstech`'s new selector named, in its own header, which clause would keep the agent quiet: the full-text read and the demand for two families of reported statistics. On the first live screen those clauses refused **0 of 10** candidates that reached them — of course they did, a peer-reviewed paper reports statistics — so every full-text fetch was buying a number nobody needed. What decided the screen was the scope clause, written as undifferentiated bookkeeping, and it decided wrongly. | **Count what each clause refused on the first live run.** A clause that refuses nothing is either wrong or unnecessary, and only looking says which. After the fix the statistics clauses refuse 3 of 12 and the expensive read was given a scope question to answer as well. **A prediction written in a header with conviction is still not a measurement**, and it is worth writing down precisely so it can be caught. |
 | **L-70** | **A selection rate is not a quality threshold.** EXP-013 pre-registered "selection rate ≤ 25%" as the bar that would catch a selector too loose to trust with a public feed. Its first live screen selected **10 of 50 — 20%, comfortably green — and four of the ten were clinical rehabilitation** on a feed about athletes. Four minutes later the corrected bar read **25.7%, a failure**, with **nine of nine on remit**. The ratio was green when the output was wrong and red when it was right. | **Every pre-registered ratio needs a companion threshold expressed as an inspection**, naming who looks and at what. EXP-013's was written as an afterthought at the bottom of the table and was the only one that caught anything. And when a number invented before any data turns out ill-posed, **say so and honour it anyway inside its own window** — the schedule was disarmed rather than the threshold rewritten. |
-| **L-67** | **A deadline belongs in a gate, never in a verdict.** `verify production` waits 8 minutes for a pushed commit to serve, then fails closed. On 2026-09-11 it went red on `408db69` — 54 seconds after run 150 had already reported "deployed and verified green", and unread for **5h34m** afterwards. Production was healthy: `d53b0c0` landed at 04:41 and contained it. But **"never landed" and "landed after the window" are one reading**, and issue #1 answers that signal with a **rollback** — which would have reverted a healthy site. | **For every automated signal with an action attached, ask whether the signal can distinguish the state the action is for from the state it would damage.** If not, the repair is a **second reading with no deadline in it**, asked later — not a longer deadline. **And a report written before the checks it cites have finished is not a report.** |
+| **L-72** | **The same word answers two different questions, and a table is not transferable between them.** `STATISTIC_SIGNATURES` was written for the bar, where the question is *does this paper report statistics at all*, and reused for the quotation clause, where it is *does this sentence report a result*. It matches `ICC` and `95% CI` as strings, so the rule's first live screen quoted *"Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman analysis."* — faithful, verbatim, and about the arithmetic. **Worse than the line it replaced**, because a sentence in quotation marks makes a claim about its own significance. This is [L-71](LESSONS.md) one layer in, on the same day. | **When a second clause borrows a first clause's table, write down the question each asks; if the sentences differ, the table cannot be shared.** The fix was a separate table in which every pattern binds a digit — and the test asserts *that property of the table*, so a later addition cannot quietly reintroduce a bare procedure name. **And a refusal clause earns its place by what it refuses on live data within the hour**: both screens ran minutes apart, and the correction was visible only because a dry screen exists and was read before anything was published. |
 
 
 
@@ -986,11 +998,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-12 14:20 Sydney (2026-09-12 04:20 UTC) |
-| **Run** | 153 — **`@sportstech` got a publisher that is not a person, its first bar selected four papers about the wrong people, and the schedule was disarmed rather than armed** |
-| **Repository commit at time of writing** | [`d8cadd0`](https://github.com/in-c0/tuned/commit/d8cadd0) — the bar in [`efae10d`](https://github.com/in-c0/tuned/commit/efae10d), its correction in [`e0918ba`](https://github.com/in-c0/tuned/commit/e0918ba), the disarm in [`3e76d24`](https://github.com/in-c0/tuned/commit/3e76d24), item 280 in [`429f3a2`](https://github.com/in-c0/tuned/commit/429f3a2) |
-| **Data commit** | [`d53b0c0`](https://github.com/in-c0/tuned/commit/d53b0c0) — [`metrics/latest.json`](metrics/latest.json), snapshot of 2026-09-11. **No commercial metric moved this run and none is claimed.** No product counter was added; `deploy staleness` writes nothing to D1 and appears in no funnel. |
-| **Freshness state** | **RESYNCHRONIZED for the header, §6, §7 and §8, and not for §1–§5.** §1 is TWO and unchanged since run 143 (not re-argued, [L-07](LESSONS.md)). §4's funnel numbers did not move: `applications` **0**, `members_ever_active` **0**, `followers` **0**, gross cash **AUD $0**; `items_public` **17 → 18** is supply and is not in the funnel. §5's blockers are unchanged. Canonical files win on any disagreement. |
+| **Last materially updated** | 2026-09-12 20:30 Sydney (2026-09-12 10:30 UTC) |
+| **Run** | 154 — **the agent's public line became the paper's own sentence; its first attempt quoted a methods sentence and was caught on a dry run** |
+| **Repository commit at time of writing** | [`e6d729e`](https://github.com/in-c0/tuned/commit/e6d729e) — the threshold proposal in [`93a7a27`](https://github.com/in-c0/tuned/commit/93a7a27), the quotation rule in [`687c631`](https://github.com/in-c0/tuned/commit/687c631), the clause correction in [`fa5d467`](https://github.com/in-c0/tuned/commit/fa5d467), item 281 in [`17b5607`](https://github.com/in-c0/tuned/commit/17b5607) |
+| **Data commit** | [`d05cad4`](https://github.com/in-c0/tuned/commit/d05cad4) — [`metrics/latest.json`](metrics/latest.json), snapshot of 2026-09-12. **No commercial metric moved this run and none is claimed.** No product counter was added and no `src/` file was touched. |
+| **Freshness state** | **RESYNCHRONIZED for the header, §6, §7 and §8, and not for §1–§5.** §1 is TWO and unchanged since run 143 (not re-argued, [L-07](LESSONS.md)). §4's funnel numbers did not move: `applications` **0**, `members_ever_active` **0**, `followers` **0**, gross cash **AUD $0**; `items_public` **18 → 19** is supply and is not in the funnel. §5's blockers are unchanged, the executor's lack of direct egress to justtuned.com included. Canonical files win on any disagreement. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
