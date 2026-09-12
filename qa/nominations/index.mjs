@@ -35,7 +35,17 @@ export const TITLE_MAX = 300;
 export const WHY_MAX = 280;
 
 const REQUIRED_STRINGS = ["handle", "url", "title", "category", "why"];
-const PREREG_FORMS = new Set(["spec-constants", "nomination-markdown"]);
+// `autonomous-bar` is the third form and it records a different guarantee, so it is named
+// rather than folded into the other two. The first two mean *a person wrote these strings into
+// a commit before the dispatch*. An autonomous selector cannot do that — it has not seen the
+// item yet — so what its `commit` points at is **the commit that shipped the selection rule**,
+// which does predate the selection and is the thing a reader should audit. The ordering
+// invariant below is unchanged and still binding; what changes is that the url/title
+// transcription layer in scripts/validate-nominations.mjs cannot apply, because the strings
+// are in the run log and the screening record rather than in the commit. An entry of this form
+// therefore MUST carry `recordRun` — the Actions run whose log shows the selection being made
+// — or there is nothing to check it against.
+const PREREG_FORMS = new Set(["spec-constants", "nomination-markdown", "autonomous-bar"]);
 
 function isIsoInstant(value) {
   return typeof value === "string" && value !== "" && Number.isFinite(Date.parse(value));
@@ -72,6 +82,11 @@ export function validateNomination(n, label) {
   if (!isIsoInstant(prereg.committedAt)) bad("preregistration.committedAt must be an ISO instant");
   if (!PREREG_FORMS.has(prereg.form)) bad(`preregistration.form must be one of ${[...PREREG_FORMS].join(", ")}`);
   if (typeof prereg.verifyWith !== "string" || prereg.verifyWith.trim() === "") bad("preregistration.verifyWith must name the command that checks this entry against git");
+  // The autonomous form's strings live in a run log, not in its commit, so the run is the only
+  // thing that can corroborate them. Without it the entry is an assertion about itself.
+  if (prereg.form === "autonomous-bar" && !/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/.test(prereg.recordRun ?? "")) {
+    bad("preregistration.recordRun must be the Actions run URL whose log shows the selection, for form autonomous-bar");
+  }
   if ("transcribedAt" in prereg) {
     if (!isIsoInstant(prereg.transcribedAt)) bad("preregistration.transcribedAt, when present, must be an ISO instant");
     // Run 66 wrote this field 23 minutes ahead of the clock in its own first draft — the same

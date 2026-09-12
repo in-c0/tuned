@@ -80,11 +80,30 @@ jobs:
       # leaving the duplicate for the operator plane to swallow silently.
       - name: Screen and, on a scheduled run, publish
         env:
-          # A scheduled firing is the cadence and publishes; a dispatch is a dry screen
-          # unless it asks. Absent secret + --publish is a hard error inside the script: it
-          # will not report a publication that did not happen.
+          # SCHEDULED RUNS SCREEN AND DO NOT PUBLISH, and that is not how this file was
+          # written two hours earlier. It was written so a scheduled firing IS the cadence.
+          #
+          # EXP-013's threshold 2 is "selection rate ≤ 25% of screened candidates on every
+          # live screen", with Fork B attached: the schedule is disabled the same day if it
+          # fails. The second live screen
+          # (https://github.com/in-c0/tuned/actions/runs/34672935681) selected **9 of 35 =
+          # 25.7%**. That is a failure by 0.7 of a percentage point, and it is a failure.
+          #
+          # The threshold is also mis-specified, which is recorded in EXP-013 and is NOT
+          # being used to rewrite it inside its own window: 17 of those 35 were deferred
+          # unread against the read budget, so the denominator is "screened" while the
+          # numerator can only come from the decided set — on which the rate is 9 of 18,
+          # **50%**, a larger failure. And the risk it was reaching for, attention overload,
+          # is bounded by the one-publication-per-run cap rather than by any rate.
+          #
+          # So the number is honoured where it costs something: an unattended publisher is
+          # admissible only under a bar whose pre-registered quality threshold has been met,
+          # and this one has not. Publication stays behind an explicit dispatch by someone
+          # who has read the screening record. **Re-arming this is one word** — restore
+          # `github.event_name == 'schedule' && 'true' ||` below — and it should happen when
+          # threshold 2 has been re-specified BEFORE a screen rather than after one, and met.
           AGENT_OPERATOR_KEY: ${{ secrets.AGENT_OPERATOR_KEY }}
-          PUBLISH: ${{ github.event_name == 'schedule' && 'true' || inputs.publish }}
+          PUBLISH: ${{ inputs.publish }}
           WINDOW_DAYS: ${{ inputs.window_days || '60' }}
           MAX_READS: ${{ inputs.max_reads || '12' }}
         run: |

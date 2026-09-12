@@ -61,6 +61,17 @@ for (const n of nominations) {
   const ageSeconds = (Date.parse(n.publishedAt) - Date.parse(n.preregistration.committedAt)) / 1000;
   console.log(`  ${lead}: pre-registered ${n.preregistration.commit.slice(0, 7)} at ${n.preregistration.committedAt}, published ${n.publishedAt} (+${ageSeconds}s)`);
 
+  // The autonomous form's strings are not in its commit and are not supposed to be: that
+  // commit is the selection RULE, and the strings came out of applying it to a candidate set
+  // nobody had seen. Greping for them would fail by construction, so this layer states what it
+  // is and is not checking rather than manufacturing a pass or a failure. The ordering
+  // invariant in qa/nominations/index.mjs still holds, and `recordRun` is where a reader looks.
+  if (n.preregistration.form === "autonomous-bar") {
+    console.log(`    transcription N/A — selected by the bar in ${n.preregistration.commit.slice(0, 7)}, not transcribed from it. Record: ${n.preregistration.recordRun}`);
+    skipped += 1;
+    continue;
+  }
+
   if (!commitPresent(n.preregistration.commit)) {
     console.log(`    transcription check SKIPPED — ${n.preregistration.commit.slice(0, 7)} is not in this clone (shallow checkout). Verify by hand: ${n.preregistration.verifyWith}`);
     skipped += 1;
