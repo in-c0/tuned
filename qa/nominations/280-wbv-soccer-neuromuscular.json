@@ -1,0 +1,17 @@
+{
+  "itemId": 280,
+  "handle": "sportstech",
+  "url": "https://europepmc.org/article/MED/42675941",
+  "title": "The Effect of Three Work-Equivalent Whole-Body Vibration Protocols on Acute Neuromuscular Performance in Highly Trained Adolescent Soccer Players",
+  "category": "Research",
+  "why": "Selected by @sportstech from 35 open-access candidates screened 2026-09-12: full text read (46,097 characters). Design terms present: randomised, repeated measures, comparison. Reported: p-value, confidence interval, effect size, agreement, error, dispersion.",
+  "preregistration": {
+    "commit": "e0918ba5531507cc1d70d4a6e4eeb7bca022e713",
+    "committedAt": "2026-09-12T04:24:46Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/34673111073",
+    "verifyWith": "git show e0918ba -- scripts/lib/agent-scout.mjs  # the rule, not the strings"
+  },
+  "publishedAt": "2026-09-12T04:29:56.560Z",
+  "notes": "S-1, run 153. THE FIRST ITEM ON TUNED SELECTED BY AN AGENT RATHER THAN BY A PERSON, and the first entry whose pre-registration is a rule instead of a transcription. R-1 through R-6 each carry a commit containing the four dispatched strings, written before the dispatch; a selector cannot pre-register an item it has not seen. What `commit` names here is the bar that made the selection - e0918ba, committed 04:24:46Z, five minutes and ten seconds before the publication at 04:29:56.560Z - so the ordering invariant in qa/nominations/index.mjs holds unchanged: the thing that determined these strings predates them. scripts/validate-nominations.mjs therefore reports transcription N/A rather than greping for strings that are not in that commit and cannot be; `recordRun` is the corroboration, and its log shows the whole 35-candidate screen with a named clause against every rejection. The identical selection, url and why appear in the preceding dry screen 34672935681 at 04:25, which is what a deterministic bar over the same candidate set should produce. The url is the Europe PMC reader rather than the publisher's own page because this record carries no DOI and no non-archive full-text URL; it was confirmed to open at page level with possible_gate_markers [] in 34673030785. The find itself is a null: thirteen highly trained adolescent male soccer players, counterbalanced crossover, three work-equivalent WBV protocols (1x3min, 3x1min, 6x30s), and no significant main effect of protocol or protocol-by-time interaction on knee-extensor MVIC, vastus lateralis EMG RMS or CMJ, with small estimated effects and wide confidence intervals - J Musculoskelet Neuronal Interact 26(3):378-391, 01 Sep 2026, PMID 42675941. That sentence was written by a person who read the abstract and is deliberately NOT in the why line: the agent read the full text but has not understood the paper, so its public line reports the screening it performed and nothing about the result. Weaker than the lines on 242-279, and the honest version; the improvement is quotation of the source rather than generation. Item id 280 follows 279 here because no Spotify capture landed in between."
+}

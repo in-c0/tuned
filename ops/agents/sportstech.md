@@ -146,3 +146,55 @@ overwriting a member's private steering text:
   is **advice versus measurement**, and a randomized trial reporting effect sizes against a stated
   statistical model with an explicit null is the second. It is the closest to that boundary anything
   on this feed has come, and a later cycle that wants to go further should have to argue for it.
+
+- **2026-09-12 (run 153) — this feed acquired a publisher, and the first thing it did was select four
+  papers about the wrong people.**
+
+  Everything above was published by a person reading a research session's notes. From this run the
+  selection is made by [`scripts/lib/agent-scout.mjs`](../../scripts/lib/agent-scout.mjs) — the remit
+  on this page, translated into an explicit bar and applied to the **open-access full text** the agent
+  fetches for itself from Europe PMC's archive. The bar is pre-registered as
+  [EXP-013](../EXPERIMENTS.md) and shipped in
+  [`efae10d`](https://github.com/in-c0/tuned/commit/efae10d) before it had screened a single candidate.
+
+  | Item | Date | Find | Cycle |
+  | --- | --- | --- | --- |
+  | 280 | 2026-09-12 | Three work-equivalent whole-body vibration protocols, 13 highly trained adolescent soccer players: no protocol-dependent change in MVIC, EMG or CMJ | **S-1** — first autonomous selection |
+
+  **The cycle label changes from R to S, because the guarantee behind it is different.** R-1 … R-6
+  each carry a pre-registration commit containing the four dispatched strings, written before the
+  dispatch. An autonomous selector cannot pre-register an item it has not seen; what its commit
+  contains is the **rule**, which does predate the selection. `qa/nominations/` records this as the
+  third pre-registration form, `autonomous-bar`, and an entry of that form must name the Actions run
+  whose log shows the selection being made.
+
+  **The encounter is stronger than the browser reads above, not weaker.** The limitation recorded on
+  this page — that the hosts carrying most on-remit material refuse a self-declaring headless reader —
+  is sidestepped rather than solved: Europe PMC's `fullTextXML` is the archive's own machine endpoint
+  for open-access articles, so the agent read **46,097 characters** of item 280's full text. A
+  candidate whose full text cannot be fetched is rejected as unencounterable and never selected on its
+  abstract. The reader-facing URL was separately confirmed to open at page level with no gate marker
+  ([34673030785](https://github.com/in-c0/tuned/actions/runs/34673030785)).
+
+  **Why the bar had to be corrected between its first and second screen, recorded here because it is a
+  statement about this remit rather than about the code.** The first screen selected 10 of 50, and four
+  were clinical rehabilitation — paediatric cerebral palsy, robot-aided physiotherapy, stroke, neck
+  pain. All four are instrumented movement science with proper statistics. **Clinical movement labs use
+  the same instruments and the same vocabulary as sport science**, so "gait", "kinematic" and
+  "neuromuscular" cannot be what admits a candidate to *this* feed; an athlete or a named competitive
+  sport has to be. The scope section above has always said so in prose. The first translation of it
+  into terms did not. See [L-70](../LESSONS.md) and [L-71](../LESSONS.md).
+
+  **What item 280's `why` line does and does not say.** It reports the screening: 35 candidates, full
+  text read, 46,097 characters, which design and statistic families the text contained. It does **not**
+  say what the paper found, because the agent has not understood the paper. The finding — a null:
+  three work-equivalent WBV protocols produced no clear protocol-dependent change, with small effects
+  and wide confidence intervals on 13 players — is in this table and in EXP-013, written by a person
+  who read the abstract, and it is deliberately not in the agent's own voice. **This is weaker than
+  the lines on 242–279 and it is the honest version.** The improvement is quotation of the source, not
+  generation.
+
+  **Two publishers now exist for this feed and the register must not blur them.** Hand cycles are
+  `R-n` and carry a human's reading of the paper; autonomous cycles are `S-n` and carry the bar's
+  record. A later run comparing "what this feed publishes" across the two has to compare them as two
+  things.

@@ -2717,3 +2717,58 @@ known, dated, deliberate gap rather than an assumption of correctness**, and the
 This is [L-63](#) generalised from a watchdog to every instrument: *the only thing that could have
 noticed was the thing that had stopped looking* — and a spec that is only dispatched by hand stops
 looking the moment nobody dispatches it.
+
+---
+
+## L-70 — a selection rate is not a quality threshold (2026-09-12, run 153)
+
+[EXP-013](EXPERIMENTS.md) pre-registered *"selection rate ≤ 25% of screened candidates"* as the
+threshold that would catch a bar too loose to trust with a public feed. The bar's **first** live
+screen ([34672702607](https://github.com/in-c0/tuned/actions/runs/34672702607)) selected **10 of 50 —
+20%, comfortably inside the threshold — and four of the ten were clinical rehabilitation**: a
+paediatric cerebral palsy gait trainer, robot-aided upper-limb physiotherapy, foot muscle size in
+stroke, and remission from non-specific neck pain. On a feed whose remit is athlete sensing and sport
+performance, 40% of the selections were off-remit while the quality threshold read green.
+
+**Nothing but reading the titles would have caught it.** The rate says the filter refuses things. It
+cannot say it refuses the right things, and those are different properties — a filter that admits
+one in five of the wrong population passes any rate you like.
+
+So: **every pre-registered threshold expressed as a ratio needs a companion threshold expressed as an
+inspection**, and the inspection has to name who looks and at what. EXP-013's threshold 5 (*"every
+published item is on-remit under a human reading"*) is that companion and it was written as an
+afterthought at the bottom of the table. It was the only one that mattered on the day.
+
+The same run produced the negative half of the lesson. On the **second** screen the rate read **9 of
+35 = 25.7%** — a failure by 0.7 of a percentage point — with **every one of the nine on remit**. A
+ratio threshold was green when the output was wrong and red when the output was right, in two screens
+four minutes apart. It was also ill-posed: 17 of the 35 were deferred unread against a read budget, so
+the denominator counts candidates the bar never decided. **Stated, and deliberately not rewritten
+inside its own window** — the conservative half of the fork was honoured instead (scheduled runs
+publish nothing), because a number invented before any data exists is allowed to be wrong and is not
+allowed to be quietly corrected by the thing it was measuring.
+
+## L-71 — the clause you expect to be the gatekeeper is not the one doing the work (2026-09-12, run 153)
+
+The commit that shipped [the bar](../scripts/lib/agent-scout.mjs) named, in its own header, which
+clause would keep the agent quiet: the full-text encounter and the demand for two families of reported
+statistics, *"the clause most likely to keep this agent quiet on any given day"*.
+
+On the first live screen those clauses refused **0 of the 10** candidates that reached them. Of course
+they did — a peer-reviewed research article reports statistics. **The expensive clause was the vacuous
+one**, and every full-text fetch was buying a number nobody needed. What actually decided the screen
+was the scope clause, written in one undifferentiated list as though it were bookkeeping, and it
+decided wrongly: "athlete" sat next to "gait", "kinematic" and "neuromuscular", so a term describing a
+**method** satisfied a clause meant to ask **about whom**. Clinical movement labs use the same
+instruments and the same words as sport science.
+
+Two rules fall out, and they are about instrument design rather than about this bar:
+
+1. **Count, on the first live run, what each clause refused.** A clause that refuses nothing is either
+   wrong or unnecessary, and which one it is can only be decided by looking. After the fix the same
+   statistics clauses refused 3 of 12 and the full-text read was given a scope question to answer as
+   well, so it now earns its network call.
+2. **A prediction in a header is not a measurement.** The header was written with conviction and in
+   the same commit as the code; it was wrong within twenty minutes, against real data, in the one
+   direction that mattered. Predictions like it are worth writing down precisely because they can then
+   be caught — but never worth citing afterwards as though they had been checked.

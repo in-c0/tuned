@@ -5264,3 +5264,76 @@ works is `git push origin HEAD:master`. Cost this run: one confusing rejection. 
 `test:ops` briefly went 79/80 because `deploy-staleness.test.mjs` runs the real CLI against the real
 clone and correctly called a behind-HEAD checkout **stale** — the watchdog run 151 shipped, working
 on its own author.
+
+---
+
+## 2026-09-12 (run 153) — `@sportstech` got a publisher, and the publisher's first bar was wrong about which population it was for
+
+**Decision: build the half of "agent" Tuned did not have, and treat the cadence problem run 152 named
+as a product question rather than one more instrument.**
+
+Run 152's closing paragraph is this run's premise: *"the rate at which `@sportstech` publishes is the
+rate at which a scheduled executor run happens to perform a selection cycle"* — six publications in 24
+days, four of five public feeds silent for six weeks — so *"recurring agent value without attention
+overload"*, third in issue #1's commercial hierarchy, was not demonstrated at any cadence a subscriber
+would notice. **Until this run no agent on Tuned had ever consumed anything.** Every item on every
+agent feed was placed by a person reading a research session's notes, which makes Tuned's own
+positioning — agents consume vastly more than humans can review — a claim about a capability the
+product did not have.
+
+**What shipped:** a remit translated into an explicit public bar
+([`scripts/lib/agent-scout.mjs`](../scripts/lib/agent-scout.mjs)), applied to the **open-access full
+text** the agent fetches for itself, publishing at most one find per run through the operator plane
+that already owns the owner scoping, the field budgets, the replay guard and the retract audit trail.
+Pre-registered as [EXP-013](EXPERIMENTS.md) in the same commit as the bar, with five forks.
+
+### Three decisions inside it, recorded because each had a live alternative
+
+**1. `@sportstech`, not one of the three dormant feeds.** Run 152 held against adopting
+`@wearables`/`@wellbeing`/`@graphics` — *"four live-looking feeds fed by nobody is worse than three
+that are honestly dormant"* — and that hold is **unchanged and was not worked around**. The distinction
+this run draws: the objection was to adoption *as a substitute for* a publisher. The feed that matters
+for the distribution the owner may yet perform is `/sportstech`, its remit is already written, public
+and defended over six cycles, and giving it a real publisher creates no new dormant surface. None of
+the three dormant feeds was touched, adopted or published to.
+
+**2. No `src/` file, and therefore no exposure for EXP-011.** The agent lives in a scheduled workflow
+and writes through the public operator API. It could have been a Worker cron — the Worker already has
+one — and that would have meant a production code change, a new external dependency inside the
+request path, and a deploy during EXP-011's landing-page window. The workflow form is also the only
+one whose entire decision record is a log the executor can read.
+
+**3. The `why` line says what the agent did, not what the paper found.** Items 242–279 carry a human's
+sentence about the finding. This agent has not understood the paper, so its line reports how many
+candidates it screened, that it read the full text, how long that text was, and which design and
+statistic families the text contained. Weaker prose, and the alternative is a machine paraphrasing a
+result nothing verified, which is the summariser Tuned is not. **The improvement is quotation, not
+generation** — recorded in EXP-013 as this agent's stated limitation before its first publication.
+
+### And the reversal, inside the same run
+
+**The bar's first live screen was wrong in the way that mattered, and it was caught before a reader
+saw anything.** 10 of 50 selected — 20%, inside the pre-registered threshold — and **four of the ten
+were clinical rehabilitation** (paediatric cerebral palsy, robot-aided physiotherapy, stroke, neck
+pain). The scope clause had been written as a single list mixing "athlete" with "gait", "kinematic"
+and "neuromuscular", so a term describing a **method** could satisfy a clause meant to ask **about
+whom**. Corrected in [`e0918ba`](https://github.com/in-c0/tuned/commit/e0918ba): sport context
+required, movement vocabulary demoted to description, clinical populations refused unless an athlete
+or named competitive sport is present, the search asks `TITLE_ABS` instead of unfielded terms, and the
+full-text read now answers the scope question too. Second screen: **9 of 35, every one on remit.**
+Both lessons are [L-70](LESSONS.md) and [L-71](LESSONS.md).
+
+**The schedule was disarmed rather than armed, and that is a decision against this run's own
+interest.** EXP-013 threshold 2 read **25.7%** on the second screen — a failure by 0.7 of a percentage
+point, with Fork B attached. The threshold is also mis-specified (17 of 35 deferred unread, so the
+denominator counts candidates the bar never decided; on the decided set it is 50%). **Saying so is not
+permission to rewrite it inside its own window.** So scheduled runs now screen and publish nothing,
+and publication stays behind an explicit dispatch by someone who has read the record. Re-arming is one
+expression in [`agent-scout.yml`](../.github/workflows/agent-scout.yml) and the comment there says
+what must be true first: threshold 2 re-specified **before** a screen, and met.
+
+**Consequence for EXP-013's threshold 4 (continuous freshness with zero hand publications), stated
+plainly:** it cannot be met while the schedule is disarmed. The cadence is demonstrated as a
+capability and not yet as a cadence.
+
+**Spend this run AUD $0.00; running total AUD $0.00 of $500.**
