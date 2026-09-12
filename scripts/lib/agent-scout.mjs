@@ -58,10 +58,18 @@
 // ops/agents/sportstech.md expressed as something a machine can apply, and it is the part a
 // reader should argue with if they think the feed is off-remit.
 //
-// A candidate must match BOTH lists: an instrument term (how the measurement was taken) and
-// a domain term (what was measured, and on whom). One list alone is what makes a feed drift
-// — "accelerometer" alone admits industrial vibration monitoring, "athlete" alone admits
-// the generic fitness advice the remit excludes by name.
+// A candidate must match an instrument term (how the measurement was taken) AND a sport
+// context term (who was measured, and in what setting). One list alone is what makes a feed
+// drift — "accelerometer" alone admits industrial vibration monitoring, "athlete" alone
+// admits the generic fitness advice the remit excludes by name.
+//
+// THE THIRD LIST IS THE ONE THE FIRST LIVE SCREEN PUT HERE. Movement vocabulary — gait,
+// kinematic, neuromuscular — was originally mixed in with the sport terms, and it let
+// clinical rehabilitation through: a paediatric cerebral palsy gait trainer, robot-aided
+// physiotherapy, stroke, neck pain, all with real instruments and real statistics. Clinical
+// movement labs use the same words as sport science. So movement terms now describe and
+// admit nothing, and a clinical population is refused outright unless an athlete or a named
+// competitive sport is also present.
 // ---------------------------------------------------------------------------
 
 /** How the measurement was made. Instrumentation, capture and sensing. */
@@ -98,39 +106,126 @@ export const INSTRUMENT_TERMS = [
   "isokinetic dynamometer",
 ];
 
-/** What was measured, and on whom. Sport, athletes, and movement science. */
-export const DOMAIN_TERMS = [
+/** WHO was measured, and in what context. Sport and athletes — not movement science.
+ *
+ *  CORRECTED ON ITS FIRST LIVE SCREEN, which is the only reason this list is separate from
+ *  the one below. Run 153's dry screen
+ *  (https://github.com/in-c0/tuned/actions/runs/34672702607) selected 10 of 50 candidates —
+ *  a respectable-looking 20% — and **four of the ten were clinical rehabilitation**: a gait
+ *  trainer for paediatric cerebral palsy, robot-aided upper-limb physiotherapy, foot muscle
+ *  size in stroke, and remission from non-specific neck pain. Every one of them is real
+ *  instrumented movement science with proper statistics, and none of them belongs on a feed
+ *  about athlete sensing and sport performance.
+ *
+ *  The defect was that the old single list mixed "athlete" with "gait", "kinematic" and
+ *  "neuromuscular", so a term that describes *a method* could satisfy a clause that was
+ *  supposed to ask *about whom*. Clinical movement labs use the same instruments and the
+ *  same words. So the bar now requires a term from THIS list, and the movement vocabulary
+ *  below carries no admitting power of its own. */
+export const SPORT_CONTEXT_TERMS = [
   "athlete",
-  "athletic",
+  "athletic performance",
   "sport",
+  "sporting",
   "sprint",
-  "running",
-  "runner",
-  "gait",
-  "jump",
-  "biomechanic",
-  "kinematic",
-  "kinetic",
+  "sprinting",
   "training load",
   "external load",
   "internal load",
   "workload",
   "match play",
+  "match-play",
+  "competitive season",
   "competition",
+  "strength and conditioning",
+  "resistance training",
+  "resistance-trained",
+  "endurance training",
   "soccer",
   "football",
   "basketball",
   "handball",
   "rugby",
+  "volleyball",
+  "baseball",
+  "cricket",
+  "tennis",
   "swimming",
   "cycling",
   "rowing",
-  "throwing",
   "weightlifting",
-  "resistance training",
+  "powerlifting",
+  "track and field",
+  "taekwondo",
+  "judo",
+  "marathon",
+  "distance runner",
+  "trained men",
+  "trained women",
+  "physically active",
+];
+
+/** HOW the movement was described. Retained because the run record is more useful when it
+ *  says what a candidate matched, and deliberately NOT a clause: nothing is admitted for
+ *  being about gait. See SPORT_CONTEXT_TERMS for the correction this split came from. */
+export const MOVEMENT_TERMS = [
+  "gait",
+  "jump",
+  "biomechanic",
+  "kinematic",
+  "kinetic",
   "neuromuscular",
   "countermovement",
+  "running economy",
+  "stride",
+  "ground reaction force",
+  "joint angle",
+  "muscle activation",
 ];
+
+/** Populations this feed is not about. A clinical cohort is refused even when the
+ *  instrumentation and the statistics are impeccable — *especially* then, because that is the
+ *  paper most likely to slip through. The override is a real sport term in the same title or
+ *  abstract: "hamstring injury in professional footballers" is squarely on remit and
+ *  "post-stroke balance" is not, and the difference is whether the paper is about athletes
+ *  who are injured or about patients who move. */
+export const CLINICAL_POPULATION_TERMS = [
+  "stroke",
+  "cerebral palsy",
+  "parkinson",
+  "dementia",
+  "alzheimer",
+  "multiple sclerosis",
+  "arthroplasty",
+  "osteoarthritis",
+  "amputee",
+  "amputation",
+  "spinal cord injury",
+  "cancer",
+  "diabet",
+  "obesity",
+  "copd",
+  "cardiac rehabilitation",
+  "physiotherapy",
+  "neuropathy",
+  "cerebral",
+  "frailty",
+  "fall risk",
+  "older adults",
+  "nursing home",
+  "chronic pain",
+  "low back pain",
+  "neck pain",
+  "fibromyalgia",
+  "patients",
+];
+
+/** A sport term appearing this many times in the full text is the evidence that the paper is
+ *  ABOUT sport rather than mentioning it. One pass in a discussion paragraph is not a
+ *  subject. This is the clause that makes the expensive full-text read earn its place on a
+ *  scope question: on run 153's first live screen the statistics clauses refused **0 of 10**
+ *  candidates that reached them, so the read was buying a number nobody needed. */
+export const MIN_SPORT_MENTIONS = 5;
 
 /** Publication types that are not a measured result. A review synthesises other people's
  *  numbers, a protocol has none yet, and a correction is an edit to a paper rather than a
@@ -210,10 +305,12 @@ export const CLAUSES = [
   "peer-reviewed",
   "research-article",
   "in-remit",
+  "clinical-population",
   "recent",
   "open-access-full-text",
   "not-already-published",
   "encountered",
+  "about-sport",
   "measured-result",
 ];
 
@@ -230,13 +327,17 @@ export const CLAUSES = [
  *  re-checked locally against the returned record, because a query that is also the bar
  *  leaves no record of what was refused. */
 export function buildSearchQuery({ from, to }) {
-  const instrument = ["inertial measurement unit", "IMU", "accelerometer", "wearable", "markerless", "motion capture", "force plate", "GNSS", "pose estimation", "EMG"]
-    .map((t) => `"${t}"`)
-    .join(" OR ");
-  const domain = ["athlete", "sport", "gait", "sprint", "biomechanics", "training load", "jump performance"].map((t) => `"${t}"`).join(" OR ");
+  // TITLE_ABS, not an unfielded term. Run 153's first live screen asked unfielded and got
+  // back conference abstracts on dementia and a paper on liver fibrosis in type 2 diabetes:
+  // an unfielded term matches anywhere in an indexed full text, so "athlete" in one sentence
+  // of someone's discussion was enough to spend a record on. Asking the title and abstract
+  // is asking what the paper is *about*.
+  const field = (terms) => terms.map((t) => `TITLE_ABS:"${t}"`).join(" OR ");
+  const instrument = field(["inertial measurement unit", "IMU", "accelerometer", "wearable", "markerless", "motion capture", "force plate", "GNSS", "pose estimation", "EMG", "isokinetic dynamometer"]);
+  const sport = field(["athlete", "sport", "sprint", "training load", "match play", "soccer", "football", "resistance-trained", "strength and conditioning"]);
   return [
     `(${instrument})`,
-    `AND (${domain})`,
+    `AND (${sport})`,
     "AND (OPEN_ACCESS:y AND IN_EPMC:y)",
     `AND (FIRST_PDATE:[${from} TO ${to}])`,
   ].join(" ");
@@ -337,14 +438,74 @@ export function extractBodyText(xml) {
 // The bar
 // ---------------------------------------------------------------------------
 
+/** One term into the regular expression that matches it, and the two boundary rules are both
+ *  there because a plain substring match got one of them wrong.
+ *
+ *  A LEADING boundary, always. `countSportMentions` originally matched "sport" as a bare
+ *  substring and counted **"transport"** as a mention of sport, which is exactly the class of
+ *  accident that lets an unrelated paper satisfy a scope clause.
+ *
+ *  A TRAILING boundary only for short abbreviations. Most terms here are deliberate stems —
+ *  "athlete" has to match "athletes", "biomechanic" has to match "biomechanics", "diabet" has
+ *  to match both "diabetes" and "diabetic" — so closing the end would break them. For a
+ *  three- or four-letter abbreviation the opposite is true: "emg" must not fire on
+ *  "emgality". */
+export function termPattern(term, flags = "i") {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const closed = term.length <= 4 && /^[a-z]+$/.test(term);
+  return new RegExp(`\\b${escaped}${closed ? "\\b" : ""}`, flags);
+}
+
 function matchedTerms(haystack, terms) {
   const lower = haystack.toLowerCase();
-  return terms.filter((term) => {
-    // Short all-letter terms are matched at word boundaries; "imu" must not fire on
-    // "immunology" and "emg" must not fire on "emgality".
-    if (term.length <= 4 && /^[a-z]+$/.test(term)) return new RegExp(`\\b${term}\\b`, "i").test(lower);
-    return lower.includes(term);
-  });
+  return terms.filter((term) => termPattern(term).test(lower));
+}
+
+/** The override for the clinical-population clause, and it is deliberately narrower than
+ *  SPORT_CONTEXT_TERMS. "Physically active" and "resistance training" appear in clinical
+ *  trials constantly — they are how a rehabilitation paper describes its intervention — so
+ *  they cannot be what rescues a clinical cohort. An athlete, a player or a named competitive
+ *  sport can. */
+export const STRONG_SPORT_TERMS = [
+  "athlete",
+  "athletic performance",
+  "competitive season",
+  "match play",
+  "match-play",
+  "elite",
+  "professional player",
+  "soccer",
+  "football",
+  "basketball",
+  "handball",
+  "rugby",
+  "volleyball",
+  "baseball",
+  "cricket",
+  "tennis",
+  "taekwondo",
+  "judo",
+  "sprinter",
+  "weightlifting",
+  "powerlifting",
+  "track and field",
+  "marathon",
+];
+
+export function hasStrongSportTerm(text) {
+  return matchedTerms(text, STRONG_SPORT_TERMS).length > 0;
+}
+
+/** How many times the full text says it is about sport. Counted across every sport term
+ *  rather than per term, because a paper on football says "football", "players" and "match"
+ *  and no single one of them has to carry the whole count. */
+export function countSportMentions(text) {
+  const lower = text.toLowerCase();
+  let total = 0;
+  for (const term of SPORT_CONTEXT_TERMS) {
+    total += (lower.match(termPattern(term, "g")) || []).length;
+  }
+  return total;
 }
 
 function matchedFamilies(text, table) {
@@ -385,9 +546,25 @@ export function gradeMetadata(candidate, { now, windowDays = DEFAULT_WINDOW_DAYS
 
   const scopeText = `${candidate.title} ${candidate.abstract}`;
   const instrument = matchedTerms(scopeText, INSTRUMENT_TERMS);
-  const domain = matchedTerms(scopeText, DOMAIN_TERMS);
+  const sport = matchedTerms(scopeText, SPORT_CONTEXT_TERMS);
+  const movement = matchedTerms(scopeText, MOVEMENT_TERMS);
   if (instrument.length === 0) return reject("in-remit", "no instrument or sensing term in title or abstract");
-  if (domain.length === 0) return reject("in-remit", "no sport, athlete or movement term in title or abstract");
+  if (sport.length === 0) {
+    return reject(
+      "in-remit",
+      movement.length > 0
+        ? `movement science without a sport context (matched ${movement.join(", ")}) — this feed is about athletes, not about gait`
+        : "no sport or athlete term in title or abstract"
+    );
+  }
+
+  // A clinical cohort is refused even when the instruments and the statistics are
+  // impeccable. The override is a real sport term, so "hamstring injury in professional
+  // footballers" passes and "post-stroke balance" does not.
+  const clinical = matchedTerms(scopeText, CLINICAL_POPULATION_TERMS);
+  if (clinical.length > 0 && !hasStrongSportTerm(scopeText)) {
+    return reject("clinical-population", `clinical population (${clinical.join(", ")}) with no athlete or competitive-sport term`);
+  }
 
   const age = daysBetween(now, candidate.firstPublicationDate);
   if (!Number.isFinite(age)) return reject("recent", `unparseable first publication date ${JSON.stringify(candidate.firstPublicationDate)}`);
@@ -403,7 +580,7 @@ export function gradeMetadata(candidate, { now, windowDays = DEFAULT_WINDOW_DAYS
   const seenDoi = candidate.doi && publishedDois.some((d) => d.toLowerCase() === candidate.doi.toLowerCase());
   if (seenUrl || seenDoi) return reject("not-already-published", "this feed has already published this source");
 
-  return { verdict: "passed-metadata", instrument, domain, ageDays: age };
+  return { verdict: "passed-metadata", instrument, sport, movement, ageDays: age };
 }
 
 /** Two URLs pointing at the same article. Query strings carry article ids at several
@@ -440,6 +617,19 @@ export function grade(candidate, { now, fullText, fetchNote = "", windowDays = D
     };
   }
 
+  // The scope question, asked of the full text rather than of the abstract. This is what the
+  // expensive read buys: an abstract can mention athletes once while the study ran on a
+  // clinical cohort, and on run 153's first live screen the statistics clauses below refused
+  // 0 of the 10 candidates that reached them — so the read was paying for nothing.
+  const sportMentions = countSportMentions(body);
+  if (sportMentions < MIN_SPORT_MENTIONS) {
+    return {
+      verdict: "rejected",
+      clause: "about-sport",
+      detail: `the full text mentions sport or athletes ${sportMentions} time${sportMentions === 1 ? "" : "s"} in ${body.length} characters, need ${MIN_SPORT_MENTIONS} — mentioned, not about`,
+    };
+  }
+
   const statistics = matchedFamilies(body, STATISTIC_SIGNATURES);
   const designs = matchedFamilies(body, DESIGN_SIGNATURES);
   if (statistics.length < MIN_STATISTIC_FAMILIES) {
@@ -453,7 +643,9 @@ export function grade(candidate, { now, fullText, fetchNote = "", windowDays = D
     verdict: "selected",
     clause: null,
     instrument: meta.instrument,
-    domain: meta.domain,
+    sport: meta.sport,
+    movement: meta.movement,
+    sportMentions,
     ageDays: meta.ageDays,
     statistics,
     designs,

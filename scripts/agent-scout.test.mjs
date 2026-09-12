@@ -15,7 +15,10 @@ import test from "node:test";
 import {
   DEFAULT_WINDOW_DAYS,
   MIN_BODY_CHARACTERS,
+  MIN_SPORT_MENTIONS,
   MIN_STATISTIC_FAMILIES,
+  countSportMentions,
+  hasStrongSportTerm,
   buildSearchQuery,
   composeWhy,
   extractBodyText,
@@ -179,22 +182,59 @@ test("a title that announces itself as not-a-paper is refused even when the type
   }
 });
 
-test("in-remit needs BOTH an instrument term and a domain term", () => {
-  // Instrument without domain: an accelerometer on a bridge.
-  const noDomain = metaClause({
+test("in-remit needs BOTH an instrument term and a sport context term", () => {
+  // Instrument without a subject: an accelerometer on a bridge.
+  const noSport = metaClause({
     title: "Accelerometer-based structural health monitoring of a steel footbridge",
     abstractText: "An inertial measurement unit recorded vibration of the deck.",
   });
-  assert.equal(noDomain.clause, "in-remit");
-  assert.match(noDomain.detail, /sport, athlete or movement/);
+  assert.equal(noSport.clause, "in-remit");
+  assert.match(noSport.detail, /no sport or athlete term/);
 
-  // Domain without instrument: the generic fitness advice the remit excludes by name.
+  // Subject without instrument: the generic fitness advice the remit excludes by name.
   const noInstrument = metaClause({
     title: "Motivational climate and enjoyment in youth sport participation",
     abstractText: "A questionnaire study of athletes and their coaches.",
   });
   assert.equal(noInstrument.clause, "in-remit");
   assert.match(noInstrument.detail, /instrument or sensing/);
+});
+
+// The four that got through the first live screen. Each is real instrumented movement
+// science with proper statistics, and none of them belongs on a feed about athletes.
+// https://github.com/in-c0/tuned/actions/runs/34672702607
+test("movement science with no sport context is refused, and the clause says which it was", () => {
+  const r = metaClause({
+    title: "A robotic perturbation trainer for transverse-plane gait perturbations in pediatric cerebral palsy",
+    abstractText: "Instrumented gait analysis with motion capture measured kinematic responses in children.",
+  });
+  assert.equal(r.clause, "in-remit");
+  assert.match(r.detail, /movement science without a sport context/);
+  assert.match(r.detail, /gait/, "the rejection should name what it did match");
+});
+
+test("a clinical population is refused even with impeccable instruments and statistics", () => {
+  for (const [title, abstractText] of [
+    ["Foot muscle size and balance in stroke: evidence of structural-functional dissociation", "Ultrasound and force plate measures in stroke patients during sprint-style stepping drills."],
+    ["Intelligent robot-aided physiotherapy for upper limb rehabilitation", "EMG-instrumented training load progression in patients after cerebral injury."],
+    ["Physical and psychological features during remission from non-specific neck pain", "Accelerometer-measured physically active time in patients with neck pain."],
+  ]) {
+    const r = metaClause({ title, abstractText });
+    assert.equal(r.clause, "clinical-population", `"${title}" should be refused as clinical`);
+  }
+});
+
+test("an athlete population survives the clinical clause even when an injury is the subject", () => {
+  const r = metaClause({
+    title: "Hamstring strain injury risk in professional footballers measured with a wearable IMU",
+    abstractText: "Elite soccer athletes were monitored across a competitive season; patients referred for imaging were excluded.",
+  });
+  assert.equal(r.verdict, "passed-metadata", "a named competitive sport overrides the clinical terms");
+});
+
+test("the clinical override is narrower than the sport list, so a rehab intervention cannot rescue itself", () => {
+  assert.ok(hasStrongSportTerm("elite soccer athletes"));
+  assert.ok(!hasStrongSportTerm("resistance training in physically active older adults"));
 });
 
 test("short instrument abbreviations match as words, not as substrings", () => {
@@ -230,7 +270,7 @@ test("a clean candidate passes metadata screening and reports what it matched", 
   const r = metaClause({});
   assert.equal(r.verdict, "passed-metadata");
   assert.ok(r.instrument.includes("inertial measurement unit"));
-  assert.ok(r.domain.includes("athlete"));
+  assert.ok(r.sport.includes("athlete"));
   assert.ok(r.ageDays > 0 && r.ageDays < DEFAULT_WINDOW_DAYS);
 });
 
@@ -447,7 +487,7 @@ test("MUTATION: accepting one statistic family would admit a paper that merely r
 });
 
 test("MUTATION: keeping the reference list would let a citation satisfy the statistics clause", () => {
-  const xml = `<article><body><sec><title>Methods</title><p>A validation study. ${"padding ".repeat(1200)}</p></sec></body><ref-list><ref><title>IMU validity: ICC = 0.98, p &lt; 0.001, 95% CI reported</title></ref></ref-list></article>`;
+  const xml = `<article><body><sec><title>Methods</title><p>A validation study of sprint athletes. ${"athlete sprint sport data ".repeat(400)}</p></sec></body><ref-list><ref><title>IMU validity: ICC = 0.98, p &lt; 0.001, 95% CI reported</title></ref></ref-list></article>`;
   const withStrip = grade(candidateOf(), { ...base, fullText: extractBodyText(xml) });
   assert.equal(withStrip.clause, "measured-result", "with ref-list stripped there are no statistics");
   // And the counterfactual: the same text with references included would have passed.
@@ -465,4 +505,62 @@ test("MUTATION: a body-length floor of zero would let an empty fetch be selected
   assert.ok(MIN_BODY_CHARACTERS > 0);
   const r = grade(candidateOf(), { ...base, fullText: "" });
   assert.equal(r.clause, "encountered");
+});
+
+// ---------------------------------------------------------------------------
+// about-sport: the clause the first live screen added, and the one that makes the expensive
+// read earn its place. On run 34672702607 the statistics clauses refused 0 of the 10
+// candidates that reached them, so the full-text fetch was buying a number nobody needed.
+// ---------------------------------------------------------------------------
+
+test("a full text that merely mentions sport is refused, however good its statistics", () => {
+  const body = `<article><body><sec><title>Methods</title><p>A randomised repeated-measures study compared two groups (p = 0.02, 95% CI, ICC = 0.91). ${"Measurements were recorded in the laboratory. ".repeat(200)} One sentence notes that similar methods are used in sport.</p></sec></body></article>`;
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(body) });
+  assert.equal(r.clause, "about-sport");
+  assert.match(r.detail, /mentioned, not about/);
+});
+
+test("a full text that is about sport passes, and the count is reported", () => {
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  assert.equal(r.verdict, "selected");
+  assert.ok(r.sportMentions >= MIN_SPORT_MENTIONS, `expected at least ${MIN_SPORT_MENTIONS} mentions, got ${r.sportMentions}`);
+});
+
+test("counting sport mentions is across terms, not per term, and respects word boundaries", () => {
+  assert.equal(countSportMentions("sport sport soccer athlete athlete"), 5);
+  assert.equal(countSportMentions("transport reported deportment"), 0, "substring matches must not count");
+});
+
+test("the scope clause is asked before the statistics clauses, so the cheaper reason wins", () => {
+  // No statistics at all AND no sport: the run record should say the scope failed, because
+  // that is the fact a reader needs, not "it had one statistic family".
+  const body = `<article><body><p>${"A descriptive laboratory note. ".repeat(300)}</p></body></article>`;
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(body) });
+  assert.equal(r.clause, "about-sport");
+});
+
+test("MUTATION: a sport-mention floor of zero re-admits every clinical paper the first screen selected", () => {
+  assert.ok(MIN_SPORT_MENTIONS >= 5);
+  const body = `<article><body><sec><title>Methods</title><p>A randomised controlled comparison in stroke survivors (p = 0.01, ICC = 0.88, 95% CI). ${"Gait was recorded with motion capture. ".repeat(200)}</p></sec></body></article>`;
+  const r = grade(candidateOf({ title: "Markerless gait analysis in stroke survivors", abstractText: "Instrumented gait in sprint-cadence walking trials." }), { ...base, fullText: extractBodyText(body) });
+  assert.notEqual(r.verdict, "selected");
+});
+
+test("MUTATION: putting movement terms back in the admitting list re-opens the clinical door", () => {
+  // The regression test for the correction itself: a candidate whose ONLY subject term is a
+  // movement term must be refused, in the clause that says so.
+  const r = metaClause({
+    title: "Kinematic and neuromuscular responses to a countermovement task measured by motion capture",
+    abstractText: "Joint angle and muscle activation were recorded in twenty adults.",
+  });
+  assert.equal(r.clause, "in-remit");
+  assert.match(r.detail, /movement science without a sport context/);
+});
+
+test("MUTATION: matching a term as a bare substring counts 'transport' as a mention of sport", () => {
+  assert.equal(countSportMentions("transport reported deportment"), 0);
+  // And the stems that have to keep working, which is why the trailing boundary is not
+  // symmetric with the leading one.
+  assert.ok(countSportMentions("athletes") > 0);
+  assert.ok(countSportMentions("sporting") > 0);
 });
