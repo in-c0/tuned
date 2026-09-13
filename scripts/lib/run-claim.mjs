@@ -41,8 +41,17 @@
 // WHAT IT GUARANTEES, AND WHAT IT DOES NOT. It guarantees that of N sessions contending
 // for the same resource, exactly one proceeds. It does not and cannot stop a session that
 // never calls it — a repository-scoped guard has no way to intercept a process that
-// declines to ask. The discipline that closes that gap is procedural and lives in
-// ops/STATUS.md: claim first, before any commit, comment, dispatch or external action.
+// declines to ask. The discipline that closes that gap is procedural: claim first, before
+// any commit, comment, dispatch or external action.
+//
+// WHERE THAT DISCIPLINE LIVES, AND WHY IT MOVED. It was written here as "lives in
+// ops/STATUS.md". It did — at line 2493 of 3,093, in a file whose own contract tells a run
+// to read the head. Runs 155 and 156 (2026-09-12/13) shipped eight commits without ever
+// claiming, and nothing was lost only because neither had a contender. The procedure now
+// lives in CLAUDE.md at the repository root, which a session loads without being told to,
+// with the claim command in the first screen. scripts/operating-card.test.mjs pins that
+// carrier's existence, the command's depth in it, and the file's length — the three
+// properties whose absence is what buried the instruction. See ops/LESSONS.md L-76.
 
 import { execFileSync } from "node:child_process";
 import crypto from "node:crypto";
