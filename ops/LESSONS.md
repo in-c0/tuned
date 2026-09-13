@@ -2908,3 +2908,64 @@ Three rules:
 **Cost:** one day, three durable files carrying a wrong reason, and an owner-facing summary that
 repeated it. Zero to readers of Tuned — no public line was ever affected. The correction is recorded
 beside each wrong line rather than replacing it.
+
+---
+
+## L-75 — a watchdog with one source cannot tell "it stopped" from "it stopped reporting" (2026-09-13, run 157)
+
+- **Known problem:** know whether the executor loop is still firing, without asking the loop.
+- **Attempted approach:** `scripts/executor-liveness.mjs`, written at run 147 after a real 66-hour
+  outage. It reads the claims register — the loop's own step 0 — on GitHub's cron, from outside the
+  loop, and alarms on issue #1 when the register goes quiet.
+- **Mistake:** silence in that register has **two** causes and the instrument had **one name** for
+  them. `missed-runs` meant *no session ran*; it was also what got printed when *a session ran and
+  skipped step 0*. Runs 155 and 156 produced the second on 2026-09-12/13 — eight commits, two
+  execution reports, no claim — and the hourly alarm was ~25 minutes from posting **"Executor loop
+  is not firing"**, **"24.02h with no run at all"** and **"Check that the routine is enabled and
+  firing"** about a routine that fired on schedule every time.
+- **Why it happened:** the watchdog's independence from the loop was designed for carefully — *"an
+  alarm hosted inside the thing it watches is not an alarm"* — and independence was read as
+  *single-sourced*. They are not the same requirement. Worse, **the discriminator was already known
+  and had already been used**: run 147 found the real outage by cross-checking commits and execution
+  reports by hand, and wrote that check into its report and into nothing else. The instrument built
+  immediately afterwards was given the conclusion and not the method.
+- **Evidence and cost:** [the register's own tail](https://github.com/in-c0/tuned/tree/ops-claims)
+  versus `git log`; verdict `unclaimed-runs`, 8 commits, 2 sessions, [issue #1
+  comment](https://github.com/in-c0/tuned/issues/1#issuecomment-5652660321). **Cost to the owner:
+  zero**, because the true account was posted under the alarm's own dedupe key before the alarm
+  reached it. Had it been 25 minutes later the cost would have been a false outage report and a
+  wasted owner investigation — the loop's most expensive currency, given two of its asks have sat
+  unactioned for 24 days.
+- **Lesson:** **a monitor's verdict names a cause, and a cause is a claim.** The register recorded
+  the truth throughout; only the *inference* from silence was wrong. So the rule is not "add more
+  data" — it is that **a verdict which two different owner actions could follow from must be split
+  before it is allowed to alarm**, and it is split by a source that fails independently of the first
+  one. Where the split cannot be made, the alarm must say the second source was not consulted rather
+  than let its confident wording imply it was.
+- **This is L-74 one level up and the difference is worth keeping.** L-74 was a screening log that
+  described refusals nobody but this loop reads. This is the loop's **only unattended path to the
+  owner** — the one artefact that reaches them without an executor writing it — so a collapsed
+  category there is published rather than merely recorded.
+- **More elegant next attempt:** `executorActivity()` asks git, in the checkout the watchdog already
+  has, whether any executor session committed during the silence — identified by the `Claude-Session:`
+  trailer, which `metrics snapshot`'s commits do not carry and which is exactly the confound the
+  workflow's own header had already named in prose. `unclaimed-runs`/`unclaimed-stale` split off from
+  `missed-runs`/`stale`. **Corroboration may only rename an outage, never clear one** — every new
+  verdict is `ok: false` and fails the job identically, asserted over nine possible answers including
+  absurd ones, and pinned by a mutation that makes them `ok` and turns two tests red. A watchdog the
+  thing it watches can talk out of alarming is not a watchdog.
+- **And two smaller errors inside the fix, both found by running it rather than reading it** — see
+  [L-73](#l-73--the-clause-is-defeated-by-the-exact-case-it-was-written-for-wearing-different-punctuation-2026-09-13-run-155)'s
+  rule. It first asked about `[claim, next claim)`, which contains the *claiming* run's own commits:
+  against the real register that reported **3 sessions where 2 had skipped step 0**, a 50%
+  overstatement inside the very alarm being fixed. It now asks from where the lock was **released**.
+  And `unclaimed=false` was standing in for "asked and found nothing" when the fail-closed paths ask
+  nothing at all, so the comment would have claimed *"two independent sources agreeing"* on a verdict
+  where one was consulted; `corroborated` is now a separate output with its own test.
+- **Prevention check:** `scripts/executor-liveness.test.mjs` — 39 tests, including the
+  cannot-be-quietened property over every verdict shape, the release-window boundary, the
+  fail-closed paths asserting the corroborator is never called, and `executorActivity` against this
+  repository's real commits proving `metrics snapshot` is excluded.
+- **Unfixed, and named so it is not rediscovered as news:** *why* runs 155 and 156 skipped step 0 is
+  not established. The register now describes the loop honestly; it does not make the loop follow its
+  own protocol.

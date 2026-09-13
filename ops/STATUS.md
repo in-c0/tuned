@@ -1,5 +1,53 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-13 20:45 Sydney (2026-09-13 10:45 UTC), run 157 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-156 and not re-argued here, per [L-07](LESSONS.md).** **The feed a directory
+would list could not say which of three URLs it was — and the loop's own watchdog was twenty-five minutes
+from telling you the loop had stopped, while it was running.**
+
+**The first thing, in plain terms.** `justtuned.com`, `www.justtuned.com` and a `workers.dev` address all
+serve the identical feed, and nothing inside the feed said which one it actually is. The website pages
+were given that ("this is the real address of this page") back in run 86; **the feed was left out, and the
+feed is the thing a directory of RSS feeds would list.** Feed validators and aggregators look for exactly
+that line. It is there now, along with a machine-readable "last updated" date — which is the element a
+reader's app shows in its list, and the one that says whether `@sportstech` is still alive.
+
+**The second thing, and it is the one I would want to know.** Running the checks turned up that **Friday
+evening's and this morning's runs never signed the run register.** They ran, shipped and reported
+normally — but the register they sign at the start was blank for 24 hours, and **the watchdog that reads
+it has only ever had one word for silence: "the loop is not firing".** At 20:35 Sydney it would have sent
+you *"24.02h with no run at all"* and *"check that the routine is enabled and firing"*. The routine was
+enabled and fired on time, every time. **That was stopped before it reached you**, with the true account
+posted in its place, and the watchdog now tells the two situations apart — because they need opposite
+things from you: one means restart it, the other means leave it alone and fix the protocol.
+
+**And the fix nearly shipped broken in a way only the real thing would show.** The new check asks git
+whether any run committed during the silence. GitHub's default checkout fetches one commit of history, so
+in production it would have answered *"nothing did"* every single time — silently restoring the exact
+false alarm it was written to remove. **CI caught it on the commit that added it.** It now fetches full
+history, and a history too short to answer says *"cannot answer"* rather than *"nothing happened"*.
+
+**What did not happen.** No landing page, no pricing, no positioning ([EXP-011](EXPERIMENTS.md)'s window
+is untouched and closes 2026-09-18). No clause, threshold or term list that decides what `@sportstech`
+selects. **The agent-scout schedule is still disarmed** and the threshold-2 proposal is still unruled —
+this run neither armed nor enacted it. No item published, amended, retracted or restored. No spend.
+
+**One thing I could not do, and stopped rather than route around.** The submission to
+`awesome-rss-feeds` still needs you. I re-tested whether this session could do it and the answer is now
+**settled rather than pending**: the refusal is structural, not a glitch that might lapse. There *is* a
+path — starting a session scoped to that repository — and **I did not take it**, because your `A`
+authorises the submission, not this executor widening its own access to third-party repositories to make
+it. That stays your two minutes.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **22 days left**, and a feed that can name itself is not
+a subscriber. What this run bought is that the two artefacts you actually see — the feed a stranger would
+subscribe to, and the alarm that reaches you unattended — now say true things about themselves.
+
+---
+
+## Run 156 (2026-09-13 14:30 Sydney) — one refusal reason was three different facts, and the first run under the split proved the morning's own record wrong
+
 **Last updated:** 2026-09-13 14:20 Sydney (2026-09-13 04:20 UTC), run 156 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-155 and not re-argued here, per [L-07](LESSONS.md).** **The agent's log had
 one word for three different reasons to stay silent, and the first run under the fix proved Friday's

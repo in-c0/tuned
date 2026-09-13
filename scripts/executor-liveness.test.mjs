@@ -650,6 +650,48 @@ describe("executorActivity reads real commits and ignores what is not a session"
     for (const s of a.sessions) assert.match(s, /^https:\/\/claude\.ai\/code\/session_/);
   });
 
+  it("answers from a truncated history that still covers the window", async () => {
+    // The other half, and the reason "is this clone shallow" was the wrong question. This
+    // session's own checkout is shallow at ~52 commits and reaches days past the interval
+    // being asked about, so refusing to answer on shallowness alone threw away a correct
+    // answer — and the conservative-looking direction is the one that prints "the loop is
+    // not firing". What is required is that the history reaches the start of the interval.
+    const { executorActivity } = await import("./executor-liveness.mjs");
+    const repoRoot = path.resolve(path.dirname(CLI), "..");
+    const a = executorActivity(repoRoot, {
+      fromMs: Date.parse("2026-09-12T10:33:04.194Z"),
+      toMs: Date.parse("2026-09-13T10:06:54.314Z"),
+      ref: "origin/master",
+    });
+    if (a === null) return; // history does not reach back this far here; covered above
+    assert.equal(a.commits, 8, "runs 155 and 156 committed 8 times inside this window");
+    assert.equal(a.sessions.length, 2);
+  });
+
+  it("says `cannot answer` on a history too short to cover the window, not `nothing happened`", async (t) => {
+    // The one that mattered. `actions/checkout@v4` fetches depth 1, so this is what the
+    // watchdog actually runs against unless the workflow asks for history — and the first
+    // version returned `{commits: 0}` here, which reads as "the loop was down" and would
+    // have restored the false alarm this whole change removes, invisibly, on every firing.
+    const { execFileSync } = await import("node:child_process");
+    const fs = await import("node:fs");
+    const os = await import("node:os");
+    const repoRoot = path.resolve(path.dirname(CLI), "..");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "liveness-shallow-"));
+    try {
+      execFileSync("git", ["clone", "--depth", "1", `file://${repoRoot}`, dir], {
+        stdio: "ignore",
+        timeout: 120_000,
+      });
+    } catch {
+      return t.skip("no local clone source available");
+    }
+    const { executorActivity } = await import("./executor-liveness.mjs");
+    const a = executorActivity(dir, { fromMs: 0, toMs: Date.now(), ref: "origin/master" });
+    fs.rmSync(dir, { recursive: true, force: true });
+    assert.equal(a, null, "a truncated history must not be reported as an absence of commits");
+  });
+
   it("returns null rather than throwing when git cannot answer", async () => {
     const { executorActivity } = await import("./executor-liveness.mjs");
     const a = executorActivity(path.dirname(CLI), {

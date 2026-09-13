@@ -178,23 +178,55 @@ const HOUR_MS = 3_600_000;
  *  `--since`/`--until` filter on committer date while the returned `%aI` is the author
  *  date; the two differ by seconds here but the window is re-applied in JS against the
  *  date actually reported, so the boundary is exact rather than nearly. */
-export function executorActivity(repoRoot, { fromMs, toMs, ref = "origin/master" } = {}) {
-  let out;
+/** `git` stdout, or `null` when it cannot run or the ref does not resolve. Never throws:
+ *  every caller here treats "git did not answer" as "no evidence", and an exception out of
+ *  a watchdog's corroborator would take down the check it is meant to inform. */
+function gitOut(cwd, args) {
   try {
-    out = execFileSync(
-      "git",
-      [
-        "log",
-        ref,
-        `--since=${new Date(fromMs - HOUR_MS).toISOString()}`,
-        `--until=${new Date(toMs + HOUR_MS).toISOString()}`,
-        "--format=%H%x1f%aI%x1f%(trailers:key=Claude-Session,valueonly=true)%x1e",
-      ],
-      { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 30_000 },
-    );
+    return execFileSync("git", args, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 30_000,
+      maxBuffer: 32 * 1024 * 1024,
+    });
   } catch {
     return null;
   }
+}
+
+export function executorActivity(repoRoot, { fromMs, toMs, ref = "origin/master" } = {}) {
+  // A TRUNCATED HISTORY ANSWERS "NOTHING" AND IT SOUNDS EXACTLY LIKE "THE LOOP WAS DOWN".
+  //
+  // `actions/checkout@v4` fetches depth 1 by default, so the first version of this ran green
+  // on every local test and returned `{commits: 0}` on every real firing — the corroborator
+  // would have been inert in the only place it matters, and its silence would have restored
+  // the precise false alarm it was written to remove. Caught by CI on the commit that added
+  // it and reproduced with `git clone --depth 1`. Fixed on both sides: the workflow checks
+  // out full history, and a repository that cannot see far enough back returns `null` —
+  // "cannot answer" — rather than an absence it has not established. `corroborated` carries
+  // that into the comment, which then says the second source was not consulted instead of
+  // asserting that two sources agreed.
+  //
+  // The question is NOT "is this clone shallow", which was the first fix and was wrong in
+  // the expensive direction: this session's own checkout is shallow at 52 commits and still
+  // reaches four days past the window being asked about, so that test threw away a correct
+  // answer. It is whether the history reaches back to the start of the interval, which is
+  // the property actually required and is the same test for a shallow and a full clone.
+  const oldest = gitOut(repoRoot, ["log", ref, "--format=%aI"]);
+  if (oldest === null) return null;
+  const lines = oldest.trim().split("\n").filter(Boolean);
+  const earliest = Date.parse(lines[lines.length - 1] ?? "");
+  if (!Number.isFinite(earliest) || earliest > fromMs) return null;
+
+  const out = gitOut(repoRoot, [
+    "log",
+    ref,
+    `--since=${new Date(fromMs - HOUR_MS).toISOString()}`,
+    `--until=${new Date(toMs + HOUR_MS).toISOString()}`,
+    "--format=%H%x1f%aI%x1f%(trailers:key=Claude-Session,valueonly=true)%x1e",
+  ]);
+  if (out === null) return null;
 
   const sessions = new Set();
   let commits = 0;

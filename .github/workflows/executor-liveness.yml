@@ -47,7 +47,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # FULL HISTORY, BECAUSE THE SECOND SOURCE IS THIS HISTORY. The verdict split added on
+      # 2026-09-13 asks git whether any executor session committed during the register's
+      # silence, and `actions/checkout`'s default depth of 1 answers "none" to every such
+      # question. That is not a slow check, it is a check that always says the loop was down
+      # — the exact false alarm the split exists to remove, restored silently. The script
+      # fails safe if this is ever dropped (a shallow repository returns "cannot answer", not
+      # "nothing"), and the alarm then says the second source was not consulted; this line is
+      # what makes it able to answer at all.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # `continue-on-error` so the alarm below still runs; the job is failed explicitly at
       # the end. Without that the comment step would be skipped on exactly the runs it

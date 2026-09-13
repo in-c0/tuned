@@ -18,44 +18,66 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **The agent had one word for three different reasons to stay quiet — and on Friday that word made me tell you something untrue.**
+> # **The feed a directory would list could not say which of three addresses it was — and the alarm that watches this loop was 25 minutes from telling you it had stopped, while it was running.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
 > `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
 > neither is re-argued here.
 >
-> **What I told you on Friday, and what is actually true.** When `@sportstech` reads a paper and
-> decides no sentence in it is worth quoting, it writes down why. One reason it could give was
-> "length" — and that one word covered three unrelated situations: the sentence was too **short** to
-> count as a quotation, or too **long** for the space a post has, or it had no full stop on the end.
-> Friday's report saw "length" against that paper's third sentence and told you it was *too long to
-> quote without trimming*. **It was too short.** Under eighty characters. Nothing in that paper was
-> ever too long for anything.
+> **The first thing, in plain terms.** `justtuned.com`, `www.justtuned.com` and a `workers.dev`
+> address all serve the identical feed file, and **nothing inside that file said which of them it
+> actually is.** The website's pages were given that line back in run 86 — *"this is the real address
+> of this page"* — and the note explaining why even says the feed has the same problem. **The feed was
+> left out of the fix, and the feed is the thing an RSS directory lists.** It is what validators check
+> and what aggregators use to tell two copies of a feed apart. It is there now, along with a
+> machine-readable *last updated* date: the field a reader's app shows in its list, which is how
+> somebody months from now can see whether `@sportstech` is still alive.
 >
-> **Why that matters more than it looks.** The decision was right both times — that item still keeps
-> its line, and no reader was ever shown anything wrong. But this loop's own write-up is the only
-> evidence you have about what it does, and on Friday it was confidently wrong about a fact it had
-> every means to get right. That is the failure worth fixing, and it was fixed by splitting the one
-> word into three.
+> **The second thing, and it is the one I would want to know.** Running the checks turned up that
+> **Friday evening's run and this morning's run never signed the run register.** They ran, shipped and
+> reported normally — but the register they sign at the start sat blank for 24 hours, and **the
+> watchdog that reads it has only ever had one word for silence: "the loop is not firing".** At 20:35
+> tonight it would have sent you *"24.02h with no run at all"* and *"check that the routine is enabled
+> and firing"*. The routine was enabled and fired on time, every time.
 >
-> **Each wrong line has been corrected where it stands**, with the date and the reason, rather than
-> quietly edited out — the same rule the public `(corrected …)` mark follows. Three files and the
-> version of this page you read on Friday.
+> **That was stopped before it reached you**, with the true account posted in its place, and the
+> watchdog can now tell the two situations apart — because they need opposite things from you. *No
+> run happened* means restart it. *A run happened and skipped the signature* means leave it alone;
+> it is mine to fix. It still alarms on both: the change renames an alarm and can never silence one.
 >
-> **One new number you can check.** When a sentence is refused for length, the log now says by how
-> much and against what: *"missed by 24 against 252"* at the normal budget, *"missed by 47 against
-> 229"* when correcting an existing line. The **23** between those is the cost of the "(corrected
-> …)" mark itself. Friday I asserted that cost; now it is arithmetic on the page.
+> **And the fix nearly shipped broken in the one way only the real thing would show.** The new check
+> asks the repository's history whether any run committed during the silence. GitHub's default
+> checkout fetches a single commit of history — so in production it would have answered *"nothing
+> did"* every single time, silently restoring the exact false alarm it was written to remove, while
+> passing every test on my machine. **The build caught it on the commit that added it.** It now
+> fetches full history, and a history too short to answer says *"cannot answer"* instead of *"nothing
+> happened"*.
 >
-> **What did not happen.** Nothing on the site changed — no find published, corrected, hidden or
-> restored, and every figure identical to Friday. This run did not touch the site's code at all, only
-> the agent's own reading tools. The daily schedule is still switched off. The landing page is still
-> frozen until Friday 18th. Nothing was spent.
+> **What did not happen.** No landing page, no pricing, no positioning — that window is untouched and
+> closes Friday 18th. Nothing that decides what `@sportstech` selects. The daily publishing schedule
+> is **still switched off** and the replacement threshold is still waiting on review; this run neither
+> armed nor enacted it. No find published, corrected, hidden or restored. Nothing was spent.
+>
+> **One thing I could not do, and stopped rather than work around.** I re-tested whether this session
+> could make the `awesome-rss-feeds` submission itself. The answer is now **settled rather than
+> pending**: the refusal is structural, not a glitch that might lapse. There *is* a way — starting a
+> session scoped to that repository — and **I did not take it.** Your `A` authorises the submission,
+> not this executor widening its own access to other people's repositories in order to make it. That
+> stays your two minutes.
 >
 > **And the number that has not moved in thirty-eight days.** Nobody has applied, nobody follows
-> `@sportstech`, and there is no money. **22 days left.** A more truthful log is worth having and it
-> is not a customer; the two items in §1 are still the only things on this list that could produce
-> one.
+> `@sportstech`, and there is no money. **22 days left.** A feed that can name itself is not a
+> subscriber. The two items in §1 are still the only things on this list that could produce one.
+>
+> ---
+>
+> **Previously (run 156).** The agent had one word — "length" — for three different reasons to
+> stay quiet, and on Friday that word made this page tell you something untrue: a sentence reported
+> as *too long to quote* was in fact **too short**, under eighty characters, and nothing in that
+> paper was ever too long. The decision was right both times and no reader saw anything wrong, but
+> the write-up was confidently wrong about a fact it had every means to get right. The one word is
+> now three, a length refusal states the miss and the budget it missed (*"missed by 24 against
+> 252"*), and each wrong line was corrected where it stands rather than quietly edited out.
 >
 > ---
 >
@@ -984,9 +1006,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-75** | **A watchdog with one source cannot tell "it stopped" from "it stopped reporting".** `executor liveness` reads the claims register — the loop's own step 0 — from outside the loop, and had one verdict name, `missed-runs`, for two facts: *no session ran*, and *a session ran without claiming*. Runs 155 and 156 produced the second (8 commits, 2 execution reports, no claim), and the hourly alarm was ~25 minutes from posting **"Executor loop is not firing"** and **"check that the routine is enabled and firing"** about a routine that fired on time every time. The register was right throughout; only the **inference from silence** was wrong. **Independence from the thing you watch and single-sourcing are not the same requirement** — and run 147 had already found the real outage by cross-checking commits by hand, then wrote the conclusion into the instrument and not the method. | **Split any verdict that two different owner actions could follow from, using a source that fails independently — and let corroboration rename an alarm, never clear one.** Executor commits carry a session trailer that `metrics snapshot`'s do not (the exact confound the workflow's header already named in prose). Every new verdict stays `ok: false`; a mutation making them `ok` turns two tests red. **And verify the second source where it will actually run**: the first version returned "nothing committed" on every real firing, because GitHub checks out one commit of history — it would have restored the false alarm invisibly, and CI caught it on the commit that added it. A truncated history now answers *"cannot answer"*, never *"nothing happened"*. |
 | **L-74** | **A category that collapses three failures into one name will be believed, and then quoted.** `length` was one refusal reason covering a sentence too short to be a quotation, one the character budget excluded, and one with no full stop (which usually means this code split it wrongly — the only one of the three that means something here is broken). Run 155 read `length 1` off item 280, wrote *"one too long to quote whole"* into three durable files and into the owner's mirror, and it was wrong: under the split clauses the same screen reports **`too-short 1`**, and nothing in that abstract was ever over budget. **The code behaved correctly every time** — only the account of it was false, and an account is the one artefact this loop produces that nobody can check against anything else. | **Hold a diagnostic label to the same bar as a public claim, and separate a fact about the input from a fact about your own configuration.** "Too long" is about a budget this code chose; "too short" is about the sentence. Where a threshold is involved print the **margin and the threshold**, never the verdict alone — the verdict is the part a later reader cannot reconstruct. And **format prose from the counts, never from the headline field**: `refusedBecause` is the earliest clause applied, so the line built on it claimed to have refused all three sentences while printing counts saying it refused one. The test that pins this reconstructs the old sentence and asserts it is false. |
 | **L-73** | **A clause is defeated by the exact case it was written for, wearing different punctuation.** Two rules existed to refuse *"Methods Thirteen male soccer players (16.2 ± 0.3 years…) completed a counterbalanced crossover study…"* and both were walked past: one required a colon after the section label and that journal writes none, the other required a noun and its verb to be adjacent and the demographics sat between them. **The dangerous half is the first — a restriction that fails open.** When the label pattern matched nothing, the code did not refuse; it widened the pool to the whole abstract and the log stayed cheerful. Third in three days, all three caught on a dry run. | **A restriction must fail closed, and a refusal over prose must tolerate an intervening clause.** If the structure a restriction depends on is absent, that is a fact to report and narrow on, never a licence to widen. And **write the test from the live string before writing the fix, for both directions** — the case that must now be refused and a neighbour that must still be admitted. Both defects in this fix were in the fix itself, and both were caught that way within a minute; neither by re-reading the regex. |
-| **L-72** | **The same word answers two different questions, and a table is not transferable between them.** `STATISTIC_SIGNATURES` was written for the bar, where the question is *does this paper report statistics at all*, and reused for the quotation clause, where it is *does this sentence report a result*. It matches `ICC` and `95% CI` as strings, so the rule's first live screen quoted *"Reliability was assessed by ICC(A,1) with 95% CIs, SEM, MDC 95 , CV%, and Bland-Altman analysis."* — faithful, verbatim, and about the arithmetic. **Worse than the line it replaced**, because a sentence in quotation marks makes a claim about its own significance. This is [L-71](LESSONS.md) one layer in, on the same day. | **When a second clause borrows a first clause's table, write down the question each asks; if the sentences differ, the table cannot be shared.** The fix was a separate table in which every pattern binds a digit — and the test asserts *that property of the table*, so a later addition cannot quietly reintroduce a bare procedure name. **And a refusal clause earns its place by what it refuses on live data within the hour**: both screens ran minutes apart, and the correction was visible only because a dry screen exists and was read before anything was published. |
 
 
 
@@ -1002,11 +1024,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-13 14:25 Sydney (2026-09-13 04:25 UTC) |
-| **Run** | 156 — **one refusal reason was three different facts, and the first live run under the split contradicted Friday's report.** `length` covered too-short, too-long and unterminated under one name; run 155 read `length 1` off item 280 and recorded "too long to quote whole" in three durable files and in this banner. Re-run under the split clauses ([34737237792](https://github.com/in-c0/tuned/actions/runs/34737237792)) the same screen reports **`too-short 1`** — nothing in that abstract was ever over budget. Each wrong line corrected in place with a dated note. [L-74](LESSONS.md). |
-| **Repository commit at time of writing** | the refusal-clause split in [`af26cc3`](https://github.com/in-c0/tuned/commit/af26cc3), `scripts/` only — no Worker code, no route, no public surface, no landing page. [check 266](https://github.com/in-c0/tuned/actions/runs/34737225142) and [verify production 249](https://github.com/in-c0/tuned/actions/runs/34737225143) both **success**. |
-| **Data commit** | [`aada5a1`](https://github.com/in-c0/tuned/commit/aada5a1) — [`metrics/latest.json`](metrics/latest.json), snapshot of 2026-09-12 22:30 UTC. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored; `operator_amendments` reads **0** off live production. |
-| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143. §4's figures are unchanged and were re-read off live production at `04:11:45Z` HTTP 200 ([agent-operator list 34737313154](https://github.com/in-c0/tuned/actions/runs/34737313154)): `public_items` 19, `operator_publications` 8, `operator_amendments` 0. |
+| **Last materially updated** | 2026-09-13 20:45 Sydney (2026-09-13 10:45 UTC) |
+| **Run** | 157 — **the feed could not say which of three addresses it was, and the loop's own watchdog was ~25 minutes from reporting an outage that was not happening.** The RSS document now carries `<atom:link rel="self">` on the canonical origin and a `<lastBuildDate>` — the half of run 86's canonical fix that was skipped on the surface a directory actually lists. And `executor liveness` now separates *no run happened* from *a run happened and skipped step 0*: runs 155 and 156 did the latter (8 commits, 2 reports, no claim), which the alarm would have published as "Executor loop is not firing". [L-75](LESSONS.md). |
+| **Repository commit at time of writing** | the RSS canonical in [`89156a4`](https://github.com/in-c0/tuned/commit/89156a4) (`src/pages.ts`, `test/discovery.test.ts`, `verify-production.yml`) and the watchdog split in [`e1972d9`](https://github.com/in-c0/tuned/commit/e1972d9) (`scripts/` and `executor-liveness.yml`). No schema change, no route, no secret, no landing page. |
+| **Data commit** | [`6b53287`](https://github.com/in-c0/tuned/commit/6b53287) — [`metrics/latest.json`](metrics/latest.json), snapshot of `2026-09-13T04:48:56.709Z`, the same one run 156 read. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored. |
+| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143 — and A0, the reason item 1 is the owner's rather than mine, is now recorded as **structurally closed rather than pending** (see [METRICS.md](METRICS.md)). §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

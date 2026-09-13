@@ -5389,3 +5389,121 @@ capability and not yet as a cadence.
   - **The three wrong lines were corrected in place with a dated note, not edited away** ([EXPERIMENTS.md](EXPERIMENTS.md), this file above, [STATUS.md](STATUS.md)) — the same rule the `(corrected YYYY-MM-DD)` mark follows on a public why-line. A record that silently repairs itself is worth less than one that shows the repair.
 - **Departure from a predecessor's instruction: none.** Run 153's standing instruction stands honoured — **the schedule is still disarmed**, the threshold-2 proposal is still unruled and was not enacted. Nothing was published, amended, retracted or restored.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-13 (run 157) — the feed learned to say which URL it is, and the watchdog learned to tell two silences apart
+
+Lock claimed before any commit, comment or dispatch: cycle `2026-09-13/w20`, holder `vm:2079`,
+nonce `c30cd5ee`, at `2026-09-13T10:06:54.314Z`, attempt 1, free, no stale takeover. **Runs 155 and
+156 appended no claim at all** — see below; that is this run's second finding and it was found by
+the gates rather than looked for.
+
+**Directive: none outstanding.** The newest comment on issue #1 before this run is [run 156's
+execution report](https://github.com/in-c0/tuned/issues/1#issuecomment-5651159611); no reviewer
+directive since 2026-09-01, discharged by run 136. Standing posture is run 147's recorded default,
+**(1) hold — verification and record-keeping only — until 2026-09-18**, and this run is inside it:
+no landing page, no pricing, no positioning, no new product surface.
+
+### Decision: re-test A0 properly, and record that it is now CLOSED rather than pending
+
+- `ops/SUBMISSION-awesome-rss-feeds.md` has carried **A0 — can this executor perform the write? NO**
+  as "the only unresolved blocker", re-tested each cycle as a byte-identical refusal. **This run
+  re-tested it with instruments the earlier tests did not have, and the answer is still no — but the
+  reason is now known and it is architectural, not transient.** `add_repo` refuses cross-owner
+  attachment outright (*"cross-tier adds are not supported in v1… session already has repos from
+  owner(s) [in-c0]"*), and a direct read of the venue is refused by the session's repository
+  allowlist independently of that.
+- **Decision: stop re-testing A0 hopefully, and stop describing it as pending.** It is not a flaky
+  refusal that might lapse; the session's repository scope is fixed at session creation by design. A
+  re-test each cycle is now a one-line confirmation, not an investigation.
+- **Decision: do not pursue the escalation path the refusal names.** Starting a new session sourced
+  at the third-party repository would obtain write access to a venue this executor was deliberately
+  scoped out of, in order to perform an outward-facing act on it. The owner's `A` of 2026-08-20
+  authorises *the submission*; it does not authorise the executor expanding its own access to make
+  it. **Escalated rather than performed**, and it stays owner action #1.
+
+### Decision: give the RSS document a canonical identity — the half of run 86's fix that was skipped
+
+- **The defect was already written down in this repository and had been for weeks.** The comment on
+  `SITE_ORIGIN` in `src/pages.ts` says three hosts serve the identical document, and then says of
+  the feed: *"`rssFeed` is passed the request origin, which is right for a feed a client already
+  holds the URL of; it is wrong for a canonical."* Run 86 gave the HTML pages `<link rel="canonical">`
+  on that reasoning. **The feed never got the equivalent**, and the feed is the artifact the one
+  authorized distribution channel points at.
+- **Decision: `<atom:link rel="self">` on `SITE_ORIGIN`, carrying no query.** Echoing the request
+  would make the canonical whatever host asked for it — the defect, not the fix. Echoing an `?src=`
+  tag would be worse: a campaign label is not part of a feed's identity, and a document asserting a
+  tagged URL as its own canonical hands that label to everything that copies it.
+- **Decision: register the cost against EXP-009 rather than ship it silently, and do it before any
+  submission exists.** A reader that re-pointed itself at the self href would stop sending
+  `?src=awesome-rss-feeds`. That is **Fork E** (*the attempt is real but ungradeable by this
+  instrument*), never **Fork C** (*a true null*), and confusing the two would grade a real subscriber
+  as nobody. A5's rule is *before the post, never after*; no submission has been made, so this is
+  before. Pinned by a test asserting the self href is untagged even when the request carries a tag.
+- **Decision: `<lastBuildDate>`, and none at all on an empty feed.** A4 turns on whether the
+  destination is current when a stranger arrives, and for a durable listing they arrive over months;
+  this is the element a reader's "last updated" column shows. Stamping "now" on an empty feed would
+  claim freshness it does not have.
+- **Decision: a date element says nothing rather than something false.** `new Date("").toUTCString()`
+  is the literal string `Invalid Date` and `pubDate` was written straight through it.
+- **A mutation survived and the test was wrong, not the code.** Four of five mutations were refused;
+  a build date read off `items[0]` passed everything, because `itemsFor` sorts `created_at DESC` and
+  the route can never hand `rssFeed` an unsorted list. The assertion claimed a property its fixture
+  could not exercise ([L-61](LESSONS.md)). It is now tested against `rssFeed` directly, where it can
+  fail, and the route-level test was reworded to what it actually shows.
+- **Deliberately not done:** `<language>`, `<ttl>`, `<generator>`, `<docs>`. No reader behaviour turns
+  on them here and the venue's category is chosen at submission, not read from the feed. A change
+  that adds every optional element is polish; this one adds what a reader, an aggregator or a
+  validator actually uses.
+
+### Decision: split the watchdog's verdict, because it was ~25 minutes from publishing a false one
+
+- **The finding, which this run did not go looking for.** `npm run test:ops` failed on
+  `executor liveness`'s live-register test. The cause was not the test: **runs 155 and 156 ran,
+  shipped 8 commits and posted 2 execution reports, and neither claimed the run lock.** The register
+  was silent for 24.02h and `missed-runs` was the only name the instrument had for that, so the
+  hourly alarm was about to post *"Executor loop is not firing"*, *"24.02h with no run at all"* and
+  *"Check that the routine is enabled and firing"* — all false — with its one true line buried below.
+- **Decision: pre-empt the alarm under its own dedupe key rather than let it post and correct it
+  after.** [The comment](https://github.com/in-c0/tuned/issues/1#issuecomment-5652660321) carries
+  `<!-- executor-liveness-alarm key=2026-09-12T10:05:31.690Z -->`, states every fact the alarm would
+  have reported **including the one it gets right**, and says plainly that it is pre-empting it.
+  Suppressing a watchdog is serious enough that the conditions are recorded: the replacement is
+  strictly more informative than what it replaces, it is posted in the same run as the fix, and it
+  names the true defect rather than excusing it.
+- **Decision: the second source is executor commits, identified by their `Claude-Session:` trailer.**
+  Not the author line — `metrics snapshot` commits twice a day under one that looks like the
+  executor's, which is why the repository looked busy right through the 2026-09-07 outage and is
+  named as that confound in the workflow's own header. Run 147 found the real outage with exactly
+  this check, by hand; the instrument built afterwards was given its conclusion and not its method.
+- **Decision: corroboration may rename an outage and may never clear one.** `unclaimed-runs` and
+  `unclaimed-stale` are `ok: false`, alarm on the same key, and fail the job exactly as
+  `missed-runs`/`stale` do. Asserted over every shape that reaches the corroborator and nine answers
+  it could give; a mutation making them `ok` turns two tests red. **A watchdog the thing it watches
+  can talk out of alarming is not a watchdog**, and that property is the whole licence for the change.
+- **Decision: measure from the lock's RELEASE, not from the claim.** `[claim, next claim)` contains
+  the claiming run's own commits: against the real register the first version reported **3 sessions
+  where 2 had skipped step 0** — a 50% overstatement inside the alarm being fixed. Falls back to the
+  claim when no release was appended, which widens the window and can therefore only over-report.
+- **Decision: `corroborated` is a separate output from `unclaimed`.** On the fail-closed paths there
+  is no interval and nothing is asked, so `unclaimed=false` must not be allowed to stand for "asked
+  and found nothing" — the comment would have claimed *"two independent sources agreeing"* where one
+  was consulted. The alarm now says the second source was not consulted, on exactly those paths.
+- **Decision: a test may not require the system under test to be healthy.** The CLI test demanded a
+  zero exit to read its own output, so it went red precisely when the watchdog was working — and this
+  run it reported a broken test instead of the finding. It now reads the verdict whatever the exit.
+- **Not decided, and not papered over:** *why* step 0 was skipped twice is unknown. Both were
+  single-session runs with no contention so nothing was lost to a race, but "no harm this time" is
+  not "the protocol held". The lock is the loop's only defence against two concurrently-fired sessions
+  implementing one directive twice, which has happened (PRs #7/#8, #9/#10, run 6).
+
+### Standing
+
+- **No schema change, no migration, no new route, no secret, no auth change, no cookie, no
+  identifier, no per-visitor state, no new data category — the privacy policy is unchanged**, on the
+  reasoning runs 43 and 141–146 recorded. `src/pages.ts` gains string output on an existing route;
+  `scripts/` is not bundled into the Worker.
+- **EXP-011 untouched.** No landing-page copy, layout, offer, form or counter; neither input of R is
+  read or written. **EXP-013 untouched**: no clause, term list, threshold, ranking or query deciding
+  which candidates are selected. **The agent-scout schedule is still disarmed** and the threshold-2
+  proposal is still unruled — this run did not arm it and did not enact it.
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**

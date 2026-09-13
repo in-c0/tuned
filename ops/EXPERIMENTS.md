@@ -1828,6 +1828,44 @@ fetches on ≥ 7 of 14 days; EXP-010 measures what that day-count reaches with n
 the null is loud, Fork A's bar is not a bar. Reading 1 is unaffected — it grades `feed_fetch_bot`
 liveness and needs no null — and its 2026-08-26 date is unchanged.
 
+### EXP-009 — the feed's self link and the `?src=` tag: registered 2026-09-13 (run 157), BEFORE any submission exists
+
+**This is a change to the instrument's surface, written down before the channel is spent.** A5's
+rule is *before the post, never after*; no submission to `plenaryapp/awesome-rss-feeds` has been
+made, so this is before, and it is recorded here rather than only in the commit.
+
+**What changed.** `/<handle>/rss.xml` now carries `<atom:link rel="self">`, naming
+`https://justtuned.com/<handle>/rss.xml` — the canonical URL, built on `SITE_ORIGIN` and **carrying
+no query**. See [DECISIONS.md](DECISIONS.md) for why the alternatives are worse: a request-derived
+self link makes the canonical whatever host asked, and a tag-bearing one asserts a campaign URL as
+the feed's identity and hands that label to everything that copies the document.
+
+**The interaction with this experiment, stated plainly.** `arrival_fetch:awesome-rss-feeds` is
+written only by a fetch whose URL carries `?src=awesome-rss-feeds`. A client that re-pointed itself
+at the self href would stop sending the tag, and its later polls would land in
+`feed_fetch:sportstech` instead.
+
+**How that is graded, decided now rather than when a number is inconvenient.** It is **Fork E** —
+*the attempt is real but ungradeable by this instrument* — and **never Fork C**, the true null.
+Reporting a real subscriber as "nobody reached the feed through this venue" is the specific error
+that would make this whole register worthless, and it is the error a silent instrument change
+invites. Fork E already carries the right response: `feed_fetch:sportstech` against its Reading-1
+band is the remaining evidence and it is weaker.
+
+**The risk is judged small and the judgement is recorded so it can be wrong in public.** Feed
+readers overwhelmingly keep polling the URL a person gave them; `rel="self"` is used by validators,
+by aggregators for de-duplication, and by hub-based push (which needs `rel="hub"` alongside it, and
+this feed declares none). No reader is *known* to rewrite a subscription from it. If Reading 2 ever
+lands on Fork B with `feed_fetch:sportstech` visibly above its band on the same days, this paragraph
+is the first thing to re-read.
+
+**Pinned in code, not in prose.** `test/discovery.test.ts` asserts the self href is the untagged
+canonical **even when the request carries `?src=awesome-rss-feeds`**, so the decision cannot drift
+without a red build, and `verify production` asserts the same string against the served document.
+
+**Unchanged:** Reading 1 and Reading 2, their windows, thresholds, counters and all five forks. No
+number in this experiment moved, and nothing here is a result.
+
 ## EXP-010 — what does a published-but-never-submitted tagged URL earn on its own? (2026-08-20, run 58)
 
 **Pre-registered at 2026-08-20 ~04:30 UTC (14:30 Sydney): before the graded window opens, before any

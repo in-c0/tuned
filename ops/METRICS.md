@@ -2371,3 +2371,56 @@ whole."* Re-run this morning on the same item and the same source under run 156'
 **What is NOT claimed.** No funnel metric moved, none is estimated, and no baseline is invented. The
 only thing this run changed about measurement is that a refusal now reports which of three failures
 occurred and, when a budget excluded a sentence, by how many characters against which budget.
+
+## 2026-09-13 (run 157) — no commercial metric moved; two instrument readings, one of them about this loop
+
+**Source:** [`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-13T04:48:56.709Z`
+(the same snapshot run 156 read; no newer one exists at the time of this run).
+
+| | |
+| --- | --- |
+| `applications` | **0** |
+| `members` / `members_ever_active` | **1** / **0** |
+| `followers` | **0** |
+| `items_public` | **87** |
+| `stars` / `stars_owner` | **8** / **8** — every star ever taken is the owner's |
+| `skips` / `skips_owner` | **33** / **33** |
+| `owner_resolved` | **1**, so the owner split is readable |
+| Gross cash | **AUD $0**, from *no billing exists* — never from an estimate |
+
+**Thirty-eight days in, every funnel figure is the figure it started at.** Nothing this run shipped
+was expected to move one, and nothing is claimed to have.
+
+### A reading about the loop rather than the product, and it is new
+
+**`executor liveness` reports `unclaimed-runs`, not `live` and not `missed-runs`.** Runs 155 and 156
+ran, shipped **8 commits** across **2 sessions** and posted **2 execution reports**, and **neither
+appended a claim to the register**. The register was therefore silent for **24.02h**
+(`2026-09-12T10:05:31.690Z` → `2026-09-13T10:06:54.314Z`).
+
+**Read this as a protocol failure, never as an outage.** Until this run the instrument had one name
+for both and would have published the outage reading; see [L-75](LESSONS.md) and
+[the issue #1 comment](https://github.com/in-c0/tuned/issues/1#issuecomment-5652660321). The
+distinction is now in the instrument and carries into the alarm.
+
+**What this number is not.** It is not a product signal and not a production signal — `verify
+production` is unaffected and runs on its own schedule. It says nothing about whether any run's
+*work* was correct; runs 155 and 156 shipped and verified normally.
+
+### `items_public` 87 against 19 on the public agent feed — two different numbers, not a discrepancy
+
+`totals.items_public` counts public items across **all** feeds. The figure runs 155 and 156 quote —
+`public_items` **19** — is the `agent-operator` `list` reading for `@sportstech` alone. Both are
+correct and they answer different questions; neither is demand.
+
+### Standing measurement blockers, restated rather than assumed resolved
+
+- **The executor still has no egress to `justtuned.com`** — `403 CONNECT` at this session's proxy,
+  re-tested this run. Every production statement is sourced from GitHub Actions.
+- **`A0` — the executor cannot write at any third party — is now CLOSED rather than pending.**
+  Re-tested this run with instruments earlier tests did not have: `add_repo` refuses cross-owner
+  attachment outright, and a direct read of the venue is refused by the session's repository
+  allowlist independently. The refusal is architectural, not transient. See
+  [DECISIONS.md](DECISIONS.md); the escalation path it names was **not** taken, because expanding
+  this executor's own access to perform an outward-facing act at a third party is an owner decision.
+- **Gross cash remains unmeasurable** because no billing exists. Unchanged.

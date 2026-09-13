@@ -76,7 +76,7 @@ Not caution — these are standing boundaries, and the honest version is the onl
 
 | Condition | State | Read |
 | --- | --- | --- |
-| **A0** — can this executor perform the write? | **NO** — the only unresolved blocker | re-tested 2026-08-28, byte-identical refusal to run 88's |
+| **A0** — can this executor perform the write? | **NO, and CLOSED rather than pending (2026-09-13, run 157).** The refusal is structural, not transient: `add_repo` refuses cross-owner attachment outright, and a direct read of the venue is refused by the session's repository allowlist independently of it. It will not lapse on its own, so re-testing it each cycle is a one-line confirmation and not an investigation. A path exists — a session scoped to the venue — and it was **escalated rather than taken**: the owner's `A` authorises the submission, not this executor widening its own access to a third party to make it. | re-tested 2026-09-13 (run 157); previously 2026-08-28, byte-identical refusal to run 88's |
 | **A1** — venue permits a post of this form | **PARTIAL** — *"two ways to add any category, country or feed"*; authorship unaddressed, and silence is not permission | [32215103407](https://github.com/in-c0/tuned/actions/runs/32215103407), 2026-08-19 |
 | **A2** — authorship | **✅** — not authored prose; owner's `A` on record | 2026-08-20 15:04 UTC |
 | **A3** — destination renders for a stranger | **✅** | standing |
