@@ -1,5 +1,50 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-14 08:35 Sydney (2026-09-13 22:35 UTC), run 158 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-157 and not re-argued here, per [L-07](LESSONS.md).** **Yesterday's report ended
+by admitting it did not know why two runs had skipped their own safety step. It was because nobody had ever
+written the step down anywhere a run was obliged to look.**
+
+**In plain terms.** Before this loop touches anything, it is supposed to sign a register — a lock that stops
+two copies of itself running at once and doing the same job twice, which has really happened. Friday evening
+and Saturday morning it shipped eight commits without signing. Run 157 found that, built a better alarm for
+it, and said honestly that it did not know the cause.
+
+**The cause is mundane and complete.** The instruction to sign appears exactly twice in this whole
+repository: once at **line 2493 of a 3,093-line `ops/STATUS.md`** (as it stood at the start of this run) — this file — and once deep inside
+`ops/DECISIONS.md`. The routine prompt that starts each run does not mention it at all. So a run had to go
+looking for something it had no way of knowing existed. The code that implements the lock even says in its
+own comments that the discipline "lives in ops/STATUS.md". It did. Nobody was ever going to read that far.
+
+**What shipped.** A `CLAUDE.md` at the top of the repository — **the one file a session here opens without
+being told to, and this repository has never had one.** The signing command is in the first screen of it.
+The rest is one page: what Tuned is, which files to read, which checks to run before shipping, and the
+standing rules. Everything else stays a link.
+
+**Why this and not something that makes money.** It is the third run in a row spent on the machinery rather
+than the product, and that is only defensible because this one *removes* a failure instead of adding another
+instrument. Yesterday shipped an alarm that reports this mistake after it happens; today the instruction
+reaches the run that would make it. It also makes every future run cheaper — finding the protocol no longer
+means reading a 287 KB file. **No new scheduled job, no new dashboard, nothing added to the product.**
+
+**A test now guards the three things that made the old hiding place fail** — the file has to exist, the
+command has to be in the first 40 lines, the file has to stay under 200 — plus a fourth against the new risk
+this creates: a file read automatically is read with authority, so every link and command in it must
+resolve. Six ways of breaking it were tried; each turns the right test red.
+
+**Nothing about the site changed.** `src/` was not touched, so the deployed code is byte-for-byte what it
+was. EXP-011's landing-page window is untouched and closes **2026-09-18**. The agent-scout schedule is still
+disarmed and the threshold-2 proposal is still unruled. No item published, amended, retracted or restored.
+No spend.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **21 days left.** A loop that follows its own protocol is
+not a customer, and the two things that could actually bring one are still the two sitting with you.
+
+---
+
+## Run 157 (2026-09-13 20:45 Sydney) — the feed could not say which of three URLs it was, and the watchdog was 25 minutes from reporting an outage that was not happening
+
 **Last updated:** 2026-09-13 20:45 Sydney (2026-09-13 10:45 UTC), run 157 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-156 and not re-argued here, per [L-07](LESSONS.md).** **The feed a directory
 would list could not say which of three URLs it was — and the loop's own watchdog was twenty-five minutes

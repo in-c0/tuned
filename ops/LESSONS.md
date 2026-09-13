@@ -2969,3 +2969,57 @@ beside each wrong line rather than replacing it.
 - **Unfixed, and named so it is not rediscovered as news:** *why* runs 155 and 156 skipped step 0 is
   not established. The register now describes the loop honestly; it does not make the loop follow its
   own protocol.
+
+---
+
+## L-76 — a procedure filed where a run is not obliged to look has no carrier, and the file it was in was the largest one in the repository (2026-09-14, run 158)
+
+- **Known problem:** [L-75](#l-75--a-watchdog-with-one-source-cannot-tell-it-stopped-from-it-stopped-reporting-2026-09-13-run-157)
+  closed with the honest admission that *why* runs 155 and 156 skipped step 0 was not established.
+  This is that answer.
+- **Attempted approach:** `scripts/lib/run-claim.mjs` is real mutual exclusion — a git ref
+  compare-and-swap, proven by a test that forces the exact losing interleaving. Its own header states
+  the residual gap precisely: *"It does not and cannot stop a session that never calls it… The
+  discipline that closes that gap is procedural and lives in `ops/STATUS.md`."*
+- **Mistake:** it did live there — **at line 2493 of 3,093 — measured at [`fbfb868`](https://github.com/in-c0/tuned/commit/fbfb868), the tip this run started from — in a 287 KB file.** The claim command
+  appears exactly twice in all of `ops/`: there, and at line 5254 of a 450 KB `ops/DECISIONS.md` —
+  where it is narrative about a past run, not an instruction to a future one. **One place, then.**
+  Meanwhile [NORTH_STAR](NORTH_STAR.md)'s own operating-memory contract instructs a run to read
+  `STATUS.md` because it is *"one screen"*, and the top of that file is the current run's narrative,
+  not the protocol. **And the scheduled prompt that starts every run does not mention the lock at
+  all.** So the instruction was reachable only by a run that went looking for something it did not
+  know existed.
+- **Why it happened:** the protocol was introduced ([`3be09e5`](https://github.com/in-c0/tuned/commit/3be09e5))
+  by a session that already held it in working context, and was written down where that session was
+  already writing. Nothing checked afterwards whether a *fresh* session would encounter it — the same
+  shape as [L-01](#l-01--the-build-gate-was-broken-on-a-fresh-clone-and-only-a-fresh-clone-could-see-it),
+  where a gate passed for everyone who already had the generated file and failed on every clean
+  checkout. **This repository has never had a `CLAUDE.md`**, which is the one file a session in it
+  loads without being told to; `.claude/` contained only a `wrangler dev` launch config.
+- **Evidence and cost:** 33 claims in the register against 158 runs. Of the three firing windows
+  before this one, **two skipped step 0** — eight commits and two execution reports outside the
+  lock. Nothing was lost, only because neither run had a contender; the failure mode the lock exists
+  for (two sessions implementing one directive twice — PRs #7/#8, #9/#10, run 6) has really happened.
+  The downstream cost was a run of [L-75](#l-75--a-watchdog-with-one-source-cannot-tell-it-stopped-from-it-stopped-reporting-2026-09-13-run-157)'s
+  entire watchdog investigation, and an alarm 25 minutes from telling the owner the loop had died
+  while it was running.
+- **Lesson:** **a procedure is only as durable as the odds that the next executor reads it.** Storing
+  it in the most authoritative file is not the same as storing it where it will be seen, and a file
+  that grows past a screen actively hides what is filed deep in it. Before writing a procedure down,
+  ask which file the *next* run is guaranteed to load — not which file the current run is editing.
+- **More elegant next attempt:** [`CLAUDE.md`](../CLAUDE.md) at the repository root — loaded
+  automatically, capped at 200 lines, claim command inside the first screen, everything else a
+  pointer into `ops/`. It replaces detection with prevention: L-75 shipped an alarm that names this
+  failure after the fact; this makes the instruction reach the run that would cause it.
+- **Prevention check:** [`scripts/operating-card.test.mjs`](../scripts/operating-card.test.mjs) — 5
+  tests pinning the three properties whose absence buried the instruction (the carrier exists, the
+  command is within the first 40 lines, the file is at most 200 lines) plus a fourth against the new
+  failure this carrier introduces: **every `ops/`, `scripts/` and workflow path it names must exist,
+  and every `npm run` it lists must be defined**, because a file read with the authority of being
+  auto-loaded is worse than none when its pointers rot. Each of the six mutations — deleted card,
+  renamed command, command pushed to line 61, card grown by 200 lines, dead `ops/` pointer, undefined
+  npm script — was run and each turns exactly the right test red.
+- **Not claimed:** this makes the instruction unmissable; it does not make it obeyed. There is still
+  no mechanism that refuses a push from a session holding no claim, and a fail-closed gate on the
+  deploy path was deliberately not built — it would put an unclaimed run's *production deploy* at
+  risk to punish a bookkeeping miss. Detection remains `executor liveness`'s `unclaimed-runs`.

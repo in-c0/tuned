@@ -5507,3 +5507,79 @@ no landing page, no pricing, no positioning, no new product surface.
   which candidates are selected. **The agent-scout schedule is still disarmed** and the threshold-2
   proposal is still unruled — this run did not arm it and did not enact it.
 - **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+---
+
+## 2026-09-14 — run 158: the run protocol was moved to the only file every run loads
+
+### Decision
+
+**Create [`CLAUDE.md`](../CLAUDE.md) at the repository root and make it the carrier for the executor
+run protocol**, beginning with step 0 — claim the run lock — inside the first screen.
+
+This answers the question [run 157 closed with and could not answer](https://github.com/in-c0/tuned/issues/1#issuecomment-5652747459):
+*why* runs 155 and 156 shipped eight commits without claiming. They were never told to in a place
+they were obliged to read. **The instruction existed in exactly one place in this repository** —
+line 2493 of a 3,093-line `ops/STATUS.md`, measured at
+[`fbfb868`](https://github.com/in-c0/tuned/commit/fbfb868), the tip this run started from. The claim
+command's only other appearance in `ops/` is line 5254 of `ops/DECISIONS.md`, where it is narrative
+about a past run rather than an instruction to a future one. And **the scheduled prompt that starts
+every run does not mention the lock at all.** `scripts/lib/run-claim.mjs`'s own header named
+the gap as procedural and pointed at `ops/STATUS.md` as the place that closed it; that pointer was
+accurate and useless.
+
+**This repository has never had a `CLAUDE.md`** (`git log --all --diff-filter=A -- CLAUDE.md` is
+empty; `.claude/` held only a `wrangler dev` launch config). It is the one file a session in this
+repository loads without being told to.
+
+### Rationale, including why this and not something commercial
+
+The standing posture is run 147's recorded default — **hold, verification and record-keeping only,
+until 2026-09-18** while EXP-011's window runs. No reviewer directive has been posted since
+2026-09-01. Within that posture this is the largest open defect: it is the named unclosed gap from
+the previous run, it is a correctness failure in the loop's only guard against duplicated work, and
+the failure mode is not hypothetical (PRs #7/#8, #9/#10, run 6).
+
+**It is the third consecutive run on the control plane, and that is only defensible because it
+subtracts.** [NORTH_STAR rule 7](NORTH_STAR.md) and [L-08](LESSONS.md) say stop improving the control
+plane once it is adequate. This adds no instrument and no scheduled job: L-75 shipped an alarm that
+*names* this failure after the fact, and this makes the instruction reach the run that would cause
+it. It also makes every future run cheaper — the protocol no longer requires reading a 287 KB file
+to find.
+
+### Rejected alternatives
+
+- **A fail-closed CI gate that refuses a push from a session holding no claim.** Rejected: `master`
+  is the deploy branch and Workers Builds runs `npm run check` as its build command, so a gate there
+  would put an unclaimed run's *production deploy* at risk in order to punish a bookkeeping miss.
+  The proportionate response to a missed claim is a loud alarm, which
+  [`executor liveness`](../scripts/executor-liveness.mjs) now gives as `unclaimed-runs`.
+- **A git hook.** Rejected: hooks are not cloned, and `core.hooksPath` is per-checkout local config
+  that a fresh routine container does not carry. It would work on exactly the machines that do not
+  need it.
+- **Shortening `ops/STATUS.md`.** Out of scope for one bounded action, and it treats the symptom —
+  the protocol would still be filed in a narrative file rather than an operating one.
+
+### Changes
+
+- `CLAUDE.md` (new, 108 lines) — step 0 and the release command first; then doctrine, read order,
+  the gate list, the report headings, and the hard rules. Everything else is a pointer into `ops/`.
+- `scripts/operating-card.test.mjs` (new, 5 tests) — pins existence, the command's depth (< 40
+  lines), the card's length (≤ 200 lines), and that every path and `npm run` script it names
+  resolves. All six mutations verified to turn the right test red.
+- `scripts/lib/run-claim.mjs` — the header's "lives in ops/STATUS.md" pointer corrected, with the
+  line number it actually lived at and what that cost.
+- `ops/LESSONS.md` — [L-76](LESSONS.md).
+
+### Standing
+
+- **No schema change, no migration, no new route, no secret, no auth change, no cookie, no
+  identifier, no per-visitor state, no new data category — the privacy policy is unchanged.**
+  Nothing under `src/` is touched; `CLAUDE.md` and `scripts/` are not bundled into the Worker, so
+  **the deployed surface is byte-identical.**
+- **EXP-011 untouched** — no landing-page copy, layout, offer, form or counter, and neither input of
+  R is read or written. **EXP-013 untouched** — no clause, term list, threshold, ranking or query
+  deciding which candidates are selected. **The agent-scout schedule is still disarmed** and the
+  threshold-2 proposal remains unruled; this run neither armed nor enacted it. No item published,
+  amended, retracted or restored.
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**

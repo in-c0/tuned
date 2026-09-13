@@ -18,6 +18,47 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Yesterday I told you I did not know why two runs had skipped the loop's own safety step. The answer is that nobody had ever written the step down anywhere a run was obliged to look.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here.
+>
+> **What the safety step is.** Before this loop changes anything, it signs a register — a lock that
+> stops two copies of itself running at once and doing the same job twice. That has really happened
+> before, and it produced two competing pull requests for one instruction. Friday evening and
+> Saturday morning, the loop shipped eight commits without signing. Yesterday's run caught that,
+> rebuilt the alarm so it can no longer confuse *"the loop died"* with *"the loop skipped a step"*,
+> and finished by saying plainly that it did not know the cause.
+>
+> **The cause turns out to be mundane and complete.** The instruction to sign existed in exactly one
+> place in this repository: **line 2493 of a 3,093-line file** — and the contract that tells a run
+> which files to read describes that file as *"one screen"*. The routine prompt that starts each run
+> does not mention the lock at all. The code implementing the lock even states in its own comments
+> that the discipline *"lives in ops/STATUS.md"*. It did. Nobody was ever going to read that far.
+>
+> **What shipped.** A `CLAUDE.md` at the top of the repository — **the one file a session here opens
+> without being told to, and this repository has never had one in its life.** The signing command is
+> in its first screen. The rest is a single page: what Tuned is, which files to read, which checks to
+> run before shipping, the report format, and the standing rules. Everything else stays a link. A
+> test guards the three properties whose absence buried the instruction — it must exist, the command
+> must be in the first 40 lines, the file must stay under 200 — and a fourth against the new risk a
+> file like this creates: something read automatically is read with authority, so every link and
+> command inside it has to resolve. Six ways of breaking it were tried; each turns the right test red.
+>
+> **Why this rather than something that makes money.** This is the third run in a row spent on the
+> machinery rather than the product, and it is only defensible because it **takes a failure away**
+> rather than adding another instrument. Yesterday added an alarm that reports this mistake after it
+> happens; today the instruction reaches the run that would make it. No new scheduled job, no new
+> dashboard, nothing added to the product — and **`src/` was not touched, so the site is byte-for-byte
+> what it was.**
+>
+> **And the number that has not moved in thirty-nine days.** Nobody has applied, nobody follows
+> `@sportstech`, and there is no money. **21 days left.** A loop that follows its own protocol is not
+> a customer. The two items in §1 are still the only things on this list that could produce one.
+>
+> ---
+>
 > # **The feed a directory would list could not say which of three addresses it was — and the alarm that watches this loop was 25 minutes from telling you it had stopped, while it was running.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
@@ -1006,9 +1047,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-76** | **A procedure filed where a run is not obliged to look has no carrier — and the file it was in was the largest in the repository.** [L-75](LESSONS.md) closed by admitting it did not know *why* runs 155 and 156 skipped step 0. This is the answer: the instruction to claim the run lock existed in exactly one place — **line 2493 of a 3,093-line `ops/STATUS.md`** — while the operating-memory contract describes that file as *"one screen"*, and the scheduled prompt that starts every run does not mention the lock at all. `scripts/lib/run-claim.mjs`'s own header named the gap as procedural and pointed at `ops/STATUS.md` as the thing that closed it; the pointer was accurate and useless. **This repository has never had a `CLAUDE.md`** — the one file a session in it loads without being told to. Same shape as [L-01](LESSONS.md): written down by a session that already held it in context, never checked against a fresh one. | **Ask which file the *next* run is guaranteed to load, not which file you are already editing.** [`CLAUDE.md`](../CLAUDE.md) at the repository root: claim command inside the first screen, capped at 200 lines, everything else a pointer into `ops/`. It **replaces detection with prevention** — L-75 shipped an alarm that names this failure afterwards; this reaches the run that would cause it — and adds no instrument and no scheduled job. [`scripts/operating-card.test.mjs`](../scripts/operating-card.test.mjs) pins the three properties whose absence buried the instruction (exists · command within 40 lines · file ≤ 200 lines) plus a fourth against the risk this carrier introduces: **every path and `npm run` script it names must resolve**, because a file read with the authority of being auto-loaded is worse than none when its pointers rot. Six mutations tried, each turns the right test red. **Not claimed:** unmissable is not obeyed — nothing yet refuses a push from a session holding no claim, and a fail-closed gate on the deploy path was rejected deliberately. |
 | **L-75** | **A watchdog with one source cannot tell "it stopped" from "it stopped reporting".** `executor liveness` reads the claims register — the loop's own step 0 — from outside the loop, and had one verdict name, `missed-runs`, for two facts: *no session ran*, and *a session ran without claiming*. Runs 155 and 156 produced the second (8 commits, 2 execution reports, no claim), and the hourly alarm was ~25 minutes from posting **"Executor loop is not firing"** and **"check that the routine is enabled and firing"** about a routine that fired on time every time. The register was right throughout; only the **inference from silence** was wrong. **Independence from the thing you watch and single-sourcing are not the same requirement** — and run 147 had already found the real outage by cross-checking commits by hand, then wrote the conclusion into the instrument and not the method. | **Split any verdict that two different owner actions could follow from, using a source that fails independently — and let corroboration rename an alarm, never clear one.** Executor commits carry a session trailer that `metrics snapshot`'s do not (the exact confound the workflow's header already named in prose). Every new verdict stays `ok: false`; a mutation making them `ok` turns two tests red. **And verify the second source where it will actually run**: the first version returned "nothing committed" on every real firing, because GitHub checks out one commit of history — it would have restored the false alarm invisibly, and CI caught it on the commit that added it. A truncated history now answers *"cannot answer"*, never *"nothing happened"*. |
 | **L-74** | **A category that collapses three failures into one name will be believed, and then quoted.** `length` was one refusal reason covering a sentence too short to be a quotation, one the character budget excluded, and one with no full stop (which usually means this code split it wrongly — the only one of the three that means something here is broken). Run 155 read `length 1` off item 280, wrote *"one too long to quote whole"* into three durable files and into the owner's mirror, and it was wrong: under the split clauses the same screen reports **`too-short 1`**, and nothing in that abstract was ever over budget. **The code behaved correctly every time** — only the account of it was false, and an account is the one artefact this loop produces that nobody can check against anything else. | **Hold a diagnostic label to the same bar as a public claim, and separate a fact about the input from a fact about your own configuration.** "Too long" is about a budget this code chose; "too short" is about the sentence. Where a threshold is involved print the **margin and the threshold**, never the verdict alone — the verdict is the part a later reader cannot reconstruct. And **format prose from the counts, never from the headline field**: `refusedBecause` is the earliest clause applied, so the line built on it claimed to have refused all three sentences while printing counts saying it refused one. The test that pins this reconstructs the old sentence and asserts it is false. |
-| **L-73** | **A clause is defeated by the exact case it was written for, wearing different punctuation.** Two rules existed to refuse *"Methods Thirteen male soccer players (16.2 ± 0.3 years…) completed a counterbalanced crossover study…"* and both were walked past: one required a colon after the section label and that journal writes none, the other required a noun and its verb to be adjacent and the demographics sat between them. **The dangerous half is the first — a restriction that fails open.** When the label pattern matched nothing, the code did not refuse; it widened the pool to the whole abstract and the log stayed cheerful. Third in three days, all three caught on a dry run. | **A restriction must fail closed, and a refusal over prose must tolerate an intervening clause.** If the structure a restriction depends on is absent, that is a fact to report and narrow on, never a licence to widen. And **write the test from the live string before writing the fix, for both directions** — the case that must now be refused and a neighbour that must still be admitted. Both defects in this fix were in the fix itself, and both were caught that way within a minute; neither by re-reading the regex. |
 
 
 
@@ -1024,11 +1065,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-13 20:45 Sydney (2026-09-13 10:45 UTC) |
-| **Run** | 157 — **the feed could not say which of three addresses it was, and the loop's own watchdog was ~25 minutes from reporting an outage that was not happening.** The RSS document now carries `<atom:link rel="self">` on the canonical origin and a `<lastBuildDate>` — the half of run 86's canonical fix that was skipped on the surface a directory actually lists. And `executor liveness` now separates *no run happened* from *a run happened and skipped step 0*: runs 155 and 156 did the latter (8 commits, 2 reports, no claim), which the alarm would have published as "Executor loop is not firing". [L-75](LESSONS.md). |
-| **Repository commit at time of writing** | the RSS canonical in [`89156a4`](https://github.com/in-c0/tuned/commit/89156a4) (`src/pages.ts`, `test/discovery.test.ts`, `verify-production.yml`) and the watchdog split in [`e1972d9`](https://github.com/in-c0/tuned/commit/e1972d9) (`scripts/` and `executor-liveness.yml`). No schema change, no route, no secret, no landing page. |
+| **Last materially updated** | 2026-09-14 08:35 Sydney (2026-09-13 22:35 UTC) |
+| **Run** | 158 — **the run protocol was moved to the only file every run loads.** [`CLAUDE.md`](../CLAUDE.md) now carries step 0 — claim the run lock — in its first screen, answering the question run 157 closed with and could not answer: runs 155 and 156 skipped the lock because the instruction sat at line 2493 of a 3,093-line `ops/STATUS.md` and nowhere a run was obliged to read. This repository had never had a `CLAUDE.md`. [L-76](LESSONS.md). |
+| **Repository commit at time of writing** | run 158's carrier fix — `CLAUDE.md` (new), [`scripts/operating-card.test.mjs`](../scripts/operating-card.test.mjs) (new), and a corrected pointer in `scripts/lib/run-claim.mjs`. **Nothing under `src/` was touched, so the deployed Worker is byte-identical.** No schema change, no route, no secret, no landing page. |
 | **Data commit** | [`6b53287`](https://github.com/in-c0/tuned/commit/6b53287) — [`metrics/latest.json`](metrics/latest.json), snapshot of `2026-09-13T04:48:56.709Z`, the same one run 156 read. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored. |
-| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143 — and A0, the reason item 1 is the owner's rather than mine, is now recorded as **structurally closed rather than pending** (see [METRICS.md](METRICS.md)). §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0. |
+| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143. §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 — read from the same snapshot as the data commit row. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling
