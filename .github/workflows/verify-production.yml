@@ -390,7 +390,37 @@ jobs:
           [ "$fcode" = "200" ] || { echo "::error::advertised feed ${href} returned HTTP $fcode"; exit 1; }
           grep -q '<rss' /tmp/advertised.xml || { echo "::error::advertised feed ${href} is not an RSS document"; exit 1; }
 
-          echo "/ava: autodiscovery present, advertises ${href}, and that URL serves RSS"
+          # The feed document's own canonical address. The page saying where its feed is and
+          # the feed saying which URL it is are two different claims, and only the first was
+          # ever checked. Three hosts serve this identical XML, so a self link built from the
+          # request would make the canonical whatever asked for it — the defect, not the fix.
+          #
+          # THE VANTAGE IS WHAT GIVES THIS TEETH. When the zone challenges this job, BASE is
+          # the workers.dev origin, and a request-derived self link would come back naming
+          # that host. Asserting the canonical unconditionally therefore fails loudly on the
+          # exact run where the regression would otherwise be invisible.
+          grep -q 'xmlns:atom="http://www.w3.org/2005/Atom"' /tmp/advertised.xml \
+            || { echo "::error::${href} declares no atom namespace — its self link resolves to no namespace at all"; exit 1; }
+          shref=$(grep -o '<atom:link[^>]*rel="self"[^>]*>' /tmp/advertised.xml | head -1 | sed -n 's/.*href="\([^"]*\)".*/\1/p')
+          [ "$shref" = "https://justtuned.com/ava/rss.xml" ] \
+            || { echo "::error::${href} names itself '$shref', expected https://justtuned.com/ava/rss.xml (fetched via ${BASE})"; exit 1; }
+
+          # The freshness promise, machine-readable. A4 in ops/DISTRIBUTION.md turns on whether
+          # the destination is current when a stranger arrives; this is the element a reader's
+          # "last updated" column shows. It must be a date — the string `Invalid Date` used to
+          # be a reachable output of this document and is a false statement, not a missing one.
+          built=$(grep -o '<lastBuildDate>[^<]*</lastBuildDate>' /tmp/advertised.xml | head -1 | sed 's/<[^>]*>//g')
+          if [ -n "$built" ]; then
+            date -u -d "$built" >/dev/null 2>&1 \
+              || { echo "::error::${href} states a build date that is not a date: '$built'"; exit 1; }
+            echo "${href}: last built ${built}"
+          else
+            # Legal and meaningful: a feed with no items has no build date. It is reported
+            # rather than passed over, because on /ava it would mean the feed had emptied.
+            echo "::notice::${href} states no lastBuildDate — the feed carries no dated item"
+          fi
+
+          echo "/ava: autodiscovery present, advertises ${href}, that URL serves RSS, and it names itself ${shref}"
 
       # The same class of regression as the step above, on the same page, for everything that
       # is not a feed reader. A public feed page is the destination of every distribution link

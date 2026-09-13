@@ -1041,20 +1041,33 @@ export function setupPage(creator: Creator, token: string, origin: string): stri
   return layout(`Sharing setup — ${BRAND}`, creator.accent, body, js);
 }
 
+/** A timestamp as RFC 822, or the empty string when it is not a date.
+ *
+ * `new Date("").toUTCString()` is the literal string `Invalid Date`, and RSS dates were written
+ * straight through it — so a row with an unparseable `created_at` published an element whose
+ * content is not a date at all. Readers vary in what they do with that and none of them do
+ * anything good. An absent `pubDate` is legal and means "unstated"; a present one that is not a
+ * date is a false statement, and this loop's rule is that a field says nothing rather than
+ * something wrong. */
+function rfc822(iso: string): string {
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? new Date(t).toUTCString() : "";
+}
+
 export function rssFeed(creator: Creator, items: Item[], origin: string): string {
-  const entries = items
-    .slice(0, 50)
-    .map(
-      (i) => `
+  const published = items.slice(0, 50);
+  const entries = published
+    .map((i) => {
+      const pub = rfc822(i.created_at);
+      return `
   <item>
     <title>${esc(i.title)}</title>
     <link>${esc(i.url)}</link>
-    <guid isPermaLink="false">${BRAND.toLowerCase()}-item-${i.id}</guid>
-    <pubDate>${new Date(i.created_at).toUTCString()}</pubDate>
+    <guid isPermaLink="false">${BRAND.toLowerCase()}-item-${i.id}</guid>${pub ? `\n    <pubDate>${pub}</pubDate>` : ""}
     <category>${esc(i.category)}</category>
     <description>${esc(i.note || i.description)}</description>
-  </item>`
-    )
+  </item>`;
+    })
     .join("");
   // An agent feed says so in RSS as well as on the page. A subscriber reads these items
   // inside their own reader, where the "AI agent" badge that rides on the HTML feed has
@@ -1066,12 +1079,51 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
   const provenance = isAgent
     ? ` Selected by an AI agent, registered and supervised by a human member.`
     : "";
+
+  /** The feed document's own canonical address — the RSS half of the decision recorded at
+   *  SITE_ORIGIN, which was made for HTML and then left undone here.
+   *
+   *  That comment already states the defect: *"`rssFeed` is passed the request origin, which is
+   *  right for a feed a client already holds the URL of; it is wrong for a canonical."* Run 86
+   *  gave the HTML pages `<link rel="canonical">` for exactly that reason. The feed never got the
+   *  equivalent, and the feed is the artifact a directory listing points at. Three hosts serve
+   *  this identical document (`justtuned.com`, `www.`, `*.workers.dev`), and until now nothing
+   *  inside it said which of them is the feed. `<atom:link rel="self">` is how an RSS document
+   *  says so; it is also the one thing the W3C Feed Validator reports missing on every feed that
+   *  omits it.
+   *
+   *  IT IS BUILT ON SITE_ORIGIN AND CARRIES NO QUERY, AND BOTH HALVES ARE DELIBERATE. Echoing
+   *  the request would make the canonical vary by the host that asked, which is the defect rather
+   *  than the fix. Echoing an `?src=` campaign tag would be worse: the tag is a label on a link,
+   *  not part of the feed's identity, and a document asserting a tagged URL as its own canonical
+   *  would hand every copier a campaign label to spread. The cost of dropping it is registered in
+   *  EXP-009 rather than hidden — a reader that re-pointed itself at this href would stop sending
+   *  the tag, which is Fork E's case (ungradeable by the tag), never Fork C's (a null). */
+  const self = `${SITE_ORIGIN}/${esc(creator.handle)}/rss.xml`;
+
+  /** The freshness promise, made machine-readable on the surface that is actually subscribed to.
+   *
+   *  A4 in ops/DISTRIBUTION.md turns on whether the destination is current when a stranger
+   *  arrives, and a durable listing's readers arrive over months. A reader's "last updated"
+   *  column is where that shows. Taken as the newest date among the items actually served rather
+   *  than from `items[0]`, so an unsorted caller cannot make this element disagree with the
+   *  document beneath it — and omitted entirely on an empty feed, because there is no build date
+   *  to state and a fabricated "now" would claim freshness the feed does not have. */
+  const newest = published
+    .map((i) => Date.parse(i.created_at))
+    .filter((t) => Number.isFinite(t))
+    .reduce((a, b) => (b > a ? b : a), Number.NEGATIVE_INFINITY);
+  const lastBuild = Number.isFinite(newest)
+    ? `\n  <lastBuildDate>${new Date(newest).toUTCString()}</lastBuildDate>`
+    : "";
+
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>${title}</title>
   <link>${esc(origin)}/${esc(creator.handle)}</link>
-  <description>What ${esc(creator.name)} is paying attention to right now.${provenance}</description>${entries}
+  <atom:link href="${self}" rel="self" type="application/rss+xml"/>
+  <description>What ${esc(creator.name)} is paying attention to right now.${provenance}</description>${lastBuild}${entries}
 </channel>
 </rss>`;
 }
