@@ -76,6 +76,12 @@ jobs:
           GAP_FROM: ${{ steps.liveness.outputs.gap_from }}
           GAP_TO: ${{ steps.liveness.outputs.gap_to }}
           GAP_HOURS: ${{ steps.liveness.outputs.gap_hours }}
+          UNCLAIMED: ${{ steps.liveness.outputs.unclaimed }}
+          CORROBORATED: ${{ steps.liveness.outputs.corroborated }}
+          ACTIVITY_COMMITS: ${{ steps.liveness.outputs.activity_commits }}
+          ACTIVITY_SESSIONS: ${{ steps.liveness.outputs.activity_sessions }}
+          ACTIVITY_FIRST: ${{ steps.liveness.outputs.activity_first }}
+          ACTIVITY_LAST: ${{ steps.liveness.outputs.activity_last }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -98,20 +104,50 @@ jobs:
             exit 0
           fi
 
+          # TWO OUTAGES WEARING ONE HEADLINE WAS THE 2026-09-13 DEFECT. A register that has
+          # gone quiet means either that no session ran or that a session ran and skipped
+          # step 0, and the owner action for those is opposite: restart the routine, versus
+          # leave it alone and fix the protocol. The script now separates them against an
+          # independent source (executor commits on master, identified by their session
+          # trailer), and everything below branches on that rather than asserting the
+          # outage. See ops/LESSONS.md L-75.
           {
             echo "$marker"
             echo
-            echo "## Executor loop is not firing"
-            echo
-            echo "The scheduled executor routine claims the run lock as step 0 of every run, before"
-            echo "any commit or comment. The claims register says runs are being lost."
+            if [ "${UNCLAIMED:-false}" = "true" ]; then
+              echo "## Executor loop is running without claiming the run lock"
+              echo
+              echo "The scheduled executor routine claims the run lock as step 0 of every run, before"
+              echo "any commit or comment. **It is firing, and it is not claiming** — the register has"
+              echo "gone quiet while sessions kept committing, so the lock is no longer protecting"
+              echo "anything against a second session firing on the same directive."
+            else
+              echo "## Executor loop is not firing"
+              echo
+              echo "The scheduled executor routine claims the run lock as step 0 of every run, before"
+              echo "any commit or comment. The claims register says runs are being lost."
+              if [ "${CORROBORATED:-false}" = "true" ]; then
+                echo
+                echo "**No executor session committed in that interval either** — two independent"
+                echo "sources agreeing, which is what separates this from a protocol lapse."
+              fi
+            fi
             echo
             echo "| | |"
             echo "| --- | --- |"
             echo "| Verdict | \`${REASON}\` |"
             if [ -n "${GAP_FROM:-}" ]; then
-              echo "| Runs missed between | ${GAP_FROM} and ${GAP_TO} |"
-              echo "| Length of that gap | ${GAP_HOURS:-n/a}h with no run at all |"
+              if [ "${UNCLAIMED:-false}" = "true" ]; then
+                echo "| Unclaimed between | ${GAP_FROM} and ${GAP_TO} |"
+                echo "| Length of that gap | ${GAP_HOURS:-n/a}h with no claim |"
+              else
+                echo "| Runs missed between | ${GAP_FROM} and ${GAP_TO} |"
+                echo "| Length of that gap | ${GAP_HOURS:-n/a}h with no run at all |"
+              fi
+            fi
+            if [ "${UNCLAIMED:-false}" = "true" ]; then
+              echo "| Sessions that ran anyway | ${ACTIVITY_SESSIONS:-n/a}, ${ACTIVITY_COMMITS:-n/a} commit(s) |"
+              echo "| First / last of them | ${ACTIVITY_FIRST:-n/a} … ${ACTIVITY_LAST:-n/a} |"
             fi
             echo "| Newest executor claim | ${STALE_SINCE:-none found} |"
             echo "| Age at detection | ${AGE_HOURS:-n/a}h |"
@@ -124,15 +160,40 @@ jobs:
               echo "inside it are still lost, and nothing else would ever have said so."
               echo
             fi
-            echo "**What this does and does not say.** It says no executor session reached step 0."
-            echo "It does not say why, and it is not a product or production signal — production is"
-            echo "verified separately by \`verify production\`, which is unaffected by this. The"
-            echo "repository may still look active: \`metrics snapshot\` commits twice a day on its"
-            echo "own schedule, under the same author line the executor uses."
+            if [ "${UNCLAIMED:-false}" = "true" ]; then
+              echo "**What this does and does not say.** It says executor sessions ran in this"
+              echo "interval and none of them reached step 0. It is **not** an outage and the routine"
+              echo "needs no restarting; it is the run-lock protocol failing silently, which matters"
+              echo "because the lock is the only thing stopping two concurrently-fired sessions from"
+              echo "implementing the same directive twice — as happened in PRs #7/#8 and #9/#10. It"
+              echo "is not a product or production signal either: production is verified separately"
+              echo "by \`verify production\`, which is unaffected by this."
+              echo
+              echo "**Owner action: none required.** This is the executor's own protocol to repair,"
+              echo "and the next run should say in its report why step 0 was skipped and what now"
+              echo "stops it recurring. Escalate only if it repeats after that."
+            else
+              if [ "${CORROBORATED:-false}" = "true" ]; then
+                echo "**What this does and does not say.** It says no executor session reached step 0,"
+                echo "and that none committed in the interval either — so the two sources agree the"
+                echo "loop was down rather than merely quiet."
+              else
+                echo "**What this does and does not say.** It says no executor session reached step 0."
+                echo "**The second source was not consulted on this verdict** — these are the"
+                echo "fail-closed paths, where there is no interval to ask about — so this does not"
+                echo "distinguish a loop that is down from one that is running without claiming."
+              fi
+              echo "It does not say why, and it is not a product or production signal: production is"
+              echo "verified separately by \`verify production\`, which is unaffected by this. The"
+              echo "repository may still look active — \`metrics snapshot\` commits twice a day on its"
+              echo "own schedule, under the same author line the executor uses, and those commits"
+              echo "carry no session trailer and are excluded from the check above."
+              echo
+              echo "**Owner action.** Check that the routine is enabled and firing."
+            fi
             echo
-            echo "**Owner action.** Check that the routine is enabled and firing. This comment is"
-            echo "posted once per outage; it will not repeat until the loop claims again and a new"
-            echo "outage begins."
+            echo "This comment is posted once per outage; it will not repeat until the loop claims"
+            echo "again and a new outage begins."
             echo
             echo "---"
             echo "_Generated by [Claude Code](https://claude.ai/code)_"

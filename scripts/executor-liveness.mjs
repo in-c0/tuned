@@ -98,6 +98,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import {
   CLAIM_BRANCH,
   DEFAULT_RESOURCE,
@@ -136,9 +137,96 @@ export const CLOCK_SKEW_MS = 5 * 60_000;
 
 const HOUR_MS = 3_600_000;
 
+// THE SECOND SOURCE, AND WHY A WATCHDOG WITH ONE SOURCE WAS THE DEFECT.
+//
+// Until 2026-09-13 this file had exactly one input — the claims register — and one name,
+// `missed-runs`, for what silence in it meant. Silence has two causes and they call for
+// opposite actions by the owner:
+//
+//   no executor session ran            -> the routine is down. Restart it.
+//   a session ran and did not claim    -> the routine is fine. The protocol is not.
+//
+// Runs 155 and 156 produced the second on 2026-09-12/13: two sessions, eight commits, two
+// execution reports on issue #1, and no claim between 2026-09-12T10:05:31.690Z and this
+// file's next reading. The register was right, the verdict name was not, and the alarm was
+// one hour from telling the owner "24.02h with no run at all" and "check that the routine
+// is enabled and firing" — both false. See issue #1 and ops/LESSONS.md L-75.
+//
+// Run 147 already knew the discriminator and found the real 2026-09-07 outage with it by
+// hand: *"no execution report between run 146 and this one, and no `Claude`-authored commit
+// on `master` in that interval, both of which agree with the register"*. The instrument
+// built afterwards never learned it. This is that check, moved into the instrument.
+//
+// WHY COMMIT TRAILERS AND NOT THE AUTHOR LINE. `executor liveness`'s own workflow header
+// names the confound: `metrics snapshot` commits twice a day under an author line that
+// looks like the executor's, which is why the repository looked busy right through the
+// 2026-09-07 outage. A `Claude-Session:` trailer is written by an executor session and by
+// nothing else on this repository, and it additionally names *which* session, so two runs
+// inside one gap are visible as two rather than as a blur of commits.
+//
+// WHY THIS DOES NOT WEAKEN THE WATCHDOG, WHICH IS THE PROPERTY THAT MATTERS. Corroboration
+// only ever renames an outage; it can never clear one. `unclaimed-runs` and
+// `unclaimed-stale` are `ok: false`, alarm on the same key, and fail the job exactly as
+// their claimless counterparts do. A test asserts that no activity value turns any
+// not-`ok` verdict into an `ok` one, because a watchdog that can be talked out of alarming
+// by the thing it watches is not a watchdog.
+
+/** Executor sessions that committed to `ref` inside an interval, as independent evidence
+ *  that the loop ran. `null` when git cannot answer — an unavailable second source must
+ *  leave the register's own verdict standing, never soften it.
+ *
+ *  `--since`/`--until` filter on committer date while the returned `%aI` is the author
+ *  date; the two differ by seconds here but the window is re-applied in JS against the
+ *  date actually reported, so the boundary is exact rather than nearly. */
+export function executorActivity(repoRoot, { fromMs, toMs, ref = "origin/master" } = {}) {
+  let out;
+  try {
+    out = execFileSync(
+      "git",
+      [
+        "log",
+        ref,
+        `--since=${new Date(fromMs - HOUR_MS).toISOString()}`,
+        `--until=${new Date(toMs + HOUR_MS).toISOString()}`,
+        "--format=%H%x1f%aI%x1f%(trailers:key=Claude-Session,valueonly=true)%x1e",
+      ],
+      { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 30_000 },
+    );
+  } catch {
+    return null;
+  }
+
+  const sessions = new Set();
+  let commits = 0;
+  let first = null;
+  let last = null;
+  for (const entry of out.split("\x1e")) {
+    const [sha, at, trailer] = entry.trim().split("\x1f");
+    if (!sha || !at) continue;
+    const session = (trailer ?? "").trim();
+    if (!session) continue; // `metrics snapshot` and anything else that is not a session
+    const t = Date.parse(at);
+    if (!Number.isFinite(t) || t <= fromMs || t >= toMs) continue;
+    commits += 1;
+    sessions.add(session);
+    if (first === null || t < first) first = t;
+    if (last === null || t > last) last = t;
+  }
+  if (commits === 0) return { commits: 0, sessions: [], first: null, last: null };
+  return {
+    commits,
+    sessions: [...sessions],
+    first: new Date(first).toISOString(),
+    last: new Date(last).toISOString(),
+  };
+}
+
 /**
  * Pure verdict over an already-parsed register. Every non-`live` outcome is a failure;
  * `reason` distinguishes them so the alarm can say which one without re-deriving it.
+ *
+ * `activityIn(fromMs, toMs)` is the optional second source above. Omitted, this function
+ * behaves exactly as it did before it existed.
  */
 export function evaluateLiveness(
   records,
@@ -149,6 +237,7 @@ export function evaluateLiveness(
     maxGapMs = DEFAULT_MAX_GAP_HOURS * HOUR_MS,
     gapLookbackMs = DEFAULT_GAP_LOOKBACK_HOURS * HOUR_MS,
     gapWatchFromMs = Date.parse(GAP_WATCH_FROM),
+    activityIn = () => null,
   } = {},
 ) {
   const base = { resource, now: new Date(now).toISOString(), maxAgeMs, maxGapMs };
@@ -180,6 +269,28 @@ export function evaluateLiveness(
   const ageMs = now - newest.at;
   const gap = findMissedRuns(timed, { now, maxGapMs, gapLookbackMs, gapWatchFromMs });
 
+  /** When the silence a claim is followed by actually begins.
+   *
+   *  NOT the claim itself, and the difference is a number the alarm would otherwise
+   *  overstate. A run commits *after* claiming, so the interval `[claim, next claim)`
+   *  contains the claiming run's own work: read against the real register on 2026-09-13
+   *  that window reported "3 sessions ran anyway" when two of the three had skipped step 0
+   *  and the third — run 154 — had claimed properly and simply committed afterwards. The
+   *  interval in which a run should have claimed and did not begins when the previous
+   *  holder let go of the lock. Falls back to the claim when no release was appended,
+   *  which is itself what an abandoned lease looks like. */
+  const releasedAt = (record) => {
+    const nonce = record?.nonce;
+    if (!nonce) return Date.parse(record?.at);
+    for (const r of records) {
+      if (r && r.event === "release" && r.resource === resource && r.nonce === nonce) {
+        const t = Date.parse(r.at);
+        if (Number.isFinite(t)) return t;
+      }
+    }
+    return Date.parse(record.at);
+  };
+
   const common = {
     ...base,
     ageMs,
@@ -194,10 +305,50 @@ export function evaluateLiveness(
 
   // An outage that is still open outranks one that has ended: it is the one where the next
   // scheduled run is also going to be lost, so it is the one the owner has to act on now.
-  if (ageMs > maxAgeMs) return { ...common, ok: false, reason: "stale", alarmKey: newest.record.at };
-  if (gap) return { ...common, ok: false, reason: "missed-runs", alarmKey: gap.from };
+  //
+  // Each shape asks the second source about its OWN interval — the open silence runs from
+  // the newest claim to now, the closed gap between its two endpoints — and a `ran` answer
+  // only changes the name. `ok` stays false on every branch below.
+  if (ageMs > maxAgeMs) {
+    const activity = ran(activityIn, releasedAt(newest.record), now);
+    return {
+      ...common,
+      ok: false,
+      reason: activity ? "unclaimed-stale" : "stale",
+      activity,
+      alarmKey: newest.record.at,
+    };
+  }
+  if (gap) {
+    const activity = ran(activityIn, releasedAt(gap.fromRecord), Date.parse(gap.to));
+    return {
+      ...common,
+      ok: false,
+      reason: activity ? "unclaimed-runs" : "missed-runs",
+      activity,
+      alarmKey: gap.from,
+    };
+  }
   return { ...common, ok: true, reason: "live", alarmKey: null };
 }
+
+/** The second source's answer, or `null` for "it did not answer" and for "it answered, and
+ *  there was nothing" — which must read the same, because neither is evidence the loop ran.
+ *  A corroborator that throws is treated as absent rather than allowed to crash the check. */
+function ran(activityIn, fromMs, toMs) {
+  let activity;
+  try {
+    activity = activityIn(fromMs, toMs);
+  } catch {
+    return null;
+  }
+  return activity && activity.commits > 0 ? activity : null;
+}
+
+/** Verdicts in which the loop demonstrably ran and did not claim. The owner action for
+ *  these is the opposite of the one for an outage, so nothing may treat them as the same
+ *  thing by string-matching a prefix. */
+export const UNCLAIMED_REASONS = new Set(["unclaimed-runs", "unclaimed-stale"]);
 
 /**
  * The most recent completed outage the register can prove: consecutive claims more than
@@ -213,7 +364,7 @@ function findMissedRuns(timed, { now, maxGapMs, gapLookbackMs, gapWatchFromMs })
     if (now - to.at > gapLookbackMs) return null;
     const gapMs = to.at - from.at;
     if (gapMs > maxGapMs) {
-      return {
+      const found = {
         from: from.record.at,
         to: to.record.at,
         gapMs,
@@ -221,6 +372,14 @@ function findMissedRuns(timed, { now, maxGapMs, gapLookbackMs, gapWatchFromMs })
         fromHolder: from.record.holder ?? null,
         toHolder: to.record.holder ?? null,
       };
+      // The opening claim itself, so the caller can find its release and ask the second
+      // source about the silence rather than about the claiming run's own commits. Attached
+      // non-enumerably because `gap` is serialised straight into the `--json` verdict: this
+      // is a handle for one call site, not a field for a reader.
+      return Object.defineProperty(found, "fromRecord", {
+        value: from.record,
+        enumerable: false,
+      });
     }
   }
   return null;
@@ -263,6 +422,20 @@ function appendOutputs(verdict) {
     `gap_from=${verdict.gap?.from ?? ""}`,
     `gap_to=${verdict.gap?.to ?? ""}`,
     `gap_hours=${verdict.gap?.gapHours ?? ""}`,
+    // The second source, so the alarm can name the right defect and the right owner action
+    // without re-deriving either. Empty on every verdict where the loop did not run.
+    `unclaimed=${UNCLAIMED_REASONS.has(verdict.reason)}`,
+    // Whether the second source was CONSULTED, which is not the same as whether it found
+    // anything and is not implied by `unclaimed=false`. The fail-closed verdicts — no
+    // register branch, unreadable, empty, no claims, a corrupt or future timestamp — never
+    // reach it, because there is no interval to ask about. Without this the alarm would say
+    // "no executor session committed in that interval either" on exactly the runs where
+    // nothing had been asked.
+    `corroborated=${Object.prototype.hasOwnProperty.call(verdict, "activity")}`,
+    `activity_commits=${verdict.activity?.commits ?? ""}`,
+    `activity_sessions=${verdict.activity?.sessions?.length ?? ""}`,
+    `activity_first=${verdict.activity?.first ?? ""}`,
+    `activity_last=${verdict.activity?.last ?? ""}`,
   ];
   fs.appendFileSync(file, `${lines.join("\n")}\n`);
 }
@@ -280,7 +453,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const gapLookbackMs = Number(flags["gap-lookback-hours"] ?? DEFAULT_GAP_LOOKBACK_HOURS) * HOUR_MS;
   const gapWatchFromMs = Date.parse(flags["gap-watch-from"] ?? GAP_WATCH_FROM);
   const now = flags.now ? Date.parse(flags.now) : Date.now();
-  const opts = { resource, now, maxAgeMs, maxGapMs, gapLookbackMs, gapWatchFromMs };
+  const activityRef = flags["activity-ref"] ?? `${remote}/master`;
+  const opts = {
+    resource,
+    now,
+    maxAgeMs,
+    maxGapMs,
+    gapLookbackMs,
+    gapWatchFromMs,
+    activityIn: (fromMs, toMs) => executorActivity(repoRoot, { fromMs, toMs, ref: activityRef }),
+  };
 
   let verdict;
   try {
@@ -321,11 +503,19 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         `${maxAgeMs / HOUR_MS}h age / ${maxGapMs / HOUR_MS}h gap`,
     );
   } else {
-    console.log(`STALE ${verdict.resource} — ${verdict.reason}`);
+    const unclaimed = UNCLAIMED_REASONS.has(verdict.reason);
+    console.log(`${unclaimed ? "UNCLAIMED" : "STALE"} ${verdict.resource} — ${verdict.reason}`);
     if (verdict.gap) {
       console.log(
-        `  missed runs: ${verdict.gap.gapHours}h between ${verdict.gap.from} ` +
-          `and ${verdict.gap.to}`,
+        `  ${unclaimed ? "unclaimed" : "missed"} runs: ${verdict.gap.gapHours}h between ` +
+          `${verdict.gap.from} and ${verdict.gap.to}`,
+      );
+    }
+    if (verdict.activity) {
+      console.log(
+        `  the loop DID run in that interval: ${verdict.activity.commits} commit(s) from ` +
+          `${verdict.activity.sessions.length} session(s), ${verdict.activity.first} … ` +
+          `${verdict.activity.last} — the routine is firing and step 0 is being skipped`,
       );
     }
     // `ageHours` is absent on the fail-closed paths that never got as far as an age
@@ -337,9 +527,20 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     }
     if (verdict.error) console.log(`  error: ${verdict.error}`);
     console.log(`  thresholds: ${maxAgeMs / HOUR_MS}h age / ${maxGapMs / HOUR_MS}h gap`);
+    // The title is the line a reader sees in the Actions UI without opening anything, so it
+    // has to carry the fact that decides what they do next. "Executor loop is not firing"
+    // on a loop that is firing is the false half of the 2026-09-13 alarm, restated where it
+    // would be read fastest.
     console.log(
-      `::error title=Executor loop is not firing::${verdict.reason}` +
-        (verdict.gap ? ` — ${verdict.gap.gapHours}h with no run, ending ${verdict.gap.to}` : "") +
+      `::error title=${
+        unclaimed ? "Executor loop is running without claiming" : "Executor loop is not firing"
+      }::${verdict.reason}` +
+        (verdict.gap
+          ? ` — ${verdict.gap.gapHours}h ${unclaimed ? "with no claim" : "with no run"}, ending ${verdict.gap.to}`
+          : "") +
+        (verdict.activity
+          ? ` — ${verdict.activity.commits} commit(s) from ${verdict.activity.sessions.length} session(s) in that interval`
+          : "") +
         (verdict.newestAt
           ? ` — newest executor claim ${verdict.newestAt}` +
             (verdict.ageHours === undefined ? "" : `, ${verdict.ageHours}h ago`)

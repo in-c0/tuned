@@ -418,15 +418,245 @@ describe("the CLI", () => {
     assert.match(err.stdout, /::error title=Executor loop is not firing::/);
   });
 
-  it("reports the live loop against the real register", async () => {
+  it("reads the real register end to end, whatever the verdict is", async () => {
     // Run 147's own claim is in `origin/ops-claims` by the time this runs in CI, so this
     // is the end-to-end read: real remote, real branch, real parser, real verdict.
-    const { stdout } = await execFileAsync(process.execPath, [CLI, "--json"], {
+    //
+    // IT MUST NOT REQUIRE A ZERO EXIT, and requiring one was a defect of its own. The CLI
+    // exits 1 on every not-`ok` verdict, so as written this test went red exactly when the
+    // watchdog was doing its job — it failed for real on 2026-09-13 against the unclaimed
+    // gap runs 155 and 156 left, reporting a broken test rather than the finding. What is
+    // under test here is the read path, not the state of the loop on the day it runs.
+    const out = await execFileAsync(process.execPath, [CLI, "--json"], {
       cwd: path.dirname(CLI),
-    });
-    const v = JSON.parse(stdout);
+    }).catch((e) => e);
+    const v = JSON.parse(out.stdout);
     assert.equal(v.resource, "executor");
     assert.ok(v.claims > 0, "expected at least one claim in the real register");
     assert.ok(v.newestAt, "expected a newest claim timestamp");
+    assert.equal(typeof v.ok, "boolean");
+  });
+});
+
+// The second source, and the property that it cannot be used to quieten the alarm.
+//
+// `missed-runs` named two different facts until 2026-09-13: no session ran, and a session
+// ran without claiming. Runs 155 and 156 produced the second — eight commits and two
+// execution reports inside a 24.02h register gap — and the alarm was an hour from telling
+// the owner "24.02h with no run at all" and "check that the routine is enabled and firing",
+// both false, with the true half ("no executor session reached step 0") buried below them.
+describe("a silent register: the loop was down, or the loop skipped step 0", () => {
+  const DOWN = { commits: 0, sessions: [], first: null, last: null };
+  const RAN = {
+    commits: 8,
+    sessions: ["session_01Cm6ueFYFEwUtGrEJTb9Nij", "session_017MjvFBkjJAcLjJ5Sk4u1gh"],
+    first: "2026-09-12T22:17:23Z",
+    last: "2026-09-13T04:14:34Z",
+  };
+  // The real shape: run 154's claim, then 24.02h of nothing, then run 157's.
+  const register = [
+    claimRecord("2026-09-12T10:05:31.690Z", { holder: "vm:2036", cycle: "2026-09-12/w20" }),
+    claimRecord("2026-09-13T10:06:54.314Z", { holder: "vm:2079", cycle: "2026-09-13/w20", nonce: "n-2" }),
+  ];
+  const now = "2026-09-13T10:35:00Z";
+
+  it("says `missed-runs` when nothing committed in the gap either", () => {
+    const v = verdict(register, now, { activityIn: () => DOWN });
+    assert.equal(v.ok, false);
+    assert.equal(v.reason, "missed-runs");
+    assert.equal(v.activity, null);
+  });
+
+  it("says `unclaimed-runs` when sessions committed inside the gap", () => {
+    const v = verdict(register, now, { activityIn: () => RAN });
+    assert.equal(v.ok, false);
+    assert.equal(v.reason, "unclaimed-runs");
+    assert.equal(v.activity.commits, 8);
+    assert.equal(v.activity.sessions.length, 2);
+    // Same outage, same key: the owner gets one comment about this gap either way.
+    assert.equal(v.alarmKey, "2026-09-12T10:05:31.690Z");
+  });
+
+  it("asks about the gap's own interval, not about all of history", () => {
+    const asked = [];
+    verdict(register, now, {
+      activityIn: (from, to) => {
+        asked.push([new Date(from).toISOString(), new Date(to).toISOString()]);
+        return DOWN;
+      },
+    });
+    assert.deepEqual(asked, [["2026-09-12T10:05:31.690Z", "2026-09-13T10:06:54.314Z"]]);
+  });
+
+  it("asks from where the lock was RELEASED, so the claiming run's own commits are not counted", () => {
+    // Measured against the real register this was worth one whole session: run 154 claimed
+    // at 10:05:31 and committed at 10:07–10:28, inside `[claim, next claim)`, so the first
+    // version of this check reported "3 sessions ran anyway" when only two had skipped
+    // step 0. A number in an alarm that overstates by 50% is the alarm's defect.
+    const released = [
+      register[0],
+      {
+        v: 1,
+        event: "release",
+        resource: "executor",
+        nonce: register[0].nonce,
+        at: "2026-09-12T10:33:04.194Z",
+      },
+      register[1],
+    ];
+    const asked = [];
+    verdict(released, now, {
+      activityIn: (from, to) => {
+        asked.push([new Date(from).toISOString(), new Date(to).toISOString()]);
+        return DOWN;
+      },
+    });
+    assert.deepEqual(asked, [["2026-09-12T10:33:04.194Z", "2026-09-13T10:06:54.314Z"]]);
+  });
+
+  it("falls back to the claim when the lock was never released", () => {
+    // An abandoned lease appends no release. Reverting to the claim is the conservative
+    // direction: it widens the window, so it can over-report activity and can never miss it.
+    const asked = [];
+    verdict(register, now, {
+      activityIn: (from) => {
+        asked.push(new Date(from).toISOString());
+        return DOWN;
+      },
+    });
+    assert.deepEqual(asked, ["2026-09-12T10:05:31.690Z"]);
+  });
+
+  it("marks the fail-closed verdicts as never having asked the second source", () => {
+    // `unclaimed=false` does not mean "asked and found nothing" — on these paths there is
+    // no interval to ask about and nothing was asked. The alarm branches on the difference,
+    // so a verdict that cannot tell them apart would put a claim in the comment that this
+    // check never made. Every fail-closed shape, one per way the register can be unusable.
+    const asked = (v) => Object.prototype.hasOwnProperty.call(v, "activity");
+    const never = () => {
+      throw new Error("the second source must not be consulted here");
+    };
+    const shapes = [
+      [[], "empty-register"],
+      [[{ v: 1, event: "release", resource: "executor", at: "2026-09-12T10:00:00Z" }], "no-claims"],
+      [[claimRecord("not-a-date")], "unparseable-timestamp"],
+      [[claimRecord("2027-01-01T00:00:00Z")], "future-timestamp"],
+    ];
+    for (const [records, reason] of shapes) {
+      const v = verdict(records, now, { activityIn: never });
+      assert.equal(v.reason, reason);
+      assert.equal(v.ok, false);
+      assert.equal(asked(v), false, `${reason} must not report a corroboration it never made`);
+    }
+    // And the two that do ask, both ways, so this is a discriminator and not a constant.
+    assert.equal(asked(verdict(register, now, { activityIn: () => DOWN })), true);
+    assert.equal(asked(verdict(register, now, { activityIn: () => RAN })), true);
+  });
+
+  it("keeps `fromRecord` out of the serialised verdict", () => {
+    // `gap` goes straight into `--json` and into the workflow's outputs. A whole register
+    // record riding along in it is noise in the one artifact a person reads at 3am.
+    const v = verdict(register, now, { activityIn: () => RAN });
+    assert.ok(v.gap.fromRecord, "the handle itself must still be reachable");
+    assert.equal(Object.keys(JSON.parse(JSON.stringify(v)).gap).includes("fromRecord"), false);
+  });
+
+  it("separates the same two facts on an open silence, not just a closed gap", () => {
+    // One claim, then nothing, read past the staleness bar: `stale` is the other shape the
+    // same ambiguity wears, and fixing only the gap would have left half the defect.
+    const single = [claimRecord("2026-09-12T10:05:31.690Z", { holder: "vm:2036" })];
+    const late = "2026-09-13T12:00:00Z";
+    assert.equal(verdict(single, late, { activityIn: () => DOWN }).reason, "stale");
+    assert.equal(verdict(single, late, { activityIn: () => RAN }).reason, "unclaimed-stale");
+    assert.equal(verdict(single, late, { activityIn: () => RAN }).ok, false);
+  });
+
+  it("treats a second source that cannot answer as no evidence at all", () => {
+    // An absent corroborator, one that throws, and one that answers "nothing" must all
+    // leave the register's own verdict standing. Silence from the second source is not
+    // evidence the loop ran.
+    for (const activityIn of [undefined, () => null, () => DOWN, () => { throw new Error("git gone"); }]) {
+      const v = verdict(register, now, activityIn ? { activityIn } : {});
+      assert.equal(v.reason, "missed-runs", "an unanswered second source must not rename the outage");
+      assert.equal(v.ok, false);
+    }
+  });
+
+  it("CANNOT BE TALKED OUT OF ALARMING — no activity value makes any verdict ok", () => {
+    // The property the whole change rests on. A watchdog the thing it watches can quieten
+    // is not a watchdog, so this is asserted over every shape that reaches the corroborator
+    // and over every answer it could give, including absurd ones.
+    const answers = [
+      DOWN,
+      RAN,
+      null,
+      undefined,
+      { commits: 1e9, sessions: ["x"], first: null, last: null },
+      { commits: -1, sessions: [] },
+      { ok: true },
+      "live",
+      42,
+    ];
+    const single = [claimRecord("2026-09-12T10:05:31.690Z", { holder: "vm:2036" })];
+    for (const answer of answers) {
+      for (const [records, nowIso] of [
+        [register, now],
+        [single, "2026-09-13T12:00:00Z"],
+      ]) {
+        const v = verdict(records, nowIso, { activityIn: () => answer });
+        assert.equal(v.ok, false, `activity ${JSON.stringify(answer)} must not clear the alarm`);
+        assert.notEqual(v.reason, "live");
+      }
+    }
+  });
+
+  it("never consults the second source on a healthy register", () => {
+    // A live loop must not pay for a git call every hour, and — more to the point — a
+    // corroborator with a side effect must not run on the path where there is nothing to
+    // corroborate.
+    let calls = 0;
+    const healthy = [
+      claimRecord("2026-09-13T04:00:00Z", { holder: "vm:1" }),
+      claimRecord("2026-09-13T10:00:00Z", { holder: "vm:2", nonce: "n-2" }),
+    ];
+    const v = verdict(healthy, "2026-09-13T10:35:00Z", {
+      activityIn: () => {
+        calls += 1;
+        return RAN;
+      },
+    });
+    assert.equal(v.ok, true);
+    assert.equal(v.reason, "live");
+    assert.equal(calls, 0);
+  });
+});
+
+describe("executorActivity reads real commits and ignores what is not a session", () => {
+  it("counts this repository's own executor commits and excludes the bot's", async () => {
+    // Against the real repository, over the window runs 155 and 156 committed in. The
+    // discriminator being tested is the one the workflow header names: `metrics snapshot`
+    // commits land under an author line that looks like the executor's, and they carry no
+    // session trailer. `aada5a1` is inside this window and must not be counted.
+    const { executorActivity } = await import("./executor-liveness.mjs");
+    const repoRoot = path.resolve(path.dirname(CLI), "..");
+    const a = executorActivity(repoRoot, {
+      fromMs: Date.parse("2026-09-12T10:05:31.690Z"),
+      toMs: Date.parse("2026-09-13T10:06:54.314Z"),
+      ref: "origin/master",
+    });
+    if (a === null) return; // no `origin/master` locally; the CLI test covers the read path
+    assert.ok(a.commits >= 8, `expected at least 8 executor commits, got ${a.commits}`);
+    assert.ok(a.sessions.length >= 2, `expected at least 2 sessions, got ${a.sessions.length}`);
+    for (const s of a.sessions) assert.match(s, /^https:\/\/claude\.ai\/code\/session_/);
+  });
+
+  it("returns null rather than throwing when git cannot answer", async () => {
+    const { executorActivity } = await import("./executor-liveness.mjs");
+    const a = executorActivity(path.dirname(CLI), {
+      fromMs: 0,
+      toMs: 1,
+      ref: "refs/heads/no-such-ref-exists-here",
+    });
+    assert.equal(a, null);
   });
 });
