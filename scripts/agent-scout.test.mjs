@@ -22,6 +22,7 @@ import {
   buildSearchQuery,
   composeWhy,
   composeAmendedWhy,
+  describeRefusal,
   amendFrames,
   recordQuery,
   AMEND_WHY_MAX,
@@ -628,7 +629,7 @@ test("a quotation is never truncated to fit — an over-long sentence is refused
   assert.ok(long.length > QUOTE_MAX_CHARS);
   const q = selectQuotation(structuredAbstract({ results: long, extraResults: "" }));
   assert.equal(q.quote, "");
-  assert.equal(q.refusedBecause, "length");
+  assert.equal(q.refusedBecause, "too-long");
 
   const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
   const why = composeWhy({ candidate: quotableCandidate(structuredAbstract({ results: long, extraResults: "" })), grade: g, observed: 35, observedOn: "2026-09-12" });
@@ -636,6 +637,123 @@ test("a quotation is never truncated to fit — an over-long sentence is refused
   assert.match(why, /^Selected by @sportstech/);
   assert.ok(!/[…]|\.\.\./.test(why), `no ellipsis may ever appear in a why line: ${why}`);
   assert.ok(!why.includes("“"), "a refused quotation must leave no quotation marks behind");
+});
+
+// ---------------------------------------------------------------------------
+// The refusal record has to be readable by someone who was not here (run 156)
+// ---------------------------------------------------------------------------
+//
+// Until run 156 three different failures all printed as `length`, and the log line built on
+// top of them said "`length` refused all 3 sentence(s) considered (reported-value 2, length
+// 1)" — a sentence contradicted by its own parenthesis. Q4 asks that an absence come with a
+// reason; a reason that is wrong about its own counts is worse than none, because it reads
+// as evidence. These pin both halves.
+
+test("the three failures once called `length` are three clauses, and `length` is no longer one", () => {
+  assert.ok(!QUOTE_CLAUSES.includes("length"), "the conflated name must be gone, not aliased");
+
+  const tooShort = selectQuotation("RESULTS: Sprint time fell (p = 0.03).");
+  assert.equal(tooShort.refusedBecause, "too-short");
+
+  // No terminal punctuation: this file split it badly, or the source ships it that way.
+  // Either is a different fact from "the budget excluded it" and must not print as one.
+  const unterminated = selectQuotation(
+    "RESULTS: Sprint time fell by a large and consistent margin across all three of the tested protocols and in every subgroup examined (p = 0.03, 95% CI 0.11 to 0.42)"
+  );
+  assert.equal(unterminated.refusedBecause, "unterminated");
+  assert.equal(unterminated.overBy, null, "nothing was over budget, so there is no margin to report");
+
+  const long = `Across every outcome the analysis returned no detectable difference between the protocols ${"in a cohort recruited from three clubs ".repeat(4)}(p = 0.41, 95% CI).`;
+  assert.ok(long.length > QUOTE_MAX_CHARS);
+  assert.equal(selectQuotation(`RESULTS: ${long}`).refusedBecause, "too-long");
+});
+
+test("a near miss and a hopeless one both refuse as too-long, and the margin tells them apart", () => {
+  // THE POINT OF THE NUMBER. "240 against a budget of 229" is a fact about a budget this
+  // code chose; "400 against 229" is a fact about the paper. The clause name is identical in
+  // both cases and always will be, so the margin is the only thing that can separate them.
+  const pad = (target) => {
+    const tail = " (p = 0.03, 95% CI 0.11 to 0.42).";
+    const head = "Sprint time fell across every protocol tested, ";
+    const filler = "and the effect held after adjustment, ";
+    let body = head;
+    while (body.length + filler.length + tail.length <= target) body += filler;
+    return body + "x".repeat(Math.max(0, target - body.length - tail.length)) + tail;
+  };
+
+  const near = pad(QUOTE_MAX_CHARS + 11);
+  const hopeless = pad(QUOTE_MAX_CHARS + 171);
+  assert.equal(near.length, QUOTE_MAX_CHARS + 11);
+  assert.equal(hopeless.length, QUOTE_MAX_CHARS + 171);
+
+  const a = selectQuotation(`RESULTS: ${near}`);
+  const b = selectQuotation(`RESULTS: ${hopeless}`);
+  assert.equal(a.refusedBecause, "too-long");
+  assert.equal(b.refusedBecause, "too-long");
+  assert.equal(a.refusedBecause, b.refusedBecause, "the clause cannot distinguish them — that is why the margin exists");
+  assert.equal(a.overBy, 11);
+  assert.equal(b.overBy, 171);
+  assert.equal(a.budget, QUOTE_MAX_CHARS);
+
+  assert.match(describeRefusal(a), /missed by 11 character\(s\) against a budget of 252/);
+  assert.match(describeRefusal(b), /missed by 171 character\(s\)/);
+});
+
+test("the refusal line never says one clause refused sentences it did not refuse", () => {
+  // Run 155's screen 2, in shape: three sentences in the results section, two refused for
+  // reporting no checkable value and one for length. `refusedBecause` is the EARLIEST clause
+  // applied, not the commonest, so any prose built on it alone overstates it.
+  const abstract =
+    "RESULTS: " +
+    "Participants reported the sessions were enjoyable and said they would repeat them next season. " +
+    "Adherence was described as good throughout the intervention period by both coaches involved. " +
+    `The analysis returned no detectable difference between protocols ${"across every timepoint measured ".repeat(6)}(p = 0.41, 95% CI).`;
+
+  const q = selectQuotation(abstract);
+  assert.equal(q.quote, "");
+  assert.equal(q.considered, 3);
+  assert.equal(q.refusals["reported-value"], 2);
+  assert.equal(q.refusals["too-long"], 1);
+  assert.equal(q.refusedBecause, "too-long", "earliest applied, not commonest");
+
+  const line = describeRefusal(q);
+  assert.match(line, /none of 3 sentence\(s\) considered passed/);
+  assert.match(line, /reported-value 2/);
+  assert.match(line, /too-long 1/);
+  assert.ok(!/refused all/.test(line), `the old prose claimed every sentence for one clause: ${line}`);
+  // And the counts in the line must add up to the sentences considered, or it is describing
+  // a different screen than the one that ran. Only the clause segment counts sentences —
+  // the margin clause after the dash counts characters.
+  const clauses = line.slice(line.indexOf(": ") + 2).split(" — ")[0];
+  const counted = [...clauses.matchAll(/\b[a-z-]+ (\d+)/g)].reduce((n, m) => n + Number(m[1]), 0);
+  assert.equal(counted, 3, line);
+});
+
+test("a correction refused by the mark's 23 characters says so in characters, not just in words", () => {
+  // The complement of run 155's budget line: that one says WHICH budget refused, this one
+  // says BY HOW MUCH. A margin inside 23 is the mark's doing and nothing else's.
+  const head = "Sprint time fell across every protocol tested and the effect held after adjustment for the prespecified covariates listed in the analysis plan";
+  const tail = " (p = 0.03, 95% CI).";
+  // Five characters past the correction budget, and comfortably inside the publisher's.
+  const target = AMEND_QUOTE_MAX_CHARS + 5;
+  const quote = head + "y".repeat(target - head.length - tail.length) + tail;
+  assert.equal(quote.length, target);
+  assert.ok(
+    quote.length > AMEND_QUOTE_MAX_CHARS && quote.length <= QUOTE_MAX_CHARS,
+    `${quote.length} must sit between the two budgets (${AMEND_QUOTE_MAX_CHARS}, ${QUOTE_MAX_CHARS})`
+  );
+  const abstract = `RESULTS: ${quote}`;
+
+  assert.equal(selectQuotation(abstract).quote, quote, "the publisher's budget admits it");
+  const { why, quotation } = composeAmendedWhy(abstract);
+  assert.equal(why, "");
+  assert.equal(quotation.refusedBecause, "too-long");
+  assert.equal(quotation.budget, AMEND_QUOTE_MAX_CHARS);
+  assert.ok(
+    quotation.overBy > 0 && quotation.overBy <= CORRECTION_MARK_CHARS,
+    `a miss of ${quotation.overBy} inside the mark's ${CORRECTION_MARK_CHARS} characters is the mark's doing`
+  );
+  assert.match(describeRefusal(quotation), new RegExp(`against a budget of ${AMEND_QUOTE_MAX_CHARS}`));
 });
 
 test("no qualifying sentence falls back to the provenance line rather than writing one", () => {
@@ -727,6 +845,23 @@ test("MUTATION: a fragment is not a quotation — a sentence with no terminal pu
   // The tail of an abstract with no final period is a fragment by this file's rule, and the
   // honest outcome is silence rather than a sentence the agent closed itself.
   assert.equal(q.quote, "");
+});
+
+test("MUTATION: prose keyed on the refusal clause alone states something the counts contradict", () => {
+  // The mutation is the line this repository actually printed until run 156. It is
+  // reconstructed here rather than described, because the point is that it is FALSE against
+  // the very object it was formatted from — not merely thin.
+  const q = selectQuotation(
+    "RESULTS: " +
+      "Participants reported the sessions were enjoyable and said they would repeat them next season. " +
+      "Adherence was described as good throughout the intervention period by both coaches involved. " +
+      `The analysis returned no detectable difference between protocols ${"across every timepoint measured ".repeat(6)}(p = 0.41, 95% CI).`
+  );
+  const oldProse = `${q.refusedBecause} refused all ${q.considered} sentence(s) considered`;
+  assert.match(oldProse, /too-long refused all 3/);
+  assert.equal(q.refusals[q.refusedBecause], 1, "it refused one of the three, and the old line claimed all three");
+  // The replacement makes no claim per clause beyond the count it holds.
+  assert.ok(!/refused all/.test(describeRefusal(q)));
 });
 
 test("the quote budget is derived from the shortest frame, so the floor always fits", () => {

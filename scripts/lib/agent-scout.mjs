@@ -915,10 +915,19 @@ export const QUOTE_MIN_CHARS = 80;
 
 /** The clause names a refusal reports, in the order they are applied. Same discipline as
  *  `CLAUSES`: a run's log says which clause refused the quotation, so "this item has no quote"
- *  is a reason rather than an absence. */
+ *  is a reason rather than an absence.
+ *
+ *  `too-short`, `too-long` and `unterminated` were one clause called `length` until run 156,
+ *  and collapsing them cost the log the only three things a reader of it wants. They are not
+ *  degrees of one failure: a sentence under `QUOTE_MIN_CHARS` is a fragment this agent
+ *  declines to call a quotation; one over `maxChars` is a sentence the *budget* excludes and
+ *  the source is blameless for; one with no terminal punctuation is a splitting defect in
+ *  this file, and it is the only one of the three that means something here is broken. */
 export const QUOTE_CLAUSES = [
   "no-abstract",
-  "length",
+  "too-short",
+  "too-long",
+  "unterminated",
   "reported-value",
   "not-methods",
   "self-contained",
@@ -934,7 +943,8 @@ export const QUOTE_CLAUSES = [
  *  makes a dry screen's output checkable against the publishing screen's. */
 export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars = QUOTE_MIN_CHARS } = {}) {
   const prose = typeof abstract === "string" ? abstract.replace(/\s+/g, " ").trim() : "";
-  if (prose === "") return { quote: "", considered: 0, refusedBecause: "no-abstract", refusals: {} };
+  if (prose === "")
+    return { quote: "", considered: 0, refusedBecause: "no-abstract", refusals: {}, budget: maxChars, overBy: null };
 
   const sentences = splitSentences(prose);
   let section = "";
@@ -955,15 +965,28 @@ export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars
     return false;
   };
 
+  // THE NARROWEST MISS, in characters, among the sentences the budget excluded. `too-long`
+  // on its own cannot distinguish a 400-character sentence from a 240-character one refused
+  // by a 229-character budget, and those are different facts: the first is about the paper,
+  // the second is about a budget this code chose (the correction mark costs 23 of them). The
+  // margin is what makes the second visible, so a run can say whose refusal it was.
+  let overBy = null;
+
   const passing = [];
   for (const entry of pool) {
     const quote = entry.text;
-    if (quote.length < minChars || quote.length > maxChars) {
-      refuse("length");
+    if (quote.length < minChars) {
+      refuse("too-short");
+      continue;
+    }
+    if (quote.length > maxChars) {
+      const over = quote.length - maxChars;
+      if (overBy === null || over < overBy) overBy = over;
+      refuse("too-long");
       continue;
     }
     if (!/[.!?](\s*[)\]"”])?$/.test(quote)) {
-      refuse("length"); // a fragment, not a sentence — the same failure as a bad boundary
+      refuse("unterminated"); // a fragment: this file split it badly, or the source did
       continue;
     }
     const families = matchedFamilies(quote, REPORTED_VALUE_SIGNATURES);
@@ -999,7 +1022,7 @@ export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars
   if (passing.length === 0) {
     const refusedBecause =
       QUOTE_CLAUSES.find((clause) => refusals[clause] > 0) ?? "no-sentence";
-    return { quote: "", considered: pool.length, refusedBecause, refusals };
+    return { quote: "", considered: pool.length, refusedBecause, refusals, budget: maxChars, overBy };
   }
 
   passing.sort((a, b) => b.families.length - a.families.length || a.index - b.index);
@@ -1013,7 +1036,33 @@ export function selectQuotation(abstract, { maxChars = QUOTE_MAX_CHARS, minChars
     source: inResults.length > 0 ? "abstract results section" : "abstract",
     refusedBecause: "",
     refusals,
+    budget: maxChars,
+    overBy,
   };
+}
+
+/** One line naming why nothing was quoted, written so it cannot overstate itself.
+ *
+ *  The prose it replaces said "`length` refused all 3 sentence(s) considered (reported-value
+ *  2, length 1)" — a sentence that contradicts its own parenthesis. `refusedBecause` is the
+ *  *earliest-applied* clause that refused anything, which is rarely the clause that did most
+ *  of the refusing, so no phrasing built on it alone can be accurate. This reports the count
+ *  per clause and names the earliest as what it is. */
+export function describeRefusal(quotation) {
+  const counts = Object.entries(quotation?.refusals ?? {}).filter(([, n]) => n > 0);
+  const considered = quotation?.considered ?? 0;
+  const head = `none of ${considered} sentence(s) considered passed`;
+  const detail =
+    counts.length === 0
+      ? ` — ${quotation?.refusedBecause ?? "no-sentence"}`
+      : `: ${counts.map(([clause, n]) => `${clause} ${n}`).join(", ")}`;
+  // The margin only ever answers a question the budget raised, so it is printed only when
+  // the budget actually refused something.
+  const margin =
+    quotation?.overBy === null || quotation?.overBy === undefined
+      ? ""
+      : ` — the closest over-budget sentence missed by ${quotation.overBy} character(s) against a budget of ${quotation.budget}`;
+  return `${head}${detail}${margin}`;
 }
 
 /** The public "why selected" line.
@@ -1136,7 +1185,7 @@ export function composeAmendedWhy(abstract) {
   }
   // Unreachable while AMEND_QUOTE_MAX_CHARS is derived from the shortest frame, and still
   // the right behaviour if a later edit to the frames makes it reachable again.
-  return { why: "", quotation: { ...quotation, refusedBecause: "length" } };
+  return { why: "", quotation: { ...quotation, refusedBecause: "too-long" } };
 }
 
 /** One source identifier — a PMCID, a DOI, or a URL carrying a DOI — as a Europe PMC query

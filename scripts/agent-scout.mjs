@@ -40,6 +40,7 @@ import {
   buildSearchQuery,
   composeAmendedWhy,
   composeWhy,
+  describeRefusal,
   recordQuery,
   selectQuotation,
   extractBodyText,
@@ -328,12 +329,7 @@ export async function amendCycle({ handle, base, itemId, source, apply, fetchImp
 
   const { why, quotation } = composeAmendedWhy(record.abstract);
   if (why === "") {
-    log(
-      `  quote:  none — ${quotation.refusedBecause} refused all ${quotation.considered} sentence(s) considered` +
-        (Object.keys(quotation.refusals ?? {}).length > 0
-          ? ` (${Object.entries(quotation.refusals).map(([c, n]) => `${c} ${n}`).join(", ")})`
-          : "")
-    );
+    log(`  quote:  ${describeRefusal(quotation)}`);
     // WHOSE REFUSAL WAS IT — the source's, or this design's? A correction is held to a budget
     // 23 characters shorter than a publication's, because the operator plane appends its own
     // mark. So a refusal can mean "this abstract has no quotable finding" or "it has one and
@@ -481,11 +477,7 @@ async function main() {
       console.log(`  key:   ${find.idempotencyKey}`);
       console.log(
         quotation.quote === ""
-          ? `  quote: none — ${quotation.refusedBecause} refused all ${quotation.considered} sentence(s) considered${
-              Object.keys(quotation.refusals ?? {}).length > 0
-                ? ` (${Object.entries(quotation.refusals).map(([c, n]) => `${c} ${n}`).join(", ")})`
-                : ""
-            }`
+          ? `  quote: ${describeRefusal(quotation)}`
           : `  quote: ${quotation.quote.length} chars from the ${quotation.source}, ${quotation.families.join(" + ")}; verbatim substring of the abstract confirmed`
       );
     }
