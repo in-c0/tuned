@@ -3032,6 +3032,16 @@ spent on the mark excluded it — a cost of a design decision made in this run. 
 directly: **the publisher's own budget refuses this abstract too.** Item 280's results section holds three
 sentences, two reporting no value a reader could check and one too long to quote whole.
 
+> **Corrected 2026-09-13 (run 156): the third sentence is too SHORT, not too long.** The line above was
+> written from a log that printed `length 1`, and `length` was one clause covering three different
+> failures. Re-run under the split clauses
+> ([34737237792](https://github.com/in-c0/tuned/actions/runs/34737237792), same item, same source) the
+> same screen reports **`reported-value 2, too-short 1`**. The third results sentence is under
+> `QUOTE_MIN_CHARS` (80) — a fragment this agent declines to call a quotation — and nothing in this
+> abstract was ever over budget. The conclusion is unchanged and the item still keeps its line; the
+> stated reason was wrong, and the clause that hid it is the one run 156 split. Left in place with this
+> note rather than edited away, on the same rule the correction mark follows.
+
 **What is NOT claimed.** No threshold moved. Q1–Q3 are unexercised by this run because **no quotation was
 published or amended** — they remain absolute and remain read on 2026-09-26. Threshold 2's re-specification
 is still a proposal awaiting the reviewer, the original stays in force as FAILED, and the schedule stays

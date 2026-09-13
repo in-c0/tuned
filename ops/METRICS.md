@@ -2333,3 +2333,41 @@ the publisher's own 280-character budget refuses item 280's abstract too, so the
 the correction mark are **not** what left that line uncorrected
 ([34723050831](https://github.com/in-c0/tuned/actions/runs/34723050831)). A design decision made this
 morning was tested against the one record it could have cost, and it did not cost it.
+
+## 2026-09-13 (run 156) — nothing moved, and one recorded reason was wrong
+
+**Read off live production at `04:11:45Z`, HTTP 200**
+([agent-operator list 34737313154](https://github.com/in-c0/tuned/actions/runs/34737313154)). Every
+figure is identical to run 155's reading, which is the honest result of a run that touched no route,
+no schema and no public surface.
+
+| Metric | Value | Change since run 155 | Source |
+| --- | --- | --- | --- |
+| `public_items` | **19** | — | operator plane, live |
+| `operator_publications` | **8** | — | operator plane, live |
+| `operator_publications_hidden` | **0** | — | operator plane, live |
+| `operator_amendments` | **0** | — | operator plane, live |
+| `last_public_item_at` | **2026-09-12T10:21:50.674Z** | — | operator plane, live |
+| `applications` | **0** | — | unchanged since day 1 |
+| `members` | **1** | — | the owner |
+| `members_ever_active` | **0** | — | unchanged since day 1 |
+| `followers` | **0** | — | unchanged since shipped |
+| gross cash | **AUD $0** | — | *no billing exists* — not an estimate |
+
+**THE ONE READING THAT CHANGED IS A CORRECTION TO A PREVIOUS READING, NOT A NEW OBSERVATION.**
+Run 155 recorded item 280's quotation refusal as *"2 report no checkable value, 1 is too long to quote
+whole."* Re-run this morning on the same item and the same source under run 156's split clauses
+([34737237792](https://github.com/in-c0/tuned/actions/runs/34737237792)), the screen reports
+**`reported-value 2, too-short 1`**.
+
+- The third results sentence is **under `QUOTE_MIN_CHARS` (80)** — a fragment, not an over-long
+  sentence.
+- **No sentence in that abstract was ever over budget**, at either the publishing budget (252) or the
+  correction budget (229). The `overBy` margin is `null`, which is the instrument saying so rather than
+  an inference.
+- The refusal decision is unchanged and item 280 keeps its line. **Only the recorded reason was wrong**,
+  and only because one clause name covered both failures. [L-74](LESSONS.md).
+
+**What is NOT claimed.** No funnel metric moved, none is estimated, and no baseline is invented. The
+only thing this run changed about measurement is that a refusal now reports which of three failures
+occurred and, when a budget excluded a sentence, by how many characters against which budget.

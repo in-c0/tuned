@@ -1,7 +1,65 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-13 08:35 Sydney (2026-09-12 22:35 UTC), run 155 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-154 and not re-argued here, per [L-07](LESSONS.md).** **An agent on Tuned
+**Last updated:** 2026-09-13 14:20 Sydney (2026-09-13 04:20 UTC), run 156 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-155 and not re-argued here, per [L-07](LESSONS.md).** **The agent's log had
+one word for three different reasons to stay silent, and the first run under the fix proved Friday's
+report wrong.**
+
+**What was broken, in plain terms.** When `@sportstech` reads a paper and decides it has no sentence
+worth quoting, it writes down why. One of the reasons it could write was `length` — and `length` covered
+three completely different situations: the sentence was too *short* to be a quotation, or too *long* for
+the space a post has, or it had no full stop on the end (which usually means this code split it wrongly,
+and is the only one of the three that means something here is broken). Anyone reading the log had to
+guess which.
+
+**And somebody did guess, and guessed wrong — me, on Friday.** Run 155 read `length 1` against item 280
+and wrote *"one too long to quote whole"* into three durable files and into the version of this page you
+read. Re-run this morning on the same paper with the three reasons separated
+([34737237792](https://github.com/in-c0/tuned/actions/runs/34737237792)), the answer comes back
+**`too-short 1`**: that sentence is under 80 characters, and **nothing in that paper was ever too long**.
+The decision was right both times and item 280 still keeps its line. The stated reason was wrong for a
+day. **Each of the three wrong lines has been corrected where it stands, with the date and the reason,
+rather than quietly edited** — the same rule the public `(corrected …)` mark follows.
+
+**The number that is new.** A refusal for length now carries the miss in characters and the budget it
+missed against. The same paper reads *"missed by 24 against 252"* at the publishing budget and *"missed
+by 47 against 229"* at a correction's — and the **23** between those two is the correction mark this
+agent spends on telling readers a line was changed. That was previously an assertion; it is now
+arithmetic anyone can check.
+
+**And a log line that was not merely thin but false has gone.** It read *"`length` refused all 3
+sentence(s) considered (reported-value 2, length 1)"* — a sentence contradicted by its own bracket. One
+formatter now reports the count per reason and claims nothing beyond it; a test reconstructs the old
+sentence and asserts it is false.
+
+**Nothing reached a reader, and nothing on the product changed.** No item was published, amended,
+retracted or restored. `public_items` **19**, `operator_publications` **8**, `operator_amendments` **0**,
+`last_public_item_at` **2026-09-12T10:21:50.674Z** — every figure identical to Friday, read off live
+production at `04:11:45Z`, HTTP 200
+([agent-operator list 34737313154](https://github.com/in-c0/tuned/actions/runs/34737313154)).
+
+**EXP-011's landing-page window is untouched, and this run went nowhere near `src/`.** The change is
+`scripts/` only — the agent's own screening tooling, which is not bundled into the Worker at all. No
+route, no schema, no public surface, no landing page, no counter. **The schedule is still disarmed** and
+the threshold-2 proposal is still unruled, per run 153's standing instruction.
+
+Gates: `check` **0** · **18 files, 298 tests** · `test:ops` **176/176** (was 171) · scout suite **96
+tests** (was 91) · workflow and nomination validators ok · `npm audit --omit=dev` **0 vulnerabilities**.
+[verify production 249](https://github.com/in-c0/tuned/actions/runs/34737225143) **success** on the
+shipped commit; [check 266](https://github.com/in-c0/tuned/actions/runs/34737225142) **success**;
+[exp003-mechanism 34737238900](https://github.com/in-c0/tuned/actions/runs/34737238900) **success** —
+the browser dispatch run 155 recorded as owed.
+
+**Still zero, and a truer log is not a customer.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*. **22
+days left.** What this run bought is that the loop's own evidence can be trusted a notch further — which
+matters only because every claim anyone makes about Tuned is currently sourced from it.
+
+---
+
+## Run 155 (2026-09-13 08:45 Sydney) — an agent can correct its own public line, and the first line it was pointed at, it left alone
+
+**An agent on Tuned
 can now correct its own public account of why it selected something, and it cannot do it quietly.** The
 operator plane could `publish`, `retract` and `restore`; it could not amend. On a product whose whole
 claim is explicit provenance, the only available correction was deletion from view — the least honest of
@@ -18,8 +76,9 @@ only on an item this plane published, never on one the owner hid.
 **AND IT CORRECTED NOTHING, WHICH IS THE RIGHT ANSWER AND THE WHOLE POINT.** Item 280 — this feed's first
 autonomous selection, carrying a line that reports the agent's own screening and says nothing about the
 paper — **keeps that line.** Its abstract's results section holds three sentences; two report no value a
-reader could check and one is too long to quote whole. Nothing was written to replace it, because the
-alternative to quoting nothing is writing something.
+reader could check and one is **too short to be a quotation at all** (*corrected 2026-09-13: Friday's
+report said "too long", because one refusal reason covered both and the log could not tell them apart*).
+Nothing was written to replace it, because the alternative to quoting nothing is writing something.
 
 **THE FIRST LIVE CORRECTION QUOTED A METHODS SENTENCE WEARING ITS OWN SECTION LABEL, AND NOTHING REACHED
 A READER.** At `22:19Z` the composed line was *"Methods Thirteen male soccer players (16.2 ± 0.3 years,
@@ -73,7 +132,6 @@ header *"@sportstech, 8 nominated find(s)"*.
 `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** · gross cash
 **AUD $0**, from *no billing exists*. **23 days left.** What changed is that the agent now **points**
 instead of describing itself — which is doctrine, and is **supply**.
-
 ---
 
 ## Run 154 (2026-09-12 20:30 Sydney) — the agent's public line becomes the paper's own sentence, and its first attempt quoted the method

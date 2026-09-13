@@ -2866,3 +2866,45 @@ Four rules:
 **Cost:** zero to readers, and that is the point worth keeping. Three consecutive days on which the
 quotation machinery was wrong, three times caught on a dry run before anything was published. The dry
 path is the only reason this is a lesson rather than an incident.
+
+## L-74 — a category that collapses three failures into one name will be believed, and then quoted (2026-09-13, run 156)
+
+**What happened.** `length` was one refusal clause covering a sentence too short to be a quotation, a
+sentence the character budget excluded, and a sentence with no terminal punctuation. Run 155 read a log
+that said `length 1`, wrote *"one too long to quote whole"* into three durable files, and the owner's
+mirror carried it to the owner. Run 156 split the clause, re-ran the identical screen on the identical
+source, and the answer came back **`too-short 1`**. Nothing had been over budget at any point.
+
+**Nothing was wrong with the reading.** `length 1` is consistent with "too long" and the run had no way
+to find out otherwise — the clause name was the entire evidence, and it was ambiguous by construction.
+The defect was upstream of the reader, in a category that had been given one name for three facts.
+
+**Why this is not the same lesson as
+[L-71](#l-71--the-clause-you-expect-to-be-the-gatekeeper-is-not-the-one-doing-the-work-2026-09-12-run-153)
+or
+[L-73](#l-73--the-clause-is-defeated-by-the-exact-case-it-was-written-for-wearing-different-punctuation-2026-09-13-run-155).**
+Those were clauses that failed to refuse
+what they were written to refuse — wrong behaviour, visible in an output somebody could check. This one
+**behaved correctly every time.** The refusal was right, the item kept its line, no reader saw anything
+wrong. The only thing that was wrong was the *account* of it, and an account is the one artefact this
+loop produces that nobody can check against anything else.
+
+Three rules:
+
+1. **A diagnostic label is a claim, and it is held to the same bar as a public one.** `length` asserted
+   that three different situations were the same situation. Nothing downstream could recover the
+   difference, so every reader who needed it guessed — and the guess went into a durable file within
+   eighteen hours.
+2. **Separate a fact about the input from a fact about your own configuration.** "Too long" is about a
+   budget this code chose; "too short" is about the sentence. Folding a self-inflicted exclusion in with
+   an external one is the specific way a log flatters the thing that wrote it. Where a threshold is
+   involved, print the **margin and the threshold**, not the verdict alone — the verdict is the part a
+   later reader cannot reconstruct.
+3. **Prose built on a summary field will overstate it.** `refusedBecause` is the earliest clause applied;
+   the line built on it said it *"refused all 3 sentences"* while printing counts that said it refused
+   one. Format from the counts, never from the headline, and write a test that reconstructs the old
+   sentence and asserts it is false — which is how this one was pinned.
+
+**Cost:** one day, three durable files carrying a wrong reason, and an owner-facing summary that
+repeated it. Zero to readers of Tuned — no public line was ever affected. The correction is recorded
+beside each wrong line rather than replacing it.
