@@ -5524,7 +5524,13 @@ line 2493 of a 3,093-line `ops/STATUS.md`, measured at
 [`fbfb868`](https://github.com/in-c0/tuned/commit/fbfb868), the tip this run started from. The claim
 command's only other appearance in `ops/` is line 5254 of `ops/DECISIONS.md`, where it is narrative
 about a past run rather than an instruction to a future one. And **the scheduled prompt that starts
-every run does not mention the lock at all.** `scripts/lib/run-claim.mjs`'s own header named
+every run does not mention the lock at all.**
+
+**It was not buried by drift — it was buried on arrival.** The whole mechanism landed in one commit,
+[`232496e`](https://github.com/in-c0/tuned/commit/232496e) (2026-08-31, run 124): lock, CLI, tests,
+CI step and the single line of prose activating it. That line went in at **line 1511 of a 2,063-line
+`ops/STATUS.md`** — already 73% of the way down, the day it was written. Thirty-three runs of
+prepended sections moved it to 2493/3093; they did not cause the problem. `scripts/lib/run-claim.mjs`'s own header named
 the gap as procedural and pointed at `ops/STATUS.md` as the place that closed it; that pointer was
 accurate and useless.
 

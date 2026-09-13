@@ -2989,9 +2989,14 @@ beside each wrong line rather than replacing it.
   not the protocol. **And the scheduled prompt that starts every run does not mention the lock at
   all.** So the instruction was reachable only by a run that went looking for something it did not
   know existed.
-- **Why it happened:** the protocol was introduced ([`3be09e5`](https://github.com/in-c0/tuned/commit/3be09e5))
-  by a session that already held it in working context, and was written down where that session was
-  already writing. Nothing checked afterwards whether a *fresh* session would encounter it — the same
+- **Why it happened, and it is worse than drift:** the whole mechanism arrived in one commit,
+  [`232496e`](https://github.com/in-c0/tuned/commit/232496e) (2026-08-31, run 124) — lock, CLI,
+  tests, CI step, and the one line of prose telling future runs to call it. **That line went in at
+  line 1511 of a 2,063-line `ops/STATUS.md`: 73% of the way down, on the day it was written.** It
+  was not buried by thirty-three later runs prepending sections above it; it sank from 1511/2063 to
+  2493/3093 and **it was already unreachable on arrival.** A session that had just built real mutual
+  exclusion filed its activation instruction into the middle of a narrative file it was already
+  editing, and nothing afterwards checked whether a *fresh* session would encounter it — the same
   shape as [L-01](#l-01--the-build-gate-was-broken-on-a-fresh-clone-and-only-a-fresh-clone-could-see-it),
   where a gate passed for everyone who already had the generated file and failed on every clean
   checkout. **This repository has never had a `CLAUDE.md`**, which is the one file a session in it

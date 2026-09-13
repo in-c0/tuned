@@ -37,6 +37,11 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 > does not mention the lock at all. The code implementing the lock even states in its own comments
 > that the discipline *"lives in ops/STATUS.md"*. It did. Nobody was ever going to read that far.
 >
+> **And it did not end up there by drift — it was buried the day it was written.** The lock, its
+> tests, its CI step and that one line of prose all arrived in a single commit on 31 August, and the
+> line went in at **1511 of 2,063**: already three-quarters of the way down, on day one. Thirty-three
+> later runs prepending sections above it moved it to 2493. They are not why it was missed.
+>
 > **What shipped.** A `CLAUDE.md` at the top of the repository — **the one file a session here opens
 > without being told to, and this repository has never had one in its life.** The signing command is
 > in its first screen. The rest is a single page: what Tuned is, which files to read, which checks to
