@@ -3089,3 +3089,53 @@ beside each wrong line rather than replacing it.
   tested by firing. What the change removes is *improvisation under a null*, not the null itself. It
   also does not make the actions binding — a later run can still argue its way out of one, and
   nothing here detects that.
+
+---
+
+## L-78 — an obligation conditioned on an event that never happens never fires, and the instrument that checks for emptiness is the one least able to certify it (2026-09-14, run 160)
+
+- **Known problem:** [L-77](#l-77) closed the gap where a *fork* stated a reading and no action. This
+  is the same shape one layer out, in an owner-facing artifact rather than an experiment: an
+  obligation whose **trigger** is an event the loop does not control, written by an author who was
+  picturing the event happening.
+- **Attempted approach:** [`ops/SUBMISSION-awesome-rss-feeds.md`](SUBMISSION-awesome-rss-feeds.md),
+  prepared 2026-09-04 (run 137), closed its preconditions table with *"re-read A4 and the duplicate
+  check **in the cycle of the submission**. Both are cheap… neither needs the owner."* Correct,
+  cheap, and addressed to nobody.
+- **Mistake:** **there has been no cycle of the submission, so the re-read never fired.** The packet
+  sat ready for ten days while runs 137–159 surfaced the card in every execution report as *"it is a
+  paste, not a research task"* — on preconditions last read from source on 2026-09-04. Nothing was
+  wrong with them, and that is luck rather than diligence: **A4 had in fact doubled** (4 → 8
+  publications in the trailing 30 days) and the duplicate check was still clean, but no run knew
+  either until this one dispatched the two reads the file had been asking for. **An obligation
+  attached to a future event nobody schedules is not an obligation; it is a hope.**
+- **More elegant next attempt:** make the trigger something the loop actually does. The requirement
+  is now **dated rather than conditional** — *"last verified: <date>"*, re-stamped by whoever
+  surfaces the card — so staleness is visible to the next run instead of waiting on an event that may
+  never arrive. Generalised: **when writing a recurring obligation, name a trigger the loop performs
+  on its own schedule, not one the world performs on someone else's.**
+- **And the second finding, which is about the instrument rather than the procedure.** The duplicate
+  re-read came back **clean and RED at once**. `source-read`'s classifier requires 1000 visible
+  characters before calling a fetch a `page`; GitHub's zero-results issue search renders **735**, so
+  the spec threw `HTTP 200 but the source was not on screen`. The reading is still good, on positive
+  evidence rather than a waived assertion — HTTP 200, 103 anchors scanned, and both state filters
+  resolved *by `href`* to `Open 0 (0)` and `Closed 0 (0)`, none of which a bot interstitial carries.
+  **The floor was not lowered**, per the standing hold in [STATUS.md](STATUS.md#not-doing-deliberate-holds):
+  a false alarm is overruled in the register, on the evidence, with the run kept red, because a floor
+  tuned down until nothing trips it reintroduces the [run-50 defect](#l-28) where a reCAPTCHA page
+  reported `1 passed`. This is the **second** false alarm on that floor (`feedle.world`, 745
+  characters, was the first).
+- **Why that pairing is structural and not bad luck:** *nothing is here* renders short **by
+  construction**, so a terseness gate is least able to certify exactly the answer an emptiness check
+  exists to return. A duplicate check that finds something produces a long page and passes; one that
+  finds nothing produces a short page and fails. **The instrument is biased against its own null** —
+  and a null is what this check is for.
+- **Proposed, and deliberately NOT shipped this run:** an additive discriminator rather than a lower
+  floor — a fetch that yields the specific anchors the query asked about is a `page` at any length,
+  which a challenge page cannot satisfy. It preserves the run-50 protection exactly. It is not
+  shipped because the hold above prescribes overruling in the register, and because this would have
+  been a fifth consecutive run spent on the loop's own machinery
+  ([NORTH_STAR](NORTH_STAR.md) rule 7, [L-08](#l-08)).
+- **Not claimed:** dating the obligation does not make anyone perform it, and no test enforces the
+  stamp. The packet's preconditions can still go stale — the change makes staleness *visible* to the
+  next run, which is strictly less than making it *impossible*.

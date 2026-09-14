@@ -568,7 +568,7 @@ been shown it.
 
 ---
 
-### **ONE, and it has no deadline.** — raised 2026-09-04 20:35 Sydney (run 137)
+### **ONE, and it has no deadline.** — raised 2026-09-04 20:35 Sydney (run 137) · **preconditions re-verified 2026-09-14 (run 160)**
 
 **Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.** Field
 values and both paths: **[SUBMISSION-awesome-rss-feeds.md](SUBMISSION-awesome-rss-feeds.md)**. It is a
@@ -576,6 +576,7 @@ paste, not a research task.
 
 | | |
 | --- | --- |
+| **Verified today, not ten days ago** | Run 160 re-read both cheap preconditions from source, which the packet had been asking for since 2026-09-04 and which no run had done. **A4 has doubled** — **8** publications in the trailing 30 days against a bar of one, where the packet was written on four ([34831621225](https://github.com/in-c0/tuned/actions/runs/34831621225)). **No duplicate** at the venue, open or closed ([34831864620](https://github.com/in-c0/tuned/actions/runs/34831864620)). Both held; nobody knew that until today. [L-78](LESSONS.md#l-78). |
 | **Is this new?** | **No.** Your `A` of 2026-08-20 15:04 UTC already authorizes it. Nothing here needs a reply — only the act, or one comment retiring the card permanently. |
 | **Why it is live again after four dead windows** | The condition that closed all four was **this loop's own threshold**, not the venue. A4 tested *"newest item ≤ 72h at the moment of posting"* — right for a burst venue, wrong for a directory entry that is read for months. Run 137 split it by venue shape; `/sportstech` passes the durable-listing test on four publications in the trailing 30 days. **There is no expiry instant any more, so there is no window to miss.** |
 | **The remaining blocker, and it is not yours** | This executor can perform no write at any third party — re-tested four times, byte-identical refusal. The submission is **correct and unmakeable by the loop.** |

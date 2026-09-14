@@ -5663,3 +5663,68 @@ and it is real:** it fires on this loop's own QA user-agent, which is orthogonal
   **The agent-scout schedule is still disarmed** and the threshold-2 proposal remains unruled. No
   item published, amended, retracted or restored.
 - **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+---
+
+## 2026-09-14 — run 160: the packet asked for a re-read "in the cycle of the submission", and there has never been one
+
+**Decision.** Discharge [`ops/SUBMISSION-awesome-rss-feeds.md`](SUBMISSION-awesome-rss-feeds.md)'s own
+standing requirement — re-read A4 and the venue duplicate check from source — replace the requirement
+with a dated one, and escalate the card to the owner **once**, out of band. **No `src/` change, no new
+counter, no new scheduled job, no new test, and nothing published.**
+
+**Why this and not a fifth run on the machinery.** Runs 156–159 were a watchdog, its corroborator, a
+procedure carrier and a fork-registration rule. Each fixed a real defect; none of them is a user.
+[CLAUDE.md](../CLAUDE.md) and [NORTH_STAR](NORTH_STAR.md) rule 7 say to stop improving the control
+plane once it is adequate. The one act that could still produce a first non-owner arrival is the
+`awesome-rss-feeds` submission, and the executor cannot perform it (**A0**, re-tested four times).
+What the executor *can* do is make sure that when the owner acts, they act on evidence read today
+rather than ten days ago — which is exactly what the packet had been asking for and nobody had done.
+
+**What the re-reads found.**
+
+| Precondition | Reading | Source |
+| --- | --- | --- |
+| **A4** — durable listing | **✅ and strengthened: 8 publications in the trailing 30 days**, against a bar of ≥ 1 in 30 and ≥ 3 in 90. Was **4** when the packet was written. `last_public_item_at=2026-09-12T10:21:50.674Z` | [agent operator 34831621225](https://github.com/in-c0/tuned/actions/runs/34831621225), 2026-09-14T10:08:20Z |
+| **Duplicate** | **NONE, unchanged.** `Open 0 (0)` · `Closed 0 (0)`, both filter links resolved by `href`, 103 anchors scanned, HTTP 200 | [source read 34831864620](https://github.com/in-c0/tuned/actions/runs/34831864620), 2026-09-14T10:12:06Z |
+
+**Four things considered and rejected, with reasons.**
+
+1. **Publish the scout's top selection** (dispatch `agent-scout` with `publish=true`). The
+   [08:05Z scheduled screen](https://github.com/in-c0/tuned/actions/runs/34820950934) screened 37,
+   selected 9 (**24.3%**, inside EXP-013's threshold 2) and named a top selection. **Rejected:** A4 is
+   already satisfied at 8-in-30 with no expiry, so the publication is not needed for any condition —
+   and publishing into that state is indistinguishable from freshness-as-motive, which
+   [EXP-008](EXPERIMENTS.md)'s binding clauses disqualify and the standing hold in
+   [STATUS.md](STATUS.md#not-doing-deliberate-holds) forbids. The selection also produced **no
+   qualifying quotation** (12 sentences considered, 0 passed), so it would publish in item 280's
+   weaker provenance-only form. The cadence is healthy without it.
+2. **Arm the daily scout schedule to publish unattended.** **Rejected — not the executor's to
+   decide.** It is the reviewer question standing unanswered since run 153, and EXP-013's threshold 2
+   has still not been re-specified *before* a screen. Today's 24.3% would have passed it; that is one
+   screen, and re-arming on a reading taken after the fact is the thing the workflow's own header
+   refuses.
+3. **Lower `source-read`'s 1000-character floor** so the duplicate check goes green. **Rejected, and
+   the register already decided it:** a false alarm is overruled *in the register, on the evidence,
+   with the run kept red*. A floor tuned down until nothing trips it reintroduces
+   [L-28](LESSONS.md#l-28)'s run-50 defect, where a reCAPTCHA page reported `1 passed`.
+4. **Ship the additive discriminator** that would let a legitimately empty page certify itself
+   (a fetch yielding the anchors the query asked about is a `page` at any length). **Deferred, not
+   rejected** — it is the right fix and it is recorded in [L-78](LESSONS.md#l-78) as the next
+   candidate, but shipping it this run would have been the fifth consecutive cycle spent on tooling,
+   and the reading it would have turned green is already sound on positive evidence.
+
+**The owner escalation, and why it is not a repeat.** [L-07](LESSONS.md#l-07) permits escalating an
+unchanged blocker **once** and then standing down. The card raised at run 137 has been restated in
+every execution report since but **never escalated out of band** — run 121's ping belonged to the
+previous, now-retired card. This is that one escalation, and it carries no invented deadline: the
+durable-listing test has no expiry instant, and saying otherwise to manufacture urgency would be a
+fabricated metric.
+
+**What was deliberately not done.** `src/` untouched, so the deployed Worker is byte-identical.
+**EXP-011 was not graded early** and its thresholds, window and 2026-09-18 reading date are
+byte-untouched; no landing-page or inline-script edit. No item published, amended, retracted or
+restored. No clause, term list, threshold, ranking or query changed. The agent-scout schedule remains
+disarmed.
+
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**

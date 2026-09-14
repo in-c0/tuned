@@ -1,5 +1,56 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-14 20:35 Sydney (2026-09-14 10:35 UTC), run 160 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-159 and not re-argued here, per [L-07](LESSONS.md) — but one of them was
+escalated to you out of band for the first time.** **The submission packet has been telling every run
+since 2026-09-04 to re-read its preconditions "in the cycle of the submission". There has never been a
+cycle of the submission, so no run ever did.**
+
+**In plain terms.** There is one act left that could bring Tuned its first stranger: submitting
+`/sportstech` to a curated RSS directory. This loop cannot perform it — it holds no write at any third
+party — so a file was prepared ten days ago to make it a two-minute paste for the owner. That file ends
+with an instruction to re-check its two cheap preconditions **"in the cycle of the submission"**. No
+submission has happened, so that cycle never came, so the check never ran — while every report since
+kept telling the owner the packet was ready, on evidence that was quietly aging.
+
+**This run ran the two checks the file had been asking for, and both hold.** **A4** — is the destination
+alive enough to be worth listing — is not merely still passing but has **doubled**: **8 publications in
+the trailing 30 days** against a bar of one, where the packet was written on four
+([agent operator 34831621225](https://github.com/in-c0/tuned/actions/runs/34831621225)). The **duplicate
+check** is unchanged: no `justtuned` issue at the venue, open or closed
+([source read 34831864620](https://github.com/in-c0/tuned/actions/runs/34831864620)). **Nothing was
+wrong — and that is luck, not diligence.** Nobody knew either number until today.
+
+**The instruction is now dated instead of conditional.** *"Last verified: 2026-09-14"*, re-stamped by
+whoever surfaces the card, so staleness is visible to the next run rather than waiting on an event the
+loop does not control. [L-78](LESSONS.md).
+
+**The duplicate check came back clean and RED at the same time, and the floor was not lowered.**
+`source-read` demands 1000 visible characters before it will call a fetch a page; GitHub's zero-results
+issue search renders **735**. The reading stands on positive evidence — HTTP 200, 103 anchors scanned,
+both state filters resolved *by `href`* to `Open 0 (0)` and `Closed 0 (0)`, none of which a bot
+interstitial carries — and the run is **kept red**, per the standing hold. This is the second false
+alarm on that floor. **It is also structural rather than unlucky: *nothing is here* renders short by
+construction, so a terseness gate is least able to certify exactly the answer an emptiness check
+exists to return.** The fix is an additive discriminator, not a lower floor; it is written down in
+[L-78](LESSONS.md) and **deliberately not shipped**, because that would have been the fifth
+consecutive run spent on this loop's own machinery.
+
+**Nothing about the site changed.** `src/` was not touched, so the deployed code is byte-for-byte what
+it was. **EXP-011's thresholds, window and reading date are byte-untouched and it was not graded
+early**; the window still closes **2026-09-18**. The agent-scout schedule is still disarmed and the
+threshold-2 proposal is still unruled — **today's scheduled screen selected 9 of 37 (24.3%), inside
+threshold 2, and published nothing**, and re-arming on a reading taken after the fact is what the
+workflow's own header refuses. No item published, amended, retracted or restored. No spend.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **21 days left.** The packet is now verified as well as
+prepared, and it still cannot be submitted by anything in this repository.
+
+---
+
+## Run 159 (2026-09-14 14:10 Sydney) — the forks with no next action were exactly the forks that keep firing
+
 **Last updated:** 2026-09-14 14:10 Sydney (2026-09-14 04:10 UTC), run 159 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-158 and not re-argued here, per [L-07](LESSONS.md).** **This loop had
 written down, in detail, what to do when an experiment tells it something — and left blank what to do
