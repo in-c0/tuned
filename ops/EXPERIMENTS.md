@@ -2,6 +2,29 @@
 
 Append-only. One entry per bounded experiment. Required fields: hypothesis, baseline, change, success threshold, result, decision. Never record a result that is not sourced from real data.
 
+## Every fork carries its next action, registered with the threshold
+
+**A fork that states a reading and stops is half a pre-registration.** Write `*Next action:* …` into
+every fork at the moment the thresholds are set — including, and especially, the null forks, the
+"inadmissible" forks and the "no reading available" forks. Enforced by
+[`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs).
+
+*Why this is a rule and not a style note.* On 2026-09-14 (run 159) eleven of thirty-two registered
+forks had no action attached, and they were not a random eleven: **every one was a null, an
+inadmissible or a no-reading fork.** This loop had written down in detail what to do when an
+experiment tells it something, and left blank what to do when it tells it nothing — and nothing is
+the outcome it has actually received. EXP-002 was killed at submission; EXP-009 has never acquired a
+t0; EXP-010 graded to a null; A4 lapsed unused four times. The gap is invisible when reading top to
+bottom, because each fork looks complete on its own: it has a threshold, a reading, and usually a
+prohibition. It just has no next step, so the run that reads it improvises at exactly the moment the
+evidence is weakest. [L-77](LESSONS.md).
+
+*And the ordering is the point, not the paperwork.* Obligations written after the number is known are
+chosen to suit it. Run 159 proved that on itself: routine inspection computed a partial EXP-011
+series **before** that experiment's downstream obligations had been registered, which permanently
+foreclosed registering them blind — see the run-159 addendum under EXP-011. A pre-registration window
+is consumed by the first run that looks, and no rule forbade looking.
+
 Template:
 
 ```
@@ -1651,12 +1674,27 @@ read from `schedule` metrics snapshots. Primary counter: `arrival_fetch:awesome-
   candidate and keep the distinction in the register.
 - **Fork D — inadmissible, not null.** The submission is never authorized, never made, or never
   merged. *Reading:* **nothing above is graded and no conclusion about demand may be drawn.** A
-  maintainer who never merges an entry has told us nothing about strangers.
+  maintainer who never merges an entry has told us nothing about strangers. *Next action:* registered
+  2026-09-14 (run 159), with no t0 in existence and nothing to bias it. **EXP-009 is recorded as
+  NEVER STARTED and closed on the earlier of the submission being made or 2026-10-05** — an
+  experiment that cannot acquire a t0 is not a live experiment and must stop being carried as one.
+  No A/B/C figure is quoted, computed or referred to, ever. `arrival:awesome-rss-feeds` **stays
+  allowlisted and unread**, so a merge that happens later is still measurable at zero cost. The
+  standing owner ask is stated once per [L-07](LESSONS.md) and not re-argued. And **no substitute
+  venue is proposed on the strength of this design**: a design that never ran has validated nothing,
+  and treating it as proven instrumentation is how a null becomes a plan.
 - **Fork E — inadmissible on the URL.** The listing merges but the merged entry's URL does not carry
   `?src=awesome-rss-feeds` — a maintainer normalising the URL is an ordinary thing to do. *Reading:*
   the attempt is real but ungradeable by this instrument; `feed_fetch:sportstech` against its Reading-1
   band is the only remaining evidence and it is weaker. **The merged entry's exact URL must be checked
-  before grading, and Fork E must not be reported as Fork C.**
+  before grading, and Fork E must not be reported as Fork C.** *Next action:* registered 2026-09-14
+  (run 159). Record the merged entry's URL **verbatim** in this file first, because it is the evidence
+  and it can be edited by someone else at any time. Grade nothing from D. EXP-009 then closes as
+  **ungradeable by this instrument**, and the weaker `feed_fetch:sportstech` reading is reported as
+  weaker or not at all — never promoted to stand in for D. **Do not re-submit a re-tagged URL to the
+  same venue to manufacture a gradeable t0.** That is **EXP-008**'s prohibition on publishing
+  to move a number, one level up: a second submission made because the first did not measure well is
+  a submission made for the instrument rather than for the reader.
 
 ### Stop conditions, stated in advance
 
@@ -2284,6 +2322,14 @@ of the middle so that a reading near either is not a coin toss.
   third parties. **Fork R-E must not be reported as R-B.** Playwright's default headless user-agent
   contains `headless` and therefore lands in `landing_render_bot`, which is why browser QA is
   permitted inside the window — but overriding that user-agent, on any spec, fires this fork.
+  *Next action:* registered 2026-09-14 (run 159), and see the run-159 addendum below for why this one
+  fork could still be registered blind while R-A/R-B/R-C could not. **R is not computed, quoted or
+  recorded** — not even as "contaminated, but roughly N%", because a number published with a caveat
+  is a number that gets quoted without one. Identify the contaminating client and restore its
+  declaring user-agent before anything else. Then **re-run on a clean 14-day window only if the
+  landing page is still frozen for all of it**; if it is not, EXP-011 is **abandoned rather than
+  salvaged**, on the same reasoning [EXP-010](#exp-010--what-does-a-published-but-never-submitted-tagged-url-earn-on-its-own-2026-08-20-run-58)
+  Fork N-4 already registers. A contaminated window is not a shorter clean one.
 
 ### Stop conditions, stated in advance
 
@@ -2435,6 +2481,46 @@ which R does not read.
 pre-bump reading in every field — the bump did not disturb the emitter.** The far-side bracket
 registered for 2026-09-19 stands unchanged.
 
+### Downstream obligations — declined, and the disclosure that forces it, run 159 (2026-09-14 14:10 Sydney)
+
+**This addendum changes no threshold, no cut point, no fork reading, no window and no reading date.**
+R is still Σ `landing_render` ÷ Σ `landing_view` over the 14 complete UTC days 2026-09-05 … 2026-09-18,
+read once, from a snapshot generated after the window closes. Nothing below grades anything.
+
+**What run 158 asked for, and why it is not here.** Run 158's closing recommendation was to
+pre-register, before the number exists, what each fork obliges the remaining days to do — so that
+2026-09-19 is an action rather than a deliberation. **That is the right thing to want and it can no
+longer be done honestly for R-A, R-B or R-C.**
+
+**The disclosure, in full, because a number-shaped secret is worse than the number.** While inspecting
+available analytics — step 2 of this loop's own operating cycle, forbidden by no rule here — run 159
+computed the **partial** series over the **nine** complete days 2026-09-05 … 2026-09-13 from
+[`ops/metrics/latest.json`](metrics/latest.json) (`2026-09-13T22:34:52.428Z`): Σ `landing_render` = **4**,
+Σ `landing_view` = **543**.
+
+**That figure is NOT R and must never be quoted as R.** It covers 9 of 14 days, not 14; R is read from
+a post-window snapshot, and this one is not. It grades nothing, fires no fork, and moves no date. It
+is recorded here because the alternative — saying "a number was seen, but not which" — invites
+guessing and lets this run claim candour without accountability.
+
+**The consequence, stated plainly against this run's own interest.** Nine days of a fourteen-day
+series is enough to make the likely fork obvious. So any obligation written now for R-A, R-B or R-C
+would be written by an author who effectively knows which one pays — and the failure mode of a
+post-hoc obligation is that the fork you expect gets the comfortable duty and the forks you don't get
+the heroic ones. **The blind text already in this file is therefore better than anything run 159 could
+add to it**, and 2026-09-19 executes each fork's *Next action:* exactly as registered on 2026-09-04,
+unelaborated and unamended. Declining to write is the honest move; writing with a caveat is not.
+
+**Fork R-E is the exception and it is a real one, not a loophole.** R-E fires on a first-party client
+rendering the page under a user-agent that does not match `BOT_UA` — a fact about this loop's own QA
+configuration, entirely orthogonal to the partial series above, which tells nobody anything about
+whether contamination occurred. It was registered blind this run, and is the only fork here that was.
+
+**And the general rule this cost.** A pre-registration window is consumed by the first run that looks,
+and looking was mandated rather than forbidden. Downstream obligations therefore belong in the same
+commit as the thresholds — now enforced for every future fork by
+[`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs) and recorded as
+[L-77](LESSONS.md).
 
 ---
 
@@ -2547,13 +2633,28 @@ URL-assembling crawler as a channel, so both cut points clear both nulls with ro
   the same venue is **not** admissible.
 - **Fork O-C — silent. D = 0 across all 14 days**, with the venue listing confirmed present.
   *Reading:* a listed link blog sent nobody. That is a real and reportable null about the channel, and
-  it is **not** a statement about Tuned's demand.
+  it is **not** a statement about Tuned's demand. *Next action:* registered 2026-09-14 (run 159),
+  before the suggestion exists and with D undefined. Record the null against **this venue** in
+  [DISTRIBUTION.md](DISTRIBUTION.md) and propose it no further. **Do not generalise it to directory
+  listings as a class** — one venue's silence is one venue's silence, and EXP-009 is the other data
+  point this loop does not have. The durable consequence is narrower and firmer than a verdict on
+  channels: **a listing is not distribution**, so no later run may count "we are listed somewhere" as
+  progress against the active objective, which asks for arrivals and not for placements.
 - **Fork O-D — inadmissible: never listed.** `/sportstech` does not appear on ooh.directory at the
   reading, verified by one `source-read` dispatch in the reading's own cycle. *Reading:* **nothing is
   graded.** The venue states this outcome in advance — *"These are suggestions rather than
   submissions… Suggesting a blog does not guarantee it will appear on the site"* — so this is the
   **expected modal outcome**, registered as such rather than discovered as a disappointment. No
-  demand inference in either direction.
+  demand inference in either direction. *Next action:* registered 2026-09-14 (run 159). **Do not
+  re-suggest.** The venue told us in advance that suggesting guarantees nothing, so a second
+  suggestion is not new evidence — it is the same act repeated because the first did not produce a
+  number, which is the prohibition EXP-008 carries and Fork E above restates. EXP-012 closes as
+  **never listed**, `arrival:ooh-directory` **stays allowlisted and unread** so a later listing is
+  still measurable at zero cost, and the packet in
+  [`ops/SUBMISSION-ooh-directory.md`](SUBMISSION-ooh-directory.md) is left exactly as it is rather
+  than rewritten to be more persuasive. **Nothing here is evidence about Tuned**, and a run that
+  reports this fork as a setback has misread it: the expected outcome arriving on schedule is the
+  one result that was never in question.
 - **Fork O-E — the instrument did not land.** `arrival:ooh-directory` and `arrival_bot:ooh-directory`
   both zero on all 14 days *while* `feed_view:sportstech` is non-zero. *Reading:* the tag is not
   writing in production and nothing above is graded. *Next action:* fix it, and treat every statement
@@ -2564,7 +2665,12 @@ URL-assembling crawler as a channel, so both cut points clear both nulls with ro
   fetches the tagged URL inside the window under a user-agent that does not match `BOT_UA` in
   [`src/metrics.ts`](../src/metrics.ts). *Reading:* the unsuffixed name is carrying URL-assemblers or
   this loop looking at itself, and D is not a measurement of the venue. **Fork O-F must not be
-  reported as Fork O-A.**
+  reported as Fork O-A.** *Next action:* registered 2026-09-14 (run 159), on the same shape as
+  EXP-011 Fork R-E. **D is not computed, quoted or recorded**, caveated or otherwise. Identify what
+  fetched the tagged URL and stop it. Then re-run on a clean 14-day window **only if the listing is
+  still present for all of it** — a window whose venue state changed mid-flight is not clean either —
+  and otherwise abandon rather than salvage. The one thing that must not happen is the repair being
+  counted as the reading: fixing contamination tells us about this loop, never about the venue.
 
 ### Stop conditions, stated in advance
 
@@ -2735,16 +2841,30 @@ a clause to fail in.
 ### Forks, decided in advance
 
 - **A — cadence demonstrated.** 1–5 hold. The agent is real, and the next question is the one this
-  cannot answer: whether anybody follows it. No claim of demand.
-- **B — firehose.** Threshold 2 fails. The bar is a pass-through. Disable the schedule the same day,
-  tighten, and do not publish under a bar that has been shown not to refuse.
-- **C — drift.** Threshold 5 fails. `retract` the item, disable the schedule, and record it as the
-  remit failing rather than as a bad day.
+  cannot answer: whether anybody follows it. No claim of demand. *Next action:* registered 2026-09-14
+  (run 159), before the 2026-09-26 reading. EXP-013 closes **passed on cadence only**, and that
+  phrase is the whole of what may be reported — **a feed that publishes on schedule is not traction,
+  not demand, and not a user**, and any run quoting Fork A as commercial progress has misread it.
+  The successor question is followers, graded on `follow_rss` and `feed_fetch:<handle>` against a
+  pre-registered band, never on publication count, which measures only this loop's own diligence.
+  **This fork authorizes no arming of `agent-scout.yml`**: whether the daily schedule may publish
+  unattended is the reviewer's open decision and is not settled by the bar having held.
+- **B — firehose.** Threshold 2 fails. The bar is a pass-through. *Next action:* disable the schedule
+  the same day, tighten, and do not publish under a bar that has been shown not to refuse.
+- **C — drift.** Threshold 5 fails. *Next action:* `retract` the item, disable the schedule, and
+  record it as the remit failing rather than as a bad day.
 - **D — starved.** 1 holds, 2 is vacuous because nothing was ever selected, 4 fails. A reading about
-  the bar or about the literature, not about Tuned; the response is to widen the window or the term
-  lists, never to relax the `measured-result` clause.
+  the bar or about the literature, not about Tuned; *next action:* the response is to widen the
+  window or the term lists, never to relax the `measured-result` clause.
 - **E — unavailable.** Europe PMC refuses a self-declaring client. **No reading**, recorded as a
-  blocker; it is not a zero and not evidence about anything.
+  blocker; it is not a zero and not evidence about anything. *Next action:* registered 2026-09-14
+  (run 159). Record the blocker and stop — **do not substitute a different source to manufacture a
+  reading**, because a bar calibrated on one corpus and read against another grades neither, and a
+  swapped denominator is how a null becomes a pass. **Do not re-run against an undeclared or spoofed
+  user-agent**; that is the standing hold in [STATUS.md](STATUS.md) and it is not suspended by an
+  experiment being inconvenient to grade. EXP-013 re-runs **only** when the source answers a
+  declaring client, and is otherwise closed as **unavailable** — which is a fact about Europe PMC's
+  access policy and about nothing else.
 
 ### Known limitation, stated before the first publication rather than after it
 

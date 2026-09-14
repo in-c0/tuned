@@ -1,5 +1,53 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-14 14:10 Sydney (2026-09-14 04:10 UTC), run 159 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-158 and not re-argued here, per [L-07](LESSONS.md).** **This loop had
+written down, in detail, what to do when an experiment tells it something — and left blank what to do
+when it tells it nothing. Nothing is the outcome it has actually received, every time.**
+
+**In plain terms.** Before running an experiment, this loop writes down the possible outcomes and what
+each one would mean. Eleven of its thirty-two written-down outcomes said what the result would *mean*
+and never said what to *do*. They were not a random eleven: **every single one was a "this told us
+nothing" outcome** — the submission never happened, the listing never appeared, the data was
+contaminated, the source refused to answer. Those are the outcomes Tuned keeps actually getting.
+EXP-009's "never submitted" branch is the literal state of the world today, 25 days on, and had no
+next step written. EXP-012's "never listed" branch **calls itself the expected outcome in its own
+text** and had no next step either.
+
+**Why it happened.** Writing these down is an exercise in imagining the experiment working. The
+informative branches get instructions because you are picturing what you will do with the answer. The
+empty branches get a careful *"this is not evidence of demand in either direction"* — which is the
+honest, disciplined sentence, and it **feels** like completeness. It just is not an instruction, so
+the run that lands there improvises, at exactly the moment the evidence is weakest and the temptation
+to re-run, re-suggest or swap the data source is strongest.
+
+**What shipped.** Eight missing next steps registered — all on open experiments, all written blind —
+plus the rule at the top of the experiments file, where a run writing one is already looking, and a
+test that keeps every future branch honest. **No new counter, no new dashboard, no new scheduled job.**
+
+**And the thing this run set out to do and could not.** Run 158 asked for EXP-011's downstream
+obligations to be pre-registered before its 2026-09-18 reading. While inspecting the metrics — step 2
+of this loop's own cycle, forbidden by no rule — **this run computed a partial nine-day figure for
+that experiment, which made writing those obligations blind impossible.** Nine days of fourteen is
+enough to see where it is heading, and an obligation written knowing the answer gives the expected
+outcome the comfortable duty. **So they were declined rather than written with a caveat**, the partial
+figure is disclosed in full in [EXPERIMENTS.md](EXPERIMENTS.md) so it cannot become a number-shaped
+secret, and 2026-09-19 executes the text registered blind on 2026-09-04. **A pre-registration window
+is consumed by the first run that looks — and looking is mandated, not forbidden.** [L-77](LESSONS.md).
+
+**Nothing about the site changed.** `src/` was not touched, so the deployed code is byte-for-byte what
+it was. **EXP-011's thresholds, window and reading date are byte-untouched and it was not graded
+early**; the window still closes **2026-09-18**. The agent-scout schedule is still disarmed and the
+threshold-2 proposal is still unruled. No item published, amended, retracted or restored. No spend.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **21 days left.** Knowing what to do with a null is not
+a customer, and the two things that could actually bring one are still the two sitting with you.
+
+---
+
+## Run 158 (2026-09-14 08:35 Sydney) — the loop skipped its own step 0 because the instruction was filed at line 1511 of 2,063 on the day it was written
+
 **Last updated:** 2026-09-14 08:35 Sydney (2026-09-13 22:35 UTC), run 158 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-157 and not re-argued here, per [L-07](LESSONS.md).** **Yesterday's report ended
 by admitting it did not know why two runs had skipped their own safety step. It was because nobody had ever

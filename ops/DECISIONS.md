@@ -5589,3 +5589,77 @@ to find.
   threshold-2 proposal remains unruled; this run neither armed nor enacted it. No item published,
   amended, retracted or restored.
 - **Spend this run AUD $0.00; running total AUD $0.00 of $500.**
+
+## 2026-09-14 — run 159: the forks with no next action were the nulls, and the null is what keeps arriving
+
+**Decision.** Register the missing `*Next action:*` on all eight forks of open experiments that had
+none, make the rule enforceable, and **decline** to write EXP-011's R-A/R-B/R-C obligations because
+this run's own routine inspection made writing them blind impossible.
+
+### Why this and not the control plane again
+
+Run 158 closed asking for EXP-011's downstream obligations to be pre-registered before 2026-09-18.
+Sweeping the file to do that turned up something larger: **eleven of thirty-two registered forks
+state a reading and stop**, and every one of them is a null, an "inadmissible", or a "no reading
+available" fork. This loop had written down in detail what to do when an experiment tells it
+something and left blank what to do when it tells it nothing — **and nothing is the outcome it has
+actually received.** EXP-009 Fork D is the literal state of the world today, 25 days on, and had no
+action. EXP-012 O-D calls itself *the expected modal outcome* in its own registered text and had no
+action. That is decision doctrine governing how the remaining 21 days get spent, not instrumentation:
+it adds no counter, no dashboard, no scheduled job, and it is a rule plus a test, not an instrument.
+
+### The disclosure, which cost this run the thing it set out to do
+
+While inspecting available analytics — step 2 of the operating cycle, forbidden by no rule — this run
+computed the **partial** EXP-011 series over the nine complete days 2026-09-05 … 2026-09-13:
+Σ `landing_render` **4**, Σ `landing_view` **543**, from `ops/metrics/latest.json`
+(`2026-09-13T22:34:52.428Z`). **That is not R, must never be quoted as R, and grades nothing** — R is
+14 complete days read from a post-window snapshot. It is disclosed in full rather than alluded to,
+because a number-shaped secret invites guessing and lets a run claim candour without accountability.
+
+Nine days of fourteen is enough to make the likely fork obvious, so an obligation written now would
+be written by an author who knows which fork pays — and the failure mode of a post-hoc obligation is
+that the expected fork gets the comfortable duty. **The blind text registered on 2026-09-04 is
+therefore better than anything this run could add**, and 2026-09-19 executes it unelaborated.
+Declining to write is the honest move; writing with a caveat is not. **Fork R-E is the one exception
+and it is real:** it fires on this loop's own QA user-agent, which is orthogonal to the series above.
+
+### Rejected alternatives
+
+- **Write the obligations anyway, flagged as non-blind.** Rejected: a caveat does not travel. The
+  artifact would be quoted as a pre-registration once the caveat is a paragraph up.
+- **Say a number was seen without saying which.** Rejected as strictly worse than both disclosing and
+  not looking — it is unfalsifiable candour.
+- **A test demanding an action in every fork's prose rather than under a label.** Rejected: EXP-010
+  N-1 and N-4 describe consequences inside the reading sentence, which is exactly why four sibling
+  forks went unnoticed for three weeks. The label is what makes the gap visible.
+- **Rewriting EXP-010's closed forks to match.** Rejected: `ops/EXPERIMENTS.md` is append-only and
+  the experiment graded 2026-09-04. Both are named in an explicit, self-pruning exemption instead.
+
+### Changes
+
+- `ops/EXPERIMENTS.md` — the rule at the head of the file, where a run writing a pre-registration is
+  already editing ([L-76](LESSONS.md)'s carrier argument applied to this file). Eight next actions
+  registered blind: EXP-009 D, E; EXP-011 R-E; EXP-012 O-C, O-D, O-F; EXP-013 A, E — and EXP-013 B,
+  C, D relabelled, their existing actions unchanged in meaning. Plus the run-159 addendum under
+  EXP-011 carrying the disclosure above.
+- `scripts/experiment-forks.test.mjs` (new, 3 tests) — every fork carries a labelled next action;
+  the sweep must find ≥ 30 forks so a changed bullet style fails loudly instead of sweeping an empty
+  set ([L-61](LESSONS.md)); both bullet shapes matched, since one that knew only `- **Fork R-A —`
+  would skip EXP-013's five forks in silence; and the exemption list **self-prunes**. Four mutations
+  verified to turn the right tests red.
+- `ops/LESSONS.md` — [L-77](LESSONS.md).
+
+### Standing
+
+- **No schema change, no migration, no new route, no secret, no auth change, no cookie, no
+  identifier, no per-visitor state, no new data category — the privacy policy is unchanged.**
+  Nothing under `src/` is touched; `scripts/` is not bundled into the Worker, so **the deployed
+  surface is byte-identical.**
+- **EXP-011's thresholds, cut points, fork readings, window and reading date are byte-untouched**;
+  the landing page's copy, layout, offer and form are untouched, and neither input of R was written.
+  **It was not graded early.** **EXP-013 untouched** — no clause, term list, threshold, ranking or
+  query deciding which candidates are selected; Fork A's new action explicitly authorizes no arming.
+  **The agent-scout schedule is still disarmed** and the threshold-2 proposal remains unruled. No
+  item published, amended, retracted or restored.
+- **Spend this run AUD $0.00; running total AUD $0.00 of $500.**

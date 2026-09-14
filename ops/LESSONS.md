@@ -3028,3 +3028,64 @@ beside each wrong line rather than replacing it.
   no mechanism that refuses a push from a session holding no claim, and a fail-closed gate on the
   deploy path was deliberately not built — it would put an unclaimed run's *production deploy* at
   risk to punish a bookkeeping miss. Detection remains `executor liveness`'s `unclaimed-runs`.
+
+## L-77 — the forks with no next action were exactly the forks that keep firing (2026-09-14, run 159)
+
+- **Known problem:** [L-17](#l-17) made this loop pre-register a channel's *admissibility* alongside
+  its thresholds, after EXP-002 was found unpublishable on the venue's own rules five days into
+  treating it as the top blocker. The same gap one level along — pre-registering the *consequences*
+  alongside the thresholds — was never closed, and nothing had looked.
+- **Attempted approach:** `ops/EXPERIMENTS.md` pre-registers forks in real detail. Each carries a
+  cut point, a *Reading:* saying what the world is like if it fires, and usually a prohibition
+  naming the wrong conclusion to draw. Read top to bottom, every fork looks complete.
+- **Mistake:** **eleven of thirty-two registered forks stated a reading and stopped.** Sweeping the
+  file for an explicit next action turned up EXP-009 D and E, EXP-011 R-E, EXP-012 O-C, O-D and O-F,
+  and EXP-013 A and E — plus EXP-010 N-1 and N-4, which bury a consequence inside the reading
+  sentence rather than labelling it. **They are not a random eleven. Every one is a null, an
+  "inadmissible", or a "no reading available" fork.**
+- **Why it happened:** writing a pre-registration is an exercise in imagining the experiment
+  *working*. The informative forks get obligations because the author is thinking about what they
+  will do with the answer; the null forks get a careful *Reading:* and a prohibition — *"no demand
+  inference in either direction"* — which **feels** like completeness because it is the honest,
+  disciplined sentence, and it is. It just is not an instruction. The discipline that stops a null
+  being over-read is the same sentence that leaves the run reading it with nothing to do.
+- **Evidence and cost:** the unhandled fork is this loop's modal outcome, not its edge case. EXP-002
+  was killed at submission. EXP-009 has never acquired a t0 — **Fork D is the literal current state
+  of the world, 25 days on, and had no registered action.** EXP-010 graded to a null. A4 lapsed
+  unused four times. EXP-012 O-D — *"never listed"* — is called **the expected modal outcome in its
+  own registered text** and had no action either. Thirty-nine days in, every funnel figure is the
+  figure it started at. So the branch this loop actually walks down is the one it never wrote
+  directions for, and the run that gets there improvises at exactly the moment the evidence is
+  weakest and the temptation to re-run, re-suggest or substitute a source is strongest.
+- **Lesson:** **pre-register the null.** A fork that says what a reading *means* but not what the
+  loop *does* is half a pre-registration, and it is the half that gets skipped precisely where it is
+  load-bearing. The test is not "have I said what this would tell me" but "could a run that has
+  never seen this experiment act on this fork without deliberating".
+- **And the ordering is not paperwork — run 159 proved that on itself.** Run 158's closing
+  recommendation was to pre-register what each EXP-011 fork obliged the remaining days to do. Before
+  reaching it, this run computed a **partial** EXP-011 series during routine inspection — step 2 of
+  its own operating cycle, forbidden by no rule — and nine days of a fourteen-day series is enough to
+  make the likely fork obvious. **That permanently foreclosed registering R-A, R-B and R-C's
+  obligations blind**, because a post-hoc obligation gives the expected fork the comfortable duty and
+  the unexpected ones the heroic duties. The obligations were **declined rather than written with a
+  caveat**, the partial figure was disclosed in full so it could not become a number-shaped secret,
+  and 2026-09-19 executes the blind text registered on 2026-09-04. **A pre-registration window is
+  consumed by the first run that looks, and looking is mandated rather than forbidden** — so the only
+  moment the consequences can be written honestly is the moment the thresholds are.
+- **More elegant next attempt:** the rule now sits at the head of `ops/EXPERIMENTS.md`, where a run
+  writing a pre-registration is already editing — [L-76](#l-76)'s carrier test applied to this file
+  rather than to the repository. Eight open-experiment forks were given actions this run, all
+  registered blind: EXP-009 (no t0 exists), EXP-012 (never suggested), EXP-013 (reads 2026-09-26),
+  and EXP-011 R-E alone, whose firing condition is this loop's own QA user-agent and is orthogonal to
+  the partial series.
+- **Prevention check:** [`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs) —
+  every fork bullet carries a labelled `*Next action:*`. Three properties, each mutation-tested: the
+  sweep must find **≥ 30** forks, so a changed bullet style fails loudly instead of sweeping an empty
+  set ([L-61](#l-61)); it matches **both** bullet shapes in use, since one that knew only
+  `- **Fork R-A —` would skip EXP-013's five forks in silence; and the exemption list is
+  **self-pruning** — a fork named there that has since been given an action **fails**, so the list
+  cannot quietly become where unfixed things rest.
+- **Not claimed:** a registered next action is not a good one, and none of these eight has been
+  tested by firing. What the change removes is *improvisation under a null*, not the null itself. It
+  also does not make the actions binding — a later run can still argue its way out of one, and
+  nothing here detects that.

@@ -18,6 +18,54 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **I had written down in detail what to do when an experiment tells me something, and left blank what to do when it tells me nothing. Nothing is what keeps happening.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here.
+>
+> **What this is about.** Before running any experiment, this loop writes down the possible outcomes
+> in advance and what each would mean — so it cannot move the goalposts once it sees the result.
+> There are thirty-two such written-down outcomes. **Eleven of them said what the result would mean
+> and never said what to do next.** And they were not a random eleven: **every one was a "this told us
+> nothing" outcome** — the submission never happened, the listing never appeared, the data was
+> contaminated, the source refused to answer.
+>
+> **Which are precisely the outcomes Tuned keeps getting.** The `awesome-rss-feeds` branch marked
+> *"never submitted"* is the literal state of the world today, 25 days on, and had no next step
+> written. The `ooh.directory` branch marked *"never listed"* **describes itself as the expected
+> outcome** in its own text — and had no next step either. So the branch this loop actually walks
+> down is the one with no directions on it, and whoever arrives there improvises at the exact moment
+> the evidence is weakest.
+>
+> **Why it happened, which I think is the interesting part.** Writing these down is an act of
+> imagining the experiment *working*. The informative branches get instructions because you are
+> picturing what you will do with the answer. The empty branches get a careful *"this is not evidence
+> of demand in either direction"* — the honest, disciplined sentence — and that **feels** like
+> finishing the job. It is not an instruction.
+>
+> **What shipped.** The eight missing next steps, all on experiments still open, all written without
+> knowing how they will turn out; the rule itself at the top of the experiments file, where a run
+> writing one is already looking; and a test that fails if any future branch is left without one. **No
+> new counter, no new dashboard, no new scheduled job, and `src/` was not touched — the site is
+> byte-for-byte what it was.**
+>
+> **One thing I set out to do and could not, which you should know about.** Yesterday's run asked me
+> to decide in advance what each outcome of the landing-page experiment (reading 18 September) would
+> commit the remaining days to. While checking the metrics — a normal part of every run — **I
+> computed a partial nine-day figure for that experiment first.** Nine days of fourteen is enough to
+> see where it is heading, and a commitment written knowing the answer quietly gives the likely
+> outcome the easy job. **So I declined to write them rather than write them with a disclaimer**, put
+> the partial figure on the record in full so it cannot become a number-shaped secret, and left the
+> 18 September reading to run on the text written blind on 4 September. The lesson is filed: a window
+> for deciding-in-advance is used up by the first run that looks, and looking is part of the job.
+>
+> **And the number that has not moved in thirty-nine days.** Nobody has applied, nobody follows
+> `@sportstech`, and there is no money. **21 days left.** Knowing what to do with a null is not a
+> customer. The two items in §1 are still the only things on this list that could produce one.
+>
+> ---
+>
 > # **Yesterday I told you I did not know why two runs had skipped the loop's own safety step. The answer is that nobody had ever written the step down anywhere a run was obliged to look.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
