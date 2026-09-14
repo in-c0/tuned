@@ -23,7 +23,8 @@
 //
 // What a green run means, since run 50 found it meaning less than it looked like: the source page
 // itself was on screen. Not "an HTTP 200 came back" — a bot-check interstitial is served at 200 and
-// used to pass here. See classifyRead() below.
+// used to pass here. See qa/classify-read.mjs, which also carries the run-161 discriminator that
+// stops the opposite error: a page that is short *because the answer is empty* being called a gate.
 //
 // What it will NOT do to get past one. The reader declares itself headless and declares itself as
 // Tuned; a site that refuses it is giving a real answer, and "this candidate cannot be encountered"
@@ -35,6 +36,7 @@ import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
+import { classifyRead, structuralLinks } from "./classify-read.mjs";
 import { findWindows } from "./find-windows.mjs";
 import { matchLinks } from "./nav-links.mjs";
 
@@ -157,55 +159,11 @@ async function publishedAt(page) {
   return null;
 }
 
-/**
- * Signatures of a bot-check interstitial — a page that is not the source and never was.
- *
- * Why these are asserted rather than merely reported. Run 47 wrote `possible_gate_markers` as
- * "reported, never asserted", on the reasoning that "a consent or paywall interstitial still
- * 'loads' with HTTP 200, and the difference between reading an article and reading its gate is
- * the whole question here." It named the exact defect and then left the instrument unable to act
- * on it. Run 50 walked into it: pmc.ncbi.nlm.nih.gov returned **HTTP 200**, title
- * "Checking your browser - reCAPTCHA", 131 characters of body, `possible_gate_markers: []` — and
- * this spec reported **`1 passed`**. A green tick that means "a bot check was on screen" is the
- * instrument lying in the direction that costs most, because EXP-008's threshold 6 is the one
- * condition standing between this loop and its first publication, and a find "characterised" from
- * a reCAPTCHA page is a fabricated find arriving through a passing test.
- *
- * The two categories are kept apart on purpose. A soft gate (cookie banner, paywall, sign-in wall)
- * means the page was served and part of it is visible — a real, if shallow, encounter. An
- * interstitial means nothing of the source was reached. Only the second is fatal.
- *
- * Signatures observed live on 2026-08-17, one per host, recorded in ops/EXP-008-CANDIDATES.md.
- */
-const INTERSTITIAL_TITLE =
-  /just a moment|checking your browser|attention required|security check|are you a robot|recaptcha|access denied/i;
-const INTERSTITIAL_BODY =
-  /checking your browser before accessing|performing security verification|verifies you are not a bot|verify you are human|enable javascript and cookies to continue|ray id:/i;
-
-/**
- * A floor on how much text a page must carry before this reader will call it a page.
- *
- * This is fail-closed by design and the number is a judgement, stated rather than buried: the
- * remit @sportstech publishes under requires "a concrete measured result or a validated
- * implementation", and no page carrying one is 1000 characters long. Its job is the interstitial
- * this loop has NOT seen yet — a bot check whose wording matches neither regex above still cannot
- * fake a thousand characters of article. A legitimately terse page that trips this fails loudly
- * with its text in the log, so a human can overrule it on the evidence; the opposite error passes
- * silently and cannot be caught at all.
- */
-const MIN_PAGE_CHARS = 1000;
-
-/** Classify what was actually on screen: the source, or something standing in front of it. */
-function classifyRead(title, normalized) {
-  const signals = [];
-  if (title && INTERSTITIAL_TITLE.test(title)) signals.push(`title matches bot-check pattern: ${JSON.stringify(title)}`);
-  const bodyHit = normalized.match(INTERSTITIAL_BODY);
-  if (bodyHit) signals.push(`body matches bot-check pattern: ${JSON.stringify(bodyHit[0])}`);
-  if (normalized.length < MIN_PAGE_CHARS) {
-    signals.push(`only ${normalized.length} visible characters, below the ${MIN_PAGE_CHARS} floor`);
-  }
-  return { outcome: signals.length ? "interstitial" : "page", signals };
-}
+// The bot-check patterns, the terseness floor and the classification itself live in
+// qa/classify-read.mjs, which is where the reasoning behind each is written down. They moved out of
+// this file at run 161 for the same reason find-windows.mjs and nav-links.mjs did — pure logic that
+// can be wrong silently belongs somewhere a unit test can reach it — and with more force, because
+// this is the only one of the three that is *asserted*. See test/classify-read.test.ts.
 
 test.describe("source read — open one candidate page and report what is actually on it", () => {
   test("reads the page and records the evidence", async ({ page }, testInfo) => {
@@ -266,17 +224,6 @@ test.describe("source read — open one candidate page and report what is actual
     const lower = normalized.toLowerCase();
     const gates = gateHints.filter((h) => lower.includes(h));
 
-    // Interstitials: the page was NOT served at all. This is a different category from a soft gate
-    // and it is asserted, because run 50 found it passing green. See classifyRead() above.
-    const classification = classifyRead(title, normalized);
-
-    // The excerpt above is a prefix, and a prefix is a guess about where the interesting sentence
-    // is. When SOURCE_FIND is set, the reading also carries bounded windows around a literal —
-    // which is how a rules clause tens of thousands of characters into a long page becomes
-    // quotable without mirroring the page. See qa/find-windows.mjs for why this rather than a
-    // bigger EXCERPT_CHARS.
-    const find = findWindows(normalized, SOURCE_FIND);
-
     // Where the page points, for the links the read was already asking about. Run 62 could reach
     // feedle's document and not its submission surface, because that surface is named in navigation
     // and this reader extracted text and never `href` — so the only way to open it was to guess an
@@ -284,6 +231,11 @@ test.describe("source read — open one candidate page and report what is actual
     // resolved absolute URL, not the raw attribute, so a relative target comes back as something a
     // later dispatch can actually be given. Bounded by the needle and never followed: resolving an
     // address and visiting it stay two acts, and the second is another dispatch with its own record.
+    //
+    // Extracted BEFORE the classification since run 161, because the classification now reads it.
+    // The order is the whole change on this line: the same anchors that answer "where does this
+    // page point" also answer "is this the host's page at all", and the classifier could not ask
+    // while they were collected after it.
     const anchors = await page
       .$$eval(
         "a[href]",
@@ -295,6 +247,23 @@ test.describe("source read — open one candidate page and report what is actual
     // Same distinction the text extraction draws above: "this page has no links" and "the reader
     // could not read them" are different findings and must not arrive looking alike.
     const linkStatus = anchors === null ? "extraction-failed" : "read";
+
+    // How much of the host's own site was on screen. Passed to the classifier as the second,
+    // independent way to be a page: a challenge document carries the challenge and nothing else,
+    // while an answer that is short because it is empty still carries the host's whole chrome.
+    // `anchors === null` yields an `unreadable` reading, which rescues nothing.
+    const structure = structuralLinks(anchors, finalUrl);
+
+    // Interstitials: the page was NOT served at all. This is a different category from a soft gate
+    // and it is asserted, because run 50 found it passing green. See qa/classify-read.mjs.
+    const classification = classifyRead(title, normalized, structure);
+
+    // The excerpt above is a prefix, and a prefix is a guess about where the interesting sentence
+    // is. When SOURCE_FIND is set, the reading also carries bounded windows around a literal —
+    // which is how a rules clause tens of thousands of characters into a long page becomes
+    // quotable without mirroring the page. See qa/find-windows.mjs for why this rather than a
+    // bigger EXCERPT_CHARS.
+    const find = findWindows(normalized, SOURCE_FIND);
 
     const evidence = {
       requested_url: SOURCE_URL,
@@ -312,6 +281,14 @@ test.describe("source read — open one candidate page and report what is actual
       possible_gate_markers: gates,
       read_outcome: classification.outcome,
       interstitial_signals: classification.signals,
+      // The structural discriminator, always reported so a green read says which of the two ways
+      // of being a page it took. `length_floor_overruled` is non-null exactly when the text was
+      // below the terseness floor and the host's own chrome was on screen anyway — the emptiness
+      // case that failed this instrument twice (L-78). It is a record, not a waiver: a bot-check
+      // pattern in the title or body is still fatal at any link count.
+      structural_links: classification.structural_links,
+      structural_links_status: classification.structural_links_status,
+      length_floor_overruled: classification.length_floor_overruled,
       // Reported, never asserted. A rules page that does not contain the word asked for is a real
       // reading about that page — "Lobsters never says 'feed'" is a finding — and failing the run
       // over it would turn a fact about the venue into a fact about the instrument. The assertions

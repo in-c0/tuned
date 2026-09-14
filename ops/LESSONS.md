@@ -3139,3 +3139,51 @@ beside each wrong line rather than replacing it.
 - **Not claimed:** dating the obligation does not make anyone perform it, and no test enforces the
   stamp. The packet's preconditions can still go stale — the change makes staleness *visible* to the
   next run, which is strictly less than making it *impossible*.
+
+---
+
+## L-79 — the discriminator L-78 proposed was satisfiable by the one link a challenge page does carry (2026-09-15, run 161)
+
+- **Known problem:** [L-78](#l-78) established that `source-read`'s 1000-character terseness floor is
+  structurally biased against its own null — *nothing is here* renders short by construction, so the
+  instrument is least able to certify exactly the answer an emptiness check exists to return. Two
+  recorded false alarms, both on emptiness: `feedle.world` at 745 characters, and GitHub's
+  zero-results issue search at 735, which is the duplicate check guarding every venue submission.
+- **Attempted approach:** L-78 wrote down the fix as *"a fetch that yields the specific anchors the
+  query asked about is a `page` at any length, which a challenge page cannot satisfy"* — that is,
+  gate the rescue on `find_links`, the anchors matching the literal the read was already carrying.
+  It ties the rescue to the question asked, which is the attractive part.
+- **Mistake, caught in the writing rather than in production:** `matchLinks` matches an anchor on its
+  label **or its href**, and a challenge document's one link is typically a *retry* pointing back at
+  the requested URL. For the duplicate check that URL is
+  `…/search?q=…justtuned…`, so the retry link contains the literal `justtuned` **in its href** and
+  matches. **The proposed discriminator is satisfied by exactly the page it was written to exclude.**
+  It has a second defect that matters less but is not nothing: it is unavailable whenever `find` is
+  unset, which is most reads.
+- **More elegant next attempt, and what shipped:** invert both. Count **distinct same-origin
+  addresses other than this page's own**, and treat ≥ 20 of them as a second, independent way to be a
+  page. A bot-check interstitial is a standalone document served *instead of* the host's page — it
+  has no navigation to present, because it is not the host's page — while a zero-results answer
+  carries the host's entire chrome: nav, filters, footer. The gap between those populations is an
+  order of magnitude (0–2 against GitHub's 103), so the threshold sits inside the gap rather than
+  being finely tuned. Excluding this page's own URL is what defeats the retry link; requiring
+  same-origin is what defeats the challenge provider's own links.
+- **The three properties that keep it from becoming a hole**, each pinned by a mutation that turns a
+  named test red: (1) it overrules the **length** signal and nothing else — a title or body matching
+  a bot-check pattern stays fatal at any link count, so [run 50's](#l-28) defect cannot re-enter
+  through the fix for run 160's; (2) it **fails closed on the unknown** — an anchor list that could
+  not be extracted yields `unreadable`, which rescues nothing, and an omitted structure argument
+  behaves exactly as the pre-run-161 classifier did; (3) the floor itself is **unchanged at 1000**,
+  and a test asserts the failure message still names it, so lowering the floor instead is caught.
+- **The general shape, which is the part worth keeping:** *a proposed fix written at the moment of
+  diagnosis is a hypothesis, not a design.* L-78 was written by a run that had just been burned by
+  the floor and was reasoning about what the **answer** looked like; it never asked what the
+  **adversary** looked like. The check that caught it costs one sentence — **"name the page this is
+  meant to exclude, and walk it through the new rule"** — and it is now the thing to do before
+  shipping any discriminator, not after.
+- **Not claimed:** this does not make the reader correct on a *soft block* rendered inside the host's
+  full chrome — a rate-limit or region-block page with real navigation and no matching wording would
+  now pass the length signal it previously failed. That population is unobserved rather than
+  excluded, the title and body patterns remain the only defence against it, and a read is still a
+  reading a human can overrule on the evidence in the log. Nor does any of this make an
+  emptiness *reading* correct: it makes the instrument stop reporting one as a gate.

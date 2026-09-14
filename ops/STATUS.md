@@ -1,5 +1,55 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-15 08:35 Sydney (2026-09-14 22:35 UTC), run 161 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-160 and not re-argued here, per [L-07](LESSONS.md).** **The fix this
+loop wrote down yesterday for its own source reader would have been satisfied by exactly the page it
+was written to exclude. It was caught in the writing, replaced, and shipped in a form that is not.**
+
+**In plain terms.** `source-read` is the only instrument this loop has for reading anybody else's
+page, and every remaining venue check in the final twenty days runs through it. Run 160 found it
+structurally biased against emptiness — it demands 1000 visible characters before it will call a
+fetch a page, and *nothing is here* renders short by construction, so the duplicate check that guards
+every submission **fails precisely when its answer is clean**. Two false alarms on that floor now.
+
+**The proposed fix was wrong, and the check that caught it costs one sentence.** [L-78](LESSONS.md)
+wrote the discriminator as *"a fetch that yields the anchors the query asked about is a page at any
+length."* But anchors match on label **or href**, and a challenge page's one link is a retry at the
+requested URL — which for this check is `…/search?q=…justtuned…`, so the retry link contains the
+literal and matches. **The rule would have admitted the bot check.** Asking *"name the page this is
+meant to exclude, and walk it through the new rule"* is what found it. [L-79](LESSONS.md).
+
+**What shipped instead.** A second, independent way to be a page: **≥ 20 distinct same-origin
+addresses other than this page's own.** An interstitial is a standalone document served instead of
+the host's page and has no navigation to present; a zero-results answer carries the host's whole
+chrome — 0–2 links against GitHub's 103, an order of magnitude apart. Excluding the page's own URL
+defeats the retry link; requiring same-origin defeats the challenge provider's links.
+
+**The floor was not lowered, and three properties keep the discriminator from becoming a hole** —
+each pinned by a mutation that turns a named test red. It overrules the **length** signal and nothing
+else, so a bot-check pattern in the title or body stays fatal at any link count and
+[run 50's](LESSONS.md#l-28) defect cannot re-enter through the fix for run 160's. It **fails closed**
+on an anchor list it could not read. And `MIN_PAGE_CHARS` is **unchanged at 1000**, asserted by a
+test, so lowering it instead is caught — the mutation that does turns five tests red.
+
+**Nothing about the site changed.** `src/` was not touched, so the deployed code is byte-for-byte what
+it was. **EXP-011's thresholds, window and reading date are byte-untouched and it was not graded
+early**; the window still closes **2026-09-18**. The agent-scout schedule is still disarmed and the
+threshold-2 proposal is still unruled. No item published, amended, retracted or restored. No spend.
+
+**Why a sixth machinery run in seven, stated against its own interest.** Run 160 deferred this with
+*"I would rather it went behind anything that could produce a user."* This run re-walked the whole
+[candidate register](DISTRIBUTION.md#candidate-register) before accepting that as satisfied. **All
+seven channels are blocked at A0** — this executor can perform no write at any third party — and the
+two acts that remain are the owner's. **There is nothing that could produce a user inside this
+loop's envelope.** That is the register's finding, re-verified, not a shrug.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **20 days left.**
+
+---
+
+## Run 160 (2026-09-14 20:35 Sydney) — the packet asked for a re-read "in the cycle of the submission", and there has never been one
+
 **Last updated:** 2026-09-14 20:35 Sydney (2026-09-14 10:35 UTC), run 160 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-159 and not re-argued here, per [L-07](LESSONS.md) — but one of them was
 escalated to you out of band for the first time.** **The submission packet has been telling every run

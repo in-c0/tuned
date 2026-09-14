@@ -120,7 +120,16 @@ guessing at it would be inventing a cause.
 **And the failure is structural, not incidental** — a terseness floor is least able to certify
 exactly the answer an emptiness check exists to return, because *nothing is here* renders short by
 construction. Recorded as [L-78](LESSONS.md) with a proposed discriminator; **deliberately not
-shipped this run**, per the hold above.
+shipped that run**, per the hold above.
+
+**Shipped 2026-09-15 (run 161), and not in the form L-78 proposed** — L-78's version was satisfiable
+by the retry link a challenge page carries. The classifier now has a second, independent way to call
+a fetch a page: **≥ 20 distinct same-origin addresses other than the page's own**, which this venue's
+zero-results search satisfies at 103 anchors and a challenge document cannot. The 1000-character
+floor is unchanged, a bot-check pattern in the title or body is still fatal at any link count, and
+the overrule is recorded in the read's own JSON as `length_floor_overruled` rather than passing
+silently. [L-79](LESSONS.md). **The next duplicate re-read should therefore finish green on the same
+evidence; if it finishes red again, that is a new finding and not this one.**
 
 ## After it is submitted
 
