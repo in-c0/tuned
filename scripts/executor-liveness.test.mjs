@@ -67,6 +67,13 @@ const verdict = (records, nowIso, opts = {}) =>
     // from scratch, so the default floor would silence the gap verdict everywhere. Tests
     // that care about the floor set it explicitly.
     gapWatchFromMs: 0,
+    // And the mirror image for the abandonment verdict, which needs neutralising here for
+    // the same reason in the opposite direction. Almost every register in this suite is
+    // built from `claimRecord` without releases, so a floor of 0 would relabel dozens of
+    // deliberately-live and deliberately-stale fixtures `abandoned-run` and assert nothing
+    // about what they were written for. `Infinity` watches no claim at all; the tests below
+    // that care set a real floor.
+    abandonWatchFromMs: Infinity,
     ...opts,
   });
 
@@ -334,6 +341,208 @@ describe("the check is delivered late, and the age it reads is inflated by exact
       (now) => verdict(register, now).gap.gapHours,
     );
     assert.deepEqual(readings, [24, 24, 24]);
+  });
+});
+
+// The third verdict, and the run that proved the first two could not see it.
+//
+// Run 161 claimed 2026-09-15/w08 at 22:03:52.483Z, pushed 619535f at 22:17:11Z, went green
+// on `check` 274 at 22:18:04Z — and then stopped, without releasing the lock and without
+// posting the execution report that CLAUDE.md requires of every run. The watchdog was green
+// throughout and correctly so by its own definition: the claim was 1.9h old, and the second
+// source found a commit, which is evidence the loop RAN. Both existing verdicts get QUIETER
+// on this failure, not louder.
+//
+// Release is the last step of a run, after the report — the two runs before it released 3
+// seconds after their report comment — so a lease that expired with no release is a run that
+// did not reach its closing sequence, and the register held that fact from 23:33:52Z onward.
+describe("a run that claimed and never let go", () => {
+  // Verbatim from the register: run 161's claim, unreleased, and the run before it, released.
+  const run160 = [
+    claimRecord("2026-09-14T10:03:56.593Z", {
+      holder: "vm:1938",
+      cycle: "2026-09-14/w20",
+      nonce: "n-160",
+    }),
+    {
+      v: 1,
+      event: "release",
+      resource: "executor",
+      nonce: "n-160",
+      at: "2026-09-14T10:20:15.972Z",
+      outcome: "completed",
+    },
+  ];
+  const run161 = claimRecord("2026-09-14T22:03:52.483Z", {
+    holder: "vm:1935",
+    cycle: "2026-09-15/w08",
+    nonce: "n-161",
+  });
+  const register = [...run160, run161];
+  // Below run 161's claim, so it is watched. The shipped floor is deliberately above it —
+  // see ABANDON_WATCH_FROM — so this is the counterfactual, stated as one.
+  const watched = { abandonWatchFromMs: at("2026-09-14T22:00:00Z") };
+  const abandoned = (nowIso, records = register, opts = {}) =>
+    verdict(records, nowIso, { ...watched, ...opts });
+
+  it("is quiet while the run is still inside the lease it was granted", () => {
+    // 90 minutes to 23:33:52Z. A run holds the lock for its whole cycle, so an unreleased
+    // claim says nothing at all until the lease runs out — otherwise every check would alarm
+    // on whichever run is in flight, which is every check.
+    for (const now of ["2026-09-14T22:35:00Z", "2026-09-14T23:35:00Z"]) {
+      const v = abandoned(now);
+      assert.equal(v.reason, "live", `${now} is inside the lease`);
+      assert.equal(v.ok, true);
+    }
+  });
+
+  it("is red at the first hourly firing after the lease expires, and names the run", () => {
+    // The cron is `35 * * * *` and the lease ran out at 23:33:52Z, so 00:35Z is the first
+    // check that could see it — 2.5h after run 161 stopped, and 3.5h before run 162 began.
+    const v = abandoned("2026-09-15T00:35:00Z");
+    assert.equal(v.ok, false);
+    assert.equal(v.reason, "abandoned-run");
+    assert.equal(v.abandoned.cycle, "2026-09-15/w08");
+    assert.equal(v.abandoned.holder, "vm:1935");
+    assert.equal(v.abandoned.at, "2026-09-14T22:03:52.483Z");
+    assert.equal(v.abandoned.leaseEndAt, "2026-09-14T23:33:52.483Z");
+    assert.equal(v.abandoned.leaseHours, 1.5);
+    assert.equal(v.abandoned.sinceHours, 1.02);
+  });
+
+  it("IS SILENCED BY A RELEASE, WHICH IS THE WHOLE DISCRIMINATOR", () => {
+    // The one mutation that matters: the same register with run 161's release appended is
+    // healthy, and nothing else about it changed. If this did not hold, the verdict would
+    // fire on every completed run in the register's history.
+    const released = [
+      ...register,
+      {
+        v: 1,
+        event: "release",
+        resource: "executor",
+        nonce: "n-161",
+        at: "2026-09-14T22:35:00Z",
+        outcome: "completed",
+      },
+    ];
+    const v = abandoned("2026-09-15T00:35:00Z", released);
+    assert.equal(v.reason, "live");
+    assert.equal(v.ok, true);
+  });
+
+  it("counts an `aborted` release as letting go, because the run did reach its last step", () => {
+    // `run-claim release --outcome aborted` is prescribed by CLAUDE.md for a run that gave
+    // up. That run ended deliberately and reported; it is not the failure being watched, and
+    // treating it as one would punish the honest path.
+    const aborted = [
+      ...register,
+      {
+        v: 1,
+        event: "release",
+        resource: "executor",
+        nonce: "n-161",
+        at: "2026-09-14T22:35:00Z",
+        outcome: "aborted",
+      },
+    ];
+    assert.equal(abandoned("2026-09-15T00:35:00Z", aborted).reason, "live");
+  });
+
+  it("does not judge a claim below the watch-from floor", () => {
+    // The shipped floor is run 162's own claim. Run 161's abandonment is reported in run
+    // 162's execution report, so the instrument written because of it must not re-raise it
+    // as news — the same rule, and the same reason, as GAP_WATCH_FROM.
+    const v = verdict(register, "2026-09-15T00:35:00Z", {
+      abandonWatchFromMs: at("2026-09-15T04:03:07.863Z"),
+    });
+    assert.equal(v.reason, "live");
+  });
+
+  it("stops shouting once the abandonment is older than the lookback", () => {
+    // Append-only register: without this the first abandonment reddens the check forever and
+    // the signal is worth nothing. Same 48h, same argument, as the gap lookback.
+    const withinLookback = abandoned("2026-09-16T23:00:00Z", register, { maxAgeMs: 1e15 });
+    assert.equal(withinLookback.reason, "abandoned-run");
+    const past = abandoned("2026-09-17T00:00:00Z", register, { maxAgeMs: 1e15 });
+    assert.equal(past.reason, "live");
+  });
+
+  it("keys the alarm on the claim, so it is one comment and not one an hour", () => {
+    const keys = ["2026-09-15T00:35:00Z", "2026-09-15T01:35:00Z", "2026-09-15T02:35:00Z"].map(
+      (now) => abandoned(now).alarmKey,
+    );
+    assert.deepEqual(keys, Array(3).fill("2026-09-14T22:03:52.483Z"));
+  });
+
+  it("ranks below an open outage and ABOVE a closed one, which was wrong first time", () => {
+    // Ordering by what is still actionable. `stale` means the loop is down now and the next
+    // firing is going to be lost too, so it still comes first.
+    const stale = abandoned("2026-09-15T23:00:00Z");
+    assert.equal(stale.reason, "stale");
+
+    // And the half that was a real defect rather than a preference. My first version put
+    // this verdict last, which read against the live register means the known 2026-09-12/13
+    // gap — red on `missed-runs` for its whole 48h lookback — silences it, and run 161's
+    // abandonment falls inside that window. The check written because run 161 was invisible
+    // would have left run 161 invisible. A closed outage has already been reported and will
+    // still be in the register next hour; a broken record is fixable now.
+    const both = [
+      claimRecord("2026-09-12T10:05:31.690Z", { holder: "vm:2036", cycle: "2026-09-12/w20" }),
+      ...register,
+    ];
+    const v = abandoned("2026-09-15T00:35:00Z", both, { gapWatchFromMs: 0 });
+    assert.equal(v.reason, "abandoned-run");
+    // The gap is not lost by being outranked — it stays on the verdict and in the outputs.
+    assert.ok(v.gap, "the closed gap must still be reported in the verdict body");
+    // 2026-09-12T10:05:31.690Z to run 160's claim at 2026-09-14T10:03:56.593Z.
+    assert.equal(v.gap.gapHours, 47.97);
+  });
+
+  it("fails closed on a watched claim whose lease it cannot read", () => {
+    // L-61 on the verdict itself: a record it cannot parse must not be skipped, because
+    // skipping is how a check comes to sweep an empty set and pass. Every one of these is
+    // `unparseable-lease`, never `live`.
+    for (const ttlSeconds of [undefined, null, 0, -1, "5400", NaN]) {
+      const broken = [
+        ...run160,
+        { ...run161, ttlSeconds },
+      ];
+      const v = abandoned("2026-09-15T00:35:00Z", broken);
+      assert.equal(v.ok, false, `ttlSeconds ${String(ttlSeconds)} must not pass`);
+      assert.equal(v.reason, "unparseable-lease");
+      assert.equal(v.offender, "2026-09-14T22:03:52.483Z");
+    }
+  });
+
+  it("reads the lease from the record rather than assuming 90 minutes", () => {
+    // `ttlSeconds` is a claim-time argument, so a run granted a longer lease must be given
+    // it. Asserted because the alternative — hardcoding DEFAULT_TTL_SECONDS — passes every
+    // other test in this block.
+    const longLease = [...run160, { ...run161, ttlSeconds: 4 * 3600 }];
+    assert.equal(abandoned("2026-09-15T00:35:00Z", longLease).reason, "live");
+    assert.equal(abandoned("2026-09-15T02:35:00Z", longLease).reason, "abandoned-run");
+  });
+
+  it("reports the newest abandonment when the register holds two", () => {
+    const second = claimRecord("2026-09-15T04:03:07.863Z", {
+      holder: "vm:1535",
+      cycle: "2026-09-15/w14",
+      nonce: "n-162",
+    });
+    const v = abandoned("2026-09-15T06:35:00Z", [...register, second]);
+    assert.equal(v.reason, "abandoned-run");
+    assert.equal(v.abandoned.cycle, "2026-09-15/w14");
+  });
+
+  it("cannot be talked out of it by the second source either", () => {
+    // A commit inside the cycle is exactly what an abandoned run leaves behind — run 161
+    // pushed one and went green — so corroboration must not soften this verdict any more
+    // than it softens the others.
+    for (const answer of [{ commits: 1, sessions: ["s"] }, { commits: 0, sessions: [] }, null]) {
+      const v = abandoned("2026-09-15T00:35:00Z", register, { activityIn: () => answer });
+      assert.equal(v.ok, false);
+      assert.equal(v.reason, "abandoned-run");
+    }
   });
 });
 

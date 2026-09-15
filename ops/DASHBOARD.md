@@ -18,6 +18,49 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **The previous run did its work, pushed it, and then vanished without filing its report. The two alarms I have for "has the loop stopped?" both said everything was fine — and on this failure they say it more confidently, not less.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here.
+>
+> **What happened.** Every run of this loop must post a report to issue #1 — it is the only place you
+> or the reviewer can see what a cycle did. Last night's run signed in at 08:03 Sydney, pushed its
+> change, watched the build go green at 08:18 — **and then stopped without filing anything.** Its
+> code is safely in the repository. Its account of itself does not exist and cannot be recovered,
+> because only that session knew what it had decided and why.
+>
+> **Why nothing caught it.** I have a watchdog that asks *"is the loop still firing?"* It works by
+> checking that runs **sign in**. Last night's run did sign in, and it did commit — and a commit is
+> treated as proof the loop is alive. **So a run that starts, works, and abandons its last steps
+> looks healthier to the watchdog than a quiet one.** Both of its signals pointed the reassuring way
+> on the one run that dropped the ball.
+>
+> **The fix, and it needed no new machinery.** Signing out is the *last* thing a run does, right after
+> filing its report — the two runs before this one signed out **three seconds** after posting. So a
+> run that signed in, ran out its time, and never signed out is a run that did not finish, and its
+> report is in doubt. That fact was already sitting in the file the watchdog reads. **35 of the 37
+> sign-ins on record signed out cleanly** — the only exceptions are last night's run and whichever
+> run is currently working — so this is a clean signal, not a noisy one.
+>
+> **I got the priority wrong first and caught it against the real data.** I filed the new alarm as the
+> least urgent of three. But a *different*, older alarm is already lit, and a louder alarm hides a
+> quieter one for two days — which is exactly the window last night's failure falls in. **The check I
+> wrote to catch this would have missed this.** Reordered: *the loop is down* still comes first, then
+> *a run left the record broken*, then *an outage that already ended and is already reported*.
+>
+> **What this does not do.** It does not read issue #1, so "the report is missing" is an inference
+> from the ordering, not something it saw. It cannot make a half-finished run finish. And it is
+> deliberately **silent about last night's run** — you are reading about that here, and an alarm that
+> pages you about something already in front of you is how alarms get ignored.
+>
+> **The number that has not moved in forty-one days.** Nobody has applied, nobody follows
+> `@sportstech`, and there is no money. **20 days left.** A loop that notices its own missing
+> paperwork is not a customer. The two items in §1 are still the only things on this list that could
+> produce one.
+>
+> ---
+>
 > # **The fix I wrote down yesterday for my own reading tool would have been fooled by exactly the page it was written to keep out. I caught it before shipping it.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
@@ -1135,9 +1178,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-80** | **The watchdog measured that runs *start* and never that one *finished* — and the run it missed is the one that never reported.** Run 161 claimed the lock, pushed [`619535f`](https://github.com/in-c0/tuned/commit/619535f), went green at `22:18:04Z`, then stopped: no release appended, **no execution report on issue #1**. `executor liveness` stayed green, correctly by its own definition — its header states it measures *"did a session begin", not "did a session succeed"* — and **both its signals point the reassuring way on this failure**: a fresh claim clears staleness, and a commit inside the cycle is positive corroboration that the loop ran. Cost: the reviewer's newest evidence was 18h stale, and run 162 began unable to tell from issue #1 that run 161 had happened — the duplicate-implementation risk of PRs #7/#8 through a different door. | **A register that records how work starts also records how it ended; read both halves.** Release is a run's last step, after the report (runs 159 and 160 released **3 seconds** after theirs), so *an expired lease with no release* is a sound, earlier proxy for *the report is missing* — from the file the check already reads, with no GitHub API and no pairing heuristic. **35 of 37 claims released `completed`**, so the signal has zero historical noise. Eleven mutations each turn a named test red, the discriminator included: the same register with a release appended is healthy. **The ordering was wrong first** — filed last, it would have been masked for 48h by the already-red `missed-runs` gap that run 161's abandonment falls inside, so **the check written because run 161 was invisible would have left it invisible**; it now ranks below an open outage and above a closed one. **Not claimed:** it does not read issue #1, so the missing report stays an inference; and it is silent on run 161 itself by design. |
 | **L-79** | **The discriminator L-78 proposed was satisfiable by the one link a challenge page does carry.** L-78 diagnosed `source-read`'s 1000-character terseness floor as structurally biased against its own null — *nothing is here* renders short by construction — and wrote the fix as *"a fetch that yields the anchors the query asked about is a `page` at any length."* But `matchLinks` matches an anchor on its label **or its href**, and a challenge document's one link is a **retry at the requested URL**: for the duplicate check that URL is `…/search?q=…justtuned…`, so the retry link carries the literal and matches. **The proposed rule is satisfied by exactly the page it was written to exclude**, and it is unavailable at all whenever `find` is unset. Caught in the writing, not in production. | **Name the page the rule is meant to exclude, and walk it through the rule, before shipping any discriminator.** What shipped inverts both defects: **≥ 20 distinct same-origin addresses other than this page's own** — excluding the page's own URL defeats the retry link, requiring same-origin defeats the challenge provider's links, and the populations are an order of magnitude apart (0–2 against GitHub's 103), so the threshold sits inside the gap rather than being tuned. Three properties pinned by mutations that each turn a named test red: it overrules the **length** signal only, so a bot-check pattern stays fatal at any link count and [run 50's](LESSONS.md#l-28) defect cannot re-enter through the fix for run 160's; it **fails closed** on an unreadable anchor list; and `MIN_PAGE_CHARS` is **unchanged at 1000**, so lowering it instead turns five tests red. **Not claimed:** a soft block rendered inside a host's full chrome would now pass the length signal — that population is unobserved, not excluded. |
 | **L-78** | **An obligation conditioned on an event that never happens never fires — and the instrument that checks for emptiness is the one least able to certify it.** [`ops/SUBMISSION-awesome-rss-feeds.md`](SUBMISSION-awesome-rss-feeds.md) closed its preconditions with *"re-read A4 and the duplicate check **in the cycle of the submission**."* There has been no cycle of the submission, so in ten days the re-read never fired, while runs 137–159 surfaced the card in every report as *"a paste, not a research task"* on evidence from 4 September. Nothing was wrong with it — **A4 had in fact doubled, 4 → 8 publications in the trailing 30 days** — and that is luck, not diligence. | **Name a trigger the loop performs on its own schedule, not one the world performs on someone else's.** The instruction is now **dated** — *"last verified: <date>"*, re-stamped by whoever surfaces the card — so staleness is visible to the next run instead of waiting on an event that may never arrive. **Not claimed:** dating an obligation does not make anyone perform it; it makes staleness *visible*, which is strictly less than making it *impossible*. |
-| **L-77** | **The forks with no next action were exactly the forks that keep firing.** Of thirty-two pre-registered experiment outcomes, **eleven stated what a reading would mean and never what to do** — and every one of the eleven was a null, an *"inadmissible"* or a *"no reading available"* branch. EXP-009's *"never submitted"* fork is the literal state of the world; EXP-012's *"never listed"* fork **calls itself the expected outcome in its own text**. Writing a pre-registration is an exercise in imagining the experiment *working*, so the informative branches get instructions and the empty ones get a careful *"no demand inference in either direction"* — honest, disciplined, and not an instruction. | **Test each fork with "could a run that has never seen this experiment act on it without deliberating?"** — not "have I said what this would tell me". Eight missing next actions registered, all blind, plus the rule at the head of the file and a test that keeps future forks honest. **And the ordering is not paperwork:** a pre-registration window is consumed by the first run that *looks*, and looking is step 2 of the operating cycle — so downstream obligations can only be written honestly at the moment the thresholds are. |
 
 
 
@@ -1153,10 +1196,10 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-15 08:35 Sydney (2026-09-14 22:35 UTC) |
-| **Run** | 161 — **the discriminator this loop wrote down yesterday would have admitted the page it was written to exclude.** [L-78](LESSONS.md) proposed rescuing a short page when it carried the anchors the query asked about; a challenge document's one link is a retry at the requested URL, which carries the searched-for literal in its href. Replaced before shipping with **≥ 20 distinct same-origin addresses other than this page's own**. The 1000-character floor is unchanged and a named bot-check pattern is still fatal at any link count. [L-79](LESSONS.md). |
-| **Repository commit at time of writing** | run 161's classifier fix — [`qa/classify-read.mjs`](../qa/classify-read.mjs) (new, with its `.d.mts`), [`test/classify-read.test.ts`](../test/classify-read.test.ts) (new, 17 tests), and `qa/source-read.spec.mjs` reordered so the anchors are extracted before the classification that now reads them. **Nothing under `src/` was touched, so the deployed Worker is byte-identical.** No schema change, no route, no secret, no landing page. |
-| **Data commit** | [`3c20512`](https://github.com/in-c0/tuned/commit/3c20512) — [`metrics/latest.json`](metrics/latest.json), snapshot of `2026-09-14T04:57:52.973Z`. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored. |
+| **Last materially updated** | 2026-09-15 14:35 Sydney (2026-09-15 04:35 UTC) |
+| **Run** | 162 — **run 161 shipped to `master` and never posted an execution report, and nothing was watching for that.** It claimed the lock, pushed [`619535f`](https://github.com/in-c0/tuned/commit/619535f), went green at `22:18:04Z`, then stopped without releasing and without reporting. `executor liveness` stayed green because both its verdicts ask whether a run *started* — and a commit inside the cycle is positive corroboration that it did. A third verdict, `abandoned-run`, reads the half of the register nothing read: an expired lease with no release. [L-80](LESSONS.md#l-80). |
+| **Repository commit at time of writing** | run 162's watchdog verdict — `scripts/executor-liveness.mjs` (the `abandoned-run` and `unparseable-lease` verdicts, and one shared release lookup replacing a duplicated one), `scripts/executor-liveness.test.mjs` (+12 tests), `scripts/liveness-alarm.test.mjs` (+3 tests, run against the alarm shell extracted from the shipped YAML), and `.github/workflows/executor-liveness.yml` (the alarm's third branch). **Nothing under `src/`, `test/` or `qa/` was touched, so the deployed Worker is byte-identical.** No schema change, no route, no secret, no landing page. |
+| **Data commit** | [`75734cb`](https://github.com/in-c0/tuned/commit/75734cb) — [`metrics/latest.json`](metrics/latest.json), snapshot of `2026-09-14T23:23:33.861Z`. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored. |
 | **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143. §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 — read from the same snapshot as the data commit row. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and

@@ -1,5 +1,73 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-15 14:35 Sydney (2026-09-15 04:35 UTC), run 162 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-161 and not re-argued here, per [L-07](LESSONS.md).** **Run 161 shipped
+to `master` and never posted an execution report. Nothing in this repository was watching for that,
+and the two things that were watching got *quieter* on it, not louder.**
+
+**In plain terms.** Run 161 claimed cycle `2026-09-15/w08` at `2026-09-14T22:03:52.483Z`, pushed
+[`619535f`](https://github.com/in-c0/tuned/commit/619535f) at `22:17:11Z`,
+[went green](https://github.com/in-c0/tuned/actions/runs/34903357547) at `22:18:04Z` — and then
+stopped. **It never released the run lock and it never posted its report to issue #1.** Its work is
+fully in the repository; its record on the issue does not exist, and the reviewer's newest evidence
+was 18 hours stale with nothing to explain the gap.
+
+**Why `executor liveness` was green throughout, which is the finding.** Both its verdicts ask whether
+a run *started* — its own header said so as a design statement. A fresh claim clears the staleness
+test, and a commit inside the cycle is positive **corroboration that the loop ran**. So an abandoned
+run reads *healthier* than a quiet one: the instrument's two signals both fired in the reassuring
+direction on the one run that dropped its last steps. [L-80](LESSONS.md#l-80).
+
+**The evidence was already in the file the watchdog reads.** Release is a run's last step, after the
+report — runs 159 and 160 released **3 seconds** after their report comment. So *an expired lease with
+no release* is a sound and earlier proxy for *the report is missing*, needing no GitHub API and no
+pairing heuristic. **35 of the register's 37 claims released `completed`**; the only exceptions are
+run 161 and whichever run is in flight, so the signal has zero historical noise. Two places already
+computed the shape and neither could speak: `releasedAt()` calls it *"what an abandoned lease looks
+like"* **in a comment**, and `run-claim`'s `evaluate()` derives `takeover-stale` from it but only for
+the **current** cycle, so run 161's `w08` claim was stepped over in silence by this run's `w14`.
+
+**The ordering was wrong first, and the near-miss is the part worth keeping.** The verdict was placed
+last, on the reasoning that a run which finished nothing is better news than runs that never started.
+Read against the live register that shipped the hole it was closing: `missed-runs` is already red on
+the known 2026-09-12/13 gap, an outranking verdict silences everything beneath it for its 48h
+lookback, and run 161's abandonment falls **inside** that window. **The check written because run 161
+was invisible would have left run 161 invisible.** Order is now by what is still actionable — `stale`
+(loop down now, owner acts) > `abandoned-run` (record broken now, next run repairs) > a closed gap
+(already reported, still there next hour) — and the gap stays in the verdict body regardless.
+
+**Eleven mutations, eleven named tests red**, including the discriminator itself: the same register
+with a release appended is healthy, and an `aborted` release counts as letting go. It **fails closed**
+on a watched claim whose lease it cannot read, reads the lease **from the record** rather than
+assuming 90 minutes, and **no corroborator answer can clear it**.
+
+**It ships with no live signal, and that is deliberate.** `ABANDON_WATCH_FROM` is this run's own
+claim, so run 161's abandonment — reported here and on issue #1 — is not re-raised at the owner by the
+instrument built because of it, on the same rule as `GAP_WATCH_FROM`. The counterfactual is checkable:
+with the floor lowered to include it, the first hourly firing after the lease expired (`00:35Z`)
+returns `abandoned-run` — **2.5h after run 161 stopped, and 3.5h before this run began.**
+
+**Run 161's report was not written in its name.** What shipped is reconstructed from the commit, the
+CI run and the `ops/` prose, and stated in this run's voice. What only that session knew — what it
+rejected, what it nearly got wrong, what it would have recommended next — is unrecoverable, and
+writing a report as run 161 would be fabricating a record.
+
+**Nothing about the site changed.** `src/`, `test/` and `qa/` were not touched, so the deployed code is
+byte-for-byte what it was. **EXP-011's thresholds, window and reading date are byte-untouched and it
+was not graded early**; the window still closes **2026-09-18**. The agent-scout schedule is still
+disarmed and the threshold-2 proposal is still unruled. No item published, amended, retracted or
+restored. No spend.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **20 days left.**
+
+---
+
+## Run 161 (2026-09-15 08:35 Sydney) — the discriminator written down yesterday was satisfied by the page it was written to exclude
+
+**Its execution report on issue #1 does not exist** — see run 162 above. The section below is run
+161's own STATUS entry, written by that run and committed in `619535f` before it stopped.
+
 **Last updated:** 2026-09-15 08:35 Sydney (2026-09-14 22:35 UTC), run 161 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-160 and not re-argued here, per [L-07](LESSONS.md).** **The fix this
 loop wrote down yesterday for its own source reader would have been satisfied by exactly the page it

@@ -17,8 +17,14 @@
 // `claim` record for resource `executor` is the earliest and most reliable evidence that a
 // run actually started — earlier than a commit, which a run legitimately may not make, and
 // earlier than an issue comment, which a run that dies mid-cycle never reaches. A run that
-// starts and then fails still leaves the claim; the watchdog is deliberately measuring
-// "did a session begin", not "did a session succeed".
+// starts and then fails still leaves the claim, so for its first two verdicts the watchdog
+// is measuring "did a session begin", not "did a session succeed".
+//
+// That sentence used to end the paragraph, and run 161 is what it cost — see
+// ABANDON_WATCH_FROM below. The register also records how a run ENDED, because release is
+// its last step, and a third verdict now reads that: a claim whose lease expired with no
+// release is a run that stopped mid-sequence, and the execution report it owed issue #1 is
+// therefore in doubt. Same input, same file, no new source.
 //
 // WHY IT LIVES IN GITHUB ACTIONS AND NOT IN THE LOOP. An alarm hosted inside the process
 // it watches is not an alarm. The scheduled workflow that calls this script runs on
@@ -93,6 +99,7 @@
 //   node scripts/executor-liveness.mjs            # exit 0 live, exit 1 stale or unreadable
 //
 // Options: --max-age-hours N  --max-gap-hours N  --gap-lookback-hours N  --gap-watch-from ISO
+//          --abandon-lookback-hours N  --abandon-watch-from ISO
 //          --resource NAME  --remote NAME  --now ISO  --json  --repo PATH
 
 import path from "node:path";
@@ -128,6 +135,53 @@ export const DEFAULT_GAP_LOOKBACK_HOURS = 48;
 // one appended while this file was on master; the 66-hour gap before it is the outage that
 // caused this file to be written, is on issue #1 already, and must not be re-raised as news.
 export const GAP_WATCH_FROM = "2026-09-10T04:07:16.828Z";
+
+// THE THIRD WAY A RUN CAN BE LOST, AND THE ONE THE FIRST TWO CANNOT SEE.
+//
+// Both verdicts above ask whether a run STARTED. Neither asks whether it FINISHED, and the
+// file said so in as many words: "a run that starts and then fails still leaves the claim;
+// the watchdog is deliberately measuring 'did a session begin', not 'did a session
+// succeed'." Run 161 is what that costs.
+//
+// At 2026-09-14T22:03:52.483Z it claimed cycle 2026-09-15/w08 as vm:1935. At 22:17:11Z it
+// pushed 619535f to master; `check` 274 went green at 22:18:04Z. Then it stopped. It never
+// appended a release, and it never posted its execution report to issue #1 — the one
+// artifact the reviewer reads and the one this loop's own CLAUDE.md makes mandatory for
+// every run. The watchdog was green throughout, correctly by its own definition: the claim
+// was 1.9h old, and the second source found a commit, which is corroboration that the loop
+// RAN. The two existing verdicts get quieter, not louder, on this failure.
+//
+// So the next run read issue #1, found run 160's report newest, and had no way to know from
+// that record that a run had happened at all — which is the duplicate-implementation
+// failure of PRs #7/#8 and #9/#10 arriving through a different door. Not two concurrent
+// sessions, which the lock stops, but one session invisible to its successor, which nothing
+// did.
+//
+// THE EVIDENCE WAS ALREADY IN THE FILE THIS SCRIPT ALREADY READS. Release is the last step
+// of a run, after the report: the two most recent completed runs released 3 seconds after
+// their report comment (run 159, report 04:19:46Z / release 04:19:49.309Z; run 160,
+// 10:20:13Z / 10:20:15.972Z), and CLAUDE.md puts it last in so many words — "at the end of
+// the run, whatever happened". So a claim whose lease has expired with no release is a run
+// that did not reach its own closing sequence, and its report is therefore in doubt. That
+// is a stronger and earlier signal than the missing comment itself, and it needs no GitHub
+// API, no pairing heuristic and no second network source: 35 of the register's 37 claims
+// released `completed`, the only exceptions being run 161 and whichever run is in flight.
+//
+// TWO PLACES ALREADY KNEW AND NEITHER COULD SPEAK. `releasedAt()` below falls back to the
+// claim when no release exists and calls that case "what an abandoned lease looks like" in
+// a comment, using it only to position an interval. And run-claim's own `evaluate()`
+// computes `takeover-stale` from exactly this shape — but only for claims in the CURRENT
+// cycle, because all it is deciding is whether this run may seize the lock. Run 161's claim
+// was cycle 2026-09-15/w08 and the next run's was w14, so it was stepped over in silence.
+// The register held the fact from 23:33:52Z onward and nothing was built to report it.
+export const DEFAULT_ABANDON_LOOKBACK_HOURS = 48;
+
+// Same floor, same reason as GAP_WATCH_FROM, and it is load-bearing rather than tidy: run
+// 161's abandonment is reported in run 162's execution report on issue #1, so the instrument
+// written because of it must not then re-raise it as news. This is run 162's own claim — the
+// first appended while this verdict existed — which means the check begins by watching the
+// run that shipped it.
+export const ABANDON_WATCH_FROM = "2026-09-15T04:03:07.863Z";
 
 // The watchdog clock and the claim clock are different machines. Five minutes is well
 // under the threshold's slack and well over any plausible runner skew, so it separates
@@ -269,6 +323,8 @@ export function evaluateLiveness(
     maxGapMs = DEFAULT_MAX_GAP_HOURS * HOUR_MS,
     gapLookbackMs = DEFAULT_GAP_LOOKBACK_HOURS * HOUR_MS,
     gapWatchFromMs = Date.parse(GAP_WATCH_FROM),
+    abandonLookbackMs = DEFAULT_ABANDON_LOOKBACK_HOURS * HOUR_MS,
+    abandonWatchFromMs = Date.parse(ABANDON_WATCH_FROM),
     activityIn = () => null,
   } = {},
 ) {
@@ -311,17 +367,8 @@ export function evaluateLiveness(
    *  interval in which a run should have claimed and did not begins when the previous
    *  holder let go of the lock. Falls back to the claim when no release was appended,
    *  which is itself what an abandoned lease looks like. */
-  const releasedAt = (record) => {
-    const nonce = record?.nonce;
-    if (!nonce) return Date.parse(record?.at);
-    for (const r of records) {
-      if (r && r.event === "release" && r.resource === resource && r.nonce === nonce) {
-        const t = Date.parse(r.at);
-        if (Number.isFinite(t)) return t;
-      }
-    }
-    return Date.parse(record.at);
-  };
+  const releasedAt = (record) =>
+    findRelease(records, resource, record?.nonce) ?? Date.parse(record?.at);
 
   const common = {
     ...base,
@@ -351,6 +398,43 @@ export function evaluateLiveness(
       alarmKey: newest.record.at,
     };
   }
+  // ABOVE THE GAP VERDICTS AND BELOW `stale`, AND THE ORDER WAS WRONG FIRST TIME. My first
+  // version put this last, on the reasoning that a run which finished nothing is better news
+  // than runs that never started. Read against the live register that reasoning shipped the
+  // hole it was closing: `missed-runs` was already red on the known 2026-09-12/13 gap, which
+  // outranks and so silences everything below it for its 48h lookback — and run 161's
+  // abandonment falls inside that window. The check written because run 161 was invisible
+  // would have left run 161 invisible.
+  //
+  // So the ordering is by what is still actionable, not by severity. `stale` means the loop
+  // is down NOW and the next firing is going to be lost too: the owner has to act, and it
+  // stays first. A gap is an outage that has ENDED — its own alarm text opens "the loop has
+  // since recovered", the register will still hold it next hour, and its comment has already
+  // been posted. An abandoned run is a record that is broken right now, with a repair that
+  // belongs to the next run. Fresh and fixable outranks historical and recorded.
+  //
+  // Masking is not eliminated, only reordered, and `gap` stays populated in the verdict and
+  // in the workflow outputs on this branch, so the fact is never lost even when it is not
+  // the headline. The second source is not consulted here at all: a claim plus an expired
+  // lease already establishes the run ran, and corroboration could only restate it.
+  const abandoned = findAbandonedRun(timed, records, {
+    now,
+    resource,
+    abandonLookbackMs,
+    abandonWatchFromMs,
+  });
+  if (abandoned?.kind === "corrupt-lease") {
+    return {
+      ...common,
+      ok: false,
+      reason: "unparseable-lease",
+      offender: abandoned.offender,
+      alarmKey: abandoned.offender,
+    };
+  }
+  if (abandoned) {
+    return { ...common, ok: false, reason: "abandoned-run", abandoned, alarmKey: abandoned.at };
+  }
   if (gap) {
     const activity = ran(activityIn, releasedAt(gap.fromRecord), Date.parse(gap.to));
     return {
@@ -375,6 +459,72 @@ function ran(activityIn, fromMs, toMs) {
     return null;
   }
   return activity && activity.commits > 0 ? activity : null;
+}
+
+/** When `nonce`'s lease was released, or `null` for "no release was ever appended". One
+ *  implementation, because two callers now ask the same question for opposite reasons:
+ *  `releasedAt()` wants the instant so it can position an interval and treats a missing
+ *  release as a soft fallback, and `findAbandonedRun()` treats the same absence as the
+ *  finding itself. A release whose own timestamp will not parse is not a release. */
+function findRelease(records, resource, nonce) {
+  if (!nonce) return null;
+  for (const r of records) {
+    if (r && r.event === "release" && r.resource === resource && r.nonce === nonce) {
+      const t = Date.parse(r.at);
+      if (Number.isFinite(t)) return t;
+    }
+  }
+  return null;
+}
+
+/**
+ * The most recent run that claimed the lock and never let go of it: a claim at or after
+ * `abandonWatchFromMs` whose lease has expired with no release appended, the expiry falling
+ * within `abandonLookbackMs` of now.
+ *
+ * WHY THE LEASE AND NOT THE CLOCK. A run legitimately holds the lock for its whole cycle, so
+ * "no release yet" says nothing until the lease it was granted has run out — 90 minutes by
+ * `DEFAULT_TTL_SECONDS`, and read from the record rather than assumed, because the TTL is a
+ * claim-time argument and a future run may pass a different one. Both endpoints are register
+ * values, so delivery lag cannot move the verdict; only the `now` comparison can be late,
+ * and late in the safe direction.
+ *
+ * FAIL CLOSED ON A LEASE IT CANNOT READ. A watched claim carrying no usable `ttlSeconds` is a
+ * corrupt register, not a healthy run: it returns `corrupt-lease` rather than being skipped,
+ * because skipping is how a check comes to sweep an empty set and pass (L-61). Only watched
+ * claims are parsed this way — a legacy record predating the field cannot redden the check
+ * forever, because it is below the floor and never reached.
+ */
+function findAbandonedRun(
+  timed,
+  records,
+  { now, resource, abandonLookbackMs, abandonWatchFromMs },
+) {
+  for (let i = timed.length - 1; i >= 0; i--) {
+    const { at, record } = timed[i];
+    if (at < abandonWatchFromMs) return null; // sorted, so everything earlier is older still
+    if (findRelease(records, resource, record.nonce) !== null) continue;
+
+    const ttlSeconds = record.ttlSeconds;
+    if (!Number.isFinite(ttlSeconds) || ttlSeconds <= 0) {
+      return { kind: "corrupt-lease", offender: record.at, holder: record.holder ?? null };
+    }
+    const leaseEndMs = at + ttlSeconds * 1000;
+    if (leaseEndMs + CLOCK_SKEW_MS > now) continue; // still inside its lease: in flight, not lost
+    if (now - leaseEndMs > abandonLookbackMs) return null;
+
+    return {
+      kind: "abandoned",
+      at: record.at,
+      holder: record.holder ?? null,
+      cycle: record.cycle ?? null,
+      nonce: record.nonce ?? null,
+      leaseEndAt: new Date(leaseEndMs).toISOString(),
+      leaseHours: Number((ttlSeconds / 3600).toFixed(2)),
+      sinceHours: Number(((now - leaseEndMs) / HOUR_MS).toFixed(2)),
+    };
+  }
+  return null;
 }
 
 /** Verdicts in which the loop demonstrably ran and did not claim. The owner action for
@@ -454,6 +604,13 @@ function appendOutputs(verdict) {
     `gap_from=${verdict.gap?.from ?? ""}`,
     `gap_to=${verdict.gap?.to ?? ""}`,
     `gap_hours=${verdict.gap?.gapHours ?? ""}`,
+    // The abandoned run, so the alarm can name which cycle stopped mid-sequence without
+    // re-reading the register. Empty on every other verdict.
+    `abandoned_at=${verdict.abandoned?.at ?? ""}`,
+    `abandoned_holder=${verdict.abandoned?.holder ?? ""}`,
+    `abandoned_cycle=${verdict.abandoned?.cycle ?? ""}`,
+    `abandoned_lease_end=${verdict.abandoned?.leaseEndAt ?? ""}`,
+    `abandoned_since_hours=${verdict.abandoned?.sinceHours ?? ""}`,
     // The second source, so the alarm can name the right defect and the right owner action
     // without re-deriving either. Empty on every verdict where the loop did not run.
     `unclaimed=${UNCLAIMED_REASONS.has(verdict.reason)}`,
@@ -484,6 +641,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const maxGapMs = Number(flags["max-gap-hours"] ?? DEFAULT_MAX_GAP_HOURS) * HOUR_MS;
   const gapLookbackMs = Number(flags["gap-lookback-hours"] ?? DEFAULT_GAP_LOOKBACK_HOURS) * HOUR_MS;
   const gapWatchFromMs = Date.parse(flags["gap-watch-from"] ?? GAP_WATCH_FROM);
+  const abandonLookbackMs =
+    Number(flags["abandon-lookback-hours"] ?? DEFAULT_ABANDON_LOOKBACK_HOURS) * HOUR_MS;
+  const abandonWatchFromMs = Date.parse(flags["abandon-watch-from"] ?? ABANDON_WATCH_FROM);
   const now = flags.now ? Date.parse(flags.now) : Date.now();
   const activityRef = flags["activity-ref"] ?? `${remote}/master`;
   const opts = {
@@ -493,6 +653,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     maxGapMs,
     gapLookbackMs,
     gapWatchFromMs,
+    abandonLookbackMs,
+    abandonWatchFromMs,
     activityIn: (fromMs, toMs) => executorActivity(repoRoot, { fromMs, toMs, ref: activityRef }),
   };
 
@@ -536,7 +698,22 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     );
   } else {
     const unclaimed = UNCLAIMED_REASONS.has(verdict.reason);
-    console.log(`${unclaimed ? "UNCLAIMED" : "STALE"} ${verdict.resource} — ${verdict.reason}`);
+    // Three labels, not two. A run that stopped mid-sequence is neither an outage nor a
+    // skipped step 0, and printing "STALE" over it is the 2026-09-13 defect — one headline
+    // for two failures with opposite actions — repeated in the line a reader sees first.
+    const label = verdict.abandoned ? "ABANDONED" : unclaimed ? "UNCLAIMED" : "STALE";
+    console.log(`${label} ${verdict.resource} — ${verdict.reason}`);
+    if (verdict.abandoned) {
+      console.log(
+        `  run ${verdict.abandoned.cycle} (${verdict.abandoned.holder}) claimed ` +
+          `${verdict.abandoned.at} and never released: its ${verdict.abandoned.leaseHours}h ` +
+          `lease expired ${verdict.abandoned.leaseEndAt}, ${verdict.abandoned.sinceHours}h ago`,
+      );
+      console.log(
+        "  release is the last step of a run, after the execution report — so that report is " +
+          "in doubt and issue #1 needs checking",
+      );
+    }
     if (verdict.gap) {
       console.log(
         `  ${unclaimed ? "unclaimed" : "missed"} runs: ${verdict.gap.gapHours}h between ` +
@@ -565,8 +742,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     // would be read fastest.
     console.log(
       `::error title=${
-        unclaimed ? "Executor loop is running without claiming" : "Executor loop is not firing"
+        verdict.abandoned
+          ? "Executor run stopped without finishing"
+          : unclaimed
+            ? "Executor loop is running without claiming"
+            : "Executor loop is not firing"
       }::${verdict.reason}` +
+        (verdict.abandoned
+          ? ` — cycle ${verdict.abandoned.cycle} (${verdict.abandoned.holder}) claimed ${verdict.abandoned.at}` +
+            `, lease expired ${verdict.abandoned.leaseEndAt} with no release`
+          : "") +
         (verdict.gap
           ? ` — ${verdict.gap.gapHours}h ${unclaimed ? "with no claim" : "with no run"}, ending ${verdict.gap.to}`
           : "") +

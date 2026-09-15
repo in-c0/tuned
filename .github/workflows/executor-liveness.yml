@@ -87,6 +87,11 @@ jobs:
           GAP_TO: ${{ steps.liveness.outputs.gap_to }}
           GAP_HOURS: ${{ steps.liveness.outputs.gap_hours }}
           UNCLAIMED: ${{ steps.liveness.outputs.unclaimed }}
+          ABANDONED_AT: ${{ steps.liveness.outputs.abandoned_at }}
+          ABANDONED_HOLDER: ${{ steps.liveness.outputs.abandoned_holder }}
+          ABANDONED_CYCLE: ${{ steps.liveness.outputs.abandoned_cycle }}
+          ABANDONED_LEASE_END: ${{ steps.liveness.outputs.abandoned_lease_end }}
+          ABANDONED_SINCE_HOURS: ${{ steps.liveness.outputs.abandoned_since_hours }}
           CORROBORATED: ${{ steps.liveness.outputs.corroborated }}
           ACTIVITY_COMMITS: ${{ steps.liveness.outputs.activity_commits }}
           ACTIVITY_SESSIONS: ${{ steps.liveness.outputs.activity_sessions }}
@@ -124,7 +129,17 @@ jobs:
           {
             echo "$marker"
             echo
-            if [ "${UNCLAIMED:-false}" = "true" ]; then
+            if [ "${REASON}" = "abandoned-run" ]; then
+              echo "## An executor run stopped without finishing"
+              echo
+              echo "A run claimed the lock and never let go of it. Releasing is the **last** step of a"
+              echo "run, after the execution report — so a lease that expired with no release means the"
+              echo "run stopped mid-sequence, and **the execution report it owed issue #1 is in doubt.**"
+              echo
+              echo "This is not an outage. The routine is firing, and this run very likely committed and"
+              echo "went green before it stopped — which is exactly why the other two verdicts here"
+              echo "cannot see it, and why it was invisible when it happened to run 161 on 2026-09-14."
+            elif [ "${UNCLAIMED:-false}" = "true" ]; then
               echo "## Executor loop is running without claiming the run lock"
               echo
               echo "The scheduled executor routine claims the run lock as step 0 of every run, before"
@@ -146,8 +161,18 @@ jobs:
             echo "| | |"
             echo "| --- | --- |"
             echo "| Verdict | \`${REASON}\` |"
+            if [ "${REASON}" = "abandoned-run" ]; then
+              echo "| Run that stopped | cycle \`${ABANDONED_CYCLE:-n/a}\`, holder \`${ABANDONED_HOLDER:-n/a}\` |"
+              echo "| It claimed at | ${ABANDONED_AT:-n/a} |"
+              echo "| Its lease expired | ${ABANDONED_LEASE_END:-n/a}, unreleased (${ABANDONED_SINCE_HOURS:-n/a}h ago) |"
+            fi
             if [ -n "${GAP_FROM:-}" ]; then
-              if [ "${UNCLAIMED:-false}" = "true" ]; then
+              if [ "${REASON}" = "abandoned-run" ]; then
+                # The gap is retained on this verdict rather than dropped, but it is a
+                # DIFFERENT, already-reported incident that this one merely outranks. Labelling
+                # it "runs missed" here would read as part of the abandonment.
+                echo "| Also still in the register | a closed ${GAP_HOURS:-n/a}h gap ending ${GAP_TO}, reported separately |"
+              elif [ "${UNCLAIMED:-false}" = "true" ]; then
                 echo "| Unclaimed between | ${GAP_FROM} and ${GAP_TO} |"
                 echo "| Length of that gap | ${GAP_HOURS:-n/a}h with no claim |"
               else
@@ -170,7 +195,21 @@ jobs:
               echo "inside it are still lost, and nothing else would ever have said so."
               echo
             fi
-            if [ "${UNCLAIMED:-false}" = "true" ]; then
+            if [ "${REASON}" = "abandoned-run" ]; then
+              echo "**What this does and does not say.** It says one run claimed the lock and no release"
+              echo "was ever appended for it, and that its lease has since expired. It does **not** say"
+              echo "why the run stopped, and it does not read issue #1 — the missing report is an"
+              echo "inference from the ordering (report, then release), not an observation. It is not a"
+              echo "product or production signal: production is verified separately by"
+              echo "\`verify production\`, which is unaffected by this."
+              echo
+              echo "**Owner action: none required.** This is the executor's own record to repair. The"
+              echo "next run should check issue #1 for that cycle's execution report and, if it is"
+              echo "missing, reconstruct what shipped from the commit and say so plainly — an execution"
+              echo "report that never arrives leaves the reviewer directing the next cycle on stale"
+              echo "evidence, and leaves the next run unable to tell that a run happened at all."
+              echo "Escalate only if it repeats."
+            elif [ "${UNCLAIMED:-false}" = "true" ]; then
               echo "**What this does and does not say.** It says executor sessions ran in this"
               echo "interval and none of them reached step 0. It is **not** an outage and the routine"
               echo "needs no restarting; it is the run-lock protocol failing silently, which matters"

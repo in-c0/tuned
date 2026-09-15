@@ -171,6 +171,24 @@ const MISSED_ENV = {
   GAP_HOURS: "24",
 };
 
+// Run 161, verbatim from the register: claimed 2026-09-14T22:03:52.483Z as vm:1935, lease to
+// 23:33:52.483Z, no release ever appended, read at the 00:35Z firing. GAP_* are empty here
+// and populated in the test that cares — on this verdict they can be either.
+const ABANDONED_ENV = {
+  ...STALE_ENV,
+  REASON: "abandoned-run",
+  ALARM_KEY: "2026-09-14T22:03:52.483Z",
+  STALE_SINCE: "2026-09-14T22:03:52.483Z",
+  AGE_HOURS: "2.52",
+  HOLDER: "vm:1935",
+  CYCLE: "2026-09-15/w08",
+  ABANDONED_AT: "2026-09-14T22:03:52.483Z",
+  ABANDONED_HOLDER: "vm:1935",
+  ABANDONED_CYCLE: "2026-09-15/w08",
+  ABANDONED_LEASE_END: "2026-09-14T23:33:52.483Z",
+  ABANDONED_SINCE_HOURS: "1.02",
+};
+
 describe("the alarm posts once per outage", () => {
   it("posts when the issue carries no comment for this outage", () => {
     const r = runAlarm(STALE_ENV);
@@ -227,6 +245,48 @@ describe("the body says which kind of outage it is", () => {
     const r = runAlarm(MISSED_ENV);
     assert.match(r.posted, /key=2026-09-11T22:05:00\.000Z/);
     assert.doesNotMatch(r.posted, /key=2026-09-12T22:05:00\.000Z/);
+  });
+
+  it("says a run stopped mid-sequence, and does not call it an outage", () => {
+    // Run 161's shape. The headline decides what the reader does next, and the two wrong
+    // answers here are "the loop is not firing" (it is) and "check the routine is enabled"
+    // (nothing is wrong with it) — the 2026-09-13 defect of one headline over two failures.
+    const r = runAlarm(ABANDONED_ENV);
+    assert.ok(r.posted);
+    assert.match(r.posted, /## An executor run stopped without finishing/);
+    assert.match(r.posted, /cycle `2026-09-15\/w08`, holder `vm:1935`/);
+    assert.match(r.posted, /Its lease expired \| 2026-09-14T23:33:52\.483Z, unreleased \(1\.02h ago\)/);
+    assert.match(r.posted, /execution report it owed issue #1 is in doubt/);
+    assert.match(r.posted, /Owner action: none required/);
+    assert.doesNotMatch(r.posted, /Executor loop is not firing/);
+    assert.doesNotMatch(r.posted, /Check that the routine is enabled/);
+    // And it must not borrow the other branch's prose about step 0 being skipped: this run
+    // DID claim, which is the only reason the verdict exists.
+    assert.doesNotMatch(r.posted, /none of them reached step 0/);
+  });
+
+  it("labels a retained gap as a separate incident, not as part of the abandonment", () => {
+    // `abandoned-run` outranks a closed gap rather than dropping it, so GAP_* stay populated.
+    // Falling into the "Runs missed between" row here would present an already-reported
+    // outage as this incident's own duration.
+    const r = runAlarm({
+      ...ABANDONED_ENV,
+      GAP_FROM: "2026-09-12T10:05:31.690Z",
+      GAP_TO: "2026-09-14T10:03:56.593Z",
+      GAP_HOURS: "47.97",
+    });
+    assert.match(r.posted, /Also still in the register \| a closed 47\.97h gap ending 2026-09-14/);
+    assert.doesNotMatch(r.posted, /Runs missed between/);
+    assert.doesNotMatch(r.posted, /with no run at all/);
+    assert.doesNotMatch(r.posted, /The loop has since recovered/);
+  });
+
+  it("keys the abandonment marker on the claim, so it is one comment per incident", () => {
+    const r = runAlarm(ABANDONED_ENV);
+    assert.match(r.posted, /key=2026-09-14T22:03:52\.483Z/);
+    const again = runAlarm(ABANDONED_ENV, [r.posted]);
+    assert.equal(again.posted, null, "the same abandonment must not be posted twice");
+    assert.equal(again.exitCode, 0);
   });
 });
 

@@ -3187,3 +3187,70 @@ beside each wrong line rather than replacing it.
   excluded, the title and body patterns remain the only defence against it, and a read is still a
   reading a human can overrule on the evidence in the log. Nor does any of this make an
   emptiness *reading* correct: it makes the instrument stop reporting one as a gate.
+
+---
+
+## L-80 — the watchdog measured that runs start and never that one finished, and the run it missed is the one that never reported (2026-09-15, run 162)
+
+- **Known problem:** the executor loop must post an execution report to issue #1 every run — the only
+  artifact the reviewer reads, and mandatory in [CLAUDE.md](../CLAUDE.md). Nothing checked that one
+  had been posted. `executor liveness` existed to answer "is the loop still firing" after the
+  2026-09-07 outage, and [L-75](#l-75) had already split its verdict against a second source.
+- **What happened:** **run 161 claimed the lock, shipped, and then stopped without reporting.** It
+  claimed cycle `2026-09-15/w08` as `vm:1935` at `2026-09-14T22:03:52.483Z`, pushed
+  [`619535f`](https://github.com/in-c0/tuned/commit/619535f) at `22:17:11Z`,
+  [went green](https://github.com/in-c0/tuned/actions/runs/34903357547) at `22:18:04Z` — and never
+  appended a release and never posted its report. Its work is fully in the repository; its record on
+  issue #1 does not exist and cannot be recovered, because only that session knew what it intended.
+- **Mistake:** the watchdog's own header said, as a design statement, *"a run that starts and then
+  fails still leaves the claim; the watchdog is deliberately measuring 'did a session begin', not
+  'did a session succeed'."* That sentence is defensible for detecting an outage and was **read as
+  the whole question**. Both verdicts ask whether a run *started*; neither asks whether one
+  *finished*, so the failure mode where a run starts, does real work, and abandons its last steps
+  was outside the instrument by construction.
+- **Why it happened, and this is the reusable part:** **the two existing verdicts get QUIETER on this
+  failure, not louder.** A fresh claim clears the staleness test, and a commit inside the cycle is
+  positive corroboration that the loop *ran* — so the abandoned run looks healthier than a quiet one.
+  A monitor built around one failure mode treats every signal as evidence about that mode; run 161
+  produced the exact signature of health under both.
+- **Evidence and cost:** the register holds the fact from `23:33:52Z` (lease expiry) and nothing read
+  it. `executor liveness` was green through the whole window. Two places already computed the shape
+  and neither could speak: `releasedAt()` in the same file falls back when no release exists and
+  calls that *"what an abandoned lease looks like"* **in a comment**, and `run-claim`'s `evaluate()`
+  derives `takeover-stale` from it but only for the **current** cycle, so run 161's `w08` claim was
+  stepped over in silence by run 162's `w14`. **Cost paid: the reviewer's newest evidence was 18
+  hours stale, and run 162 began unable to tell from issue #1 that run 161 had happened** — which is
+  the duplicate-implementation failure of PRs #7/#8 and #9/#10 arriving through a different door: not
+  two concurrent sessions, which the lock stops, but one session invisible to its successor.
+- **Lesson:** **a register that records how work STARTS also records how it ENDED, and a watchdog that
+  reads only the first half will be blind to exactly the runs that did most of the work.** Release is
+  the last step of a run, after the report — the two runs before 161 released 3 seconds after their
+  report comment — so *an expired lease with no release* is a sound, earlier proxy for *the report is
+  missing*, available from the file the check already reads, with no GitHub API, no pairing
+  heuristic, and no second network source.
+- **More elegant next attempt, and what shipped:** a third verdict, `abandoned-run`, over the same
+  single input. 35 of the register's 37 claims released `completed`; the only exceptions are run 161
+  and whichever run is in flight, so the signal has **zero historical noise**. Eleven mutations each
+  turn a named test red, including the discriminator itself — the same register with a release
+  appended is healthy.
+- **The ordering was wrong first, and that is the near-miss worth recording.** The verdict was placed
+  last, reasoning that a run which finished nothing is better news than runs that never started. Read
+  against the live register that shipped the hole it was closing: `missed-runs` was already red on the
+  known 2026-09-12/13 gap, an outranking verdict silences everything below it for its 48h lookback,
+  and run 161's abandonment falls inside that window. **The check written because run 161 was
+  invisible would have left run 161 invisible.** Ordering is now by what is still *actionable* —
+  `stale` (the loop is down now, the owner must act) above `abandoned-run` (a record broken now, the
+  next run repairs it) above a closed gap (already reported, and still in the register next hour) —
+  and the gap stays populated in the verdict body so being outranked never loses the fact.
+- **Prevention check:** `scripts/executor-liveness.test.mjs` replays run 161's real register records
+  and asserts quiet inside the 90-minute lease, red at the first hourly firing after it expires
+  (`00:35Z` — 2.5h after run 161 stopped, 3.5h before run 162 began), and healthy the moment a
+  release of any outcome is appended. `scripts/liveness-alarm.test.mjs` runs the alarm shell
+  **extracted from the shipped YAML** and asserts the comment does not call this an outage or tell the
+  owner to restart the routine.
+- **Not claimed:** the check does **not** read issue #1, so "the report is missing" stays an inference
+  from the ordering rather than an observation — a run that reported and then died before releasing
+  would be flagged identically, which is the safe direction. It cannot make a truncated run finish,
+  and it does not stop a report being missed by a run that releases normally. And it is silent on run
+  161 itself by design: `ABANDON_WATCH_FROM` is run 162's own claim, on [L-75](#l-75)'s rule that an
+  instrument must not re-raise as news the incident already reported in the run that built it.
