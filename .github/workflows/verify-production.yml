@@ -640,7 +640,11 @@ jobs:
             || { echo "::error::${path} declares canonical '$canon', expected ${find_url}"; exit 1; }
           finds=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml | sed 's/<[^>]*>//g' \
             | { grep -cE '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; })
-          echo "${path}: HTTP 200, provenance block present, canonical ${canon}"
+          # The count goes to STDOUT and not only to the step summary. Run 163 wrote a
+          # discriminating value to the summary alone and then could not read it back — this
+          # session has no egress to fetch a run page, and the summary is not in the job log. The
+          # next run reads this line out of the log, so it belongs in the log.
+          echo "${path}: HTTP 200, provenance block present, canonical ${canon}; ${finds} find pages in the sitemap"
           echo "Find pages: ${finds} in the sitemap; \`${path}\` serves one" >> "$GITHUB_STEP_SUMMARY"
 
       # Last, and deliberately able to fail a job in which every check above passed.
