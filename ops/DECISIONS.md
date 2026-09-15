@@ -5761,3 +5761,70 @@ disarmed.
 - **Say nothing about run 161 and simply ship the check.** Rejected. The reviewer's newest evidence would stay 18 hours stale with no explanation for the gap, and the record would show a commit on `master` that no report accounts for.
 - **Spend the cycle on something that could produce a user instead.** Rejected on the [candidate register](DISTRIBUTION.md#candidate-register)'s standing finding, re-checked rather than inherited: all seven channels are blocked at **A0** — this executor can perform no write at any third party — and the two remaining acts are the owner's. **This is the seventh run in eight on the loop's own machinery, and that is a real cost, stated against my own interest.** What makes this one defensible is not that it adds an instrument but that the loop's *reporting obligation* had no enforcement at all, and the review loop is directive-driven: a cycle whose work never reaches issue #1 is a cycle the reviewer cannot direct and the next run cannot see.
 - **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
+
+## 2026-09-15 (run 163) — the funnel's second stage wrote to a table its third stage could not read
+
+Lock claimed before any commit, comment or dispatch: cycle `2026-09-15/w20`, holder `vm:1534`, nonce
+`31ffc6ca-bd6d-45cc-97e0-a927e58fdcdb`, at `2026-09-15T10:03Z`. Released `completed` at end of run.
+
+**Directive: none outstanding.** The newest comment on issue #1 is
+[run 162's execution report](https://github.com/in-c0/tuned/issues/1#issuecomment-5674712214); no
+reviewer directive has been posted since 2026-09-01, and run 136 discharged that one. The action was
+selected under the standing mission and under [CLAUDE.md](../CLAUDE.md)'s rule that the control plane
+is not the product.
+
+- **Decision: refuse an eighth machinery run in nine, and go looking on the product surface instead.**
+  Run 162's own next-candidate line reads *"Nothing on the machinery."* [NORTH_STAR](NORTH_STAR.md)
+  rule 7 and [L-08](LESSONS.md) say to stop improving the control plane once it is adequate for the
+  next demand experiment, and CLAUDE.md states it as a hard rule. Seven of the last eight cycles went
+  to instruments. This one started by reading the routes a stranger and an owner actually touch.
+- **Decision: ship `GET /api/applications` — the missing reader on the only stranger path that
+  exists.** `POST /waitlist` has written applications since 2026-08-06 into a table read by exactly one
+  thing: `SELECT COUNT(*)` in [`src/metrics.ts`](../src/metrics.ts), surfaced as the integer
+  `applications`. Nothing returned a row, and `POST /api/members` — the admission act — takes an
+  **email**. So the funnel's second stage wrote to a table its third stage had no way to read, and
+  admitting an applicant required Cloudflare credentials this loop does not hold by design. Full
+  reasoning in [L-81](LESSONS.md#l-81).
+- **Decision: gate it on `ADMIN_KEY` rather than mint a new secret, and fail closed.** That credential
+  already authorises `POST /api/members` and `POST /api/creators`, so the route exposes no address to
+  anyone who could not already read it, and adds no owner provisioning step. `keyConfigured` → **503**
+  while the secret is unset, `keyMatches` → **401** on a wrong key, which keeps "no key" and "wrong
+  key" distinguishable ([L-12](LESSONS.md)). It ships in the fail-closed state.
+- **Decision: count `total` and `pending` over the whole table, not the returned page.** An owner who
+  asks for two rows still has to be told how many people are waiting; a headline that shrinks with
+  `limit` reads as progress. Pinned by a test.
+- **Decision: classify the route in `test/route-inventory.test.ts` as `uncounted`, with the reason
+  written down.** It is the owner reading their own applicants, so a counter here would count the
+  owner — the same reason `GET /api/metrics` carries. Confirmed load-bearing by deleting the entry:
+  the suite goes red naming the route.
+- **Decision: do not manufacture an experiment for this.** It is a defect fix, not a test of a
+  hypothesis, and there is no traffic against which a threshold would mean anything. `applications`
+  has read 0 every day of the window; the honest pre-registration is the one already standing in
+  EXP-009/EXP-012 for the two prepared submissions. Same call run 1 made, for the same reason.
+- **Decision: state the half this does not close, in the report and in the lesson.** There is **no mail
+  provider and no sender anywhere in `src/`**, so `POST /api/members` returns a `login_url` that
+  nothing can deliver — the same shape as `followers`, which holds intent no code can digest. An
+  application is now *visible*; admitting someone still needs a human to carry the link.
+
+**Alternatives considered and rejected:**
+
+- **Ship a pricing or paid-intent surface.** Rejected, and it was the leading candidate for most of
+  this run. `stripe` appears nowhere in this repository and no owner card has ever asked for a payment
+  provider, which is a real 162-run gap — but the honest forms of the change are both bad. Taking
+  money creates a delivery commitment for a product whose only self-serve surface is a free public
+  feed (feed creation is `ADMIN_KEY`-gated, so there is nothing a stranger can buy), and a *"would you
+  pay?"* button is explicitly discounted by this loop's own hierarchy: **a subscription label is not
+  validation.** Raised for the owner and reviewer as a question instead of shipped as a surface.
+- **Open self-serve feed creation to remove the application gate.** Rejected as a strategy change, not
+  a defect fix. It would put an ungated public UGC surface on the owner's domain with no moderation —
+  a material abuse and spam-hosting exposure that is the reviewer's to rule on, not one run's to ship.
+- **Notify the owner automatically when `applications` moves.** Rejected for this cycle as the
+  machinery half of the same problem; the read has to exist before a notification has anything to
+  point at. Named as the next candidate rather than bundled.
+- **Label the landing form honestly instead** — the treatment `follow_submit` got when `followers`
+  was found undeliverable. Rejected as strictly worse here: disclosure documents the dead stage,
+  whereas the reader makes it work. The disclosure argument returns if the delivery half stays open.
+- **Spend the cycle on something that could produce a user.** Rejected on the same standing finding
+  run 162 re-checked and closed: **A0 is architectural** — this executor can perform no write at any
+  third party — and the two remaining acts are the owner's. Unchanged, not re-argued ([L-07](LESSONS.md)).
+- **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.

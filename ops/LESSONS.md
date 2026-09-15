@@ -3254,3 +3254,63 @@ beside each wrong line rather than replacing it.
   and it does not stop a report being missed by a run that releases normally. And it is silent on run
   161 itself by design: `ABANDON_WATCH_FROM` is run 162's own claim, on [L-75](#l-75)'s rule that an
   instrument must not re-raise as news the incident already reported in the run that built it.
+
+---
+
+## L-81 — the route inventory enumerates writers, and the gap it could never see is a table whose only reader is `COUNT(*)` (2026-09-15, run 163)
+
+- **Known problem:** [L-61](#l-61) found `POST /:handle/follow` — the only conversion action on a
+  public feed page — writing nothing at all, after four runs had closed on *"no counter on any route
+  is undiscriminated any more."* Its prescribed next attempt was to **enumerate the surface, not the
+  instrument**, and run 146 shipped that as `test/route-inventory.test.ts`: all 45 routes classified,
+  a new route with no decision about instrumentation turns the build red.
+- **What happened:** the same class of defect was sitting on the funnel's second stage the whole time.
+  **`POST /waitlist` has written every application since 2026-08-06 into a table that exactly one
+  thing reads — `SELECT COUNT(*) FROM waitlist` in `src/metrics.ts`, reported as the integer
+  `applications`.** No surface anywhere returned a row. `src/operator.ts` states in its own header
+  that the operator key cannot read a member email or provision members; `/api/metrics` is
+  aggregate-only by design; there is no admin list, no export, no mail. So the address, the role and
+  the note an applicant wrote were unreachable without Cloudflare credentials this loop does not hold
+  — while `POST /api/members`, the admission act, **takes an email as its input**.
+- **Mistake:** both sweeps enumerated the right set and asked the wrong question of it. The instrument
+  sweep asked *what does this counter fail to discriminate*; the route inventory asked *what does this
+  route write, and if nothing, is that deliberate*. **Neither asks what reads what is written.** The
+  inventory classifies `POST /waitlist` as `writes: application_submit / application_invalid` and is
+  correct — the counter is there, discriminated, tested. The row it writes alongside the counter is
+  not a counter, so it is not in the set either sweep enumerates.
+- **Why it happened, and this is the reusable part:** **a table with one writer and no reader produces
+  the same observable as a table with no writer, and this loop's only readout was the observable.**
+  `applications` has read **0** every day of the window. An unreadable table and an empty one
+  serialise identically in `ops/metrics/latest.json`, so forty days passed with nothing to feel. The
+  gap was cost-free precisely while it was untested by a real arrival, and would have become expensive
+  at the exact moment it mattered least to discover it — the first stranger to apply.
+- **Evidence and cost:** `grep -rn waitlist src/ .github/ scripts/` returns one reader,
+  `src/metrics.ts:212`, and it is `COUNT(*)`. No cost has been *paid*: `applications` is 0, so no
+  application has been lost. The cost was **carried** — the funnel's second stage wrote to a table its
+  third stage could not read, on the exact path the two prepared distribution submissions point at.
+- **Lesson:** **an inventory of a surface is only as complete as the question it asks of each member,
+  and "what does this write" has a mirror — "who reads it" — that no amount of route coverage
+  supplies.** A write with no reader is not instrumentation, it is storage; the test that a
+  conversion stage works is that the stage *after* it can consume what the stage before it produced.
+  This is the third time the same shape has surfaced (`follow_submit` → `followers`, which no code in
+  `src/` can deliver to; `waitlist` → nothing; and `members.last_desk_at`, overwritten, which run 1
+  found). Each was found by a different accident rather than by an instrument.
+- **More elegant next attempt, and what shipped:** `GET /api/applications` — admin-key-gated, failing
+  closed with 503 while `ADMIN_KEY` is unset, returning the applicant's own submission plus
+  `admitted`, the address matched against `members`, which is the one fact `POST /api/members` needs
+  and the count cannot carry. `total` and `pending` are counted over the whole table rather than the
+  returned page, so `limit` cannot shrink the headline. Four mutations each turn a named test red,
+  including one that returns `pending` uncoerced — SQLite's `SUM` over zero rows is `NULL`, and the
+  empty table is the state this ships against, so the first reading anyone takes would have been
+  `pending: null`.
+- **Prevention check:** `test/applications.test.ts` exercises the route end to end **through
+  `POST /waitlist`** rather than against rows it inserted itself — a test that seeds its own table
+  passes against a schema the live form never writes, which is how a reader and its writer drift
+  apart. The route-inventory entry was confirmed load-bearing by deleting it: the suite goes red
+  naming `GET /api/applications`.
+- **Not claimed, and it is the larger half.** This makes an application **visible**; it does not make
+  one **deliverable**. There is no mail provider and no sender anywhere in `src/`, so
+  `POST /api/members` still returns a `login_url` that nothing can send, exactly as `followers` holds
+  intent that nothing can digest. The admission path is now readable end to end and still needs a
+  human to carry the link. That is an owner boundary, stated in the run-163 report, not a gap this
+  executor can close.

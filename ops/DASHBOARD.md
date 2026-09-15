@@ -18,6 +18,51 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **If a stranger had applied to Tuned any time in the last forty days, I could have told you that somebody applied — and never who. The application form writes to a table nothing could read back.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here. **There is one new question at the bottom of this block.**
+>
+> **What was wrong.** The "apply" form on the landing page saves the person's email, what they want to
+> use Tuned for, and their note. Exactly one thing has ever read that table: a **count**. No screen, no
+> export, no email — nothing anywhere hands back a row. Meanwhile the step that *admits* somebody needs
+> their **email address** to work. So the second step of the funnel was writing to a place the third
+> step could not read, and letting someone in would have meant you opening the Cloudflare dashboard and
+> querying the database by hand.
+>
+> **Why nobody noticed for forty days.** Nobody has applied. **An empty table and an unreadable one look
+> exactly the same from the outside** — both report zero — so there was never anything to feel. Nothing
+> was lost and no number I have published was wrong. What did not exist was any way to *check*, and the
+> first moment it would have mattered is the first stranger, which is the moment I would least want to
+> be discovering it.
+>
+> **Why my own audits missed it.** I have swept every counter, and I have a test that lists every route
+> and what it records. Both ask *what does this write?* **Neither asks what reads it.** The form is
+> correctly listed as writing its counters — the row it saves alongside them is not a counter, so it was
+> in neither list.
+>
+> **What I shipped.** A private, key-protected way to read the applications: who applied, what they
+> said, when, and whether they have already been let in. It uses the admin key that already exists, so
+> there is nothing for you to set up, and it refuses to answer at all until that key is configured.
+>
+> **The half I did not fix, and you should know it.** There is **no email sending anywhere in Tuned**.
+> Admitting someone produces a sign-in link that nothing can deliver — somebody has to carry it by hand.
+> Same as the "follow by email" box, which collects addresses no digest can ever reach. I can now *see*
+> an application; I still cannot *answer* one.
+>
+> **The new question, asked once and not repeated.** Tuned has **no payment provider, and I have never
+> once asked you for one** — 163 runs, against a cash target. I deliberately did not build a pricing
+> page: there is nothing a stranger could buy today, because creating a feed is admin-only, and a
+> "would you pay?" button is not evidence of anything. **With 20 days left, is opening a payment path
+> worth it at all?** That is your call and the reviewer's, not mine. Answer on issue #1, or ignore it.
+>
+> **The number that has not moved in forty-two days.** Nobody has applied, nobody follows
+> `@sportstech`, and there is no money. **20 days left.** The two items in §1 are still the only things
+> on this list that could produce a customer.
+>
+> ---
+>
 > # **The previous run did its work, pushed it, and then vanished without filing its report. The two alarms I have for "has the loop stopped?" both said everything was fine — and on this failure they say it more confidently, not less.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
@@ -1178,9 +1223,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-81** | **The route inventory enumerates writers, and the gap it could never see is a table whose only reader is `COUNT(*)`.** [L-61](LESSONS.md#l-61) found `POST /:handle/follow` writing nothing, and run 146's answer was to enumerate every route and what it writes. The same class of defect was on the funnel's second stage the whole time: **`POST /waitlist` has written every application since 2026-08-06 into a table read by exactly one thing — `SELECT COUNT(*)` in `src/metrics.ts`.** No surface returns a row; `src/operator.ts` says in its own header that the operator key cannot read a member email; `/api/metrics` is aggregate-only by design. And `POST /api/members`, the admission act, **takes an email**. Both sweeps enumerated the right set and asked the wrong question of it — **neither asks what reads what is written** — and the row written alongside a counter is not a counter. Cost **carried, not paid**: `applications` is 0, so nothing was lost; an unreadable table and an empty one serialise identically, which is why forty days passed without it being felt. | **A write with no reader is storage, not instrumentation; the test that a conversion stage works is that the stage *after* it can consume what the stage *before* it produced.** Shipped: `GET /api/applications`, gated on the existing `ADMIN_KEY` (no new secret, no address reachable by anyone who could not already read it), **503 while unset** and 401 on a wrong key, returning the applicant's own submission plus `admitted` — the address matched against `members`, the one fact `POST /api/members` needs and the count cannot carry. `total`/`pending` count the whole table, never the returned page. **Four mutations, four named tests red**, including `pending` returned uncoerced: SQLite's `SUM` over zero rows is `NULL`, and the empty table is the state this ships against. The suite runs end to end **through `POST /waitlist`**, not against rows it seeded itself. **Not claimed, and it is the larger half:** there is no mail provider and no sender in `src/`, so the `login_url` admission returns still cannot be delivered — an application is now *visible*, not *answerable*. |
 | **L-80** | **The watchdog measured that runs *start* and never that one *finished* — and the run it missed is the one that never reported.** Run 161 claimed the lock, pushed [`619535f`](https://github.com/in-c0/tuned/commit/619535f), went green at `22:18:04Z`, then stopped: no release appended, **no execution report on issue #1**. `executor liveness` stayed green, correctly by its own definition — its header states it measures *"did a session begin", not "did a session succeed"* — and **both its signals point the reassuring way on this failure**: a fresh claim clears staleness, and a commit inside the cycle is positive corroboration that the loop ran. Cost: the reviewer's newest evidence was 18h stale, and run 162 began unable to tell from issue #1 that run 161 had happened — the duplicate-implementation risk of PRs #7/#8 through a different door. | **A register that records how work starts also records how it ended; read both halves.** Release is a run's last step, after the report (runs 159 and 160 released **3 seconds** after theirs), so *an expired lease with no release* is a sound, earlier proxy for *the report is missing* — from the file the check already reads, with no GitHub API and no pairing heuristic. **35 of 37 claims released `completed`**, so the signal has zero historical noise. Eleven mutations each turn a named test red, the discriminator included: the same register with a release appended is healthy. **The ordering was wrong first** — filed last, it would have been masked for 48h by the already-red `missed-runs` gap that run 161's abandonment falls inside, so **the check written because run 161 was invisible would have left it invisible**; it now ranks below an open outage and above a closed one. **Not claimed:** it does not read issue #1, so the missing report stays an inference; and it is silent on run 161 itself by design. |
 | **L-79** | **The discriminator L-78 proposed was satisfiable by the one link a challenge page does carry.** L-78 diagnosed `source-read`'s 1000-character terseness floor as structurally biased against its own null — *nothing is here* renders short by construction — and wrote the fix as *"a fetch that yields the anchors the query asked about is a `page` at any length."* But `matchLinks` matches an anchor on its label **or its href**, and a challenge document's one link is a **retry at the requested URL**: for the duplicate check that URL is `…/search?q=…justtuned…`, so the retry link carries the literal and matches. **The proposed rule is satisfied by exactly the page it was written to exclude**, and it is unavailable at all whenever `find` is unset. Caught in the writing, not in production. | **Name the page the rule is meant to exclude, and walk it through the rule, before shipping any discriminator.** What shipped inverts both defects: **≥ 20 distinct same-origin addresses other than this page's own** — excluding the page's own URL defeats the retry link, requiring same-origin defeats the challenge provider's links, and the populations are an order of magnitude apart (0–2 against GitHub's 103), so the threshold sits inside the gap rather than being tuned. Three properties pinned by mutations that each turn a named test red: it overrules the **length** signal only, so a bot-check pattern stays fatal at any link count and [run 50's](LESSONS.md#l-28) defect cannot re-enter through the fix for run 160's; it **fails closed** on an unreadable anchor list; and `MIN_PAGE_CHARS` is **unchanged at 1000**, so lowering it instead turns five tests red. **Not claimed:** a soft block rendered inside a host's full chrome would now pass the length signal — that population is unobserved, not excluded. |
-| **L-78** | **An obligation conditioned on an event that never happens never fires — and the instrument that checks for emptiness is the one least able to certify it.** [`ops/SUBMISSION-awesome-rss-feeds.md`](SUBMISSION-awesome-rss-feeds.md) closed its preconditions with *"re-read A4 and the duplicate check **in the cycle of the submission**."* There has been no cycle of the submission, so in ten days the re-read never fired, while runs 137–159 surfaced the card in every report as *"a paste, not a research task"* on evidence from 4 September. Nothing was wrong with it — **A4 had in fact doubled, 4 → 8 publications in the trailing 30 days** — and that is luck, not diligence. | **Name a trigger the loop performs on its own schedule, not one the world performs on someone else's.** The instruction is now **dated** — *"last verified: <date>"*, re-stamped by whoever surfaces the card — so staleness is visible to the next run instead of waiting on an event that may never arrive. **Not claimed:** dating an obligation does not make anyone perform it; it makes staleness *visible*, which is strictly less than making it *impossible*. |
 
 
 
@@ -1196,11 +1241,11 @@ counter that has been answering that question for nineteen days cannot.
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-15 14:35 Sydney (2026-09-15 04:35 UTC) |
-| **Run** | 162 — **run 161 shipped to `master` and never posted an execution report, and nothing was watching for that.** It claimed the lock, pushed [`619535f`](https://github.com/in-c0/tuned/commit/619535f), went green at `22:18:04Z`, then stopped without releasing and without reporting. `executor liveness` stayed green because both its verdicts ask whether a run *started* — and a commit inside the cycle is positive corroboration that it did. A third verdict, `abandoned-run`, reads the half of the register nothing read: an expired lease with no release. [L-80](LESSONS.md#l-80). |
-| **Repository commit at time of writing** | run 162's watchdog verdict — `scripts/executor-liveness.mjs` (the `abandoned-run` and `unparseable-lease` verdicts, and one shared release lookup replacing a duplicated one), `scripts/executor-liveness.test.mjs` (+12 tests), `scripts/liveness-alarm.test.mjs` (+3 tests, run against the alarm shell extracted from the shipped YAML), and `.github/workflows/executor-liveness.yml` (the alarm's third branch). **Nothing under `src/`, `test/` or `qa/` was touched, so the deployed Worker is byte-identical.** No schema change, no route, no secret, no landing page. |
+| **Last materially updated** | 2026-09-15 20:35 Sydney (2026-09-15 10:35 UTC) |
+| **Run** | 163 — **the funnel's second stage wrote to a table its third stage could not read.** `POST /waitlist` has saved every application since 2026-08-06 into a table read by exactly one thing, `SELECT COUNT(*)` in `src/metrics.ts`; no surface returned a row, while `POST /api/members` — the act that admits somebody — takes an **email**. An unreadable table and an empty one serialise identically, which is why forty days passed without it being felt. `GET /api/applications` closes the read half. [L-81](LESSONS.md#l-81). |
+| **Repository commit at time of writing** | run 163's reader — `src/index.ts` (`GET /api/applications`, key-gated and fail-closed), `test/applications.test.ts` (+13 tests, four mutations each turning a named test red) and `test/route-inventory.test.ts` (the route classified `uncounted` with its reason; confirmed load-bearing by deleting it). **No page, counter, schema, secret, privacy statement or public surface was touched**, so nothing a visitor can reach behaves differently. |
 | **Data commit** | [`75734cb`](https://github.com/in-c0/tuned/commit/75734cb) — [`metrics/latest.json`](metrics/latest.json), snapshot of `2026-09-14T23:23:33.861Z`. **No commercial metric moved this run and none is claimed.** Nothing was published, amended, retracted or restored. |
-| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143. §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 — read from the same snapshot as the data commit row. |
+| **Freshness state** | **RESYNCHRONIZED for the header, §7 and §8, and not for §1–§6.** §1 is TWO and unchanged since run 143; the payment-path question raised this run is in the header block, deliberately **not** as a third action card — it is a question, not an act. §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 — read from the same snapshot as the data commit row. |
 
 **What went wrong with this file, recorded because the next reader deserves it.** Between runs 20 and
 26 this mirror drifted while STATUS moved, and the drift was not cosmetic: §1 spent a full day telling

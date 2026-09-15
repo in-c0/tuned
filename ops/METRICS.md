@@ -2413,6 +2413,33 @@ production` is unaffected and runs on its own schedule. It says nothing about wh
 `public_items` **19** — is the `agent-operator` `list` reading for `@sportstech` alone. Both are
 correct and they answer different questions; neither is demand.
 
+## 2026-09-15 (run 163) — `applications` could not tell an empty table from an unreadable one
+
+**The reading is unchanged and the instrument around it is not.** `applications` **0**, every day of
+the window, sourced from [`ops/metrics/latest.json`](metrics/latest.json) generated
+`2026-09-15T04:56:06.123Z`. No claim here revises it.
+
+**What changed is what that 0 was capable of meaning.** `POST /waitlist` writes a row carrying the
+applicant's email, role and note. Exactly one thing in this repository has ever read that table —
+`SELECT COUNT(*) FROM waitlist` in [`src/metrics.ts`](../src/metrics.ts), reported as this number.
+No surface returned a row: `src/operator.ts` states in its own header that the operator key cannot
+read a member email or provision members, `/api/metrics` is aggregate-only by design, and there is
+no admin list, no export and no mail. So **an unreadable table and an empty one serialise
+identically here**, and `POST /api/members` — the act that admits somebody — takes an email as its
+input. [L-81](LESSONS.md#l-81) has the full account; `GET /api/applications` closes the read half
+this run.
+
+**Stated precisely, because it bears on how the 0 should be read going forward.** No application has
+been lost, and nothing in the record was wrong: the table is genuinely empty, so the count was
+accurate every day it was published. What did not exist was any way to *check* that — and the first
+reading that would have distinguished the two cases is the first arrival, which is the reading this
+loop most needs to get right.
+
+**Not measured, and not claimed.** This route writes no counter (deliberately — it is the owner
+reading their own applicants, and a counter would count the owner, the same reason
+`GET /api/metrics` carries one). It creates no new data category, collects nothing from a visitor,
+and changes no published number. Gross cash remains **AUD $0**, sourced from *no billing exists*.
+
 ### Standing measurement blockers, restated rather than assumed resolved
 
 - **The executor still has no egress to `justtuned.com`** — `403 CONNECT` at this session's proxy,

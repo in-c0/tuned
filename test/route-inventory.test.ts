@@ -72,6 +72,10 @@ const INVENTORY: Record<string, Entry> = {
   // The owner's approval act. Its outcome is already recorded as *state* — `totals.members` — and
   // state is strictly better than a counter here, because it is not zero merely because the
   // counter did not exist yet (the property run 144 built `totals.stars_owner` for).
+  // The owner reading their own applicants, so a counter here would count the owner — the same
+  // reason GET /api/metrics carries. What it reads is already state (`totals.applications`), and
+  // the act it feeds is POST /api/members, whose outcome is state too.
+  "GET /api/applications": { uncounted: "admin-key-gated read of the waitlist by its owner; counting an owner's read is circular" },
   "POST /api/members": { uncounted: "admin-key-gated approval; outcome recorded as state in totals.members" },
   // No self-service sign-in exists: /login renders an interstitial that asks the owner for a link,
   // it has no form that posts anywhere, and the act it leads to is counted at GET /enter/:token.

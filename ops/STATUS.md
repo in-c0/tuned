@@ -1,5 +1,69 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-15 20:35 Sydney (2026-09-15 10:35 UTC), run 163 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-162 and not re-argued here, per [L-07](LESSONS.md), plus one NEW question
+below.** **The funnel's second stage has been writing to a table its third stage could not read. An
+application was visible to the owner as a number and never as a person.**
+
+**In plain terms.** `POST /waitlist` has written every application since 2026-08-06 into a table that
+exactly one thing reads: `SELECT COUNT(*)` in `src/metrics.ts`, published as the integer
+`applications`. **Nothing anywhere returned a row.** `src/operator.ts` says in its own header that the
+operator key cannot read a member email or provision members; `/api/metrics` is aggregate-only by
+design; there is no admin list, no export, no mail. Meanwhile `POST /api/members` — the act that
+admits somebody — **takes an email**. Admitting an applicant required Cloudflare credentials this loop
+does not hold by design and the owner would have to open a dashboard for.
+
+**Why forty days passed without it being felt.** `applications` has read **0** every day. **An
+unreadable table and an empty one serialise identically**, so there was nothing to notice — and the
+first reading that would have told them apart is the first arrival, which is the reading this loop
+most needs to get right. No application has been lost; the count was accurate every day it was
+published. What did not exist was any way to check.
+
+**Why neither sweep could see it.** Runs 141-144 swept every *counter* for undiscriminated names;
+run 146 answered [L-61](LESSONS.md#l-61) by enumerating every *route* and what it writes. Both
+enumerated the right set and asked the wrong question of it: **neither asks what reads what is
+written.** `POST /waitlist` is classified `writes: application_submit / application_invalid` and that
+is correct — the counter is there, discriminated, tested. The row written alongside it is not a
+counter, so it is in neither sweep's set. [L-81](LESSONS.md#l-81). This is the third instance of the
+shape: `follow_submit` → `followers` (nothing can deliver to it), `waitlist` → nothing, and
+`members.last_desk_at` (overwritten), each found by a different accident rather than by an instrument.
+
+**What shipped.** `GET /api/applications` — gated on the existing `ADMIN_KEY`, so no new secret and no
+address reachable by anyone who could not already read it; **503 while that secret is unset**, which
+is the state it ships in, and 401 on a wrong key. It returns the applicant's own submission plus
+`admitted`, the address matched against `members` — the one fact `POST /api/members` needs and the
+count cannot carry. `total` and `pending` count the whole table, never the returned page, so `limit`
+cannot shrink the headline. **Four mutations, four named tests red**, including one returning
+`pending` uncoerced: SQLite's `SUM` over zero rows is `NULL`, and the empty table is the state this
+ships against, so the first reading anyone took would have been `pending: null`. The suite exercises
+the route **through `POST /waitlist`** rather than rows it seeded itself.
+
+**The half this does NOT close, stated first rather than buried.** There is **no mail provider and no
+sender anywhere in `src/`**, so `POST /api/members` still returns a `login_url` that nothing can
+deliver — the same shape as `followers`, which holds intent no code can digest. An application is now
+**visible**; admitting someone still needs a human to carry the link. That is an owner boundary.
+
+**NEW question for the owner and reviewer, asked once.** `stripe` appears nowhere in this repository
+and **no owner card has ever asked for a payment provider** — in 163 runs, against a cash target.
+Nothing was shipped for it, deliberately: feed creation is `ADMIN_KEY`-gated, so a stranger can buy
+nothing today, and a *"would you pay?"* button is what this loop's own hierarchy calls **not
+validation**. The question is whether a payment path is worth opening at all with 20 days left, and it
+is the owner's and the reviewer's, not this executor's.
+
+**Nothing about the deployed site's behaviour changed for any visitor.** The one new route is
+key-gated and fails closed; no page, counter, schema, privacy statement or public surface was touched.
+**EXP-011's thresholds, window and reading date are byte-untouched and it was not graded early** — the
+window still closes **2026-09-18**, reading by **2026-09-19**, and no partial figure is quoted here.
+The agent-scout schedule is still disarmed and the threshold-2 proposal is still unruled. No item
+published, amended, retracted or restored. No spend.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **20 days left.**
+
+---
+
+## Run 162 (2026-09-15 14:35 Sydney) — run 161 shipped and never reported
+
 **Last updated:** 2026-09-15 14:35 Sydney (2026-09-15 04:35 UTC), run 162 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-161 and not re-argued here, per [L-07](LESSONS.md).** **Run 161 shipped
 to `master` and never posted an execution report. Nothing in this repository was watching for that,

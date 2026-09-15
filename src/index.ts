@@ -374,6 +374,74 @@ app.get("/api/metrics", async (c) => {
 
 // ---------- member auth + dashboard ----------
 
+// The input to the approval act below — and until this route existed, there was none.
+//
+// `POST /waitlist` has written every application since 2026-08-06 into a table that exactly one
+// thing reads: `SELECT COUNT(*) FROM waitlist` in src/metrics.ts, reported as the integer
+// `applications`. Nothing anywhere returned a row. So an application was visible to the owner
+// only as a number moving in a JSON snapshot committed the following morning, while the address,
+// the role and the note the applicant wrote sat in a table no surface could reach — and
+// `POST /api/members` takes an email, which is precisely the field the count cannot carry. The
+// funnel's second stage wrote to a table its third stage had no way to read, so admitting anyone
+// required Cloudflare credentials this loop holds by design and the owner would have to go to the
+// dashboard for. `applications` has read 0 for the whole window, which is why forty days passed
+// without the gap being felt: an unreadable table and an empty one produce the same JSON.
+//
+// This is the shape of defect run 145 found on `POST /:handle/follow` and the `followers` table —
+// a conversion surface whose output nothing consumes — and it survived that sweep and the route
+// inventory that came out of it for the same reason both missed it there: it is a missing
+// *reader*, not a missing counter, and neither instrument enumerates readers.
+//
+// Bounded deliberately. It returns the applicant's own submission and nothing derived from
+// anywhere else: no session token, no member id, no counter, no other table. `admitted` is the
+// address matched against `members`, which is the one fact needed to tell an application still
+// waiting from one already approved. `total` and `pending` are counted over the whole table
+// rather than the returned page, so `limit` cannot quietly shrink the headline. Key-gated on
+// ADMIN_KEY — the same credential that already admits members and creates feeds, so this exposes
+// no address to anyone who could not already read it — and it fails closed with 503 while that
+// secret is unset, which is the state it ships in.
+app.get("/api/applications", async (c) => {
+  const key = c.req.header("x-admin-key") ?? "";
+  if (!keyConfigured(c.env.ADMIN_KEY)) return c.json({ error: "admin key not configured" }, 503);
+  if (!(await keyMatches(key, c.env.ADMIN_KEY))) return c.json({ error: "unauthorized" }, 401);
+  const asked = Number(c.req.query("limit") ?? "");
+  const limit = Number.isFinite(asked) && asked >= 1 ? Math.min(Math.floor(asked), 500) : 200;
+  const [rows, totals] = await Promise.all([
+    c.env.DB.prepare(
+      `SELECT w.email, w.role, w.note, w.created_at,
+              EXISTS (SELECT 1 FROM members m WHERE m.email = w.email) AS admitted
+         FROM waitlist w
+        ORDER BY w.created_at DESC, w.id DESC
+        LIMIT ?`
+    )
+      .bind(limit)
+      .all<{ email: string; role: string; note: string; created_at: string; admitted: number }>(),
+    c.env.DB.prepare(
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN EXISTS (SELECT 1 FROM members m WHERE m.email = w.email) THEN 0 ELSE 1 END) AS pending
+         FROM waitlist w`
+    ).first<{ total: number; pending: number | null }>(),
+  ]);
+  return c.json(
+    {
+      total: totals?.total ?? 0,
+      // SUM over zero rows is NULL in SQLite, which would serialise as `pending: null` on the
+      // empty table this route ships against. Coerce it here so the field is always a number.
+      pending: totals?.pending ?? 0,
+      returned: rows.results?.length ?? 0,
+      applications: (rows.results ?? []).map((r) => ({
+        email: r.email,
+        role: r.role,
+        note: r.note,
+        created_at: r.created_at,
+        admitted: r.admitted > 0,
+      })),
+    },
+    200,
+    { "cache-control": "no-store" }
+  );
+});
+
 // admin: provision a member and (optionally) attach existing creator handles to them
 app.post("/api/members", async (c) => {
   const key = c.req.header("x-admin-key") ?? "";
