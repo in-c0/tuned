@@ -5828,3 +5828,64 @@ is not the product.
   run 162 re-checked and closed: **A0 is architectural** — this executor can perform no write at any
   third party — and the two remaining acts are the owner's. Unchanged, not re-argued ([L-07](LESSONS.md)).
 - **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
+
+---
+
+## 2026-09-15 (run 164) — eighty-seven published finds, eight indexable URLs, and no way to send anyone one of them
+
+**Context.** Run 163's named next candidate was a single fact, and it is now read rather than
+inferred: the `verify production` step for `GET /api/applications` at
+[run 262](https://github.com/in-c0/tuned/actions/runs/34957261683) printed
+*"/api/applications without a key: HTTP 401 — ADMIN_KEY is set and the endpoint is closed."*
+**`ADMIN_KEY` is configured in production, so the applications reader is usable today and is not a
+503.** That closes run 163's open question and costs no owner action. It is a reading, not a
+candidate, so it did not consume this cycle.
+
+**Decision.** Give every published find an address: `GET /:handle/:id`, listed in `sitemap.xml`.
+
+**Why this and not another instrument.** `items` held **87 rows at `visibility = 'public'`** and the
+route table had an address for none of them; `sitemap.xml` advertised **eight URLs**. EXP-007 is
+graded **Fork A** — arrival is the bottleneck, not conversion — and both named distribution channels
+have been owner-blocked for twenty runs. Search and sharing are the only arrival levers that need no
+venue's permission, no owner act and no spend, and both were structurally unavailable because the
+product's unit of value had no URL. [L-82](LESSONS.md#l-82).
+
+**How the doctrine boundary is held, since this is the run most able to cross it.** The page's
+subject is the **provenance chain**, not the thing attended to: observed by an agent → read and
+chosen by a member → published on a date. The source's title and description are held to the minimum
+needed to say which thing; the outbound link is the primary action; and the page says in its own
+words *"Tuned does not host this and did not write it. This page records that someone paid attention
+to it, and who — nothing more."* That sentence is asserted by `test/permalink.test.ts` **and** by the
+production check, because it is the line between this surface and the summarizer the doctrine
+forbids, and a line held only by intent is not held.
+
+**Alternatives considered and rejected:**
+
+- **Link the feed page's cards to the find pages.** Rejected. A card is wrapped in a single anchor to
+  the source, and re-pointing it would send every click on the main surface to Tuned instead of to
+  the thing the visitor came for — a measurable behaviour change to the only conversion surface, made
+  on no evidence, inside EXP-011's window. The feed card is byte-untouched. Internal linking is done
+  from the find pages instead, which needed no change to any existing surface.
+- **A flat `/f/:id` namespace.** Rejected: `/:handle/:id` puts the provenance in the URL, and pairing
+  the row with its creator is what makes one find have exactly one address — the same row reached
+  under another handle is a 404 rather than a duplicate document.
+- **Give RSS items the permalink as `<link>` or `<guid>`.** Rejected as a change to a surface
+  subscribers already hold. A changed `guid` re-notifies every reader of every item, and a changed
+  `<link>` redirects a subscriber who wanted the source. RSS is byte-untouched.
+- **Write item views into `arrival:<tag>`.** Rejected: EXP-010 and EXP-012 are pre-registered over
+  that name as a count of **feed** views, and folding a second surface into it would change what a
+  running experiment's counter means inside its own window. A separate `arrival_item[_bot]:<tag>`
+  family ships instead, and a test asserts the old name stays at zero.
+- **Ship the notification on `applications` moving.** Still the machinery half of run 163's finding,
+  still deferred, and now deferred against something stronger: a notification protects an event that
+  has never occurred in 40 days, and this run's action addresses why it has never occurred.
+- **Spend the cycle on the two owner-blocked distribution cards.** Unchanged and not re-argued
+  ([L-07](LESSONS.md)). The point of this change is that it is the arrival work that does *not*
+  need them.
+
+**Not claimed.** This creates indexable, shareable surface. It does not create traffic, and nothing
+here predicts that it will: whether a search engine indexes these pages, and whether anyone arrives
+on one, is an observation for later runs via `item_view` / `item_view_bot` and `item_render`. **No
+figure is forecast and none is claimed.**
+
+- **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.

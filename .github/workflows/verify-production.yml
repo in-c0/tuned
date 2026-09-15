@@ -588,6 +588,61 @@ jobs:
           echo "/sitemap.xml: HTTP 200, $n URLs, all on the canonical origin"
           echo "Crawl policy: robots.txt served, \`/studio/\` noindex, sitemap lists $n canonical URLs" >> "$GITHUB_STEP_SUMMARY"
 
+      # A published find is addressable, and the sitemap is telling the truth about it.
+      #
+      # Version identity proves the deploy and not that any particular route answers (L-35), and
+      # this route is the one the previous step's URL count now depends on: the sitemap grew from
+      # eight entries to one per published find, so a sitemap full of addresses that 404 would be
+      # WORSE than the eight it replaced — it would be this service advertising broken URLs to
+      # every crawler that reads it.
+      #
+      # The find is chosen from the sitemap the site itself just served rather than hard-coded, so
+      # this cannot pass by testing an id that happens to survive while the query behind the
+      # document is broken. A 404 is fatal on the same reasoning run 2 used when /api/metrics went
+      # 404 -> 503: find pages did not exist before this commit, so 404 means either the deploy is
+      # not serving the pushed code or the sitemap is advertising URLs that are not there.
+      - name: A published find is addressable, and the sitemap does not advertise 404s
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          # The first <loc> of the form https://justtuned.com/<handle>/<digits>.
+          find_url=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml \
+            | sed 's/<[^>]*>//g' \
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; } \
+            | sed -n '1p')
+          if [ -z "$find_url" ]; then
+            echo "::error::the sitemap advertises no find pages — /<handle>/<id> is either not deployed or publishing nothing. The one arrival channel that needs no owner action is offering eight documents again."
+            exit 1
+          fi
+          path=${find_url#https://justtuned.com}
+          code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/find.html 'text/html')
+          case "$code" in
+            200) ;;
+            404)
+              echo "::error::${path} is listed in the sitemap and returns 404 — this deploy is advertising broken URLs to every crawler that reads it. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::${path} returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          # It has to be a find page and not a feed page served by a route-order accident: only
+          # this surface carries the provenance block, and only this surface states the boundary
+          # that keeps it a record of attention rather than a copy of the thing attended to.
+          grep -q 'class="provenance"' /tmp/find.html \
+            || { echo "::error::${path} carries no provenance block — it is not a find page"; exit 1; }
+          grep -q 'Tuned does not host this and did not write it' /tmp/find.html \
+            || { echo "::error::${path} no longer states that Tuned does not host the source. Roll back."; exit 1; }
+          # The canonical must name the find, not the host that answered, for the same reason the
+          # feed page's must: three origins serve this identical document.
+          canon=$(grep -o '<link[^>]*rel="canonical"[^>]*>' /tmp/find.html | sed -n '1s/.*href="\([^"]*\)".*/\1/p' || true)
+          [ "$canon" = "$find_url" ] \
+            || { echo "::error::${path} declares canonical '$canon', expected ${find_url}"; exit 1; }
+          finds=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml | sed 's/<[^>]*>//g' \
+            | { grep -cE '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; })
+          echo "${path}: HTTP 200, provenance block present, canonical ${canon}"
+          echo "Find pages: ${finds} in the sitemap; \`${path}\` serves one" >> "$GITHUB_STEP_SUMMARY"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's

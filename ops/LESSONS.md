@@ -3314,3 +3314,56 @@ beside each wrong line rather than replacing it.
   intent that nothing can digest. The admission path is now readable end to end and still needs a
   human to carry the link. That is an owner boundary, stated in the run-163 report, not a gap this
   executor can close.
+
+---
+
+## L-82 — the product published eighty-seven units of value and gave none of them an address (2026-09-15, run 164)
+
+- **What happened:** `items` held **87 rows with `visibility = 'public'`** and the route table had no
+  address for any of them. A find was reachable only *inside* `/:handle`, a document that changes
+  under it. `sitemap.xml` therefore advertised **eight URLs** — the landing page, five feeds, terms,
+  privacy — as the complete indexable surface of a service whose entire output is published
+  attention.
+- **Why it survived 163 runs:** every check this loop owns asks whether a *surface* behaves. The
+  feed page renders, its RSS validates, its meta unfurls, its counters discriminate — all true, all
+  green, on all five feeds. **No instrument asks whether the thing the product makes can be pointed
+  at.** The unit of value here is a find; the addressable unit was a feed; and nothing anywhere
+  compared the two. The sitemap was the one artifact that stated the ratio out loud (8 against 87)
+  and it was read as a URL count, not as a claim about coverage.
+- **Evidence and cost:** `ops/EXPERIMENTS.md` grades **EXP-007 Fork A** — *the ~600-view figure does
+  not describe people; conversion is not the problem* — which puts the bottleneck at **arrival**.
+  Both named distribution channels in `ops/DISTRIBUTION.md` have been owner-blocked for twenty runs
+  (cards 1 and 2). Search is the one arrival channel needing no venue's permission, no owner action
+  and no spend, and this service was offering it eight documents. No cost was *paid* — nobody has
+  arrived to be lost — and the cost was **carried**: three failures wearing one face, since a find
+  that cannot be indexed also cannot be shared (referral, hierarchy item 5) and cannot have an
+  arrival attributed to it.
+- **Lesson:** **ask what the product's unit of value is, then ask whether that unit has a URL.** A
+  service can pass every surface check it owns while being structurally unlinkable, because surface
+  checks are scoped to the surfaces that exist and this is a question about one that does not. The
+  shape is L-81's mirror at the level of the product rather than the schema: L-81 found a write with
+  no reader; this is **a published artifact with no address**, and the tell is the same — two numbers
+  that should track each other (rows published, URLs advertised) diverging in a file nobody reads as
+  a ratio.
+- **More elegant next attempt, and what shipped:** `GET /:handle/:id` — a find page whose subject is
+  the **provenance chain** (observed by an agent → read and chosen by a member → published on a
+  date), with the source's own title and description held to the minimum needed to say *which thing*,
+  the outbound link as the primary action, and the boundary stated on the page in its own words:
+  *Tuned does not host this and did not write it.* That sentence is asserted by a test and by the
+  production check, because it is what keeps the surface a record of attention rather than the
+  summarizer the doctrine forbids. `sitemap.xml` now carries one entry per published find.
+- **Prevention check:** the two gates that have to agree are asserted separately — the route 404s a
+  `hidden` or `queued` row, and the sitemap omits it — because an address **is** publication and a
+  sitemap entry for an unpublished row would both advertise a 404 and assert something false. Seven
+  mutations each turn a named test red, and two of them found real defects rather than confirming
+  intended behaviour: **the sibling-find block was rendered through `card()`, which links out to the
+  source, so the block that exists to connect find pages into a walkable graph connected nothing**;
+  and the id guard was `\d+`, under which `042`, `4.2e1`, ` 42` and `0x2a` all coerce to row 42 and
+  each is a second address for one find — the duplicate-URL defect arriving through the id instead
+  of the handle.
+- **The near-miss worth recording, because it says what the QA step is for.** A CSS comment written
+  during this run contained backticks, inside a template literal, which silently turned
+  ``` `.card .meta` ``` into a property access on a string. Every unit test still passed — they
+  assert markup, and the stylesheet is a string to them. It was caught by *rendering the page in a
+  browser*, which is the one check that reads the CSS as CSS. A suite that never opens the document
+  cannot see a stylesheet that stopped being one.

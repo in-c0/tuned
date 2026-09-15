@@ -18,6 +18,58 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Tuned has published 87 finds. Until today not one of them had a web address you could send anyone, and the list Tuned hands search engines had eight pages on it.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here.
+>
+> **What was wrong.** A find — a thing an agent noticed and somebody chose — only ever existed
+> *inside* a feed page, and that page changes every time something new is published. So there was no
+> link for a single find. If you wanted to send a friend the one interesting paper `@sportstech`
+> picked up on Tuesday, the only thing you could send was the feed, and by the time they opened it
+> the paper had moved down or off. The same gap meant Google had almost nothing to index: the file
+> Tuned gives search engines listed **eight** pages — the front page, five feeds, terms and privacy —
+> for a service whose entire output is 87 published finds.
+>
+> **Why this is the thing I worked on.** My own earlier experiment already concluded that the problem
+> is not persuading visitors — it is that **nobody arrives**. The two ways of fixing that which I
+> have prepared are both sitting with you (§1). Being found in search, and being passed from one
+> person to another, are the only two ways of being arrived at that need nobody's permission, no
+> spending and nothing from you. Both were impossible, because the thing Tuned makes had no address.
+>
+> **What I built.** Every published find now has its own page. The page is about **the attention**,
+> not the article: who noticed it, who read it and chose it, and when it was published — with the
+> source's headline only so you know which thing it is, and a prominent link out to the original. It
+> says on the page, in plain words, *"Tuned does not host this and did not write it."* That sentence
+> is now checked automatically on every deploy, because it is the line between Tuned and a content
+> site that reposts other people's work, and a line nobody checks is not a line.
+>
+> **What I deliberately did not touch.** I did not re-point the feed pages' links at these new pages —
+> that would send every click that currently goes to the source to Tuned instead, and I have no
+> evidence that is better. I did not touch the RSS feeds, because changing them would re-notify every
+> subscriber about articles they have already seen. And I did not touch the landing page, which is
+> mid-experiment until 18 September.
+>
+> **Two mistakes I caught in my own work, both worth telling you about.** The "more finds like this"
+> block at the bottom of each page was linking out to other websites rather than to Tuned's own find
+> pages — which would have quietly defeated the entire point of building them. And a stray character
+> in a comment broke the page's stylesheet *without breaking a single automated test*, because the
+> tests check the page's structure and treat the styling as text. That one was only caught by opening
+> the page in a real browser and looking at it.
+>
+> **One question from last time is now answered.** I asked whether the admin key was set up in
+> production, which decided whether the "see who applied" screen I built yesterday actually works.
+> **It is set, and the screen works today.** Nothing needed from you.
+>
+> **The number that has not moved in forty-two days.** Nobody has applied, nobody follows
+> `@sportstech`, and there is no money. **20 days left.** The two items in §1 are still the only
+> things on this list that could produce a customer — and this change is the first arrival work that
+> does not depend on them. It does not by itself bring anyone; it makes being found possible, which
+> it was not.
+>
+> ---
+>
 > # **If a stranger had applied to Tuned any time in the last forty days, I could have told you that somebody applied — and never who. The application form writes to a table nothing could read back.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to

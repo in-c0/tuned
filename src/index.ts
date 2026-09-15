@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { resolveLink } from "./meta";
-import { publicPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
+import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
 import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
@@ -281,6 +281,12 @@ const PULSE_COUNTERS = new Set([
   "follow_open",
   "feed_render",
   "follow_rss",
+  // `landing_render`'s rung on a find page, and the reading the find surface exists to make
+  // possible: a find page is the one surface a search engine can send someone to, so whether the
+  // requests arriving there are rendering browsers is the whole question. Read against
+  // `item_view` exactly as `landing_render` is read against `landing_view` — the share of
+  // requests that ran the document, not a count of people, and forgeable on the same one header.
+  "item_render",
 ]);
 app.post("/api/pulse/:name", (c) => {
   const name = c.req.param("name");
@@ -337,9 +343,25 @@ app.get("/sitemap.xml", async (c) => {
   // The landing page changes when anything published anywhere changes — its demo block is the
   // newest public item on the site.
   const newest = results.map((r) => r.lastmod).sort().pop() ?? null;
+  // Every published find, at the address it now has. This is the whole point of the sitemap for
+  // this service: before find pages existed it advertised eight URLs against eighty-seven pieces
+  // of published attention, so the one arrival channel that needs nobody's permission was being
+  // offered almost nothing to index.
+  //
+  // `visibility = 'public'` is the same gate the route enforces, and it must stay that way in
+  // both places: a sitemap entry for a hidden or queued row would advertise a 404 and would also
+  // be this service asserting that an unpublished item is public.
+  const { results: itemRows } = await c.env.DB.prepare(
+    `SELECT i.id AS id, cr.handle AS handle, i.created_at AS lastmod
+       FROM items i JOIN creators cr ON cr.id = i.creator_id
+      WHERE i.visibility = 'public'
+      ORDER BY i.created_at DESC
+      LIMIT 20000`
+  ).all<{ id: number; handle: string; lastmod: string }>();
   const entries: SitemapEntry[] = [
     { path: "/", lastmod: newest },
     ...results.map((r) => ({ path: `/${r.handle}`, lastmod: r.lastmod })),
+    ...itemRows.map((r) => ({ path: `/${r.handle}/${r.id}`, lastmod: r.lastmod })),
     { path: "/terms" },
     { path: "/privacy" },
   ];
@@ -1189,6 +1211,87 @@ app.get("/:handle/rss.xml", async (c) => {
   );
   const items = await itemsFor(c.env.DB, creator.id, true);
   return c.body(rssFeed(creator, items, new URL(c.req.url).origin), 200, { "content-type": "application/rss+xml; charset=utf-8" });
+});
+
+// ---------- one find, at an address of its own ----------
+//
+// Eighty-seven public items existed and **not one of them had a URL**. Every find this service
+// has ever published was reachable only *inside* a feed page that changes under it, and the
+// consequences are three different failures wearing one face:
+//
+//   1. nothing Tuned publishes is indexable. `sitemap.xml` carried EIGHT URLs — the landing page,
+//      five feeds, terms, privacy — against eighty-seven published finds. Search is the one
+//      arrival channel that needs no venue's permission, no owner action and no spend, and this
+//      service was offering it eight documents.
+//   2. nothing Tuned publishes is shareable. A visitor who wanted to send someone *this find*
+//      could send only the feed, which will be a different page tomorrow. Referral is item 5 of
+//      the commercial hierarchy and the product had no unit to refer.
+//   3. no arrival could be attributed to a find. `feed_view:<handle>` says a feed was looked at;
+//      nothing said which piece of attention brought somebody.
+//
+// EXP-007 graded Fork A — the landing figure does not describe people, and **arrival** is the
+// bottleneck, not conversion. Both named distribution candidates have been owner-blocked for
+// twenty runs. This is the arrival lever that is not: it is entirely on Tuned-owned surfaces.
+//
+// Registered AFTER `/:handle/rss.xml` so that route keeps its literal match, and the id is
+// required to be digits — a non-numeric second segment 404s exactly as it did before this route
+// existed, so no previously-404ing address starts answering.
+//
+// Only `visibility = 'public'` rows get an address, and the row must belong to the handle in the
+// path. A hidden item is a veto and a queued one is awaiting approval; neither is published, and
+// an address is publication. Requiring the pair also means one item has exactly one URL — the
+// same row reached through another feed's handle is a 404, not a duplicate document.
+//
+//   item_view[_bot]              a find page was requested. Bucket; the two are the total.
+//   item_view[_bot]:<handle>     the same event split by feed, exactly as feed_view:<handle>
+//                                splits a feed view. Not additive with the site-wide name.
+//   arrival_item[_bot]:<tag>     a DELIBERATELY separate family from `arrival:<tag>`. EXP-010
+//                                and EXP-012 are pre-registered over `arrival:<tag>` as *feed*
+//                                views; writing item views into that name would change what a
+//                                running experiment's counter means mid-window.
+//
+// `item_render` is the rung under all of them and is emitted by the page itself — see FIND_JS in
+// pages.ts, which is a different script from the one feed pages get, so this surface cannot fire
+// `feed_render` by construction.
+app.get("/:handle/:id", async (c) => {
+  const handle = c.req.param("handle").toLowerCase();
+  const id = c.req.param("id");
+  // Canonical form only, and the leading zero is the reason this is not simply `\d+`. `Number`
+  // coerces "042", "4.2e1", " 42" and "0x2a" all to 42, so any of them would serve item 42 at a
+  // *second* address — the same duplicate-URL defect the creator_id match exists to prevent,
+  // arriving through the id instead of the handle. Row ids are AUTOINCREMENT and start at 1, so
+  // no canonical id ever begins with a zero.
+  if (RESERVED_HANDLES.has(handle) || !/^[1-9][0-9]{0,14}$/.test(id)) return c.notFound();
+  const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators WHERE handle = ?")
+    .bind(handle)
+    .first<Creator>();
+  if (!creator) return c.text("No such feed", 404);
+  const item = await c.env.DB.prepare(
+    `SELECT i.*, v.handle AS via_handle FROM items i LEFT JOIN creators v ON v.id = i.via_creator_id
+      WHERE i.id = ? AND i.creator_id = ? AND i.visibility = 'public'`
+  )
+    .bind(Number(id), creator.id)
+    .first<Item>();
+  if (!item) return c.text("No such find", 404);
+  const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
+  const src = c.req.query("src") ?? "";
+  track(
+    c,
+    countEach(c.env.DB, [
+      `item_view${suffix}`,
+      `item_view${suffix}:${creator.handle}`,
+      ARRIVAL_TAGS.has(src) ? `arrival_item${suffix}:${src}` : "",
+    ])
+  );
+  // The inbound links that stop eighty-seven sitemap entries from being eighty-seven orphans.
+  const { results: more } = await c.env.DB.prepare(
+    `SELECT i.*, v.handle AS via_handle FROM items i LEFT JOIN creators v ON v.id = i.via_creator_id
+      WHERE i.creator_id = ? AND i.visibility = 'public' AND i.id != ?
+      ORDER BY i.created_at DESC LIMIT 4`
+  )
+    .bind(creator.id, Number(id))
+    .all<Item>();
+  return c.html(itemPage(creator, item, more));
 });
 
 // The one conversion action on a public feed page, and until now it wrote no counter at all.

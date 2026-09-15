@@ -59,21 +59,24 @@ async function get(path: string, host = "https://preview-branch.attention-feed.w
 }
 
 /** A creator plus, optionally, one item at a chosen visibility and time. */
+/** Returns the seeded item's id, or null when the feed was seeded with nothing published. The id
+ *  is needed because a published find now has its own sitemap entry at `/<handle>/<id>`. */
 async function seed(
   handle: string,
   opts: { visibility?: string; at?: string } = {}
-): Promise<void> {
+): Promise<number | null> {
   const row = await DB.prepare(
     "INSERT INTO creators (handle, name, token, created_at) VALUES (?, ?, ?, ?) RETURNING id"
   )
     .bind(handle, handle, `tok-${handle}`, "2026-08-01T00:00:00.000Z")
     .first<{ id: number }>();
-  if (!opts.visibility) return;
-  await DB.prepare(
-    "INSERT INTO items (creator_id, url, title, domain, visibility, created_at) VALUES (?, ?, ?, 'example.com', ?, ?)"
+  if (!opts.visibility) return null;
+  const item = await DB.prepare(
+    "INSERT INTO items (creator_id, url, title, domain, visibility, created_at) VALUES (?, ?, ?, 'example.com', ?, ?) RETURNING id"
   )
     .bind(row!.id, `https://example.com/${handle}`, "a find", opts.visibility, opts.at ?? "2026-08-20T09:00:00.000Z")
-    .run();
+    .first<{ id: number }>();
+  return item!.id;
 }
 
 function locs(xml: string): string[] {
@@ -184,30 +187,41 @@ describe("sitemap.xml", () => {
     for (const loc of locs(xml)) expect(loc.startsWith("https://justtuned.com/")).toBe(true);
   });
 
-  it("lists the landing page, the legal pages and every feed that has published", async () => {
-    await seed("sportstech", { visibility: "public" });
-    await seed("scout", { visibility: "public" });
+  // Every published find now carries its own entry as well as its feed's. Before find pages
+  // existed this document advertised eight URLs against eighty-seven pieces of published
+  // attention, which meant the one arrival channel needing nobody's permission was being offered
+  // almost nothing to index.
+  it("lists the landing page, the legal pages, every feed that has published and every find", async () => {
+    const one = await seed("sportstech", { visibility: "public" });
+    const two = await seed("scout", { visibility: "public" });
     const res = await get("/sitemap.xml", "https://justtuned.com");
 
     expect(res.headers.get("content-type")).toContain("xml");
-    expect(locs(await res.text()).sort()).toEqual([
-      "https://justtuned.com/",
-      "https://justtuned.com/privacy",
-      "https://justtuned.com/scout",
-      "https://justtuned.com/sportstech",
-      "https://justtuned.com/terms",
-    ]);
+    expect(locs(await res.text()).sort()).toEqual(
+      [
+        "https://justtuned.com/",
+        "https://justtuned.com/privacy",
+        "https://justtuned.com/scout",
+        `https://justtuned.com/scout/${two}`,
+        "https://justtuned.com/sportstech",
+        `https://justtuned.com/sportstech/${one}`,
+        "https://justtuned.com/terms",
+      ].sort()
+    );
   });
 
   it("omits a feed with nothing published, and one whose only item is hidden", async () => {
     await seed("empty");
-    await seed("vetoed", { visibility: "hidden" });
+    const vetoed = await seed("vetoed", { visibility: "hidden" });
     await seed("live", { visibility: "public" });
     const found = locs(await (await get("/sitemap.xml", "https://justtuned.com")).text());
 
     expect(found).toContain("https://justtuned.com/live");
     expect(found).not.toContain("https://justtuned.com/empty");
     expect(found).not.toContain("https://justtuned.com/vetoed");
+    // The item gate and the feed gate are the same fact asserted in two places: a vetoed find is
+    // not published, so it gets no address here either.
+    expect(found).not.toContain(`https://justtuned.com/vetoed/${vetoed}`);
   });
 
   it("dates each feed from its newest public item, and the landing page from the newest anywhere", async () => {

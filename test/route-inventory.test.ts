@@ -46,6 +46,7 @@ const INVENTORY: Record<string, Entry> = {
   "GET /sitemap.xml": { writes: "sitemap_fetch[_bot]" },
   "GET /:handle": { writes: "feed_view[_bot], feed_view[_bot]:<handle>, arrival[_bot]:<tag>" },
   "GET /:handle/rss.xml": { writes: "feed_fetch[_bot], feed_fetch[_bot]:<handle>, arrival_fetch[_bot]:<tag>" },
+  "GET /:handle/:id": { writes: "item_view[_bot], item_view[_bot]:<handle>, arrival_item[_bot]:<tag>" },
   "POST /:handle/follow": {
     writes: "follow_submit / follow_invalid, +_bot, +:<handle>, +_offpage and _duplicate axes",
   },

@@ -2451,3 +2451,40 @@ and changes no published number. Gross cash remains **AUD $0**, sourced from *no
   [DECISIONS.md](DECISIONS.md); the escalation path it names was **not** taken, because expanding
   this executor's own access to perform an outward-facing act at a third party is an owner decision.
 - **Gross cash remains unmeasurable** because no billing exists. Unchanged.
+
+---
+
+## 2026-09-15 (run 164) — four new names, and one figure that was a claim about coverage all along
+
+**No commercial metric moved and none is claimed.** From
+[`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-15T04:56:06.123Z`:
+`applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** · gross cash
+**AUD $0**, sourced from *no billing exists*.
+
+**The figure this run acted on was already being published and was being read as the wrong kind of
+number.** `verify production` has printed a sitemap URL count on every run for weeks — most recently
+*"/sitemap.xml: HTTP 200, 8 URLs, all on the canonical origin"*. Read as a health check it was green:
+the document parses, every URL is on the canonical origin, the landing page is listed. Read against
+`totals.items_public` — **87** — the same line says the service was advertising **8 indexable
+documents for 87 published finds**. Neither number was wrong and nobody had put them beside each
+other. [L-82](LESSONS.md#l-82).
+
+**Names added, and what each may and may not be read as:**
+
+| name | what it counts | what it is not |
+| --- | --- | --- |
+| `item_view` / `item_view_bot` | a request for a find page, split by the same UA heuristic as every other counter here | not a person; the unsuffixed name means only that the caller did not declare itself as automation |
+| `item_view[_bot]:<handle>` | the same event split by the feed the find belongs to | **not additive** with the site-wide name — it is one event counted twice, exactly as `feed_view:<handle>` is |
+| `arrival_item[_bot]:<tag>` | a find-page request whose URL carried an allowlisted `?src=` tag | **deliberately not part of `arrival:<tag>`**, which EXP-010 and EXP-012 are pre-registered over as *feed* views |
+| `item_render` / `item_render_bot` | page-reported: the find page's script ran, once per load, same-origin only | not a person, and forgeable on the same one header as every other page-reported name |
+
+`item_render` read against `item_view` is the same ratio `landing_render` gives for `/`, on the one
+surface a search engine can send somebody to. **That is the reading this run exists to make possible
+and it is explicitly not taken here**: all four names read 0 on every day before today because none
+of them existed, which is a statement about the instrument and not about traffic.
+
+**EXP-011 was not graded, not read and not touched.** Its thresholds, window and reading date are
+byte-untouched; the window closes **2026-09-18** and the reading is due **2026-09-19**. No value of
+R is computed or quoted anywhere in this run's record. The landing page is byte-identical, and
+`item_render` is on the `NEVER_HERE` list that asserts a foreign pulse cannot fire on `/`, so
+EXP-011's denominator cannot be moved by this change.

@@ -257,6 +257,37 @@ select:focus, input:focus { border-color: var(--accent); }
 .demo-window .card { margin-bottom: 8px; }
 .demo-more { display: block; text-align: center; margin: 8px 0 4px; }
 
+/* ---------- one find, permanently addressable ---------- */
+.find-page { padding: 8px 0 0; }
+.find-kicker { font-size: 13px; color: var(--muted); margin: 26px 0 10px; }
+.find-kicker a { color: var(--text); text-decoration: underline; }
+.find-page h1 { font-size: 26px; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 12px; }
+.find-source { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+/* The category swatch is scoped to ".card .meta" elsewhere; this row is neither, and without
+   this rule the <i> collapses to nothing and the category reads as bare text.
+   No backticks in here: CSS is a template literal, so one would open an interpolation. */
+.find-source .cat { display: inline-flex; align-items: center; gap: 5px; }
+.find-source .cat i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.find-desc { font-size: 14.5px; color: var(--muted); margin-top: 14px; max-width: 62ch; }
+.find-note {
+  border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; margin-top: 16px;
+  font-size: 14.5px; color: var(--text); max-width: 62ch;
+}
+.find-art { margin-top: 18px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.find-art img { display: block; width: 100%; height: auto; }
+.open-cta { display: inline-block; margin-top: 20px; text-decoration: none; }
+.provenance {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; margin: 26px 0 0; font-size: 13px; color: var(--muted);
+}
+.provenance h2 { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
+.provenance ol { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.provenance li { display: flex; gap: 9px; align-items: baseline; }
+.provenance li i { color: var(--accent); font-style: normal; }
+.provenance b { color: var(--text); }
+.provenance .disclaim { margin-top: 11px; font-size: 12.5px; color: var(--faint); }
+.more-finds { margin-top: 30px; }
+
 /* ---------- share result / setup ---------- */
 .share-result { padding: 40px 0; text-align: left; }
 .share-result h1 { font-size: 24px; letter-spacing: -0.02em; margin: 10px 0 18px; }
@@ -507,8 +538,15 @@ function socialHead(o: {
   description: string;
   /** Defaults to `description`. Split only where a page already had two reviewed strings. */
   ogDescription?: string;
+  /** An absolute http(s) image for the card. Omitted anywhere the only image we own is the icon.
+   *  Callers pass a value that has already been through `imageSrc`, which is what guarantees it
+   *  is absolute — a relative og:image resolves against the *unfurler's* origin (see meta.ts). */
+  image?: string;
 }): string {
   const url = `${SITE_ORIGIN}${o.path}`;
+  // `summary_large_image` only where a real image exists. Promising a banner and supplying the
+  // 512x512 icon is how a large card renders as a stretched logo, which is worse than a small one.
+  const image = o.image && /^https?:\/\//i.test(o.image) ? o.image : "";
   return `<link rel="canonical" href="${esc(url)}">
 <meta name="description" content="${esc(o.description)}">
 <meta property="og:type" content="website">
@@ -516,8 +554,8 @@ function socialHead(o: {
 <meta property="og:title" content="${esc(o.title)}">
 <meta property="og:description" content="${esc(o.ogDescription ?? o.description)}">
 <meta property="og:url" content="${esc(url)}">
-<meta property="og:image" content="${esc(SITE_ORIGIN)}/icon-512.png">
-<meta name="twitter:card" content="summary">`;
+<meta property="og:image" content="${esc(image || `${SITE_ORIGIN}/icon-512.png`)}">
+<meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}">`;
 }
 
 /** Cut to a length a search result and a chat card will both show, on a word boundary. */
@@ -762,6 +800,129 @@ ${socialHead({
     description,
   })}`;
   return layout(`${creator.name} — ${BRAND}`, creator.accent, body, CLIENT_JS, head);
+}
+
+/** A sibling find, linked to its own page rather than to its source.
+ *
+ *  This is the one place on the site where a card must NOT link out. `card()` wraps the whole
+ *  thing in an anchor to `item.url`, which is right on a feed page — the visitor came for the
+ *  finds and the source is the destination. Here the block's job is different: it is what turns
+ *  a set of sitemap entries into a graph a crawler can walk, and links to other people's domains
+ *  do none of that. Rendering it through `card()` looked correct and connected nothing, which is
+ *  why there is a test asserting these hrefs are find pages. */
+function siblingCard(handle: string, item: Item): string {
+  return `<a class="card-link" href="/${esc(handle)}/${item.id}" data-item-cat="${esc(item.category)}">
+    <div class="card">
+      <div class="thumb">${imageSrc(item.image_url) ? `<img src="${esc(imageSrc(item.image_url))}" alt="" loading="lazy" onerror="this.remove()">` : esc(KIND_ICON[item.kind] ?? "→")}</div>
+      <div class="body">
+        <div class="meta">
+          <span class="cat"><i style="background:${catColor(item.category)}"></i>${esc(item.category)}</span>
+          <span>${esc(item.site_name || item.domain)}</span>
+        </div>
+        <h3>${esc(item.title)}</h3>
+      </div>
+    </div>
+  </a>`;
+}
+
+/** The client script for a find page. Deliberately NOT `CLIENT_JS`.
+ *
+ *  `feed_render` is gated on `#follow-btn` inside that bundle, and this page has no follow
+ *  button, so serving it here would already not fire one. Serving a different script makes that
+ *  structural rather than incidental: there is no code path from this page to `feed_render`, so
+ *  the denominator EXP-011's sibling reading rests on cannot be moved by traffic that never saw
+ *  a feed page. The date is rendered server-side for the same reason a crawler gets one. */
+const FIND_JS = /* js */ `
+fetch("/api/pulse/item_render", { method: "POST", keepalive: true }).catch(() => {});
+`;
+
+/** One find, at an address of its own.
+ *
+ *  Eighty-seven public items existed and not one had a URL. A find was reachable only inside a
+ *  feed page that changes under it, which meant three separate things were impossible at once:
+ *  a search engine could index no attention this service has ever published, a visitor could not
+ *  send anyone *this* find, and the loop had no surface to attribute an arrival to. The sitemap
+ *  carried eight URLs against eighty-seven published finds.
+ *
+ *  What this page is, and the line it does not cross. It is a record of **attention**, not a copy
+ *  of the thing attended to: the provenance chain is the subject, the source's own title and
+ *  description are the minimum needed to say which thing, and the outbound link is the primary
+ *  action on the page. It says in its own words that Tuned does not host this. That is the
+ *  doctrine boundary — the page must never read as a destination that replaces the source, which
+ *  is what a summarizer is ([NORTH_STAR](../ops/NORTH_STAR.md)).
+ *
+ *  `more` is other public finds from the same feed. It is not decoration: a sitemap-only page with
+ *  no inbound link is an orphan, and eighty-seven orphans are a doorway pattern. These links make
+ *  the set a connected graph a crawler can walk from any entry point. */
+export function itemPage(creator: Creator, item: Item, more: Item[]): string {
+  const img = imageSrc(item.image_url);
+  const source = item.site_name || item.domain;
+  // Absolute and server-rendered. A relative time needs script; a crawler runs none, and the date
+  // an item was selected is the one fact on this page that decays.
+  const when = new Date(item.created_at).toUTCString().slice(0, 16);
+  const body = `
+  <div class="site-top">
+    <a class="wordmark" href="/"><b>·</b> ${esc(BRAND.toLowerCase())}</a>
+    <a class="rss" href="/${esc(creator.handle)}/rss.xml">RSS</a>
+  </div>
+  <div class="find-page">
+    <div class="find-kicker">
+      <a href="/${esc(creator.handle)}">@${esc(creator.handle)}</a> paid attention to this${creator.kind === "agent" ? ` <span class="ai-badge" title="This is an AI agent's attention feed, registered and supervised by a human member">AI agent</span>` : ""}
+    </div>
+    <h1>${esc(item.title)}</h1>
+    <div class="find-source">
+      <span class="cat"><i style="background:${catColor(item.category)}"></i>${esc(item.category)}</span>
+      <img src="${favicon(item.domain)}" width="12" height="12" alt="" onerror="this.remove()">
+      <span>${esc(source)}</span>
+      <span>·</span>
+      <span>${esc(when)}</span>
+    </div>
+    ${item.note ? `<div class="find-note">${esc(item.note)}</div>` : ""}
+    ${item.description ? `<div class="find-desc">${esc(item.description)}</div>` : ""}
+    ${img ? `<div class="find-art"><img src="${esc(img)}" alt="" loading="lazy" onerror="this.closest('.find-art').remove()"></div>` : ""}
+    <a class="btn primary open-cta" href="${esc(item.url)}" target="_blank" rel="noopener">Open at ${esc(item.domain)} →</a>
+    <div class="provenance">
+      <h2>Provenance</h2>
+      <ol>
+        ${
+          item.via_handle
+            ? `<li><i>◦</i><span>Observed by <b>@${esc(item.via_handle)}</b>, an agent watching a beat</span></li>
+        <li><i>◦</i><span>Read and chosen by <b>@${esc(creator.handle)}</b></span></li>`
+            : `<li><i>◦</i><span>Selected by <b>@${esc(creator.handle)}</b></span></li>`
+        }
+        <li><i>◦</i><span>Published to this feed <b>${esc(when)}</b></span></li>
+      </ol>
+      <div class="disclaim">Tuned does not host this and did not write it. This page records that
+      someone paid attention to it, and who — nothing more. The link above goes to the source.</div>
+    </div>
+    ${
+      more.length
+        ? `<div class="more-finds">
+      <div class="section-h"><h2>More of what @${esc(creator.handle)} is paying attention to</h2><div class="rule"></div></div>
+      ${more.map((m) => siblingCard(creator.handle, m)).join("")}
+      <a class="demo-more" href="/${esc(creator.handle)}">See the whole feed →</a>
+    </div>`
+        : ""
+    }
+  </div>
+  <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>`;
+  // Everything below is assembled from what the page already says out loud. The description leads
+  // with the attention claim rather than the source's blurb, because that is what distinguishes
+  // this result from the source's own — two pages carrying the same summary is the shape a search
+  // engine reads as a scrape.
+  const via = item.via_handle ? ` Found by @${item.via_handle}.` : "";
+  const description = clip(
+    `@${creator.handle} is paying attention to "${item.title}" from ${source}.${via} ${item.note || item.description || ""}`,
+    300
+  );
+  const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">
+${socialHead({
+    path: `/${creator.handle}/${item.id}`,
+    title: `${item.title} — @${creator.handle} on ${BRAND}`,
+    description,
+    image: img,
+  })}`;
+  return layout(`${item.title} — @${creator.handle} on ${BRAND}`, creator.accent, body, FIND_JS, head);
 }
 
 export function studioPage(creator: Creator, items: Item[]): string {

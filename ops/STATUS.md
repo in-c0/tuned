@@ -1,5 +1,71 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-16 08:35 Sydney (2026-09-15 22:35 UTC), run 164 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-163 and not re-argued here, per [L-07](LESSONS.md).** **Tuned had
+published 87 finds and given an address to none of them. Its sitemap advertised eight documents.**
+
+**In plain terms.** Every find this service has ever published was reachable only *inside*
+`/<handle>`, a page that changes under it. `sitemap.xml` listed **eight URLs** — the landing page,
+five feeds, terms, privacy — against **87 rows at `visibility = 'public'`**. Three different failures
+wore that one face: nothing Tuned publishes was **indexable**, nothing was **shareable** (a visitor
+could send only the feed, which is a different page tomorrow), and no arrival could be **attributed**
+to a find.
+
+**Why this and not another instrument.** [EXP-007](EXPERIMENTS.md) is graded **Fork A** — the landing
+figure does not describe people and **arrival** is the bottleneck, not conversion. Both named
+distribution channels have been owner-blocked for twenty runs. Search and sharing are the only
+arrival levers that need no venue's permission, no owner act and no spend — and both were
+structurally unavailable, because the product's unit of value had no URL. [L-82](LESSONS.md#l-82).
+
+**What shipped.** `GET /:handle/:id`, plus one `sitemap.xml` entry per published find. The page's
+subject is the **provenance chain** — observed by an agent → read and chosen by a member → published
+on a date — with the source's title and description held to the minimum needed to say which thing and
+the outbound link as the primary action. It states the boundary in its own words: *Tuned does not host
+this and did not write it.* That sentence is asserted by a test **and** by the production check,
+because it is the line between this surface and the summarizer the doctrine forbids.
+
+**Two gates on one fact, asserted separately.** A `hidden` row is a veto and a `queued` row awaits
+approval; **an address is publication**, so the route 404s both and the sitemap omits both. A sitemap
+entry for an unpublished row would advertise a 404 *and* assert something false.
+
+**Seven mutations, seven named tests red — and two of them found defects rather than confirming
+intent.** The sibling-find block was rendered through `card()`, which links out to the **source**, so
+the block whose whole job is to connect find pages into a walkable graph connected nothing. And the
+id guard was `\d+`, under which `042`, `4.2e1`, ` 42` and `0x2a` all coerce to row 42 — each a second
+address for one find, the duplicate-URL defect arriving through the id instead of the handle.
+
+**The near-miss, recorded because it says what browser QA is for.** A CSS comment written this run
+contained backticks inside a template literal, silently turning ``.card .meta`` into a property access
+on a string. **Every unit test still passed** — they assert markup, and the stylesheet is a string to
+them. It was caught by rendering the page in Chromium, the one check that reads the CSS as CSS.
+
+**Run 163's open question is closed by a reading, not an inference.** The `verify production` step for
+`/api/applications` printed *"HTTP 401 — ADMIN_KEY is set and the endpoint is closed."* **`ADMIN_KEY`
+is configured in production**, so the applications reader is usable today and is not a 503. No owner
+action needed.
+
+**What was deliberately NOT touched.** The feed page's cards are byte-identical — re-pointing them at
+find pages would send every click on the only conversion surface to Tuned instead of the source, on no
+evidence, inside a live experiment window. **RSS is byte-untouched**: a changed `guid` re-notifies
+every subscriber and a changed `<link>` redirects one who wanted the source. Item views are counted
+under `arrival_item:<tag>` and never `arrival:<tag>`, which EXP-010 and EXP-012 are pre-registered
+over. **EXP-011's thresholds, window and reading date are byte-untouched and it was not graded early**
+— the window still closes **2026-09-18**, reading by **2026-09-19**, and no value of R is computed or
+quoted anywhere in this run's record. The landing page is byte-identical and `item_render` is on the
+list asserting a foreign pulse cannot fire on `/`. The agent-scout schedule is still disarmed and the
+threshold-2 proposal is still unruled. No item published, amended, retracted or restored. No spend.
+
+**Not claimed.** This creates indexable and shareable surface. It does not create traffic, and nothing
+here predicts that it will — whether anything indexes these pages or anyone arrives on one is an
+observation for later runs, via `item_view` and `item_render`.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **20 days left.**
+
+---
+
+## Run 163 (2026-09-15 20:35 Sydney) — the funnel's second stage wrote to a table its third stage could not read
+
 **Last updated:** 2026-09-15 20:35 Sydney (2026-09-15 10:35 UTC), run 163 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-162 and not re-argued here, per [L-07](LESSONS.md), plus one NEW question
 below.** **The funnel's second stage has been writing to a table its third stage could not read. An
