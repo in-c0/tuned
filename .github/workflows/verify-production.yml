@@ -141,6 +141,34 @@ jobs:
           grep -qi 'tuned' /tmp/home.html || { echo "::error::landing page body does not look like Tuned"; exit 1; }
           echo "${BASE}: HTTP 200, landing page rendered ($(wc -c < /tmp/home.html) bytes)"
 
+      - name: Applications endpoint is deployed and refuses unauthenticated callers
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          # This route returns the applicant's own email, role and note, so a 200 here without a
+          # key is a disclosure, not a degraded check — it fails loudly and asks for a rollback.
+          #
+          # A 404 is equally fatal and is the more likely failure: the route did not exist before
+          # 7c94ad0, so 404 means this deploy is not serving the code that was pushed. That
+          # transition is the same evidence run 2 used when /api/metrics went 404 -> 503, and it
+          # is a stronger reading than "the site is up" because only a live deploy can produce it.
+          code=$(scripts/prod-http.sh get "${BASE}/api/applications" /tmp/a.json 'application/json')
+          case "$code" in
+            401) echo "/api/applications without a key: HTTP 401 — ADMIN_KEY is set and the endpoint is closed." ;;
+            503) echo "/api/applications without a key: HTTP 503 — ADMIN_KEY is not configured; endpoint fails closed." ;;
+            200)
+              echo "::error::/api/applications returned 200 with NO key — applicant addresses are public. Roll back."
+              exit 1 ;;
+            404)
+              echo "::error::/api/applications returned 404 — the route is missing, so this deploy is not serving the pushed code."
+              exit 1 ;;
+            *)
+              echo "::error::/api/applications returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          echo "Unauthenticated \`/api/applications\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Metrics endpoint refuses unauthenticated callers
         env:
           BASE: ${{ steps.vantage.outputs.base }}
