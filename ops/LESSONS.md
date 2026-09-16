@@ -3367,3 +3367,46 @@ beside each wrong line rather than replacing it.
   assert markup, and the stylesheet is a string to them. It was caught by *rendering the page in a
   browser*, which is the one check that reads the CSS as CSS. A suite that never opens the document
   cannot see a stylesheet that stopped being one.
+
+---
+
+## L-83 — the addresses shipped, and nothing on the site pointed at them (2026-09-16, run 165)
+
+- **What happened:** [L-82](#l-82) closed the defect it named — every published find got a URL and
+  `sitemap.xml` grew from 8 entries to 95. For one day that was the *whole* of it: **no page on this
+  service linked into the set.** `card()` wraps a feed card in an anchor to the source, which is
+  right, so a crawler walking links from `/` reached no find page, and a visitor looking at a find on
+  a feed page could not obtain its URL to send anyone. The only inbound route was `sitemap.xml`.
+- **Why it survived a day:** the run that built the surface asked the right question about it and
+  asked it one level too low. Run 164's own source comment reads *"a sitemap-only page with no
+  inbound link is an orphan, and eighty-seven orphans are a doorway pattern"* — and it answered that
+  by linking the find pages **to each other**. That makes the set a connected component. It does not
+  give the component an **edge from the rest of the site**, and an island whose members all link to
+  one another is still an island. Every check written that run was scoped inside the new surface: the
+  route answers, the sitemap is truthful, the siblings are find pages. None asked what points *in*.
+- **Evidence and cost:** 87 find pages, 95 sitemap URLs, **0 inbound links** from any document a
+  crawler reaches by following links from the landing page. No cost paid — nothing has arrived to be
+  lost — and carried in the same two places L-82 named: search treats an orphan set reached only from
+  a sitemap as weaker than one the site links to, and referral (hierarchy item 5) was still
+  impossible, because the page that shows a find showed no way to link to it.
+- **Lesson:** **shipping an address is half a change; the other half is something that points at it.**
+  A URL nothing links to is reachable only by whoever already has it. When a run creates a new class
+  of document, the completeness question is not *does it answer* but *what path does a stranger take
+  to it*, and "it is in the sitemap" is an answer about machines only. The generalisation of L-82:
+  that lesson says ask whether the unit of value has a URL; this one says then ask **who links to it**.
+- **More elegant next attempt, and what shipped:** a `permalink` chip on every feed-page card,
+  opt-in per call site rather than built into `card()`. It is deliberately the **second** affordance —
+  the card's own click still opens the source, because re-pointing it would send every click on the
+  only conversion surface to Tuned instead of the thing the member was paying attention to.
+- **Prevention check:** a production step asserts the edge from the other end — it takes a handle out
+  of the sitemap, fetches that feed page, requires at least one permalink, follows it, and fails if a
+  card's own `href` ever becomes a Tuned path. The unit suite cannot see this: the feed page renders
+  identically whether or not the edge exists.
+- **The second near-miss in two runs caught by a browser and by nothing else.** The chip was first
+  placed in the card's top-right with `padding-right` on the `.meta` row reserving space for it.
+  Every unit test passed. Chromium showed it sitting **on top of** "via @scout" at 1100px and on a
+  long source name at 390px: `.meta` is a flex line, and a flex item that cannot shrink below its
+  min-content width overflows the padding meant to hold it back. Moved to the card's bottom-right,
+  reserved with `padding-bottom` on the body, whose other children are blocks and respect padding
+  unconditionally. **Markup assertions cannot see geometry** — run 164 learned they cannot see CSS
+  that stopped being CSS, and this is the same boundary one step further in.

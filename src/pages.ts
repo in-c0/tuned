@@ -581,7 +581,33 @@ function imageSrc(raw: string): string {
   return /^https?:\/\//i.test(raw) ? raw : "";
 }
 
-function card(item: Item, opts: { studio?: boolean } = {}): string {
+/** A find, as a card.
+ *
+ *  `opts.permalink` is the handle whose feed page is rendering this card, and it is opt-in for a
+ *  reason that is not style. Run 164 gave every published find an address at `/<handle>/<id>` and
+ *  linked those pages to each other — but **nothing on this site linked into the set.** `card()`
+ *  wraps the whole card in an anchor to `item.url`, which is right on a feed page and is why the
+ *  only route into eighty-seven find pages was `sitemap.xml`. A page set reachable from a sitemap
+ *  and from nothing a crawler can walk to is the orphan shape the `more` block was written to
+ *  avoid, one level up — and a visitor who wanted to send someone *this* find still could not get
+ *  its URL, because the page never showed one.
+ *
+ *  The permalink is a **second** affordance, never the first. The card's primary click still goes
+ *  to the source: re-pointing it would send every click on the only conversion surface to Tuned
+ *  instead of the thing the member was paying attention to, which is the change run 164 declined
+ *  on no evidence and this run does not make either.
+ *
+ *  Why it is opt-in rather than always-on: `landingPage` renders its demo through this same
+ *  function, and the landing page is **frozen byte-for-byte** until EXP-011's reading on
+ *  2026-09-19. With `opts.permalink` absent this returns the byte-identical string it always did,
+ *  which is asserted by a test rather than left to inspection.
+ *
+ *  Nesting is the constraint that shapes the markup. HTML forbids an anchor inside an anchor, and
+ *  the browser silently un-nests one — so the permalink cannot go in the `.meta` row where it
+ *  belongs visually. It is a sibling of `.card-link` inside a wrapper, positioned into the space
+ *  the meta row reserves for it. `data-item-cat` moves to that wrapper so the category filter
+ *  still hides the card and its permalink as one thing. */
+function card(item: Item, opts: { studio?: boolean; permalink?: string } = {}): string {
   const inner = `
   <div class="card${item.visibility === "hidden" ? " hidden-item" : ""}">
     <div class="thumb">${imageSrc(item.image_url) ? `<img src="${esc(imageSrc(item.image_url))}" alt="" loading="lazy" onerror="this.remove()">` : esc(KIND_ICON[item.kind] ?? "→")}</div>
@@ -607,9 +633,14 @@ function card(item: Item, opts: { studio?: boolean } = {}): string {
         : ""
     }
   </div>`;
-  return opts.studio
-    ? `<div data-item-cat="${esc(item.category)}">${inner}</div>`
-    : `<a class="card-link" href="${esc(item.url)}" target="_blank" rel="noopener" data-item-cat="${esc(item.category)}">${inner}</a>`;
+  if (opts.studio) return `<div data-item-cat="${esc(item.category)}">${inner}</div>`;
+  if (!opts.permalink) {
+    return `<a class="card-link" href="${esc(item.url)}" target="_blank" rel="noopener" data-item-cat="${esc(item.category)}">${inner}</a>`;
+  }
+  // `aria-label` because a feed page carries one of these per find and the visible word is the same
+  // on every one of them. A screen reader's link list would otherwise read "permalink" forty times
+  // with nothing to tell them apart, which is the one way this affordance could be worse than none.
+  return `<div class="card-wrap" data-item-cat="${esc(item.category)}"><a class="card-link" href="${esc(item.url)}" target="_blank" rel="noopener">${inner}</a><a class="card-permalink" href="/${esc(opts.permalink)}/${item.id}" aria-label="Permalink: ${esc(item.title)}" title="A page of its own for this find — the link to send someone">permalink</a></div>`;
 }
 
 function breakdown(items: Item[]): string {
@@ -705,9 +736,13 @@ function rollupCard(category: string, items: Item[]): string {
   </details>`;
 }
 
-function renderEntries(items: Item[]): string {
+/** `handle` is threaded rather than inferred: both call sites are `publicPage`, so every card this
+ *  renders belongs to that feed, which is exactly the pair `/:handle/:id` requires. An ambient
+ *  rollup gets no permalink — it is a day's worth of Music collapsed into one `<details>`, not a
+ *  find, and it has no single row to address. */
+function renderEntries(items: Item[], handle: string): string {
   return collapseAmbient(items)
-    .map((e) => (e.rollup ? rollupCard(e.category, e.items) : card(e.item)))
+    .map((e) => (e.rollup ? rollupCard(e.category, e.items) : card(e.item, { permalink: handle })))
     .join("");
 }
 
@@ -748,14 +783,14 @@ export function publicPage(creator: Creator, items: Item[]): string {
   ${breakdown(items)}
   ${
     today.length
-      ? `<div class="section-h now"><h2>Right now</h2><div class="rule"></div></div>` + renderEntries(today)
+      ? `<div class="section-h now"><h2>Right now</h2><div class="rule"></div></div>` + renderEntries(today, creator.handle)
       : ""
   }
   ${
     earlier.length
       ? `<div class="section-h"><h2>Earlier</h2><div class="rule"></div></div>` +
         groupByDay(earlier)
-          .map((g) => `<div class="day-h">${esc(g.day)}</div>` + renderEntries(g.items))
+          .map((g) => `<div class="day-h">${esc(g.day)}</div>` + renderEntries(g.items, creator.handle))
           .join("")
       : ""
   }
@@ -794,6 +829,7 @@ export function publicPage(creator: Creator, items: Item[]): string {
     300
   );
   const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">
+<style>${FEED_CSS}</style>
 ${socialHead({
     path: `/${creator.handle}`,
     title: `${creator.name} — ${BRAND}`,
@@ -801,6 +837,39 @@ ${socialHead({
   })}`;
   return layout(`${creator.name} — ${BRAND}`, creator.accent, body, CLIENT_JS, head);
 }
+
+/** The permalink chip's styling, served to the public feed page and to nothing else.
+ *
+ *  These four rules belong in `CSS` next to the other `.card` rules, and they are deliberately
+ *  not there yet. `CSS` is served by `layout()` to **every** page including `/`, and EXP-011's
+ *  stop conditions freeze the landing page for the whole window — its reading is due 2026-09-19.
+ *  A rule matching no element on that page could not move `landing_render ÷ landing_view`, which
+ *  is a property of traffic; but this loop has held the frozen page byte-identical rather than
+ *  argue each edit harmless one at a time, and an experiment twenty days from its reading is not
+ *  where that precedent gets relaxed. **After EXP-011 is read, fold this into `CSS` and delete
+ *  the extra `<style>`** — it is a dated workaround, not a second stylesheet mechanism.
+ *
+ *  `padding-bottom` on the body is the load-bearing rule, not decoration — it reserves the strip the
+ *  chip is positioned into, so the overlap is impossible rather than unlikely. It is on the *body*
+ *  after browser QA rejected the obvious placement: the chip first sat in the card's top-right with
+ *  `padding-right` reserving space on the `.meta` row, and Chromium showed it sitting on top of
+ *  "via @scout" at 1100px and on a long source name at 390px. A flex line does not honour padding
+ *  from items that cannot shrink below their min-content width, and `.meta` sets no `min-width: 0`
+ *  on its spans. The body's other children are blocks, which respect padding unconditionally.
+ *
+ *  The margin moves from the card to the wrapper so the chip's offset does not silently depend on
+ *  `.card`'s `margin-bottom`. Total vertical rhythm is unchanged. */
+const FEED_CSS = /* css */ `
+.card-wrap { position: relative; margin-bottom: 10px; }
+.card-wrap .card { margin-bottom: 0; }
+.card-wrap .card .body { padding-bottom: 26px; }
+.card-permalink {
+  position: absolute; right: 14px; bottom: 14px; z-index: 1;
+  font-size: 11px; line-height: 1; letter-spacing: .02em; color: var(--faint);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; background: var(--panel2);
+}
+.card-permalink:hover, .card-permalink:focus-visible { color: var(--text); border-color: #34344a; }
+`;
 
 /** A sibling find, linked to its own page rather than to its source.
  *

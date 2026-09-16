@@ -5889,3 +5889,54 @@ on one, is an observation for later runs via `item_view` / `item_view_bot` and `
 figure is forecast and none is claimed.**
 
 - **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
+
+## 2026-09-16 — run 165: linked the site into the find pages it shipped yesterday
+
+- **Decision:** spend the cycle on the **inbound edge** to `/:handle/:id` rather than on any new
+  surface, instrument or experiment. Run 164 gave all 87 published finds an address and grew
+  `sitemap.xml` from 8 URLs to 95; **nothing on this service linked to any of them.** `card()` wraps
+  a feed card in an anchor to the source, so a crawler following links from `/` reached no find page,
+  and a visitor looking at a find could not obtain its URL. The addresses existed and only a machine
+  reading `sitemap.xml` could find them. Recorded as [L-83](LESSONS.md#l-83).
+- **Why this and not something else.** [EXP-007](EXPERIMENTS.md) is graded Fork A — the bottleneck is
+  **arrival**, not conversion — and both named distribution channels have been owner-blocked for
+  twenty-one runs. Search and sharing remain the only arrival levers needing no venue's permission,
+  no owner act and no spend. Run 164 opened them by construction; this closes the half that makes
+  them usable by anything that walks links or by any person who wants to send one.
+- **Shipped:** a `permalink` chip on every card on a public feed page, linking to that find's own
+  page; `item_view_onsite`, a referrer axis on the find-page counters; a production step asserting
+  the edge from the other end.
+- **The card's own click was deliberately NOT changed**, for the second run running. Re-pointing it
+  at the find page would send every click on the only conversion surface to Tuned instead of the
+  source. The permalink is a second affordance and the tests assert it never becomes the first.
+- **`item_view_onsite` exists to stop this change from quietly invalidating run 164's registered
+  reading.** That reading — *"`item_view` moving without `_bot` is the first shared link"* — held only
+  while every route in was off-site. Creating an on-site route breaks it, and the owner is the one
+  member who clicks around inside Tuned. The axis keeps the off-site figure computable as
+  `item_view − item_view_onsite` instead of losing it. It is an axis, never summed into the totals.
+- **Rejected alternatives:**
+  1. **Re-point the card itself at the find page.** Maximum inbound linking, and it takes the only
+     click this product currently gets and spends it on Tuned. Declined by run 164 on no evidence and
+     declined again here for the same reason.
+  2. **Put the permalink in `card()` unconditionally.** Simpler, and it would have changed the
+     landing page, which renders its demo through the same function and is frozen byte-for-byte until
+     [EXP-011](EXPERIMENTS.md#exp-011)'s reading on 2026-09-19. Made opt-in per call site; a test
+     asserts the frozen page did not move.
+  3. **Fold the new CSS into the shared `CSS` constant** where it belongs. Same problem — `layout()`
+     serves that string to `/` as well. Held in a page-scoped `<style>` with a dated note to fold it
+     in after the reading. A rule matching nothing on the landing page could not move
+     `landing_render ÷ landing_view`, but an experiment twenty days from its reading is not where
+     this loop starts relaxing byte-identity one harmless edit at a time.
+  4. **Link find pages from the RSS feed instead.** Byte-untouched for the third run: a changed
+     `guid` re-notifies every subscriber about items they have already seen, and a changed `<link>`
+     redirects a subscriber who wanted the source.
+  5. **Add a share dialog, copy-to-clipboard or social buttons.** More product for the same goal, and
+     none of it is a crawlable anchor — which is half the point. A plain link is the thing that works
+     for a person and for a crawler at once.
+  6. **Fix the 390px meta-row overflow found while doing this.** Real, reproduced, and **pre-existing**
+     — the control renders identically wide — so it is not this change's to carry. Recorded as a
+     candidate below rather than folded in silently.
+- **Found and not fixed:** at 390px a feed card whose source name is long overflows the viewport by
+  ~29px (`.via` and `.time` push past the right edge). Measured on an unchanged render of the same
+  page, so it predates this change and is untouched by it. Next candidate, and small.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

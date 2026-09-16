@@ -2488,3 +2488,40 @@ byte-untouched; the window closes **2026-09-18** and the reading is due **2026-0
 R is computed or quoted anywhere in this run's record. The landing page is byte-identical, and
 `item_render` is on the `NEVER_HERE` list that asserts a foreign pulse cannot fire on `/`, so
 EXP-011's denominator cannot be moved by this change.
+
+## `item_view_onsite` — the axis that keeps yesterday's reading readable (added 2026-09-16, run 165)
+
+Run 165 gave every card on a public feed page a permalink into `/:handle/:id`. That link is the
+point of the change — see [L-83](LESSONS.md#l-83) — and it silently invalidates a reading registered
+one run earlier unless something separates the two populations.
+
+Run 164 registered: **"`item_view` moving without `item_view_bot` is the first shared link."** That
+was sound while the only ways to reach a find page were a sitemap entry, a search result or a pasted
+URL — **every one of them off-site.** It stops being sound the moment somebody can arrive by clicking
+around inside Tuned, and the owner is the one member who clicks around inside Tuned. Without a split,
+the first interesting reading this surface could produce would be indistinguishable from the owner
+browsing their own feed.
+
+| name | what it counts | what it is not |
+| --- | --- | --- |
+| `item_view_onsite` | the subset of find-page requests whose `Referer` is a page on this same origin | **an axis, not a bucket** — never summed with `item_view` or `item_view_bot`, whose totals are unchanged |
+
+**The off-site reading is `item_view − item_view_onsite`, on any day from 2026-09-16 onward.** Before
+that date the name did not exist, which is a statement about the instrument and not about traffic;
+before it, `item_view` was already off-site by construction.
+
+**Evidence, not proof, and it errs in the safe direction.** A browser may send no `Referer` at all —
+`rel="noreferrer"`, a privacy setting, an https→http downgrade — and such a click from this site's own
+feed lands off the axis and reads as external. So this name can **under-count internal arrivals and
+can never invent one**: the error works against the interesting claim rather than for it. It is the
+third discriminator of the same family as `_offpage` (an `Origin` test on a POST) and `_unattended`
+(a `Sec-Fetch-User` test on a GET), and like both it labels a subset and never refuses a request.
+
+Origins are compared parsed, not by prefix: `https://justtuned.com.evil.test/` is not this site, and
+a test asserts it is not counted as one.
+
+**EXP-011 was not graded, not read and not touched by this run either.** Its thresholds, window and
+reading date are byte-untouched; the window closes **2026-09-18** and the reading is due
+**2026-09-19**. No value of R is computed or quoted anywhere in this run's record. The landing page
+is **byte-identical** — asserted by a test, because it renders its demo cards through the same
+`card()` this change modified — so EXP-011's denominator cannot be moved by it.

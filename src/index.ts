@@ -72,6 +72,26 @@ function unattended(c: Context): boolean {
   return c.req.header("sec-fetch-user") !== "?1";
 }
 
+/** True when this navigation came from a page on this same origin.
+ *
+ *  The third discriminator of the same family as `_offpage` (an `Origin` test on a POST) and
+ *  `_unattended` (a `Sec-Fetch-User` test on a GET): a header the browser sets, read to label a
+ *  subset and never to refuse one. `Referer` is the only one of the three that says *where from*.
+ *
+ *  Parsed rather than prefix-matched. `startsWith(origin)` would count `https://justtuned.com.evil
+ *  .test/` as this site, which is the classic form of this bug; comparing parsed origins cannot.
+ *  A malformed or absent header is not this site, so it returns false — the direction that
+ *  under-counts internal traffic rather than inventing it. */
+function onsite(c: Context): boolean {
+  const ref = c.req.header("referer");
+  if (!ref) return false;
+  try {
+    return new URL(ref).origin === new URL(c.req.url).origin;
+  } catch {
+    return false;
+  }
+}
+
 function newToken(): string {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
@@ -1249,6 +1269,22 @@ app.get("/:handle/rss.xml", async (c) => {
 //                                and EXP-012 are pre-registered over `arrival:<tag>` as *feed*
 //                                views; writing item views into that name would change what a
 //                                running experiment's counter means mid-window.
+//   item_view_onsite             axis: the subset whose `Referer` is this site. NOT a bucket,
+//                                never summed with the names above, whose totals are unchanged.
+//
+// `item_view_onsite` exists because run 165 gave every feed-page card a permalink into this
+// surface, and that link would otherwise have quietly broken the reading run 164 registered over
+// these counters: *"`item_view` moving without `_bot` is the first shared link."* It was true
+// while the only way in was a sitemap, a search result or a pasted URL — every one of them
+// off-site. It stops being true the moment somebody can arrive here by clicking around inside
+// Tuned, and the owner is the one member who does that. Splitting the referrer keeps the
+// off-site reading computable as `item_view - item_view_onsite` instead of losing it.
+//
+// Evidence, not proof, in both directions, on the same terms as `_offpage` and `_unattended`: a
+// browser may send no `Referer` at all (`rel=noreferrer`, a privacy setting, a downgrade from
+// https to http), and such a click from our own feed lands off-axis and reads as external. It
+// can therefore under-count internal arrivals and cannot invent one — which is the safe
+// direction, since the error works against the interesting claim rather than for it.
 //
 // `item_render` is the rung under all of them and is emitted by the page itself — see FIND_JS in
 // pages.ts, which is a different script from the one feed pages get, so this surface cannot fire
@@ -1281,6 +1317,7 @@ app.get("/:handle/:id", async (c) => {
       `item_view${suffix}`,
       `item_view${suffix}:${creator.handle}`,
       ARRIVAL_TAGS.has(src) ? `arrival_item${suffix}:${src}` : "",
+      onsite(c) ? "item_view_onsite" : "",
     ])
   );
   // The inbound links that stop eighty-seven sitemap entries from being eighty-seven orphans.

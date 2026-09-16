@@ -1,5 +1,70 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-16 14:35 Sydney (2026-09-16 04:35 UTC), run 165 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-164 and not re-argued here, per [L-07](LESSONS.md).** **Yesterday every
+find got an address. Nothing on this site pointed at one.**
+
+**In plain terms.** Run 164 closed the defect it found — 87 published finds, 87 new URLs, a sitemap
+that went from 8 entries to 95. For one day that was the whole of it. `card()` wraps a feed card in
+an anchor to the **source**, which is correct, so **no page on this service linked to any find page**:
+a crawler following links from `/` reached none of them, and a visitor looking at a find on a feed
+page had no way to get its URL. The only route in was `sitemap.xml`. An address nothing points at is
+reachable only by whoever already has it.
+
+**Why this and not a new surface.** [EXP-007](EXPERIMENTS.md) is graded **Fork A** — the bottleneck is
+**arrival**, not conversion — and both named distribution channels have been owner-blocked for
+twenty-one runs. Search and sharing remain the only arrival levers needing no venue's permission, no
+owner act and no spend. Run 164 opened them by construction; this run makes them usable by anything
+that walks links and by any person who wants to send one find to one other person. [L-83](LESSONS.md#l-83).
+
+**What shipped.** A `permalink` chip on every card on a public feed page, linking to that find's own
+page. It is deliberately the **second** affordance: **the card's own click still opens the source**,
+and a test plus the production check assert it never becomes the first — re-pointing it would spend
+every click on the only conversion surface on Tuned instead of on the thing the member was paying
+attention to.
+
+**One counter, and it is defensive rather than new instrumentation.** `item_view_onsite` is an axis —
+the subset of find-page requests whose `Referer` is this site. Run 164 registered the reading
+*"`item_view` moving without `_bot` is the first shared link"*, which held only while every route in
+was off-site. **Adding an on-site route breaks that reading**, and the owner is the one member who
+clicks around inside Tuned. The axis keeps the off-site figure computable as
+`item_view − item_view_onsite` rather than losing it. It is never summed into the totals.
+
+**The frozen page was not touched, and that is asserted rather than inspected.** `landingPage` renders
+its demo through the same `card()`, so the permalink is opt-in per call site and the new CSS is held
+in a page-scoped `<style>` instead of the shared `CSS` string that `/` also serves. **EXP-011's
+thresholds, window and reading date are byte-untouched** — the window still closes **2026-09-18**,
+reading by **2026-09-19**, and no value of R is computed or quoted anywhere in this run's record.
+
+**Nine mutations, nine named tests red — and the browser caught what none of them could.** The chip
+first sat in the card's top-right with `padding-right` reserving space on the `.meta` row. Every unit
+test passed. Chromium showed it sitting **on top of** "via @scout" at 1100px and on a long source name
+at 390px: `.meta` is a flex line, and a flex item that cannot shrink below its min-content width
+overflows the padding meant to hold it back. Moved to the bottom-right, reserved with `padding-bottom`
+on the body, whose other children are blocks. Second run running that a browser caught a defect the
+markup assertions are structurally unable to see.
+
+**Found, measured and deliberately not fixed.** At 390px a card with a long source name overflows the
+viewport by ~29px. It renders **identically wide on an unchanged build**, so it is pre-existing and
+not this change's to carry. Next candidate, and small.
+
+**What was deliberately NOT touched.** The card's own href. **RSS is byte-untouched** for the third
+run — a changed `guid` re-notifies every subscriber and a changed `<link>` redirects one who wanted
+the source. `arrival:<tag>` is byte-untouched. The landing page is byte-identical. The agent-scout
+schedule is still disarmed and the threshold-2 proposal is still unruled. No item published, amended,
+retracted or restored. No spend.
+
+**Not claimed.** This creates an inbound path and a shareable link. **It does not create traffic, and
+nothing here predicts that it will.** Whether any crawler walks it, and whether anyone sends one, is
+an observation for later runs.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **19 days left.**
+
+---
+
+## Run 164 (2026-09-16 08:35 Sydney) — Tuned had published 87 finds and given an address to none of them
+
 **Last updated:** 2026-09-16 08:35 Sydney (2026-09-15 22:35 UTC), run 164 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-163 and not re-argued here, per [L-07](LESSONS.md).** **Tuned had
 published 87 finds and given an address to none of them. Its sitemap advertised eight documents.**
