@@ -168,6 +168,30 @@ a.card-link:hover .card { transform: translateY(-1px); border-color: #34344a; }
   font-size: 10.5px; color: #4cc9f0; border: 1px solid #24425a; border-radius: 999px;
   padding: 1px 7px; letter-spacing: .02em;
 }
+/* A meta row must never set the page's width, and until 2026-09-16 it could.
+   It is a flex line, and a flex item does not shrink below its own min-content width unless it is
+   told it may — so a row with one item too many, or one item too wide, pushes its line box past the
+   card. The initial containing block grows to the widest line, and Chrome on a phone then zooms the
+   WHOLE document out to fit. ".card .body"'s "min-width: 0" stops the body from doing this and
+   cannot reach the spans inside it.
+   Measured on production the day this was written, at 390px: "/" laid out at 405px and "/ava" at
+   436px, with "via @wearables" past the right edge. qa/mobile-fit.spec.mjs explains why the two
+   existing 390px overflow assertions read green throughout — the failure moves scrollWidth and
+   innerWidth together, so comparing them to each other can never see it.
+   Two rules, because there are two ways to be too wide and neither covers the other.
+   WRAPPING handles a row with too many items, which is what production was actually doing: the
+   chips that do not fit take a second line instead of pushing the row wider.
+   A BREAK OPPORTUNITY handles one item that is itself wider than the card, which wrapping cannot
+   help — a bare domain is a single unbreakable token, and the bare domain is what the source name
+   falls back to when a page called itself nothing. "overflow-wrap: anywhere" rather than
+   "text-overflow: ellipsis" on purpose: it lowers the span's min-content width, which is the
+   property that lets a flex item shrink at all, and it does it by letting the name WRAP rather
+   than by cutting characters off it. On a product whose subject is provenance, a source that
+   reads "blog.engineering.longsub…" is a worse answer than one that takes two lines. The chips
+   with fixed, short, meaningful contents keep their width and take a new line instead. */
+.card .meta { flex-wrap: wrap; row-gap: 3px; }
+.card .meta > span { min-width: 0; overflow-wrap: anywhere; }
+.card .meta > .cat, .card .meta > .time, .card .meta > .via, .card .meta > img { flex: none; }
 .card h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .card .desc { font-size: 13px; color: var(--muted); margin-top: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .card .note {
@@ -268,6 +292,12 @@ select:focus, input:focus { border-color: var(--accent); }
    No backticks in here: CSS is a template literal, so one would open an interpolation. */
 .find-source .cat { display: inline-flex; align-items: center; gap: 5px; }
 .find-source .cat i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+/* The same row one page over, carrying the same source name, with the same hazard. It already
+   wraps, so it needs only the shrink floor: wrapping cannot rescue a single token wider than the
+   page. No find page was over width on the day this shipped; this is the rule that keeps it that
+   way when a source with a long bare domain is published. */
+.find-source > span { min-width: 0; overflow-wrap: anywhere; }
+.find-source > .cat, .find-source > img { flex: none; }
 .find-desc { font-size: 14.5px; color: var(--muted); margin-top: 14px; max-width: 62ch; }
 .find-note {
   border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; margin-top: 16px;
@@ -275,7 +305,13 @@ select:focus, input:focus { border-color: var(--accent); }
 }
 .find-art { margin-top: 18px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .find-art img { display: block; width: 100%; height: auto; }
-.open-cta { display: inline-block; margin-top: 20px; text-decoration: none; }
+/* "Open at <domain> →" puts a bare domain inside a button, and a bare domain is one unbreakable
+   token, so this box's min-content width is the domain's — 378px for the longest one measured,
+   against 350px of page at 390px. Same hazard as the meta rows above, same remedy: give the token
+   somewhere to break. Found by qa/mobile-fit.spec.mjs on a find page after the meta rows were
+   already fixed, which is the argument for the check walking every surface rather than the one
+   that was under suspicion. */
+.open-cta { display: inline-block; margin-top: 20px; text-decoration: none; overflow-wrap: anywhere; }
 .provenance {
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
   padding: 14px 16px; margin: 26px 0 0; font-size: 13px; color: var(--muted);

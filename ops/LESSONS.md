@@ -3410,3 +3410,49 @@ beside each wrong line rather than replacing it.
   reserved with `padding-bottom` on the body, whose other children are blocks and respect padding
   unconditionally. **Markup assertions cannot see geometry** — run 164 learned they cannot see CSS
   that stopped being CSS, and this is the same boundary one step further in.
+
+## L-84 — the overflow check compared two numbers that the overflow moves together (2026-09-16, run 166)
+
+- **What happened:** production's landing page and its demo feed did not fit a phone, and had not for
+  an unknown length of time. Measured at 390px from a browser in Actions on 2026-09-16: **`/` laid
+  out at 405px and `/ava` at 436px**, with `via @wearables` past the right edge of the card. Chrome
+  does not scroll such a page sideways — it **zooms the whole document out** to fit, so every word on
+  the only page a visitor can apply from was rendered smaller than designed.
+- **Why 166 runs of QA never saw it, which is the reusable part.** Two specs already asserted
+  horizontal overflow on the mobile project, and both asked it the same way:
+  `document.documentElement.scrollWidth <= window.innerWidth + 1`. That is a real check and it
+  catches a page that scrolls sideways. It is **structurally blind** to this failure, because the
+  failure moves *both* of those numbers: the layout viewport grows to the widest line box, and
+  `scrollWidth` grows with it. The two stay equal, and the assertion reads green **at the exact
+  moment the page is worst**. The instrument was not missing; it was comparing a quantity against
+  itself.
+- **Evidence and cost:** `qa-browser` run 37 at 390px, verbatim —
+  `/: layout 405px vs device 390px` and `/ava: layout 436px vs device 390px`. No cost measurable:
+  every standing figure is 0, so no visitor is known to have been lost. The cost is that arrival is
+  the graded bottleneck ([EXP-007](EXPERIMENTS.md) Fork A), a link sent to a phone is the arrival
+  this loop can actually get, and what it arrived at was zoomed out.
+- **Lesson:** **a check that compares two numbers is only as good as their independence.** When a
+  failure can move the reference as well as the reading, the check cannot see it, however precise it
+  looks — and it will be *greenest* under the worst case, which is the reading that gets quoted. The
+  discriminator has to come from outside the thing under test: here, the width the viewport was
+  *asked* for, which the page cannot push. Same family as [L-79](#l-79) (a discriminator satisfied by
+  the page it was written to exclude) and the sitemap ratio in [L-82](#l-82) (a number printed on
+  every run and read as a health line rather than as a claim).
+- **What shipped:** four CSS rules, in the shared stylesheet rather than a page-scoped block, because
+  the landing page was one of the two pages measured over width and it renders its demo through the
+  same `card()`. A `.meta` row may now wrap, and the source name, the find page's source row and the
+  "Open at <domain>" button are given a break opportunity — `overflow-wrap: anywhere`, not
+  `text-overflow: ellipsis`. On a product whose subject is provenance, a source that reads
+  `blog.engineering.longsub…` is a worse answer than one that takes two lines.
+- **Prevention check:** `qa/mobile-fit.spec.mjs` compares the layout viewport against the width the
+  project asked for **and** keeps the sideways-scroll assertion, since neither covers the class alone.
+  It reads its page list out of the live sitemap rather than a list in the file, so a surface
+  published later is covered the day it is published. `test/mobile-fit.test.ts` asserts on every push
+  that the rules are still served, to each page separately — a rule that exists and does not reach the
+  document is the same defect as a rule that does not exist, which is how the permalink chip's
+  stylesheet reached exactly one page.
+- **The fix was incomplete when the meta rows were done, and the check said so.** After both meta
+  rows were fixed, a find page was still over width: `Open at blog.engineering.longsubdomain…` is a
+  bare domain inside a button, so the button's min-content width is the domain's — 378px against
+  350px of page. It was found only because the spec walks every surface rather than the one under
+  suspicion. **Third run running that a browser caught what the markup assertions cannot see.**

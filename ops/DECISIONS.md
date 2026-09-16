@@ -5940,3 +5940,55 @@ figure is forecast and none is claimed.**
   ~29px (`.via` and `.time` push past the right edge). Measured on an unchanged render of the same
   page, so it predates this change and is untouched by it. Next candidate, and small.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-16 — run 166: fixed the phone-width defect on the landing page, and ended EXP-011's window to do it
+
+- **Decision: take run 165's registered next candidate, and take it in the shared stylesheet rather
+  than a page-scoped block.** The defect is worse than run 165 could see from a local render. Measured
+  on production from a browser in Actions at 390px
+  ([qa-browser run 37](https://github.com/in-c0/tuned/actions/runs/35084104986)): **`/` laid out at
+  405px and `/ava` at 436px on a 390px device.** Chrome does not scroll such a page sideways — it
+  zooms the whole document out to fit. The landing page, the only surface anyone can apply from, was
+  rendered smaller than designed on every phone.
+- **Decision: invoke [EXP-011](EXPERIMENTS.md#exp-011)'s pre-registered regression clause, ending its
+  window on 2026-09-16 instead of 2026-09-18.** The clause reads *"A change forced by a regression is
+  permitted and ends the window early, graded on the complete days before it."* Eleven complete days
+  instead of fourteen; **not abandoned** — abandonment is Fork R-E's remedy for contamination, and
+  every day inside the shortened window was served the frozen page. **No value of R is computed,
+  quoted or recorded in this run.** The reading stays on 2026-09-19 and the fork table is byte-
+  untouched. Full accounting in the EXPERIMENTS addendum, including the viewport boundary a later
+  reading must not pool across.
+- **Why not defer three days and keep the full fourteen.** Holding a visibly degraded conversion
+  surface to protect a measurement *of that same surface* inverts the purpose of the measurement.
+  Arrival is the graded bottleneck and a link opened on a phone is the arrival this loop can actually
+  get. Run 165 declined the same fix for the opposite and correct reason — it was not that change's
+  to carry — and registered it as the next candidate. This is that.
+- **Rejected alternatives, each for a stated reason:**
+  1. **`text-overflow: ellipsis` on the source name.** The first version shipped this and the
+     before/after render rejected it: "The Sydney Morning Herald" would read "The Sydney Morn…".
+     On a product whose subject is provenance, cutting the source's name to make a row fit is the
+     wrong trade. `overflow-wrap: anywhere` lowers the same min-content width — which is the property
+     that lets a flex item shrink at all — by letting the name **wrap** instead.
+  2. **A page-scoped `<style>` on the feed page**, mirroring run 165's permalink CSS. It would have
+     left `/` broken, and `/` was one of the two pages measured over width. The precedent of holding
+     the frozen page byte-identical is good; it is not worth more than the page working.
+  3. **Fix only the feed page now and the landing page after 2026-09-19.** Two rendering behaviours
+     across pages, a second edit to make later, and three more days of a broken conversion surface —
+     more risk for less result.
+  4. **Add a `.src` class to the source span** so the rule could target it precisely. Cleaner CSS,
+     and it changes `card()`, which is shared with the landing page's demo and the find page's
+     sibling list. The `:not()` selector needs no markup change at all.
+  5. **Raise the `@media (max-width: 540px)` breakpoint to shrink the thumbnail further.** Buys width
+     without addressing why the row cannot shrink, and would move every card on every phone rather
+     than only the rows that do not fit.
+  6. **Assert the fix in the unit suite alone.** Whether a page fits is a fact about layout and no
+     assertion over a string can decide it — `test/mobile-fit.test.ts` asserts only that the rules are
+     *served*, to each page separately, and says so in its own header.
+- **The fix was incomplete when it looked done, and the check said so.** After both meta rows were
+  fixed, a find page was still over width: `Open at <domain> →` puts a bare domain inside a button,
+  so the button's min-content width is the domain's — 378px against 350px of page. Found only because
+  the new spec walks every public surface rather than the one under suspicion.
+- **Verified not to move anything that already fitted:** before/after geometry of every element on
+  `/`, `/ava` and a find page, **zero elements moved at 1440px on all three, and zero at 390px on the
+  find page.** The rows that move at 390px are the rows that did not fit.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

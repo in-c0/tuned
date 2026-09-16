@@ -2522,6 +2522,56 @@ commit as the thresholds — now enforced for every future fork by
 [`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs) and recorded as
 [L-77](LESSONS.md).
 
+### Window ended early, 2026-09-16 (run 166) — the registered regression clause, invoked
+
+**The stop condition that fired, quoted from this file above:** *"The landing page's copy, layout,
+offer and form must not change inside the window… **A change forced by a regression is permitted and
+ends the window early, graded on the complete days before it.**"*
+
+**The regression.** Measured on production from a browser in Actions
+([qa-browser run 37](https://github.com/in-c0/tuned/actions/runs/35084104986)) at a 390px viewport,
+verbatim from the job log:
+
+> `/: layout 405px vs device 390px, scrollWidth 405px`
+> `/ava: layout 436px vs device 390px, scrollWidth 436px`
+
+The landing page did not fit a phone. A card's `.meta` row is a flex line whose items cannot shrink
+below their own min-content width, so the row pushed its line box past the card, the initial
+containing block grew to the widest line, and Chrome zoomed the whole document out to fit. This is
+**pre-existing, not introduced by any run inside the window** — it is older than the window and was
+never seen, for the reason recorded as [L-84](LESSONS.md#l-84): the two overflow assertions this loop
+already owned compare `scrollWidth` against `innerWidth`, and this failure moves both together.
+
+**Why it was fixed rather than deferred three days to 2026-09-18.** `/` is the only surface on which
+anybody can apply, arrival is the bottleneck [EXP-007](#exp-007--is-there-a-human-on-the-other-side-of-the-landing-page-2026-08-15-run-43)
+grades as Fork A, and a link sent to a phone is the arrival this loop can actually obtain. Holding a
+visibly degraded conversion surface for three more days to protect a measurement **of that same
+surface** inverts the purpose of the measurement. The clause exists so that no run has to decide this
+fresh, and it decides it this way.
+
+**What this costs and what it does not.** The window is **2026-09-05 … 2026-09-15**, eleven complete
+UTC days instead of fourteen. EXP-011 is **not abandoned** — abandonment is Fork R-E's remedy for
+contamination, and nothing here is contaminated: every day inside the shortened window was served the
+frozen page. R is still Σ `landing_render` ÷ Σ `landing_view` over the complete days named here, read
+**once**, from a snapshot generated after the window closes.
+
+**Deliberately not done in this run, each for a stated reason.**
+
+- **No value of R is computed, quoted or recorded anywhere in run 166's record.** The reading is one
+  reading on one day, and a run that ends a window is the worst-placed run to also read it.
+- **The reading date is left at 2026-09-19 and the fork table is byte-untouched.** *"No second reading
+  and no extension"* forbids moving a date after seeing something; it does not invite moving one
+  before. The forks execute exactly as registered on 2026-09-04.
+- **The registered far-side `qa-browser` bracket still applies**, and its trigger has moved with the
+  window: it was *"once after it closes on 2026-09-19"*, and the window now closes 2026-09-16, so the
+  bracket is due from 2026-09-17 and before the reading is recorded. Its purpose — catching an
+  emitter that detached mid-window — is unaffected by the window being shorter.
+- **The engage and start rates read against R now describe a page that changed on 2026-09-16 at
+  390px and did not change at all at 1440px** (asserted: zero elements moved on `/`, `/ava` and a
+  find page at desktop width, before/after, measured). A later run reading those rates must not pool
+  days across that boundary for phone-width traffic. The counters carry no viewport, so **this note is
+  the only thing that records the boundary** — which is why it is here and not only in STATUS.
+
 ---
 
 ## EXP-012 — if ooh.directory listed `/sportstech`, would Tuned see the arrivals? (2026-09-06, run 143)
