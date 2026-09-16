@@ -647,6 +647,58 @@ jobs:
           echo "${path}: HTTP 200, provenance block present, canonical ${canon}; ${finds} find pages in the sitemap"
           echo "Find pages: ${finds} in the sitemap; \`${path}\` serves one" >> "$GITHUB_STEP_SUMMARY"
 
+      # The edge INTO the find pages, which is a different claim from the one above.
+      #
+      # The step above proves a find page exists and that the sitemap points at it. It says nothing
+      # about whether anything a crawler can *walk to* points at it, and for one day nothing did:
+      # run 164 shipped eighty-seven addresses whose only inbound route was sitemap.xml, because
+      # every card on a feed page is an anchor to the source. A set of pages that link only to each
+      # other and are reachable from no other page is an island, and the sitemap alone does not
+      # make it one a crawler will treat as part of this site. It is also the visitor-facing half:
+      # without a link on the page that shows the find, nobody can obtain a find's URL to send.
+      #
+      # This regresses silently and invisibly — the feed page renders identically whether or not
+      # the permalink is there — so it is asserted here rather than left to the unit suite, which
+      # cannot see production. The handle is taken from the sitemap rather than hard-coded, for the
+      # same reason the step above takes the find that way.
+      - name: A find page can be reached from the feed page, not only from the sitemap
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          handle=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml \
+            | sed 's/<[^>]*>//g' \
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; } \
+            | sed -n '1s|^https://justtuned\.com/\([a-z0-9-]*\)/.*|\1|p')
+          if [ -z "$handle" ]; then
+            echo "::error::no find page in the sitemap to take a handle from"
+            exit 1
+          fi
+          code=$(scripts/prod-http.sh get "${BASE}/${handle}" /tmp/feed-inbound.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/${handle} returned HTTP $code"; exit 1; }
+          # Every permalink the feed page emits, as paths.
+          links=$(grep -o 'class="card-permalink" href="/[a-z0-9-]*/[0-9]*"' /tmp/feed-inbound.html \
+            | sed -n 's|.*href="\([^"]*\)".*|\1|p' | sort -u)
+          n=$(printf '%s' "$links" | { grep -c . || true; })
+          if [ "$n" -eq 0 ]; then
+            echo "::error::/${handle} links to no find page. The eighty-seven find pages are an island again, reachable only from sitemap.xml, and no visitor can obtain a find's URL from the page that shows it."
+            exit 1
+          fi
+          # The card itself must still open the source. If a permalink ever becomes the card's own
+          # href, every click on the only conversion surface lands on Tuned instead of the thing
+          # the member was paying attention to — a worse outcome than having no permalink at all.
+          if grep -q '<a class="card-link" href="/' /tmp/feed-inbound.html; then
+            echo "::error::a feed card on /${handle} now links to Tuned rather than to its source. Roll back."
+            exit 1
+          fi
+          first=$(printf '%s\n' "$links" | sed -n '1p')
+          code=$(scripts/prod-http.sh get "${BASE}${first}" /tmp/inbound-find.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::permalink ${first} on /${handle} returns HTTP $code"; exit 1; }
+          grep -q 'class="provenance"' /tmp/inbound-find.html \
+            || { echo "::error::${first} is not a find page"; exit 1; }
+          echo "/${handle}: ${n} permalinks into find pages; ${first} serves one; cards still open their source"
+          echo "Inbound edge: \`/${handle}\` carries ${n} permalinks; \`${first}\` resolves" >> "$GITHUB_STEP_SUMMARY"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's
