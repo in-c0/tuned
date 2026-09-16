@@ -97,6 +97,55 @@ describe("the rules that keep a page inside a phone are served", () => {
   // The rules live in the shared `CSS` string deliberately: the landing page renders its demo
   // through the same `card()` and was one of the two pages measured over width. A page-scoped
   // stylesheet, which is how the permalink chip was shipped, would have left it broken.
+  // The rollup list is the same hazard one layer in, and it failed differently: the row fits
+  // inside a card that sets `overflow: hidden`, so the name could never widen the document — it
+  // was cut off mid-word instead, with no ellipsis, and the track title next to it was squeezed
+  // to zero width. Measured on production 2026-09-16 and reproduced at 390px: the artist span
+  // 371.2px wide ending at 418.2px, the title 0px. A page-fit check cannot see either, which is
+  // why the browser spec now grades elements past the device edge and not only page width.
+  it("an artist's name in a rollup can shrink and break instead of being cut off", async () => {
+    const html = await get("/fits");
+    expect(html).toContain(
+      ".rollup-list .a { color: var(--faint); font-size: 12px; margin-left: auto; min-width: 0; overflow-wrap: anywhere; text-align: right; }",
+    );
+    // Named separately because this is the declaration that caused it: `white-space: nowrap`
+    // makes the span's min-content width its whole text, and a flex item cannot shrink below
+    // its automatic minimum. Re-adding it would restore the defect with every other rule intact.
+    expect(html).not.toContain(".rollup-list .a { color: var(--faint); font-size: 12px; margin-left: auto; white-space: nowrap; }");
+  });
+
+  // A rule whose selector matches nothing is the same defect as a missing rule, and nothing in
+  // this suite rendered a rollup at all before this. So the element the rule is written for is
+  // asserted to exist, and to carry the whole name: the fix is that the name WRAPS, and a name
+  // shortened on the server would make the stylesheet look right while losing what it protects.
+  it("a rollup renders the span that rule selects, carrying the artist's whole name", async () => {
+    const row = await DB.prepare("SELECT id FROM creators WHERE handle = ?").bind("fits").first<{ id: number }>();
+    const artist = "Jeff Goldblum & The Mildred Snitzer Orchestra, Ariana Grande";
+    // ROLLUP_MIN is 3 items of an ambient category on one day; below that they render as cards
+    // and there is no `.rollup-list` to check.
+    for (let i = 0; i < 3; i++) {
+      await DB.prepare(
+        `INSERT INTO items (creator_id, url, title, description, image_url, site_name, domain, kind, category, note, visibility, created_at)
+         VALUES (?, ?, ?, ?, '', 'Spotify', 'open.spotify.com', 'music', 'Music', '', 'public', ?)`,
+      )
+        .bind(
+          row!.id,
+          `https://open.spotify.com/track/${i}`,
+          `Track ${i}`,
+          `${artist} · An Album`,
+          `2026-09-16T0${i}:00:00.000Z`,
+        )
+        .run();
+    }
+    const html = await get("/fits");
+    expect(html, "three ambient items on one day should collapse into a rollup").toContain('class="rollup-list"');
+    expect(html, "the rule targets `.rollup-list .a` — that span has to be what renders").toContain('<span class="a">');
+    // `&` is escaped in the served HTML, so the name is compared in the form the page carries it.
+    expect(html, "the artist's name must reach the page whole, so that wrapping is what shortens it").toContain(
+      artist.replace(/&/g, "&amp;"),
+    );
+  });
+
   it("the shared stylesheet carries them, not a per-page block", async () => {
     const landing = await get("/");
     const feed = await get("/fits");

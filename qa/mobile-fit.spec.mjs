@@ -29,6 +29,26 @@
 // out of the live sitemap rather than listed here, so a feed or find page this loop publishes
 // later is covered the day it is published and not the day somebody remembers to add it.
 //
+// THE THIRD READING, ADDED RUN 167, AND WHY THE FIRST TWO CANNOT COVER IT EITHER.
+// This spec's first production run measured every page at 390px, reported `brokenCount: 0`, and
+// in the same JSON reported `<span class="a">` on `/ava` — an artist's name — 371.2px wide and
+// ending at 418.2px on a 390px device. Both numbers were right. The page fitted, because the
+// container the name sits in sets `overflow: hidden`, so the name could not widen the document;
+// it was cut off mid-word instead, with no ellipsis to say anything was missing, and the track
+// title beside it had been squeezed to ZERO width by a flex item that could not shrink.
+//
+// That is the inverse of the failure above and it is invisible to both readings by construction:
+// `overflow: hidden` is exactly the declaration that keeps `innerWidth` and `scrollWidth` honest
+// while destroying the content. A page-level measurement cannot see inside a box that fits.
+//
+// So the element list this spec was already collecting is now GRADED rather than only reported:
+//
+//     no element's right edge is past the device edge     (nothing is cut off)
+//
+// An element past the edge is either widening the page — caught above — or being clipped by an
+// ancestor, which is this reading. Reporting it and not failing on it is how run 166 shipped a
+// verified deploy over a defect its own artifact had already measured.
+//
 // GETs only, no mutating route. The headless user-agent means every view this causes is
 // classified as bot traffic by src/metrics.ts and never enters a human-flagged denominator.
 
@@ -78,6 +98,9 @@ async function measure(page, deviceWidth) {
       scrollWidth: document.documentElement.scrollWidth,
       zoomedOut: layoutWidth > deviceWidth + 1,
       scrollsSideways: document.documentElement.scrollWidth > layoutWidth + 1,
+      // True when anything at all reaches past the device edge. On a page that fits, that is
+      // content an ancestor's `overflow: hidden` is cutting off without saying so.
+      overEdge: offenders.length > 0,
       offenders: offenders.slice(0, 10),
     };
   }, deviceWidth);
@@ -147,7 +170,7 @@ test.describe("every public page fits a phone", () => {
       expect(res.status(), `GET ${p} status`).toBe(200);
       const m = await measure(page, deviceWidth);
       readings.push({ path: p, ...m });
-      if (m.zoomedOut || m.scrollsSideways) {
+      if (m.zoomedOut || m.scrollsSideways || m.overEdge) {
         await page.screenshot({
           path: path.join(SHOTS, `mobile-fit-FAIL${p.replace(/\//g, "_") || "_root"}.png`),
           fullPage: true,
@@ -155,7 +178,7 @@ test.describe("every public page fits a phone", () => {
       }
     }
 
-    const broken = readings.filter((r) => r.zoomedOut || r.scrollsSideways);
+    const broken = readings.filter((r) => r.zoomedOut || r.scrollsSideways || r.overEdge);
 
     const summary = {
       check: "mobile-fit",
@@ -186,14 +209,16 @@ test.describe("every public page fits a phone", () => {
     // Reported as one list rather than failing on the first page, because "which pages" is the
     // useful fact and stopping at the first one hides it.
     const describe = (r) =>
-      `${r.path}: layout ${r.layoutWidth}px vs device ${r.deviceWidth}px, scrollWidth ${r.scrollWidth}px` +
+      `${r.path}: ${
+        r.zoomedOut ? "ZOOMED OUT" : r.scrollsSideways ? "SCROLLS SIDEWAYS" : "CONTENT PAST THE EDGE"
+      } — layout ${r.layoutWidth}px vs device ${r.deviceWidth}px, scrollWidth ${r.scrollWidth}px` +
       (r.offenders.length
         ? ` — widest past the edge: <${r.offenders[0].tag} class="${r.offenders[0].cls}"> "${r.offenders[0].text}" ending at ${r.offenders[0].right}px`
         : "");
 
     expect(
       broken.map(describe),
-      "public pages that do not fit a phone (zoomed out to fit, or scrolling sideways)",
+      "public pages that do not fit a phone (zoomed out to fit, scrolling sideways, or cutting content off at the device edge)",
     ).toEqual([]);
   });
 });
