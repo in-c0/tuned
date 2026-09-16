@@ -219,7 +219,14 @@ a.card-link:hover .card { transform: translateY(-1px); border-color: #34344a; }
 }
 .rollup-list a:hover { background: #16161f; }
 .rollup-list .t { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rollup-list .a { color: var(--faint); font-size: 12px; margin-left: auto; white-space: nowrap; }
+/* The artist is the person whose work was listened to, so it is never truncated: it is given a
+ * break opportunity and wraps, on the same reasoning that kept a source's full name on a card.
+ * white-space: nowrap made this span's min-content width its full text width, which is an
+ * automatic minimum a flex item cannot shrink below — so a long name ran past the card, and
+ * .card.rollup's own overflow: hidden cut it mid-word with no ellipsis to say so. Measured on
+ * production 2026-09-16: 371.2px of name ending at 418.2px on a 390px phone, with the track
+ * title beside it shrunk to 0px because it was the only item in the row that could give way. */
+.rollup-list .a { color: var(--faint); font-size: 12px; margin-left: auto; min-width: 0; overflow-wrap: anywhere; text-align: right; }
 
 .day-h { font-size: 12px; color: var(--faint); margin: 22px 0 10px; letter-spacing: 0.04em; }
 .empty { color: var(--faint); font-size: 14px; padding: 30px 0; text-align: center; }
