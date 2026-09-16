@@ -1,5 +1,96 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-17 08:35 Sydney (2026-09-16 22:35 UTC), run 167 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-166 and not re-argued here, per [L-07](LESSONS.md).** **The check that
+found this printed it in its own artifact and graded something else.**
+
+**In plain terms.** Run 166's new phone-fit spec measured 16 public pages on production, returned
+**`brokenCount: 0`**, and in the same JSON reported `<span class="a">` on `/ava` — an artist's name —
+**371.2px wide, ending at 418.2px on a 390px device**. Both statements were true. The page fits,
+because `.card.rollup` sets `overflow: hidden`, so the name could never widen the document: it was
+**cut off mid-word instead, with no ellipsis to say anything was missing.** Run 166 read both numbers,
+named the second as its next candidate, and shipped a verified deploy whose own verification artifact
+contained a measured defect. This is that candidate.
+
+**It was worse than the production reading said, and only the reproduction could show it.** Rebuilt
+locally at 390px with that name seeded, the geometry came back byte-identical — 371.2px wide, ending
+at 418.2px — and carried a second symptom the offender list is structurally unable to report: **the
+track title in that row had been shrunk to 0px.** `white-space: nowrap` made the artist span's
+min-content width its whole text, which is an automatic minimum a flex item cannot shrink below, so
+the title beside it was the only thing in the row that could give way and it gave way entirely. A
+visitor saw **no title at all** and an artist cut after "Ariana". A box squeezed to zero is past no
+edge, so the check that named the overflow could not name the sibling it had erased. [L-85](LESSONS.md#l-85).
+
+**What shipped.** One CSS rule. The artist's name is given a break opportunity and **wraps rather than
+being truncated** — the same trade run 166 made for a source's name, and for the same reason: on a
+product whose subject is provenance, shortening the name of the person whose work was attended to is
+the wrong direction. The title returns to 58.3px and ellipsises honestly; the artist takes two lines
+and is whole.
+
+**The check is extended by the failure it missed, and that is the durable half of this run.** The spec
+had collected every element past the device edge since its first version — as colour for a failure,
+never as a predicate. It now **grades** them: on a page that fits, an element past the edge is content
+an ancestor's `overflow: hidden` is destroying, and no page-level measurement can see inside a box
+that fits. A field a check collects and does not grade will be read as decoration, including by the
+run that wrote it.
+
+**The landing page is byte-identical, so EXP-011 is untouched by this run.** Before/after geometry of
+every element on `/` and `/ava`, rollup collapsed and expanded: **zero elements moved at 1440px on
+both pages**, **zero moved at 390px on `/`**, and the ten that move at 390px on `/ava` are the rollup
+rows that did not fit. The window still ends 2026-09-16 as run 166 set it, the reading stays
+2026-09-19, and **no value of R is computed, quoted or recorded here.**
+
+**Four mutations, four named tests red** — restoring `white-space: nowrap`, dropping
+`overflow-wrap: anywhere`, renaming the span the rule selects, and truncating the artist's name on the
+server. One of them exists because **nothing in the suite had ever rendered a rollup at all**: a rule
+whose selector matches nothing is the same defect as a missing rule, which is [L-81](LESSONS.md#l-81)'s
+shape in CSS.
+
+**Found while shipping this, measured, and NOT fixed — the next candidate.** `check` runs on
+`pull_request` and on pushes to `master`, and **it cannot be green on any pull request in this
+repository.** `scripts/deploy-staleness.test.mjs:274` runs the real CLI against the real git history
+and asks whether the serving commit is on master's first-parent line; its own comment states the
+assumption — *"HEAD is what a checkout of master serves."* On a branch it is not, so the verdict is
+`unknown-serving` and the CLI exits 1, correctly for the question it was asked. Established three
+ways: reproduced locally on the branch, **31/31 green in a clean worktree of `origin/master` with no
+other change**, and this change touches no file `deploy-staleness.mjs` reads. That is why the last
+five `check` runs are all `push` events on `master`. A gate that cannot pass on the thing it gates is
+a real defect; the repair is a design decision about what "serving" means off master, and folding it
+into a verified deploy is exactly what this run exists to stop doing.
+
+**What was deliberately NOT touched.** The card's own `href`. **RSS is byte-untouched** for the fifth
+run. `arrival:<tag>` is byte-untouched. **No counter was added** — this is a defect fix and there is
+nothing new to count. No `ops/EXPERIMENTS.md` hypothesis entry, for the same reason. The agent-scout
+schedule is still disarmed and the threshold-2 proposal is **still unruled** — no reviewer directive
+has been posted since 2026-09-01, and this executor will not arm a schedule on its own reading of a
+threshold it proposed. No item published, amended, retracted or restored. No spend.
+
+**Production, from a browser in Actions after the deploy.**
+[qa-browser run 40](https://github.com/in-c0/tuned/actions/runs/35157335461) at `b16441e9`, the merged
+commit, **confirmed serving by `/api/version` in the job's own log**:
+`{"commit":"b16441e9b5b40bdc6f218068917e20c318c45b50"}`. **16 public pages measured at 390px** — the
+landing page, all five feeds, `/terms`, `/privacy` and 8 find pages sampled across the 87 in a
+95-entry sitemap — **`brokenCount: 0`, `broken: []`, and every one of the sixteen readings carrying
+`overEdge: false` with `offenders: []`**, `/ava` included. The same spec was **red on production six
+minutes earlier** at [run 39](https://github.com/in-c0/tuned/actions/runs/35156853964), naming that
+one span at 418.2px, which is what makes this a before/after and not an assertion.
+`mutatingRequests: 0`, `rowsInserted: 0`.
+
+**Gates.** [check 284](https://github.com/in-c0/tuned/actions/runs/35157101501) green on `master`
+(build-info + wrangler types + `tsc --noEmit`, 379 vitest tests, the `node --test` ops suite,
+`validate-workflows.py`, `validate-nominations.mjs`), `npm audit --omit=dev` 0 vulnerabilities, and
+[verify production 269](https://github.com/in-c0/tuned/actions/runs/35157101474) green.
+
+**Not claimed.** This makes one card on the demo feed readable on a phone. **It does not create
+traffic, and nothing here predicts that it will.**
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **18 days left.**
+
+---
+
+## Run 166 (2026-09-16 20:35 Sydney) — the landing page did not fit a phone, and the check written to catch that read green throughout
+
 **Last updated:** 2026-09-16 20:35 Sydney (2026-09-16 10:35 UTC), run 166 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-165 and not re-argued here, per [L-07](LESSONS.md).** **The landing page
 did not fit a phone, and the check written to catch that read green throughout.**

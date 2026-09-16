@@ -3456,3 +3456,51 @@ beside each wrong line rather than replacing it.
   bare domain inside a button, so the button's min-content width is the domain's — 378px against
   350px of page. It was found only because the spec walks every surface rather than the one under
   suspicion. **Third run running that a browser caught what the markup assertions cannot see.**
+
+---
+
+## L-85 — the check measured the defect, printed it in its own artifact, and graded something else (2026-09-16, run 167)
+
+- **What happened:** [L-84](#l-84)'s new spec ran against production, measured 16 public pages at
+  390px, and returned **`brokenCount: 0`**. In the same JSON, on the same page, it reported
+  `<span class="a">` — an artist's name on `/ava` — **371.2px wide, ending at 418.2px on a 390px
+  device**. Both statements were correct. Run 166 read them, named the second as its next candidate,
+  and shipped a **verified** deploy whose own verification artifact contained a measured defect.
+- **Why the grade and the measurement disagreed.** The spec graded `zoomedOut || scrollsSideways` —
+  two facts about the *page*. This span cannot move either: `.card.rollup` sets `overflow: hidden`, so
+  the name could never widen the document. It was **cut off mid-word instead**, with no ellipsis to
+  say anything was missing. `overflow: hidden` is precisely the declaration that keeps `innerWidth`
+  and `scrollWidth` honest **while destroying the content**, so a page-level measurement cannot see
+  inside a box that fits. The element list was collected on every page from the first version of the
+  file — as diagnostic colour for a failure, never as a predicate.
+- **And it was worse than the production reading said.** Reproduced locally at 390px, byte-identical
+  at 371.2px/418.2px, the reproduction showed a second symptom the production reading never named:
+  the **track title in that row had been shrunk to 0px**. `white-space: nowrap` made the artist span's
+  min-content width its whole text — an automatic minimum a flex item cannot shrink below — so the
+  title beside it was the only thing in the row that could give way, and it gave way entirely. A
+  visitor saw **no title at all** and an artist cut after "Ariana". The offender list named the span
+  that overflowed and could not name the sibling it had erased, because a box shrunk to zero is not
+  past any edge.
+- **Evidence and cost:** [qa-browser run 38](https://github.com/in-c0/tuned/actions/runs/35085513879)
+  — `brokenCount: 0` and the 418.2px offender in one artifact. No cost measurable: every standing
+  figure is 0, so no visitor is known to have seen it. The cost is one full cycle of a verified-green
+  claim standing over a measured defect, and a rollup card on the demo feed that a stranger is sent to
+  from the landing page.
+- **Lesson:** **a field a check collects and does not grade will be read as decoration, including by
+  the run that wrote it.** [L-84](#l-84) is about a predicate that cannot see the failure; this is one
+  layer up and more ordinary — the predicate *had* the evidence and asked a narrower question of it.
+  A green verdict is trusted in proportion to how much the check looked at, so a check that looks at
+  more than it grades converts its own thoroughness into false confidence. Either grade what you
+  collect, or say in the file why a collected field is deliberately not a gate.
+- **What shipped:** one CSS rule — the name is given a break opportunity and **wraps rather than being
+  truncated**, on the same trade [L-84](#l-84) made for a source's name: on a product whose subject is
+  provenance, shortening the name of the person whose work was attended to is the wrong direction. The
+  title returns to 58.3px and ellipsises honestly; the artist takes two lines and is whole.
+- **Prevention check:** `qa/mobile-fit.spec.mjs` now grades `overEdge` — **no element's right edge is
+  past the device edge** — alongside the two page-level readings, and the file states why: on a page
+  that fits, an element past the edge is content an ancestor's `overflow: hidden` is destroying. Red
+  on the unchanged build naming this exact span and measurement, green on the fixed one.
+  `test/mobile-fit.test.ts` asserts on every push that the rule is served **and** that a rollup
+  renders the span the rule selects at all — nothing in the suite had ever rendered one, and a rule
+  whose selector matches nothing is the same defect as a missing rule ([L-81](#l-81)'s shape in CSS:
+  a thing written with no reader).
