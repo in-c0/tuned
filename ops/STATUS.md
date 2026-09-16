@@ -1,5 +1,83 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-16 20:35 Sydney (2026-09-16 10:35 UTC), run 166 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-165 and not re-argued here, per [L-07](LESSONS.md).** **The landing page
+did not fit a phone, and the check written to catch that read green throughout.**
+
+**In plain terms.** Measured on production from a browser in GitHub Actions at a 390px viewport:
+**`/` laid out at 405px and `/ava` at 436px on a 390px device.** Chrome does not scroll such a page
+sideways — it **zooms the whole document out** to fit, so every word on the only page anybody can
+apply from was rendered smaller than designed, on every phone, for an unknown length of time. Run 165
+found the symptom locally, measured it against an unchanged build, correctly ruled it not that
+change's to carry, and registered it as the next candidate. This is that candidate.
+
+**Why 166 runs of QA never saw it, which is the part worth keeping.** Two specs already asserted
+horizontal overflow at this exact viewport, both as `scrollWidth <= innerWidth + 1`. That is a real
+check and it catches a page that scrolls sideways. It is **structurally blind** to this failure,
+because the failure moves *both* numbers: the layout viewport grows to the widest line box and
+`scrollWidth` grows with it. The two stay equal, so **the assertion is greenest at the moment the page
+is worst.** A check that compares two numbers is only as good as their independence. [L-84](LESSONS.md#l-84).
+
+**What shipped.** Four CSS rules. A card's `.meta` row may now wrap, and the source name, the find
+page's source row and the `Open at <domain>` button are each given a break opportunity. It is
+`overflow-wrap: anywhere` and **not** `text-overflow: ellipsis`: the first version truncated, the
+before/after render showed "The Sydney Morning Herald" reading "The Sydney Morn…", and on a product
+whose subject is provenance, cutting the source's name to make a row fit is the wrong trade. The full
+name wraps to a second line instead and nothing is lost.
+
+**In the shared stylesheet, not a page-scoped block — and that is the cost of this run.** `/` was one
+of the two pages measured over width, and it renders its demo through the same `card()`, so the
+page-scoped trick run 165 used for the permalink chip would have left the broken page broken. The
+landing page therefore changes at 390px, which invokes **[EXP-011](EXPERIMENTS.md#exp-011)'s
+pre-registered regression clause**: its window ends **2026-09-16** instead of 2026-09-18 — eleven
+complete days instead of fourteen. **Not abandoned**, and **no value of R is computed, quoted or
+recorded in this run.** The reading stays on 2026-09-19 and the fork table is byte-untouched.
+
+**Why that trade, stated plainly.** Holding a visibly degraded conversion surface for three more days
+to protect a measurement *of that same surface* inverts the purpose of the measurement. Arrival is the
+graded bottleneck and a link opened on a phone is the arrival this loop can actually get.
+
+**It was incomplete when it looked done, and the new check said so.** After both meta rows were fixed
+a find page was still over width: `Open at blog.engineering.longsubdomain…` puts a bare domain inside
+a button, so the button's min-content width is the domain's — 378px against 350px of page. Found only
+because the spec walks **every** public surface rather than the one under suspicion.
+
+**Verified not to move anything that already fitted.** Before/after geometry of every element on `/`,
+`/ava` and a find page: **zero elements moved at 1440px on all three, and zero at 390px on the find
+page.** The rows that move at 390px are exactly the rows that did not fit.
+
+**What was deliberately NOT touched.** The card's own `href`. **RSS is byte-untouched** for the fourth
+run. `arrival:<tag>` is byte-untouched. **No counter was added** — this is a defect fix and there is
+nothing new to count. No `ops/EXPERIMENTS.md` hypothesis entry for the same reason. The agent-scout
+schedule is still disarmed and the threshold-2 proposal is still unruled. No item published, amended,
+retracted or restored. No spend.
+
+**Production, from a browser in Actions after the deploy.**
+[qa-browser run 38](https://github.com/in-c0/tuned/actions/runs/35085513879) at
+`8c02c808`, the pushed commit, confirmed serving by `/api/version` in the job's own log. **16 public
+pages measured at 390px — the landing page, all five feeds, `/terms`, `/privacy` and 8 find pages
+sampled across the 87 in the sitemap — `brokenCount: 0`, every one reading `layoutWidth` 390 and
+`scrollWidth` 390.** `/` went 405 → 390 and `/ava` went 436 → 390. The same spec was red on
+production 15 minutes earlier, which is what makes this a before/after and not an assertion.
+
+**Found by that run, measured, and NOT fixed — the next candidate.** On `/ava` the page fits, and one
+element still reports past the device edge: `<span class="a">` reading *"Jeff Goldblum & The Mildred
+Snitzer Orchestra, Ariana Grande"*, **371.2px wide, ending at 418.2px**. It is the artist line in the
+ambient **Music rollup**, and it does not widen the page because `.card.rollup` sets `overflow:
+hidden` — so the name is **clipped mid-word with no ellipsis**. A different defect from this run's:
+not a page that fails to fit, but text cut off inside a container that does. Contained and cosmetic,
+found after this change was verified, and registered rather than folded into a verified deploy.
+
+**Not claimed.** This makes the pages render at the size they were designed for on a phone. **It does
+not create traffic, and nothing here predicts that it will.**
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **19 days left.**
+
+---
+
+## Run 165 (2026-09-16 14:35 Sydney) — yesterday every find got an address, and nothing on this site pointed at one
+
 **Last updated:** 2026-09-16 14:35 Sydney (2026-09-16 04:35 UTC), run 165 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-164 and not re-argued here, per [L-07](LESSONS.md).** **Yesterday every
 find got an address. Nothing on this site pointed at one.**
@@ -60,8 +138,6 @@ an observation for later runs.
 
 **Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
 gross cash **AUD $0**, from *no billing exists*. **19 days left.**
-
----
 
 ## Run 164 (2026-09-16 08:35 Sydney) — Tuned had published 87 finds and given an address to none of them
 

@@ -18,6 +18,73 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Tuned's front page did not fit a phone screen, and the automatic check for exactly that problem said it was fine the whole time.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here.
+>
+> **What was wrong.** I opened justtuned.com in a real phone-sized browser and measured it. The page
+> needed 405 pixels of width on a 390-pixel phone; your `/ava` feed needed 436. When that happens,
+> a phone browser does not let you scroll sideways — it **shrinks the entire page** to make it fit.
+> So every visitor arriving on a phone was reading Tuned at about 90% size, with all the text
+> correspondingly smaller. On the front page. The only page anyone can apply from.
+>
+> **Why nothing caught it, which is the bit worth understanding.** I already had two automated checks
+> for "does the page overflow sideways", running at exactly this phone size. Both worked by comparing
+> the page's width against the window's width. The problem is that when the browser shrinks the page
+> to fit, it counts the *window* as being wider too — so both numbers grow together and stay equal,
+> and the check reports everything is fine. It was not a missing check. It was a check asking a
+> question that this particular fault makes unanswerable, and it looked healthiest at the worst
+> moment. The new check compares the page against the size I actually asked for, which the page
+> cannot influence.
+>
+> **What I fixed.** Four styling rules. A card's little grey line of labels ("Research · The Sydney
+> Morning Herald · 1h ago · via @scout") can now wrap onto a second line instead of forcing the page
+> wider, and a very long source name can break across lines instead of being one unbreakable block.
+> I first made long names get cut off with a "…" and then looked at it: "The Sydney Morning Herald"
+> became "The Sydney Morn…". For a product whose entire subject is *who paid attention to what*,
+> shortening the source's name to make a row fit is the wrong trade, so it wraps instead and you
+> still get the whole name.
+>
+> **The cost, and it is a real one.** To fix the front page I had to change the front page, which was
+> frozen for a measurement running until 18 September. That measurement had a rule written into it in
+> advance, before anyone knew what would come up: *if a fault forces a change, make the change and
+> grade the measurement on the complete days up to that point.* So it now covers 11 days instead of
+> 14. It is **not cancelled**, and I have deliberately not looked at its result — that reading is
+> still due on 19 September, exactly as planned. I judged three more days of a shrunken front page to
+> be worse than three fewer days of data *about* that front page.
+>
+> **It was not finished when it looked finished.** After fixing the cards, the new check found one
+> more page still too wide: the "Open at ..." button on a find page contains the website's address,
+> and a long address is one unbreakable lump 378 pixels wide on a 350-pixel page. I only found it
+> because the new check walks every public page rather than the one I suspected.
+>
+> **What I did not touch.** On a normal computer screen, nothing moved at all — I measured every
+> element on three pages before and after and not one of them shifted. RSS is untouched for the
+> fourth run. I added no new counters; there is nothing new here to count.
+>
+> **Checked on the real site afterwards.** I measured 16 public pages on a phone-sized browser after
+> deploying — the front page, all five feeds, terms, privacy, and 8 find pages. **Every one now fits
+> exactly.** The front page went from needing 405 pixels to needing 390; `/ava` went from 436 to 390.
+> The same check was failing on the live site fifteen minutes earlier, so this is a before-and-after
+> and not a claim.
+>
+> **One more thing that check found, which I have written down rather than fixed.** In the daily music
+> summary on `/ava`, a long artist name — "Jeff Goldblum & The Mildred Snitzer Orchestra, Ariana
+> Grande" — gets **cut off mid-word** with no "…" to show it. It does not break the page (the box it
+> sits in hides the overflow), so it is cosmetic, and it is a different fault from the one I just
+> fixed. It turned up *after* this change was already deployed and verified, and quietly extending a
+> verified change is how verification stops meaning anything. It is next on the list, with the
+> measurement already taken.
+>
+> **The number that has not moved in forty-three days.** Nobody has applied, nobody follows
+> `@sportstech`, and there is no money. **19 days left.** The two items in §1 are still the only
+> things on this list that could produce a customer. This fixes something that was quietly making
+> every phone visit worse; **it does not bring anyone here by itself, and I am not claiming it will.**
+>
+> ---
+>
 > # **Yesterday I gave every find its own web address. Today I found that nothing on the site pointed at a single one of them.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to

@@ -5991,4 +5991,14 @@ figure is forecast and none is claimed.**
 - **Verified not to move anything that already fitted:** before/after geometry of every element on
   `/`, `/ava` and a find page, **zero elements moved at 1440px on all three, and zero at 390px on the
   find page.** The rows that move at 390px are the rows that did not fit.
+- **Found by the new check, measured, and deliberately NOT fixed.** On `/ava` after the fix, the page
+  fits — `layoutWidth` 390, `scrollWidth` 390, not zoomed out, does not scroll sideways — but one
+  element still reports past the device edge: `<span class="a">` reading *"Jeff Goldblum & The
+  Mildred Snitzer Orchestra, Ariana Grande"*, **371.2px wide, ending at 418.2px**. It is the artist
+  line inside the ambient **Music rollup**, and it does not widen the page because `.card.rollup` sets
+  `overflow: hidden` — so the name is **silently clipped mid-word, with no ellipsis**. That is a real
+  defect and a different one: not a page that fails to fit, but text cut off inside a container that
+  does fit. It is contained, cosmetic, and was found after this run's change was verified; folding it
+  in now would widen a deployed and verified change. **Registered as the next candidate with its
+  measurement**, exactly as run 165 registered this one.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
