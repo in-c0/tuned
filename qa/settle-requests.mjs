@@ -100,6 +100,38 @@ export function trackInFlight(page, isFirstParty, deps = {}) {
   return { settle, outstanding, pendingCount: () => pending.size };
 }
 
+/**
+ * Collect first-party responses that came back with an HTTP error status.
+ *
+ * This exists because of a gap wide enough to hide a real defect for five days, and the gap is
+ * structural rather than an oversight in any one spec. Every browser spec in this repository
+ * grades `requestfailed` — and **a 404 is not a request failure.** The server answered, the
+ * browser got a response, and the only thing Chromium hands the page is a console line reading
+ * "Failed to load resource: the server responded with a status of 404 ()" whose URL the run-169
+ * bracket did not record. The header of this very file says so at the top and then only uses it
+ * to argue about aborts: *"A pulse that 404s or 403s produces a response with that status, not an
+ * abort."* So a subresource this site declares on its own origin can 404 on every page load while
+ * `firstPartyRequestFailures` stays empty and every check stays green. See L-85 and L-88.
+ *
+ * Main-document responses are included on purpose. A navigation that answers 404 is the same
+ * defect one level up, and a spec that checks the status of the documents it names can still miss
+ * a 404 on a document it never thought to name.
+ *
+ * `isFirstParty(url)` is the caller's predicate, for the same reason `trackInFlight` takes one:
+ * two definitions of "first party" in one repository is how they drift apart.
+ */
+export function trackHttpErrors(page, isFirstParty) {
+  const errors = [];
+  page.on("response", (res) => {
+    const url = res.url();
+    if (!isFirstParty(url)) return;
+    const status = res.status();
+    if (status < 400) return;
+    errors.push({ url, status, resourceType: res.request().resourceType() });
+  });
+  return errors;
+}
+
 /** The one request shape a page here deliberately abandons: a fire-and-forget pulse beacon. */
 export const PULSE_PATH_PREFIX = "/api/pulse/";
 
