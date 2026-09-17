@@ -2562,3 +2562,36 @@ of the landing page began 404ing somewhere in those six days.** It is not the re
 request. **Which resource it is cannot be read from the artifact**, because the spec records the
 console message and not the URL — [L-85](LESSONS.md#l-85) in this loop's own instrument, one run after
 L-85 was written. Registered as a next candidate, not repaired inside a bracket dispatch.
+
+## Run 170 (2026-09-18 08:35 Sydney) — no metric moved, and the one open instrument question is answered as "cannot be answered"
+
+**No commercial metric moved and none is claimed.** From [`metrics/latest.json`](metrics/latest.json),
+`generated_at` **2026-09-17T04:54:05.899Z** — unchanged from run 169, because no snapshot has run
+since: `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, sourced from *no billing exists*.
+
+**No counter was added, renamed or redefined.** `src/` is byte-identical at
+[`8433a13`](https://github.com/in-c0/tuned/commit/8433a1365a927b4486d98af32deb927d64373883), so every
+name means exactly what it meant yesterday and **[EXP-011](EXPERIMENTS.md#exp-011) is untouched — no
+value of R is computed or quoted here, and the reading stays 2026-09-19.**
+
+**The run-169 reading above is closed, and closed as unattributable.** That entry recorded one
+`console_errors` line — *"Failed to load resource: the server responded with a status of 404 ()"* —
+and registered the missing URL as a next candidate. Both repaired instruments were dispatched against
+production serving `2740d05`:
+
+| Instrument | Run | Reading |
+| --- | --- | --- |
+| `public-surfaces.spec.mjs` (landing + demo feed, two viewports) | [qa-browser 43](https://github.com/in-c0/tuned/actions/runs/35281317448) | `firstPartyHttpErrors` **`[]`** · `firstPartyConsoleErrors` **`[]`** · `thirdPartyConsoleErrors` **`[]`** · `thirdPartyRequestFailures` **`[]`** |
+| declared same-origin assets | same run | `/icon-192.png` **200 `image/png` 20,169 B** · `/icon-512.png` **200 `image/png` 80,418 B** |
+| `pulse-instrument.spec.mjs` (landing) | [qa-browser 44](https://github.com/in-c0/tuned/actions/runs/35281433150) | `console_errors` **`[]`** · `http_errors` **`[]`** · `page_errors` **`[]`** · three pulses **204** · `landing_render_observed` **1** |
+
+**The 404 does not reproduce, and it can never now be identified.** The artifact that observed it
+recorded the console message and not the URL, so there is nothing to go back to. That is the honest
+close: **one production fault observed on 2026-09-17 at 10:07 UTC, permanently unattributable**, and
+the reason the instrument was repaired. A recurrence will now be named — url, status and resource
+type — rather than merely noticed.
+
+**Contamination.** Two dispatches, GETs plus the landing page's own three pulse beacons, headless
+user-agent throughout, so every increment is `_bot`-classified and no human-flagged denominator
+moved. `mutatingRequests: 0`, `rowsInserted: 0`, the application form typed into and never submitted.

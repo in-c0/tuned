@@ -6102,3 +6102,40 @@ figure is forecast and none is claimed.**
   [qa-browser 35208853203](https://github.com/in-c0/tuned/actions/runs/35208853203). Green, hoist
   trigger unfired, recorded under EXP-011. **No reading of R was taken; it stays 2026-09-19.**
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-18 — run 170: graded the failure shape every browser spec was blind to
+
+- **Directive:** none outstanding. The newest comment on issue #1 before this run is run 169's
+  execution report; no reviewer directive has been posted since 2026-09-01. The action is run 169's
+  own registered candidate (1), taken under the standing mission.
+- **Decision: repair the instrument that saw a production 404 and could not name it — and, having
+  found that no check in the repository grades an HTTP error status at all, close that instead of
+  only adding a field.** Run 169's bracket recorded *"Failed to load resource: the server responded
+  with a status of 404 ()"* with no URL. Every browser spec in `qa/` grades `requestfailed`, and a
+  404 is not a request failure: the server answered. `qa/settle-requests.mjs` says so in its own
+  header and uses the fact only to argue about aborts. Shipped in
+  [PR #71](https://github.com/in-c0/tuned/pull/71) →
+  [`8433a13`](https://github.com/in-c0/tuned/commit/8433a1365a927b4486d98af32deb927d64373883).
+- **Decision: grade first-party HTTP errors in `public-surfaces.spec.mjs`, and deliberately NOT in
+  `pulse-instrument.spec.mjs`.** The pulse spec records `http_errors` and now carries
+  `location().url` on console errors, but adding a new failure mode to EXP-011's own apparatus eight
+  days before its reading could void a bracket for a reason unrelated to what the bracket brackets.
+  Recording is what run 169 asked for; grading belongs where a red means the surface is broken.
+- **Decision: check the assets nothing fetches, separately and on purpose.** `og:image` is never
+  requested by the page that declares it — unfurlers fetch it, off our network — so no browser
+  instrument can ever observe it failing. `socialHead` falls back to `${SITE_ORIGIN}/icon-512.png`
+  for every page with no image of its own, which makes it the image every share of this site unfurls
+  with. The new route-level test reads the declared URLs out of the served HTML rather than from a
+  constant, and requires 200 **with an `image/*` content-type** — a 200 serving the HTML 404 page
+  would pass a status check and still unfurl as nothing.
+- **Rejected: shipping the fix the hypothesis pointed at.** `layout()` declares `/icon-192.png` on
+  every page and no Worker route serves it; `/:handle` would answer 404. That is true of the routing
+  table and **false of production**, because the `assets` binding serves it first — confirmed 200
+  `image/png`, 20,169 bytes. The dating that made it look confirmed was an artifact of a **shallow
+  clone** whose history bottoms out on 2026-09-12. Recorded in [L-88](LESSONS.md#l-88).
+- **Result, stated as a negative because that is what it is:** both repaired instruments came back
+  clean against production `2740d05`. The 404 does not reproduce and can never now be attributed.
+  **Nothing was fixed, because nothing is broken.**
+- **Standing constraint applied to the next run:** this is the second control-plane cycle in three.
+  Under NORTH_STAR rule 7 and [L-08](LESSONS.md), run 171 goes to arrival or product.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

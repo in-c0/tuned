@@ -1,5 +1,83 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-18 08:35 Sydney (2026-09-17 22:35 UTC), run 170 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-169 and not re-argued here, per [L-07](LESSONS.md).** **A 404 is not a
+request failure, so nothing in the repository graded one.**
+
+**In plain terms.** Run 169's landing bracket recorded one console error — *"Failed to load resource:
+the server responded with a status of 404 ()"* — and **could not say which resource**, because the
+spec stored the message and not the URL. Run 169 registered the repair as its first candidate. Going
+after it found something larger than a missing field: **there was no check that could have caught the
+404 at all.** Every browser spec here grades `requestfailed`, and **a 404 is not a request failure** —
+the server answered. `qa/settle-requests.mjs` states that fact in its own header and then uses it only
+to argue about aborts. So a subresource declared on our own origin could 404 on every page load with
+`firstPartyRequestFailures` empty and all six gates green. Not weaker coverage — **none**, wearing the
+shape of a passing assertion.
+
+**What shipped.** [PR #71](https://github.com/in-c0/tuned/pull/71) →
+[`8433a13`](https://github.com/in-c0/tuned/commit/8433a1365a927b4486d98af32deb927d64373883).
+`trackHttpErrors(page, isFirstParty)` collects first-party responses with status ≥ 400, naming **url,
+status and resourceType**. Main documents and refused pulses are not exempt; third-party hosts are — a
+dead favicon on someone else's CDN is not our defect. `public-surfaces.spec.mjs` records it as
+`firstPartyHttpErrors` and **grades** it. `pulse-instrument.spec.mjs` records it as `http_errors` and
+its console errors now carry `location().url`, but **grading deliberately stays out of that file**: it
+is EXP-011's apparatus with a reading due 2026-09-19, and a new failure mode there could void a
+bracket for a reason unrelated to what the bracket brackets.
+
+**The half no browser instrument can reach, which is the part worth more than the field.** `og:image`
+is **never requested by the page that declares it** — it is fetched by unfurlers, off our network, on
+a machine no check here runs on. It can 404 forever with every browser spec green and every request
+list empty. `socialHead` falls back to `${SITE_ORIGIN}/icon-512.png` for **every page with no image of
+its own**, the landing page included, so that is the image every share of this site unfurls with. A
+new route-level test reads the icon and `og:image` URLs **out of the served HTML** — a constant list
+here would go stale, which is the failure being checked — keeps the same-origin ones, and requires
+each to answer **200 with an `image/*` content-type**. A 200 serving the HTML 404 page would satisfy a
+status check and still unfurl as nothing. The count is graded too, so it cannot pass by checking
+nothing.
+
+**The defect this run went looking for does not exist, and that is the result rather than a
+disappointment.** Both repaired instruments were dispatched against production serving
+[`2740d05`](https://github.com/in-c0/tuned/commit/2740d05): `firstPartyHttpErrors` **`[]`** on the
+landing page and the demo feed at both viewports, `console_errors` **`[]`**, `http_errors` **`[]`**,
+and both declared assets resolve — `/icon-192.png` **200 `image/png` 20,169 B**, `/icon-512.png`
+**200 `image/png` 80,418 B**. **Nothing was fixed, because nothing is broken.** The 404 seen at
+10:07 UTC does not reproduce at 22:20 UTC, and it **cannot be identified retroactively** — the
+artifact that saw it did not record the URL, which is exactly the gap this run closed. A working
+hypothesis was checked and discarded rather than shipped: `layout()` declares `/icon-192.png` on
+every page and no Worker route serves it, which looked like the answer until production said the
+`assets` binding serves it at 200. **An earlier reading that the icons landed on 2026-09-12 was an
+artifact of a shallow clone bottoming out on that date, not real history, and is withdrawn.**
+
+**What this run is, stated plainly.** Control-plane work, and the second such cycle in three. It ships
+no user-visible change and creates no traffic. It is taken because the loop's sentence *"every gate is
+green"* was covering a class of production defect it structurally could not see, on the surfaces the
+only two available levers depend on. **Under [NORTH_STAR rule 7](NORTH_STAR.md) that budget is now
+spent: run 171 goes to arrival or product, not to instruments.**
+
+**Gates.** `npm run check` exit 0 · **397 vitest** (389 → 397, eight new) · **ops suite 215/215** ·
+`validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit --omit=dev`
+**0 vulnerabilities** — every one on the branch with a commit on it. [check 295](https://github.com/in-c0/tuned/actions/runs/35281357919),
+a `pull_request` event, **success**. **Three mutations, named tests red on each**, `qa/settle-requests.mjs`
+restored byte-identical after every one: the first-party filter dropped, the threshold relaxed past
+404, the URL blanked — the L-85 shape itself.
+
+**Deliberately NOT touched.** **`src/` is byte-identical**, so the landing page is byte-identical and
+**[EXP-011](EXPERIMENTS.md#exp-011) is untouched by this run** — its reading stays **2026-09-19** and
+**no value of R is computed, quoted or recorded here.** No route, schema, counter, secret, dependency
+or public claim; no new data category. `arrival:<tag>` is byte-untouched. RSS is byte-untouched. The
+agent-scout schedule is still disarmed and the threshold-2 proposal is **still unruled** — no reviewer
+directive since 2026-09-01. No item published, amended, retracted or restored. No spend.
+
+**Not claimed.** This fixes no user-visible defect and repairs no outage. **It does not create traffic,
+and nothing here predicts that it will.**
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **17 days left.**
+
+---
+
+## Run 169 (2026-09-17 20:35 Sydney) — the surface people subscribe to said everything about the source and nothing about the attention
+
 **Last updated:** 2026-09-17 20:35 Sydney (2026-09-17 10:35 UTC), run 169 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-168 and not re-argued here, per [L-07](LESSONS.md).** **The surface people
 subscribe to said everything about the source and nothing about the attention.**

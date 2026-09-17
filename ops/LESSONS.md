@@ -3594,3 +3594,53 @@ beside each wrong line rather than replacing it.
 - **Prevention check:** the same fetch now also asserts what the new structure is *for* — the
   provenance paragraph must name the selector and carry that find's address on the canonical origin —
   so the spec fails if a later run silently drops either, rather than merely tolerating both.
+
+## L-88 — a 404 is not a request failure, so nothing in the repository graded one (2026-09-18, run 170)
+
+- **What happened:** run 169's landing bracket recorded exactly one console error — *"Failed to load
+  resource: the server responded with a status of 404 ()"* — and could not say **which** resource,
+  because `qa/pulse-instrument.spec.mjs` stored `m.text()` and not `m.location().url`. That is
+  [L-85](#l-85) inside this loop's own instrument, one run after L-85 was written. Run 169 registered
+  the repair as its first candidate; this run took it.
+- **The larger finding, which is why this is its own lesson rather than a second L-85.** Going to
+  find the check that *should* have caught the 404 found that **there was none.** Every browser spec
+  in `qa/` grades `requestfailed`, and **a 404 is not a request failure** — the server answered, the
+  browser got a response, and Chromium reports it to the page only as that anonymous console line.
+  `qa/settle-requests.mjs` **states the fact in its own header** — *"A pulse that 404s or 403s
+  produces a response with that status, not an abort"* — and then uses it only to argue about which
+  aborts to exempt. The consequence was never written down: a subresource declared on our own origin
+  could 404 on **every page load**, on every public surface, with `firstPartyRequestFailures` empty
+  and all six gates green.
+- **Lesson:** **an empty failure list is only as wide as the event it listens to.** `requestfailed`
+  answers "did the transport break", not "did the server refuse". A check that grades one and is read
+  as grading the other is worse than no check, because it converts an unexamined surface into a
+  green one. When a spec asserts a list is empty, name the event that fills it and ask what it
+  cannot contain. This is [L-87](#l-87)'s shape one level down: L-87 was a check with no gate to
+  fail at; this is a gate-run check whose predicate never covered the failure.
+- **The second half is the one no browser instrument can reach, and it is the commercially larger
+  one.** `og:image` is **never requested by the page that declares it**. It is fetched by unfurlers —
+  Slack, iMessage, Discord, LinkedIn — off our network, on a machine no check here runs on. It can
+  404 forever with every browser spec green and every request list empty, because no browser was ever
+  going to ask for it. `socialHead` falls back to `${SITE_ORIGIN}/icon-512.png` for every page with
+  no image of its own, the landing page included, so that is the image **every share of this site
+  unfurls with** — and with both named distribution channels owner-blocked, sharing is one of the two
+  levers left. **A declared asset nothing fetches needs a check that fetches it on purpose;
+  watching the network cannot ever find it.**
+- **Cost:** none realised, and the honest reading is that this was luck rather than diligence. Both
+  repaired instruments came back clean against production `2740d05` — `firstPartyHttpErrors: []`,
+  `http_errors: []`, `console_errors: []`, `/icon-192.png` and `/icon-512.png` both 200 `image/png`.
+  **The 404 run 169 saw does not reproduce and can never now be identified**, because the artifact
+  that saw it did not record the URL. That is the whole cost: one production fault observed, and
+  permanently unattributable.
+- **Prevention check:** `trackHttpErrors` grades first-party responses with status ≥ 400 in
+  `public-surfaces.spec.mjs`, and a route-level test reads the icon and `og:image` URLs out of the
+  served HTML and requires 200 with an `image/*` content-type — content-type included, because a 200
+  serving the HTML 404 page satisfies a status check and still unfurls as nothing.
+- **A method note worth keeping, because it nearly went the other way.** The working hypothesis was
+  that `layout()` declares `/icon-192.png` on every page while no Worker route serves it, and
+  `/:handle` would answer 404 — which is true of the routing table and false of production, because
+  the `assets` binding serves it first. Shipping that "fix" would have been a change to production
+  justified by a defect that did not exist. **The dating that made it look confirmed — icons added
+  2026-09-12, inside the window the 404 appeared in — was an artifact of a shallow clone whose
+  history bottoms out on 2026-09-12.** `git log -S` on a shallow clone dates a thing to the
+  boundary, not to its origin. Check `.git/shallow` before treating a first appearance as a date.
