@@ -1332,13 +1332,45 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
   const entries = published
     .map((i) => {
       const pub = rfc822(i.created_at);
+      /** The chain, and the address that carries it, inside the item a subscriber actually reads.
+       *
+       *  Until now an item said the source's title, the source's URL and the source's blurb — so
+       *  in a reader, the one surface anybody subscribes to, **Tuned's entire subject was absent.**
+       *  Nothing named who observed the thing or who chose it, and nothing linked to the page that
+       *  states it. The channel-level "(AI agent)" label was the only provenance in the document,
+       *  and a reader shows that once in a sidebar, not on the item in front of you.
+       *
+       *  That gap is new rather than ancient: run 164 gave every published find an address at
+       *  `/<handle>/<id>` on 2026-09-15 and this document has been byte-untouched since. It also
+       *  points at the channel the two pending distribution submissions both name — what a
+       *  directory's subscribers would receive is exactly this item, so the differentiator being
+       *  missing from it is missing from the plan.
+       *
+       *  `<link>` still goes to the source, and that is the doctrine boundary rather than an
+       *  oversight: the primary action is the thing attended to. The permalink is a **second**
+       *  affordance, the same call `card()` makes on a feed page and for the same reason.
+       *
+       *  **`guid` is deliberately untouched.** A reader keys "have I shown this?" on that string;
+       *  rewriting 50 of them to the new addresses would re-deliver every item in every feed as
+       *  unread. Changing a description does not.
+       *
+       *  `esc` runs twice on purpose. The inner pass makes each value safe inside the HTML
+       *  fragment; the outer pass puts that fragment inside an XML text node, which is how RSS
+       *  carries markup and what every reader decodes. CDATA would do the same job and is one
+       *  unescaped `]]>` away from breaking the whole document. */
+      const blurb = i.note || i.description;
+      const chain = i.via_handle
+        ? `Observed by @${esc(i.via_handle)}, read and chosen by @${esc(creator.handle)}.`
+        : `Selected by @${esc(creator.handle)}.`;
+      const permalink = `${SITE_ORIGIN}/${esc(creator.handle)}/${i.id}`;
+      const described = `${blurb ? `<p>${esc(blurb)}</p>` : ""}<p>${chain} <a href="${permalink}">Provenance on ${esc(BRAND)} →</a></p>`;
       return `
   <item>
     <title>${esc(i.title)}</title>
     <link>${esc(i.url)}</link>
     <guid isPermaLink="false">${BRAND.toLowerCase()}-item-${i.id}</guid>${pub ? `\n    <pubDate>${pub}</pubDate>` : ""}
     <category>${esc(i.category)}</category>
-    <description>${esc(i.note || i.description)}</description>
+    <description>${esc(described)}</description>
   </item>`;
     })
     .join("");
