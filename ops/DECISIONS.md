@@ -6046,3 +6046,59 @@ figure is forecast and none is claimed.**
   re-specification remains **unruled** — no reviewer directive since 2026-09-01, and this executor
   will not rule on a threshold it proposed.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-17 — run 169: the subscription surface said everything about the source and nothing about the attention
+
+- **Decision: spend the cycle on what an RSS item says, and treat that as arrival work rather than
+  polish.** Run 168 closed by committing its successor to arrival after three of four cycles went to
+  QA and control-plane defects. [EXP-007](EXPERIMENTS.md) is graded **Fork A** — the bottleneck is
+  arrival — both named distribution channels are owner-blocked with **A0** behind them, and search and
+  sharing are the only levers needing no venue's permission, no owner act and no spend. This is the
+  sharing lever, on the one surface that delivers repeatedly rather than once.
+- **The defect, stated as a fact about the document rather than as an opinion about it.** An item in
+  `/<handle>/rss.xml` carried the source's title, the source's URL and the source's blurb, and nothing
+  else. Nothing named who observed the find, nothing named who chose it, and nothing linked to the page
+  that states either. The channel-level `(AI agent)` label was the document's only provenance, and a
+  reader renders that once in a sidebar beside a feed name — not on the item a subscriber is reading.
+  **On a product whose entire subject is provenance, the surface people subscribe to carried none.**
+- **Why it is this run's action and not a later one.** Run 164 gave every published find an address at
+  `/<handle>/<id>` on 2026-09-15 and `rssFeed` has been byte-untouched since, so the addresses have
+  existed for two days and the feed never learned about them. More to the point, **both pending
+  owner-blocked submissions name this exact route** — `ops/SUBMISSION-awesome-rss-feeds.md` submits
+  `/sportstech/rss.xml`. What a directory's subscribers would have received is this item, so the
+  differentiator was missing from the channel the distribution plan depends on, *before* the plan ran.
+- **Shipped:** [PR #69](https://github.com/in-c0/tuned/pull/69) → `master`. One function (`rssFeed`)
+  and one new test file. Each item's `<description>` now carries the chain in the same words the find
+  page uses — *"Observed by @wearables, read and chosen by @ava."* — and an anchor to that find's page
+  on the canonical origin.
+- **Three decisions pinned by tests rather than left to inspection**, each being something a later run
+  could undo without noticing:
+  - `<link>` still points at the source. The permalink is a **second** affordance, the same call
+    `card()` makes on a feed page and declined by run 164 for the same reason: re-pointing the primary
+    link sends every click on a subscribed feed to Tuned instead of to the thing the member paid
+    attention to, which is the doctrine inverted.
+  - `guid` strings do not move. A reader keys *"have I shown this?"* on that string; rewriting fifty of
+    them to the new addresses re-delivers every item in every feed as unread. A description change does
+    not.
+  - The advertised permalink is **fetched, not matched** — the test pulls the href out of the served
+    document and `GET`s it. A well-formed link to a 404 passes every check made of its text.
+- **Rejected alternatives.** Putting the permalink in `<guid isPermaLink="true">` (correct RSS, and it
+  re-delivers every feed); replacing `<link>` with the permalink (inverts the doctrine); CDATA instead
+  of double-escaping (same result, one unescaped `]]>` from breaking the document — a test now asserts
+  the terminator never reaches it); adding `?src=rss` to the permalink so arrivals from readers could
+  be attributed (**declined** — it needs `ARRIVAL_TAGS`, which sits inside EXP-009's hold, and a tag
+  published inside a public document is the `qa` contamination shape again).
+- **The cost of that last refusal, stated rather than buried:** an arrival from a reader lands in
+  `item_view` and is **not separable** from any other off-site find-page view. This run cannot measure
+  its own effect and does not claim to. Registered for the reviewer rather than decided here.
+- **Scope held:** no counter, route, schema, secret, dependency or public claim; no new data category,
+  and nothing reaches a visitor's browser that did not before. **The landing page is byte-identical**,
+  so [EXP-011](EXPERIMENTS.md#exp-011)'s window, thresholds and reading date are untouched and **no
+  value of R is computed or quoted.** No item published, amended, retracted or restored. The
+  agent-scout schedule remains disarmed and EXP-013's threshold-2 re-specification remains **unruled**
+  — no reviewer directive since 2026-09-01, and this executor will not rule on a threshold it proposed.
+- **Also discharged this run, and it is a registered obligation rather than a second action:**
+  EXP-011's **far-side instrument bracket**, due from 2026-09-17 and dispatched as
+  [qa-browser 35208853203](https://github.com/in-c0/tuned/actions/runs/35208853203). Green, hoist
+  trigger unfired, recorded under EXP-011. **No reading of R was taken; it stays 2026-09-19.**
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

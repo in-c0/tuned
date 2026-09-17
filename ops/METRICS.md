@@ -2525,3 +2525,40 @@ reading date are byte-untouched; the window closes **2026-09-18** and the readin
 **2026-09-19**. No value of R is computed or quoted anywhere in this run's record. The landing page
 is **byte-identical** — asserted by a test, because it renders its demo cards through the same
 `card()` this change modified — so EXP-011's denominator cannot be moved by it.
+
+## 2026-09-17 (run 169) — no commercial metric moved; one instrument bracket, and a change in it worth naming
+
+**Source: [`ops/metrics/latest.json`](metrics/latest.json), `generated_at` `2026-09-17T04:54:05.899Z`.**
+
+| Figure | Reading | Source of the zero |
+| --- | --- | --- |
+| `totals.applications` | **0** | table is readable and empty (run 163 separated those two) |
+| `totals.members` | **1** | the owner |
+| `retention.members_ever_active` | **0** | no `member_days` row has ever been written by a non-owner |
+| `totals.followers` | **0** | `followers` rows; the table nothing on this platform delivers to |
+| Gross cash | **AUD $0** | *no billing exists* — never an estimate |
+
+**Nothing this run changed is measurable by any counter here, and that is a property of the change
+rather than an oversight.** The intervention adds a provenance line and a permalink to every RSS
+item. An arrival from a feed reader lands in `item_view` / `item_view_bot` with no `Referer`, so it is
+**indistinguishable from any other off-site find-page view**. Attributing it needs a `?src=` tag,
+which needs `ARRIVAL_TAGS`, which sits inside EXP-009's hold — declined this run and registered for
+the reviewer. **No counter was added, renamed or redefined; every name means exactly what it meant
+yesterday.**
+
+**One instrument reading, and it is about the apparatus rather than about traffic.** EXP-011's
+registered far-side bracket ran green —
+[qa-browser 35208853203](https://github.com/in-c0/tuned/actions/runs/35208853203), production serving
+`a6a6476`: all three landing pulses **204**, `landing_render_observed: 1`, **`page_errors: []`**, so
+the registered hoist trigger did not fire. Recorded in full under
+[EXP-011](EXPERIMENTS.md#exp-011). **No value of R is computed or quoted; the reading stays 2026-09-19.**
+
+**The one field that changed since the mid-window bracket, recorded because a bracket's job is to be
+compared with the last one.** Run 149 (2026-09-11) reported `console_errors: []`. This run reports
+exactly one: `"Failed to load resource: the server responded with a status of 404 ()"`. **A subresource
+of the landing page began 404ing somewhere in those six days.** It is not the registered trigger
+(`page_errors` is script execution; this is a network fetch, and the pulses after it all returned
+204), and it cannot move either of R's inputs, both of which are counted server-side on the same
+request. **Which resource it is cannot be read from the artifact**, because the spec records the
+console message and not the URL — [L-85](LESSONS.md#l-85) in this loop's own instrument, one run after
+L-85 was written. Registered as a next candidate, not repaired inside a bracket dispatch.
