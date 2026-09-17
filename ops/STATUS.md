@@ -90,6 +90,10 @@ gross cash **AUD $0**, from *no billing exists*. **18 days left.**
 
 ## Run 168 (2026-09-17 14:35 Sydney) — the change that broke the pull-request gate was merged without passing through it
 
+**Last updated:** 2026-09-17 14:35 Sydney (2026-09-17 04:35 UTC), run 168 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-167 and not re-argued here, per [L-07](LESSONS.md).** **The change that
+broke the pull-request gate was merged without passing through it.**
+
 **In plain terms.** `check` runs on `pull_request` and on pushes to `master`, and it is the gate
 issue #1 names as a deployment requirement. **From 2026-09-12 it could not be green on any pull
 request carrying a commit.** One test in `scripts/deploy-staleness.test.mjs` asked the deploy watchdog
