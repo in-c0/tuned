@@ -262,21 +262,48 @@ describe("as a CLI", () => {
     }
   };
 
-  // HEAD is what a checkout of master serves, so a production claiming to serve it must
-  // read fresh. This exercises the git path end to end — reading master's real first-parent
-  // line — which the pure tests above cannot reach.
+  // The subject is master's first-parent TIP, not HEAD. Those are the same commit only when
+  // the checkout is master, and this suite runs under `check`, which also runs on
+  // `pull_request`. On a branch HEAD is not on master's line, so the CLI answered
+  // `unknown-serving` and exited 1 — correctly, for the question it was asked — and this one
+  // test was the whole reason `check` could not be green on any pull request in this
+  // repository. Reproduced before the repair: 31/31 on master, 30/31 the moment a branch
+  // carried a commit. A gate that cannot pass on the thing it gates is not a gate.
   //
-  // The clock is pinned to a day after HEAD's own commit date rather than left at `now`,
-  // and that is not tidiness. Left at `now`, this test's verdict depends on how deep the
-  // checkout is: CI clones at depth 1, so HEAD is the only commit, and until HEAD is itself
-  // past the grace period the answer is `insufficient-history`, not `fresh`. Pinning the
-  // clock asks the same question of a shallow and a full clone.
+  // The tip is resolved from git here rather than from the module's own readMasterHistory().
+  // Deriving the expected input from the function under test would leave this green if that
+  // function returned garbage, because both sides would then agree on the garbage — the
+  // failure L-79 and L-84 are both instances of.
+  //
+  // The clock is pinned to a day after that commit's own date rather than left at `now`, and
+  // that is not tidiness. Left at `now`, this test's verdict depends on how deep the checkout
+  // is: CI clones at depth 1, so until the tip is itself past the grace period the answer is
+  // `insufficient-history`, not `fresh`. Pinning the clock asks the same question of a
+  // shallow and a full clone.
   it("exits 0 and reports fresh against this repository's real history", async () => {
-    const { stdout: head } = await execFileAsync("git", ["-C", REPO, "rev-parse", "HEAD"]);
-    const { stdout: headDate } = await execFileAsync("git", ["-C", REPO, "show", "-s", "--format=%cI", "HEAD"]);
-    const now = new Date(Date.parse(headDate.trim()) + 24 * 3_600_000).toISOString();
+    // Mirrors readMasterHistory's own fetch-then-fall-back so both sides read one ref. A push
+    // landing between this read and the CLI's would make them disagree; that race is
+    // unchanged from the HEAD-based version and needs a push inside about a second.
+    try {
+      await execFileAsync("git", ["-C", REPO, "fetch", "--quiet", "--no-tags", "origin", "master"]);
+    } catch {
+      /* offline or shallow; whatever the clone already has is still a real answer */
+    }
+    let tip = null;
+    for (const ref of ["origin/master", "master", "HEAD"]) {
+      try {
+        const { stdout } = await execFileAsync("git", ["-C", REPO, "rev-parse", "--verify", "--quiet", ref]);
+        tip = stdout.trim();
+        break;
+      } catch {
+        /* ref absent in this checkout; try the next one */
+      }
+    }
+    assert.ok(tip, "no master ref and no HEAD — this is not a git checkout");
+    const { stdout: tipDate } = await execFileAsync("git", ["-C", REPO, "show", "-s", "--format=%cI", tip]);
+    const now = new Date(Date.parse(tipDate.trim()) + 24 * 3_600_000).toISOString();
     const body = path.join(os.tmpdir(), `deploy-staleness-${process.pid}.json`);
-    fs.writeFileSync(body, JSON.stringify({ commit: head.trim(), built: "test" }));
+    fs.writeFileSync(body, JSON.stringify({ commit: tip, built: "test" }));
     try {
       const { code, stdout } = await run([
         "--repo", REPO, "--json", "--status", "200", "--version-file", body, "--now", now,
@@ -286,6 +313,68 @@ describe("as a CLI", () => {
       assert.match(stdout, /"alarmKey": null/);
     } finally {
       fs.rmSync(body, { force: true });
+    }
+  });
+
+  // The test above can only ever ask about the checkout it is running in, which is how the
+  // branch case stayed invisible: it is the question `check` on master never gets to ask, and
+  // master is where the last five `check` runs happened. This builds the branch case
+  // explicitly, so that question is asked on every run, master included, and the answer does
+  // not depend on where the suite was started from.
+  //
+  // It also pins what is NOT being changed, which is the more likely thing to go wrong later.
+  // The CLI is correct and untouched: asked about a commit that genuinely is not on master's
+  // line it still answers `unknown-serving` and exits 1, and the second half asserts that.
+  // The defect was never in the watchdog's idea of "serving" — it was a test asking it about
+  // HEAD — so relaxing `unknown-serving` to make a branch green would be the wrong repair,
+  // and this test goes red on it.
+  it("is branch-independent: a checkout off master still reads its master tip as fresh", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "deploy-staleness-branch-"));
+    const git = (cwd, args, when) =>
+      execFileAsync("git", ["-C", cwd, ...args], {
+        env: {
+          ...process.env,
+          GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@example.invalid",
+          GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@example.invalid",
+          ...(when ? { GIT_AUTHOR_DATE: when, GIT_COMMITTER_DATE: when } : {}),
+        },
+      });
+    try {
+      const origin = path.join(root, "origin.git");
+      const work = path.join(root, "work");
+      await execFileAsync("git", ["init", "--quiet", "--bare", "--initial-branch=master", origin]);
+      await execFileAsync("git", ["clone", "--quiet", origin, work]);
+
+      // Two commits on master, then a third on a branch — the shape of every pull request.
+      await git(work, ["commit", "--quiet", "--allow-empty", "-m", "a"], "2026-09-16T00:00:00Z");
+      await git(work, ["commit", "--quiet", "--allow-empty", "-m", "b"], "2026-09-16T01:00:00Z");
+      await git(work, ["push", "--quiet", "-u", "origin", "master"]);
+      await git(work, ["checkout", "--quiet", "-b", "feature"]);
+      await git(work, ["commit", "--quiet", "--allow-empty", "-m", "c"], "2026-09-16T02:00:00Z");
+
+      const sha = async (ref) => (await git(work, ["rev-parse", ref])).stdout.trim();
+      const masterTip = await sha("origin/master");
+      const branchHead = await sha("HEAD");
+      assert.notEqual(masterTip, branchHead, "the branch must not be at master's tip");
+
+      const body = path.join(root, "version.json");
+      const now = "2026-09-17T01:00:00Z"; // a day past master's tip, as above
+      const ask = async (commit) => {
+        fs.writeFileSync(body, JSON.stringify({ commit, built: "test" }));
+        return run(["--repo", work, "--json", "--status", "200", "--version-file", body, "--now", now]);
+      };
+
+      const served = await ask(masterTip);
+      assert.equal(served.code, 0, served.stdout);
+      assert.match(served.stdout, /"reason": "fresh"/);
+
+      // Unchanged CLI behaviour, asserted rather than assumed: a commit off master's line is
+      // still `unknown-serving`. Production serving a branch build is a real fault.
+      const offLine = await ask(branchHead);
+      assert.equal(offLine.code, 1);
+      assert.match(offLine.stdout, /"reason": "unknown-serving"/);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
     }
   });
 
