@@ -6002,3 +6002,47 @@ figure is forecast and none is claimed.**
   in now would widen a deployed and verified change. **Registered as the next candidate with its
   measurement**, exactly as run 165 registered this one.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-17 — run 168: repaired the merge gate, and recorded that the change which broke it bypassed it
+
+- **Decision:** spend the cycle on `check`'s inability to pass on a pull request — run 167's
+  registered next candidate — rather than on a product surface. **This is control-plane work and
+  [L-08](LESSONS.md) says stop doing that once it is adequate.** Taken anyway, on a narrow ground
+  stated here so a later run can grade it: the gate is not instrumentation, it is the enforcement
+  point issue #1 names as a deployment requirement, and it was **unavailable where it gates**. The
+  test is that this run restores an existing gate and adds no new measurement, counter, dashboard or
+  report; if the next cycle also ends in control plane, that is the violation L-08 is about.
+- **The defect, and the correction to run 167's account of it.** Run 167 recorded it as a standing
+  property of the repository. It is a **regression from 2026-09-12**, and the sharper fact is how it
+  landed: the test arrived in `3e76d24` **pushed straight to `master`**, at a time when no pull
+  request was open — across 79 `pull_request` runs of `check.yml` there is none between 2026-08-27 and
+  2026-09-16 — so nothing ever ran it on a branch. **The change that broke the pull-request gate was
+  itself merged without passing through the pull-request gate.** Run 283 on PR #67 is the only failing
+  `pull_request` run in the workflow's history, and it was diagnosed correctly and merged past.
+  [L-86](LESSONS.md#l-86).
+- **Decision: repair the test, not the CLI.** The watchdog's idea of "serving" was never wrong — a
+  production serving a commit off master's first-parent line is a real fault and still reads
+  `unknown-serving`, asserted explicitly rather than left implicit. What was wrong was a test
+  encoding an assumption about which ref is checked out. Rejected alternatives: **skipping the test
+  off master** (deletes the only end-to-end exercise of the git path, on the branch where it is most
+  likely to be wrong); **relaxing `unknown-serving` to `fresh`** (would make branches green by making
+  the watchdog blind to the fault it exists for — a new test now turns red on exactly this); and
+  **dropping `pull_request` from `check.yml`** (removes the gate instead of repairing it).
+- **Decision: resolve the expected commit from git directly, not from `readMasterHistory`.** Using the
+  function under test to derive its own expected input would leave the assertion green if that
+  function returned garbage, since both sides would agree on the garbage. That is
+  [L-79](LESSONS.md#l-79)/[L-84](LESSONS.md#l-84)'s shape, and a repair that reintroduces it is worse
+  than the defect.
+- **Evidence:** [PR #68](https://github.com/in-c0/tuned/pull/68) →
+  [`242fc88`](https://github.com/in-c0/tuned/commit/242fc88edb251189503fea40bec57eadf08b5f0d).
+  Acceptance is the PR's own [check run 286](https://github.com/in-c0/tuned/actions/runs/35180746550)
+  — a `pull_request` event, **success**, the first since 2026-08-27. On `master` afterwards:
+  [check 287](https://github.com/in-c0/tuned/actions/runs/35180933181) and
+  [verify production 272](https://github.com/in-c0/tuned/actions/runs/35180933218), both green.
+- **Scope held:** no runtime code, no route, no schema, no counter, no secret, no public copy. The
+  Worker is byte-identical, so the landing page is byte-identical and **EXP-011's window, thresholds
+  and reading date are untouched; no value of R is computed or quoted.** No item published, amended,
+  retracted or restored. The agent-scout schedule remains disarmed and EXP-013's threshold-2
+  re-specification remains **unruled** — no reviewer directive since 2026-09-01, and this executor
+  will not rule on a threshold it proposed.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

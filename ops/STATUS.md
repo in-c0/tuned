@@ -1,5 +1,83 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-17 14:35 Sydney (2026-09-17 04:35 UTC), run 168 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-167 and not re-argued here, per [L-07](LESSONS.md).** **The change that
+broke the pull-request gate was merged without passing through it.**
+
+**In plain terms.** `check` runs on `pull_request` and on pushes to `master`, and it is the gate
+issue #1 names as a deployment requirement. **From 2026-09-12 it could not be green on any pull
+request carrying a commit.** One test in `scripts/deploy-staleness.test.mjs` asked the deploy watchdog
+whether a production serving `HEAD` reads fresh, on the premise its own comment stated — *"HEAD is
+what a checkout of master serves."* On a branch `HEAD` is not on master's first-parent line, so the
+CLI answered `unknown-serving` and exited 1 — **correctly, for the question it was asked** — and the
+gate went red. Reproduced before the repair: **31/31 with the branch at master's tip, 30/31 the moment
+the branch carried a commit.**
+
+**Run 167's description of this is corrected here, and the correction is the interesting part.** It
+recorded the defect as a standing property of the repository — *"it cannot be green on any pull
+request"* — which reads as though it always was. It is a **regression**, and `check.yml`'s own run
+history says when and how: [run 194](https://github.com/in-c0/tuned/actions/runs/33122248348) on
+2026-08-27 was green on a `pull_request` event, **no `pull_request` run exists at all between
+2026-08-28 and 2026-09-15**, and [run 283](https://github.com/in-c0/tuned/actions/runs/35156879096)
+on 2026-09-16 is the **only failing `pull_request` run in the workflow's history**. The test landed in
+[`3e76d24`](https://github.com/in-c0/tuned/commit/3e76d24) on 2026-09-12 **pushed straight to
+`master`** — no pull request was open in that window, so nothing ever ran it on a branch. **The change
+that broke the pull-request gate was itself merged without passing through the pull-request gate.**
+Run 283 was then diagnosed correctly and merged past, which is the same act as not having a gate,
+however good the diagnosis. [L-86](LESSONS.md#l-86).
+
+**What shipped — one test file, and the CLI is deliberately untouched.** The defect was never in the
+watchdog's idea of "serving": a production serving a commit off master's line is a real fault and
+still reads `unknown-serving`. The test's subject is now master's **first-parent tip** rather than
+`HEAD`, resolved through the same fetch-then-fall-back `readMasterHistory` uses so both sides read one
+ref — and resolved **from git directly, not from `readMasterHistory`**, because deriving the expected
+input from the function under test would leave the assertion green if that function returned garbage.
+That is [L-79](LESSONS.md#l-79) and [L-84](LESSONS.md#l-84)'s shape and is what a repair must not
+reintroduce.
+
+**The durable half is the second test.** The first one can only ever ask about the checkout it runs
+in, which is exactly the gap a direct push to `master` walked through. A new test **builds the branch
+case in a throwaway repository** — two commits on `master`, a third on a branch, the shape of every
+pull request — and asserts both directions: master's tip reads `fresh` from a branch checkout, and the
+branch commit still reads `unknown-serving`. The branch question is therefore now asked **on `master`
+too**. It also pins the wrong repair: relaxing `unknown-serving` to force a branch green turns it red.
+
+**Acceptance evidence is this run's own pull request, which is the only place it could be.**
+[PR #68](https://github.com/in-c0/tuned/pull/68) — [check run 286](https://github.com/in-c0/tuned/actions/runs/35180746550),
+a **`pull_request` event, success**: the first green one since 2026-08-27. Green on `master` afterwards
+would have proved nothing about it. Merged as
+[`242fc88`](https://github.com/in-c0/tuned/commit/242fc88edb251189503fea40bec57eadf08b5f0d).
+
+**Two mutations, two named tests red each** — the history reader falling back to `HEAD`, and
+`unknown-serving` relaxed to `fresh`, which is the tempting wrong repair — with
+`deploy-staleness.mjs` restored byte-identical after each.
+
+**What was deliberately NOT touched.** `scripts/deploy-staleness.mjs` itself. **No runtime code at
+all**: the Worker is byte-identical, so the landing page is byte-identical and **[EXP-011](EXPERIMENTS.md#exp-011)
+is untouched by this run** — its window still ends 2026-09-16 as run 166 set it, the reading stays
+**2026-09-19**, and **no value of R is computed, quoted or recorded here.** **RSS is byte-untouched**
+for the sixth run. `arrival:<tag>` is byte-untouched. **No counter was added** — this is a defect fix
+and there is nothing new to count — and no `ops/EXPERIMENTS.md` hypothesis entry for the same reason.
+The agent-scout schedule is still disarmed and the threshold-2 proposal is **still unruled**; no
+reviewer directive has been posted since 2026-09-01, and this executor will not arm a schedule on its
+own reading of a threshold it proposed. No item published, amended, retracted or restored. No spend.
+
+**Gates.** `npm run check` exit 0 · **379 vitest** · **ops suite 215/215** (214 → 215, the new test) ·
+`validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit --omit=dev`
+**0 vulnerabilities**. Every one of these was run **on the branch with a commit on it** — the condition
+that was red.
+
+**Not claimed.** This restores a merge gate. **It does not create traffic, it does not fix any
+user-visible defect, and nothing here predicts either.** It is control-plane work, taken because the
+gate that governs every future deploy was unavailable where it gates, with 18 days left.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **18 days left.**
+
+---
+
+## Run 167 (2026-09-17 08:35 Sydney) — the check measured the defect, printed it in its own artifact, and graded something else
+
 **Last updated:** 2026-09-17 08:35 Sydney (2026-09-16 22:35 UTC), run 167 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-166 and not re-argued here, per [L-07](LESSONS.md).** **The check that
 found this printed it in its own artifact and graded something else.**

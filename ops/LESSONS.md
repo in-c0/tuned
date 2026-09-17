@@ -3504,3 +3504,61 @@ beside each wrong line rather than replacing it.
   renders the span the rule selects at all — nothing in the suite had ever rendered one, and a rule
   whose selector matches nothing is the same defect as a missing rule ([L-81](#l-81)'s shape in CSS:
   a thing written with no reader).
+
+## L-86 — the change that broke the pull-request gate was merged without passing through it (2026-09-17, run 168)
+
+- **What happened:** `check` runs on `pull_request` and on pushes to `master`. From **2026-09-12** it
+  could not be green on **any** pull request carrying a commit. One test in
+  `scripts/deploy-staleness.test.mjs` asked the deploy watchdog whether a production serving `HEAD`
+  reads fresh, on the premise its own comment stated — *"HEAD is what a checkout of master serves."*
+  On a branch `HEAD` is not on master's first-parent line, so the CLI answered `unknown-serving` and
+  exited 1 — **correctly, for the question it was asked** — and the gate went red. Reproduced before
+  the repair: **31/31 with the branch at master's tip, 30/31 the moment the branch carried a commit.**
+- **The defect was in the test, not in the thing under test.** A production serving a commit off
+  master's line is a real fault and still reads `unknown-serving`; the CLI is unchanged by this run.
+  What the test encoded was an assumption about **which ref is checked out**, and it wrote that
+  assumption down in plain English without noticing it was a precondition and not a fact.
+- **How it got in, which is the whole lesson.** The test landed in
+  [`3e76d24`](https://github.com/in-c0/tuned/commit/3e76d24) on 2026-09-12 **pushed straight to
+  `master`**. `check.yml`'s own run history establishes it: across 79 `pull_request` runs in this
+  workflow's life there is **no `pull_request` run at all between 2026-08-27 and 2026-09-16** — no
+  pull request was open in that window, so nothing ever ran this test on a branch. **The change that
+  broke the pull-request gate was itself merged without passing through the pull-request gate**, and
+  that is the only reason it could land. A gate that can be bypassed records nothing when it breaks.
+- **And it stayed broken through the run that found it.** The first pull request opened afterwards,
+  [#67](https://github.com/in-c0/tuned/pull/67) on 2026-09-16, went red —
+  [run 283](https://github.com/in-c0/tuned/actions/runs/35156879096), the **only failing
+  `pull_request` run in the workflow's history** — and was merged anyway on local evidence, with the
+  failure correctly diagnosed and registered as the next candidate. Diagnosing a red gate and merging
+  past it is the same act as not having one, however good the diagnosis.
+- **Lesson:** **a gate is only a gate where it is enforced, and its own event distribution is a
+  reading.** A check configured for two triggers that has lately passed on only one has either not
+  been exercised on the other or cannot pass there, and both are findings. Nobody asked, because a
+  green `check` on `master` answers *"is the suite fine?"* convincingly enough that the follow-up
+  never gets asked — the same shape as [L-85](#l-85), where a check's visible thoroughness bought
+  confidence its grade had not earned. The structural half is [L-84](#l-84)'s: the test and the
+  environment it ran in were not independent, so the environment where it was read was the only one
+  where it could pass.
+- **Cost:** five days in which the repository's merge gate was unavailable where it gates, and one
+  pull request merged past it. No bad change is known to have reached production through the gap —
+  `check` on `master` stayed green and `verify production` runs on every push — so the cost is
+  shipping safety, not a user-visible fault, with 18 days left.
+- **What shipped:** the test's subject is master's **first-parent tip** rather than `HEAD`, resolved
+  through the same fetch-then-fall-back `readMasterHistory` uses so both sides read one ref. It is
+  resolved **from git directly and not from `readMasterHistory`** — deriving the expected input from
+  the function under test would leave the assertion green if that function returned garbage, since
+  both sides would then agree on the garbage, which is [L-79](#l-79) and [L-84](#l-84)'s shape and
+  exactly what a repair must not reintroduce.
+- **Prevention check:** a second test **builds the branch case in a throwaway repository** — two
+  commits on `master`, a third on a branch, the shape of every pull request — and asks the CLI both
+  directions: master's tip reads `fresh` from a branch checkout, and the branch commit still reads
+  `unknown-serving`. It runs identically wherever it is started from, so the branch question is now
+  asked **on `master` too**, which is the one place it could never be asked before — the gap that let
+  a direct push introduce this. It also pins the wrong repair: relaxing `unknown-serving` to force a
+  branch green turns it red. Both mutations were run — the history reader falling back to `HEAD`, and
+  `unknown-serving` relaxed to `fresh` — each turning two named tests red, with `deploy-staleness.mjs`
+  restored byte-identical after each.
+- **Acceptance evidence is this run's own pull request.**
+  [#68](https://github.com/in-c0/tuned/pull/68) — [check run 286](https://github.com/in-c0/tuned/actions/runs/35180746550),
+  a `pull_request` event, **success**: the first green one since 2026-08-27. Green on `master`
+  afterwards would have proved nothing about it.
