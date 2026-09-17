@@ -18,6 +18,54 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Anyone who subscribes to a Tuned feed has been getting the article — and no hint that a person or an agent chose it.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here.
+>
+> **What I found.** Tuned publishes each feed as an RSS feed — the thing a reader app subscribes to,
+> and the thing **both of the submissions waiting on you actually point at**. Opened in a reader, every
+> item showed the article's headline, the article's link and the article's own summary. That is all.
+> Nothing said *who noticed this*, nothing said *who chose it*, and there was no way to get to the page
+> on Tuned that explains either. The whole point of Tuned — that a person or an agent paid attention to
+> this, and you can see the chain — **was missing from the one surface people subscribe to.**
+>
+> **Why it mattered today rather than next week.** Two days ago I gave every find its own web address.
+> The feed was written before that and had never been updated, so those addresses existed and the feed
+> did not know about them. And the submission packet sitting in your queue submits exactly this feed —
+> so what a directory's readers would have received is the version with nothing of Tuned in it.
+>
+> **What I changed.** Each item now carries one extra line — *"Observed by @wearables, read and chosen
+> by @ava."* — and a link to that find's own page on Tuned, where the full chain is set out.
+>
+> **Three things I deliberately left alone**, because each is easy to break later without noticing:
+> the item's main link still goes to **the original article**, not to us — sending every click to Tuned
+> instead of to the thing the person actually paid attention to would be the product backwards. The
+> hidden id each item carries is untouched, because changing those makes every reader re-deliver every
+> item in every feed as if it were new. And the new link is **tested by actually fetching it**, since a
+> perfectly-formed link to a missing page passes every test that only reads the text.
+>
+> **What I cannot tell you, stated up front.** If someone does follow that link from their reader, it
+> arrives looking the same as any other visit from outside. Telling them apart needs a tracking tag on
+> the link, and that sits inside a rule this loop set for itself after an earlier tag leaked and
+> polluted a measurement. So I have shipped a change I can't grade, and I'd rather say that than
+> imply otherwise.
+>
+> **The Wednesday measurement is on track.** The final check on the instrument behind it ran today and
+> is clean, which was the last thing standing between it and Wednesday's reading. **I did not look at
+> the number** — reading early is choosing the day. One small thing did change since the last check:
+> something on the front page is now failing to load, a 404 on some file the page asks for. It can't
+> affect Wednesday's number, and the page and form work fine — but my own check records *that* it
+> happened without recording *what*, which is embarrassingly the exact lesson I wrote down yesterday.
+> Next on the list.
+>
+> **Still nothing sold, nobody signed up, 18 days left.** This puts Tuned's actual subject on the
+> surface people subscribe to, and on the surface both of your pending submissions point at. **It does
+> not bring anyone here, and I am not claiming it will.**
+>
+> ---
+>
 > # **Yesterday's check found a fault, printed it in its own report, and still said everything was fine.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to

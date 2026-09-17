@@ -1,8 +1,94 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-17 14:35 Sydney (2026-09-17 04:35 UTC), run 168 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged from runs 143-167 and not re-argued here, per [L-07](LESSONS.md).** **The change that
-broke the pull-request gate was merged without passing through it.**
+**Last updated:** 2026-09-17 20:35 Sydney (2026-09-17 10:35 UTC), run 169 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-168 and not re-argued here, per [L-07](LESSONS.md).** **The surface people
+subscribe to said everything about the source and nothing about the attention.**
+
+**In plain terms.** An item in `/<handle>/rss.xml` carried the source's title, the source's URL and the
+source's blurb. Nothing named who observed the find, nothing named who chose it, and nothing linked to
+the page that states either. The channel-level `(AI agent)` label was the document's only provenance,
+and a reader renders that **once in a sidebar beside a feed name** — not on the item a subscriber is
+actually reading. On a product whose entire subject is provenance, **the one surface anybody subscribes
+to carried none of it.**
+
+**Why now, and why it counts as arrival rather than polish.** Run 168 closed by committing its
+successor to arrival after three of four cycles went to QA and control-plane defects.
+[EXP-007](EXPERIMENTS.md) is graded **Fork A** — the bottleneck is arrival — both named distribution
+channels are owner-blocked with **A0** behind them, and search and sharing are the only levers needing
+no venue's permission, no owner act and no spend. Two facts make this the sharing lever's sharpest
+edge today: run 164 gave every published find an address at `/<handle>/<id>` on **2026-09-15** and
+`rssFeed` has been **byte-untouched since**, so the addresses existed for two days and the feed never
+learned about them; and **both pending owner-blocked submissions name this exact route** — the
+`awesome-rss-feeds` packet submits `/sportstech/rss.xml`. What a directory's subscribers would have
+received is this item. The differentiator was missing from the channel the distribution plan depends
+on, *before* the plan ran.
+
+**What shipped — one function, and three decisions pinned by tests rather than left to inspection.**
+Each item's `<description>` now carries the chain in the words the find page already uses — *"Observed
+by @wearables, read and chosen by @ava."* — and an anchor to that find's page on the canonical origin.
+**`<link>` still points at the source**: the permalink is a *second* affordance, the same call `card()`
+makes on a feed page, and re-pointing the primary link would send every click on a subscribed feed to
+Tuned instead of to the thing the member paid attention to. **`guid` strings do not move** — a reader
+keys "have I shown this?" on that string, and rewriting fifty of them to the new addresses re-delivers
+every item in every feed as unread. **The advertised permalink is fetched, not matched**, because a
+well-formed link to a 404 passes every check made of its text. An item with no note and no source blurb
+used to serve an **empty** `<description>`; it now says who selected it and where its page is.
+
+**What this run cannot measure, said before anything else claims otherwise.** An arrival from a reader
+lands in `item_view` with no `Referer` and is **not separable** from any other off-site find-page view.
+Attributing it needs a `?src=` tag, which needs `ARRIVAL_TAGS`, which sits inside EXP-009's hold — and a
+tag published inside a public document is the `qa` contamination shape again. **Declined, registered for
+the reviewer, not decided here.** This run therefore ships a change it cannot grade, and says so.
+
+**Also discharged, as a registered obligation rather than a second action.** EXP-011's **far-side
+instrument bracket**, due from 2026-09-17: [qa-browser 35208853203](https://github.com/in-c0/tuned/actions/runs/35208853203),
+production serving `a6a6476`, all three pulses **204**, `landing_render_observed: 1`, **`page_errors:
+[]`** — the registered hoist trigger did not fire, and with all three brackets green **Fork R-D is
+excluded across the whole span rather than at its ends**. **No value of R is computed, quoted or
+recorded here; the reading stays 2026-09-19.** One field did change and is recorded rather than passed
+over: `console_errors` went from `[]` at run 149 to **one 404 on a landing-page subresource**. Not the
+trigger, cannot move R's inputs, and **the artifact cannot say which resource** — the spec records the
+message and not the URL, which is [L-85](LESSONS.md#l-85) in this loop's own instrument one run after
+L-85 was written. Registered, not repaired inside a bracket dispatch.
+
+**The change broke a check, every gate was green, and both of those are true — [L-87](LESSONS.md#l-87).**
+`qa/exp008-provenance.spec.mjs` asserts a nomination's why line against an RSS item's `<description>`
+with an **exact string equality**, and this change gives that field structure. It is **dispatch-only by
+design** — `qa-browser` never runs on push, because recurring headless traffic through production's own
+funnel counters would corrupt them — so six green gates, a green `pull_request` check and a green
+`verify production` said **nothing at all** about a check that reads the exact field being changed. It
+was found by grepping `qa/` for the surface *after* the merge, not before it. L-86 was a gate that could
+not pass where it gates; this is a check with **no gate to fail at**. The repair **moves layer rather
+than relaxing**: what EXP-008 grades is that the *whole* why line reaches a subscriber untruncated, so
+the comparison stays exact and re-aims at the paragraph now carrying it. Matching the description with
+`toContain` would have graded the same words and **stopped grading "whole"**, while looking like the
+smaller edit. Two assertions are added on the same fetch for what the new structure is *for*: the
+provenance paragraph must name the selector and carry that find's address.
+
+**Gates.** `npm run check` exit 0 · **389 vitest** (379 → 389, ten new) · **ops suite 215/215** ·
+`validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit --omit=dev`
+**0 vulnerabilities** — every one run **on the branch with a commit on it**, the condition run 168
+repaired. **Five mutations, named tests red on each**, `src/pages.ts` restored byte-identical after
+every one: the anchor dropped, `<link>` re-pointed at Tuned, the outer escape removed, `guid` rewritten
+to the permalink, the `via_handle` branch collapsed.
+
+**Deliberately NOT touched.** **The landing page is byte-identical**, so **[EXP-011](EXPERIMENTS.md#exp-011)
+is untouched by this run.** No counter, route, schema, secret, dependency or public claim; no new data
+category. `arrival:<tag>` is byte-untouched. The agent-scout schedule is still disarmed and the
+threshold-2 proposal is **still unruled** — no reviewer directive since 2026-09-01, and this executor
+will not arm a schedule on its own reading of a threshold it proposed. No item published, amended,
+retracted or restored. No spend.
+
+**Not claimed.** This puts the product's subject on the surface people subscribe to, and it is the
+surface both pending submissions point at. **It does not create traffic, and nothing here predicts that
+it will.** Nor can this run measure whether any reader follows the link, for the reason stated above.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **18 days left.**
+
+---
+
+## Run 168 (2026-09-17 14:35 Sydney) — the change that broke the pull-request gate was merged without passing through it
 
 **In plain terms.** `check` runs on `pull_request` and on pushes to `master`, and it is the gate
 issue #1 names as a deployment requirement. **From 2026-09-12 it could not be green on any pull
@@ -73,8 +159,6 @@ gate that governs every future deploy was unavailable where it gates, with 18 da
 
 **Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
 gross cash **AUD $0**, from *no billing exists*. **18 days left.**
-
----
 
 ## Run 167 (2026-09-17 08:35 Sydney) — the check measured the defect, printed it in its own artifact, and graded something else
 

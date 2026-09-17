@@ -2481,6 +2481,66 @@ which R does not read.
 pre-bump reading in every field — the bump did not disturb the emitter.** The far-side bracket
 registered for 2026-09-19 stands unchanged.
 
+### Instrument validity — far-side bracket, run 169 (2026-09-17 20:35 Sydney)
+
+**The registered far-side bracket, dispatched after the window closed and before the reading. It is
+green, and the registered hoist trigger did not fire.** This addendum changes **no threshold, no
+fork, no cut point, no window and no reading date**, and takes **no reading of R.** The reading stays
+**2026-09-19**.
+
+Run 140 registered the cadence: *"once more inside the window"* (taken at run 149) and *"once after it
+closes on 2026-09-19, before the reading is recorded"*. Run 166 shortened the window to
+**2026-09-05 … 2026-09-15** under the regression clause, so the far side opened on **2026-09-17** —
+the date run 168 recorded as the bracket becoming due. This is the first run on or after it.
+
+**The observation, from a real Chromium against live production**
+([qa-browser 35208853203](https://github.com/in-c0/tuned/actions/runs/35208853203), spec
+`pulse-instrument.spec.mjs`, `10:08:21Z -> 10:08:28Z`, production serving **`a6a6476`** per
+`/api/version` in the job's own log):
+
+| Assertion | Result |
+| --- | --- |
+| `landing_render` emitted on a **bare page load**, no interaction | **yes**, HTTP **204** |
+| `landing_engage` on interaction, `application_start` on a keystroke | **yes**, **204** each |
+| One-shot across the run | **yes** — `landing_render_observed: 1` |
+| `page_errors` | **`[]`** |
+| `console_errors` | **one**, see below |
+| Application form | typed into, **never submitted** |
+
+**The registered trigger did not fire, and it is the `page_errors` field that carries it.** Run 140's
+disclosed hazard is that ~15 lines of DOM decoration run before `pulse("landing_render")` in the same
+inline script, and anything throwing there suppresses the beacon while `landing_view` still
+increments — biasing R **down, toward Fork R-A, the claim the loop already holds.** The registered
+response was *"if any bracket inside the window reports a page error preceding the render pulse, hoist
+it immediately and grade EXP-011 on the complete days before the edit."* `page_errors: []` on the
+near side, the middle and now the far side, so **no hoist, and the eleven days remain one comparable
+window.**
+
+**With all three brackets green, Fork R-D — the instrument is broken — is excluded across the whole
+span rather than at its ends.** That is what this bracket buys and it is the whole of what it buys:
+it establishes that a rendering browser reaching this page emits the beacon and production records
+it. It establishes **nothing about R**, which is a property of the traffic.
+
+**One field changed between the mid-window bracket and this one, and it is recorded here rather than
+passed over.** Run 149 reported `console_errors: []`; this run reports exactly one —
+`"Failed to load resource: the server responded with a status of 404 ()"`. So **a subresource of the
+landing page began 404ing somewhere between 2026-09-11 and 2026-09-17.** Three things are true about
+it at once and all three are stated rather than the convenient one:
+
+- It is **not** the registered trigger. `page_errors` is script execution; this is a network fetch,
+  and the pulses that followed it all returned 204, so the emitter demonstrably ran.
+- It does **not** touch R's admissibility. Both of R's inputs are counted server-side on this same
+  request, and a 404 subresource moves neither.
+- **The artifact cannot say which resource it is**, because the spec records the console message and
+  not the URL — which is [L-85](LESSONS.md#l-85) in this loop's own instrument, one run after L-85 was
+  written. That is registered as a next candidate, not repaired inside a bracket dispatch.
+
+**Contamination, declared as always:** the Playwright user-agent declares `HeadlessChrome`, so
+`src/metrics.ts` classified every increment this caused as bot traffic — `landing_view_bot`,
+`landing_render_bot`, `landing_engage_bot`, `application_start_bot` on **2026-09-17**, and none in the
+unsuffixed names R is computed from. **2026-09-17 is outside the window in any case.** Fork R-E
+remains armed and unfired.
+
 ### Downstream obligations — declined, and the disclosure that forces it, run 159 (2026-09-14 14:10 Sydney)
 
 **This addendum changes no threshold, no cut point, no fork reading, no window and no reading date.**

@@ -259,8 +259,23 @@ for (const handle of HANDLES) {
       const rawField = (entry, tag) => (entry.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`)) ?? [])[1] ?? "";
       const field = (entry, tag) => unescapeXml(rawField(entry, tag));
 
+      // From run 169 an item's `<description>` is HTML inside an XML text node rather than bare
+      // text, so it passes through TWO escapes and needs two decodes. One `unescapeXml` yields the
+      // HTML fragment; each paragraph's own text needs the second, or a why-line containing `&`
+      // reads `&amp;` here and nowhere else.
+      //
+      // THE ASSERTION MOVES LAYER, IT DOES NOT WEAKEN. What EXP-008 grades is that the **whole**
+      // why line reaches a subscriber untruncated, and that is still an exact string comparison —
+      // against the paragraph carrying it rather than against the entire description, which now
+      // also carries the provenance line the product exists to state. Matching the description
+      // loosely (`toContain`) would grade the same words and stop grading "whole", which is the
+      // property the nomination contract is about.
+      const paragraphs = (rawDescription) =>
+        [...unescapeXml(rawDescription).matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => unescapeXml(m[1]));
+
       const graded = forHandle.map((n) => {
         const mine = entries.filter((e) => field(e, "link") === n.url);
+        const paras = mine.length ? paragraphs(rawField(mine[0], "description")) : [];
         return {
           itemId: n.itemId,
           expected: { url: n.url, title: n.title, why: n.why },
@@ -268,6 +283,10 @@ for (const handle of HANDLES) {
           matchedTitle: mine.length ? field(mine[0], "title") : "",
           matchedDescription: mine.length ? field(mine[0], "description") : "",
           matchedDescriptionRaw: mine.length ? rawField(mine[0], "description") : "",
+          // The blurb paragraph and the provenance paragraph, separated. With a why line present
+          // there are two; the provenance line is always last.
+          matchedWhy: paras.length > 1 ? paras[0] : "",
+          matchedProvenance: paras.length ? paras[paras.length - 1] : "",
         };
       });
 
@@ -303,9 +322,16 @@ for (const handle of HANDLES) {
       for (const g of graded) {
         expect(g.matchingItems, `RSS should carry exactly one <item> linking to ${g.expected.url} (item ${g.itemId})`).toBe(1);
         expect(g.matchedTitle, `RSS item title for item ${g.itemId}`).toBe(g.expected.title);
-        // RSS renders `note || description`, so the why line is what a subscriber reads. Whole, again.
-        expect(g.matchedDescription, `RSS item description for item ${g.itemId} should be the whole why line`).toBe(
+        // RSS renders `note || description`, so the why line is what a subscriber reads. Whole,
+        // again — exact, against the paragraph that carries it.
+        expect(g.matchedWhy, `RSS item why line for item ${g.itemId} should be the whole why line`).toBe(
           g.expected.why,
+        );
+        // And the reason this surface exists at all: who chose it, and where the chain is written
+        // out. A subscriber who cannot see either is reading a link aggregator.
+        expect(g.matchedProvenance, `RSS item ${g.itemId} must name the selector`).toContain(`@${handle}`);
+        expect(g.matchedProvenance, `RSS item ${g.itemId} must carry its find's address`).toContain(
+          `https://justtuned.com/${handle}/${g.itemId}`,
         );
       }
     });
