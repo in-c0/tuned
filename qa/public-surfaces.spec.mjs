@@ -17,7 +17,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
-import { partitionFailures, trackInFlight } from "./settle-requests.mjs";
+import { partitionFailures, trackHttpErrors, trackInFlight } from "./settle-requests.mjs";
 
 const SHOTS = path.join(process.cwd(), "artifacts", "shots");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -54,6 +54,10 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
     // before the failure list is read, so an empty list is a pass the spec earned (L-61).
     const firstParty = (u) => u === "" || hostOf(u) === target.host;
     const inFlight = trackInFlight(page, firstParty);
+    // Registered alongside the in-flight tracker, and before the first navigation, because a
+    // subresource on our own origin that answers 404 is not a `requestfailed` and therefore
+    // appears in none of the three lists above. See trackHttpErrors' own note.
+    const httpErrors = trackHttpErrors(page, firstParty);
 
     // --- criterion 1: the landing page offers exactly one demo link, and it points somewhere -----
     const landing = await page.goto("/", { waitUntil: "load" });
@@ -134,6 +138,7 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
       requestsStillOpen: settle.outstanding,
       firstPartyConsoleErrors: scriptConsoleErrors,
       firstPartyRequestFailures: firstPartyFailures,
+      firstPartyHttpErrors: httpErrors,
       thirdPartyConsoleErrors,
       thirdPartyRequestFailures: thirdPartyFailures,
       contamination: {
@@ -158,6 +163,13 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
       `first-party requests still open after ${settle.waitedMs}ms: ${settle.outstanding.join(", ")}`,
     ).toBe(true);
     expect(firstPartyFailures, "first-party request failures (pulse beacon aborts excluded)").toEqual([]);
+    // Graded, not merely collected — L-85's rule, applied to the field that would otherwise be the
+    // next decoration. A third-party image that 404s is somebody else's outage and stays out of
+    // this; an asset on our own origin that 404s is ours on every page load.
+    expect(
+      httpErrors,
+      `first-party responses with an HTTP error status: ${JSON.stringify(httpErrors)}`,
+    ).toEqual([]);
     expect(
       overflow.scrollWidth,
       `feed overflows horizontally: scrollWidth ${overflow.scrollWidth} > innerWidth ${overflow.innerWidth}`,
@@ -196,5 +208,77 @@ test.describe("EXP-004 — can someone look at Tuned without an account?", () =>
     expect(res.status(), "RSS status").toBe(200);
     expect(contentType, "RSS content-type").toContain("application/rss+xml");
     expect(items, "RSS should carry at least one <item>").toBeGreaterThan(0);
+  });
+
+  // The other half of the same defect class, and the half no browser instrument can ever reach.
+  //
+  // `trackHttpErrors` above catches a declared asset the browser actually fetches — the favicon.
+  // It cannot catch `og:image`, because **nothing on the page requests it.** That URL is read by
+  // Slack, iMessage, WhatsApp, Discord, LinkedIn and every other unfurler, off our own network,
+  // on a machine no check here runs on. It can 404 forever with every browser spec green, every
+  // console clean and every request list empty.
+  //
+  // That matters more than its size. `socialHead` falls back to `${SITE_ORIGIN}/icon-512.png` for
+  // every page with no image of its own — which is the landing page, and every find and feed page
+  // whose item carries no art. With both named distribution channels owner-blocked, sharing is
+  // one of the two levers this loop still has, and the image every share unfurls with is the one
+  // asset nothing was checking.
+  test("every same-origin asset the page declares to a sharer actually resolves", async ({
+    request,
+    baseURL,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1440x900", "route-level check runs once");
+
+    const origin = new URL(baseURL).origin;
+    const landing = await request.get(`${baseURL}/`);
+    expect(landing.status(), "GET / status").toBe(200);
+    const html = await landing.text();
+
+    // Read out of the served document rather than from a constant: a list of paths maintained
+    // here would go stale the moment the head changes, which is the failure this check is for.
+    const declared = [
+      ...[...html.matchAll(/<link[^>]+rel="(?:icon|apple-touch-icon)"[^>]+href="([^"]+)"/g)].map(
+        (m) => ({ as: "icon", url: m[1] }),
+      ),
+      ...[...html.matchAll(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/g)].map((m) => ({
+        as: "og:image",
+        url: m[1],
+      })),
+    ].map((d) => ({ ...d, url: new URL(d.url, origin).toString() }));
+
+    // Only our own origin. A member's item art lives on somebody else's host and its uptime is
+    // not a fact about Tuned.
+    const ours = declared.filter((d) => new URL(d.url).origin === origin);
+
+    const checked = [];
+    for (const d of ours) {
+      const res = await request.get(d.url);
+      checked.push({
+        ...d,
+        status: res.status(),
+        contentType: res.headers()["content-type"] ?? "",
+        bytes: (await res.body()).length,
+      });
+    }
+
+    console.log(`\nEXP004_DECLARED_ASSETS ${JSON.stringify(checked, null, 2)}\n`);
+
+    // The landing page declares both shapes today. If it ever declares neither, this test would
+    // pass by checking nothing at all — the silent pass L-61 names — so the count is graded too.
+    expect(ours.length, "the landing page declared no same-origin icon or og:image").toBeGreaterThan(0);
+    expect(
+      checked.filter((c) => c.as === "og:image").length,
+      "the landing page declared no og:image — every share of this site unfurls without one",
+    ).toBeGreaterThan(0);
+    expect(
+      checked.filter((c) => c.status !== 200),
+      `a same-origin asset this page advertises does not resolve: ${JSON.stringify(checked)}`,
+    ).toEqual([]);
+    // A 200 that serves the 404 page as HTML would satisfy the status check and still unfurl as
+    // nothing, so what came back has to actually be an image.
+    expect(
+      checked.filter((c) => !c.contentType.startsWith("image/")),
+      `a same-origin asset resolved but is not an image: ${JSON.stringify(checked)}`,
+    ).toEqual([]);
   });
 });

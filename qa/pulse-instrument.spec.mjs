@@ -112,13 +112,31 @@ test.describe("landing instrument validity — does the page emit what the exper
     const pulses = [];
     const pageErrors = [];
     const consoleErrors = [];
+    // First-party HTTP error responses, named. Collected here and **graded in
+    // `public-surfaces.spec.mjs`**, which loads this same landing page and already owns the
+    // assertion ordering this needs. That split is deliberate rather than a field left ungraded:
+    // this file is EXP-011's apparatus and its reading is 2026-09-19, so a new failure mode added
+    // to it could turn a bracket red for a reason that has nothing to do with what the bracket
+    // brackets. Recording the URL is exactly what run 169 asked for; grading lives where a failure
+    // means the surface is broken rather than the bracket is void.
+    const httpErrors = [];
 
     page.on("pageerror", (e) => pageErrors.push(String(e)));
+    // The text alone is what run 169 recorded, and it was not enough to act on: "Failed to load
+    // resource: the server responded with a status of 404 ()" names no resource, so the bracket
+    // could say *that* something on this page 404s and not *what*. That is L-85 happening inside
+    // this loop's own instrument one run after L-85 was written. The location is added here, and
+    // `httpErrors` below carries the same fact in a form that does not depend on Chromium's
+    // message wording.
     page.on("console", (m) => {
-      if (m.type() === "error") consoleErrors.push(m.text());
+      if (m.type() === "error") consoleErrors.push({ text: m.text(), url: m.location()?.url ?? "" });
     });
+    const targetOrigin = new URL(baseURL).origin;
     page.on("response", (res) => {
       const u = new URL(res.url());
+      if (res.status() >= 400 && u.origin === targetOrigin) {
+        httpErrors.push({ url: res.url(), status: res.status(), resourceType: res.request().resourceType() });
+      }
       if (!u.pathname.startsWith(PULSE_PREFIX)) return;
       pulses.push({ name: u.pathname.slice(PULSE_PREFIX.length), status: res.status() });
     });
@@ -245,6 +263,7 @@ test.describe("landing instrument validity — does the page emit what the exper
       pulses,
       page_errors: pageErrors,
       console_errors: consoleErrors,
+      http_errors: httpErrors,
       application_submitted: false,
       utc_day: new Date().toISOString().slice(0, 10),
       landing_render_observed: pulses.filter((p) => p.name === UNGATED).length,

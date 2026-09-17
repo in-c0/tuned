@@ -25,6 +25,7 @@ import {
   isPulseUrl,
   partitionFailures,
   pulseName,
+  trackHttpErrors,
   trackInFlight,
 } from "../qa/settle-requests.mjs";
 
@@ -234,5 +235,112 @@ describe("partitionFailures", () => {
 
   it("passes an empty list straight through", () => {
     expect(partitionFailures([])).toEqual({ failures: [], discarded: [] });
+  });
+});
+
+/** A stand-in for Playwright's Page on the one event `trackHttpErrors` listens to. */
+type FakeResponse = { url(): string; status(): number; request(): { resourceType(): string } };
+
+function fakeResponsePage() {
+  const handlers: Array<(res: FakeResponse) => void> = [];
+  return {
+    on(event: "response", handler: (res: FakeResponse) => void) {
+      if (event === "response") handlers.push(handler);
+    },
+    respond(url: string, status: number, resourceType = "image") {
+      for (const h of handlers) {
+        h({ url: () => url, status: () => status, request: () => ({ resourceType: () => resourceType }) });
+      }
+    },
+  };
+}
+
+describe("trackHttpErrors", () => {
+  // The whole point of this collector, stated as a test: the shape it catches is invisible to
+  // `requestfailed`, which is what every browser spec here graded before it existed.
+  it("records a first-party 404 — the shape requestfailed never sees", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("https://justtuned.com/icon-192.png", 404);
+
+    expect(errors).toEqual([
+      { url: "https://justtuned.com/icon-192.png", status: 404, resourceType: "image" },
+    ]);
+  });
+
+  it("names the URL, which is the entire repair — a status with no URL is L-85 again", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("https://justtuned.com/a.png", 404);
+    page.respond("https://justtuned.com/b.png", 404);
+
+    expect(errors.map((e) => e.url)).toEqual([
+      "https://justtuned.com/a.png",
+      "https://justtuned.com/b.png",
+    ]);
+  });
+
+  it("ignores third-party errors — a dead favicon on someone else's CDN is not our defect", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("https://icons.duckduckgo.com/ip3/example.com.ico", 404);
+
+    expect(errors).toEqual([]);
+  });
+
+  it("ignores every status below 400, including redirects", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    for (const status of [200, 204, 301, 302, 304, 399]) page.respond("https://justtuned.com/x", status);
+
+    expect(errors).toEqual([]);
+  });
+
+  it("catches 5xx as well as 4xx — a broken asset and a broken server are one defect class here", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("https://justtuned.com/boom", 500, "script");
+
+    expect(errors).toEqual([{ url: "https://justtuned.com/boom", status: 500, resourceType: "script" }]);
+  });
+
+  // A navigation that 404s is the same defect one level up, and it is the case a spec that only
+  // asserts on the documents it names can still walk past.
+  it("does not exempt the main document", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("https://justtuned.com/nope", 404, "document");
+
+    expect(errors).toEqual([
+      { url: "https://justtuned.com/nope", status: 404, resourceType: "document" },
+    ]);
+  });
+
+  // No exemption for pulses. `partitionFailures` exempts an *aborted* beacon because the abort is
+  // the page discarding a response it never awaited; a pulse that answers 404 or 403 was refused,
+  // and that is exactly what pulse-instrument's own assertions treat as a failure.
+  it("does not exempt a pulse beacon that was refused", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("https://justtuned.com/api/pulse/landing_render", 403, "fetch");
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].status).toBe(403);
+  });
+
+  it("treats the empty URL as first party, the way every spec's own predicate does", () => {
+    const page = fakeResponsePage();
+    const errors = trackHttpErrors(page, FIRST_PARTY);
+
+    page.respond("", 404);
+
+    expect(errors).toHaveLength(1);
   });
 });

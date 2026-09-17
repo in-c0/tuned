@@ -25,6 +25,31 @@ export interface RequestEventSource {
   on(event: "request" | "requestfinished" | "requestfailed", handler: (req: { url(): string }) => void): unknown;
 }
 
+/** A first-party response whose status was 400 or worse. */
+export interface HttpErrorRecord {
+  url: string;
+  status: number;
+  /** Playwright's resource type — "document", "image", "script", … */
+  resourceType: string;
+}
+
+/** The subset of Playwright's Page `trackHttpErrors` uses. Structural, so a test can pass a fake. */
+export interface ResponseEventSource {
+  on(
+    event: "response",
+    handler: (res: {
+      url(): string;
+      status(): number;
+      request(): { resourceType(): string };
+    }) => void,
+  ): unknown;
+}
+
+export declare function trackHttpErrors(
+  page: ResponseEventSource,
+  isFirstParty: (url: string) => boolean,
+): HttpErrorRecord[];
+
 export declare function trackInFlight(
   page: RequestEventSource,
   isFirstParty: (url: string) => boolean,
