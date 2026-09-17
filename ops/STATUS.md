@@ -51,6 +51,20 @@ trigger, cannot move R's inputs, and **the artifact cannot say which resource** 
 message and not the URL, which is [L-85](LESSONS.md#l-85) in this loop's own instrument one run after
 L-85 was written. Registered, not repaired inside a bracket dispatch.
 
+**The change broke a check, every gate was green, and both of those are true — [L-87](LESSONS.md#l-87).**
+`qa/exp008-provenance.spec.mjs` asserts a nomination's why line against an RSS item's `<description>`
+with an **exact string equality**, and this change gives that field structure. It is **dispatch-only by
+design** — `qa-browser` never runs on push, because recurring headless traffic through production's own
+funnel counters would corrupt them — so six green gates, a green `pull_request` check and a green
+`verify production` said **nothing at all** about a check that reads the exact field being changed. It
+was found by grepping `qa/` for the surface *after* the merge, not before it. L-86 was a gate that could
+not pass where it gates; this is a check with **no gate to fail at**. The repair **moves layer rather
+than relaxing**: what EXP-008 grades is that the *whole* why line reaches a subscriber untruncated, so
+the comparison stays exact and re-aims at the paragraph now carrying it. Matching the description with
+`toContain` would have graded the same words and **stopped grading "whole"**, while looking like the
+smaller edit. Two assertions are added on the same fetch for what the new structure is *for*: the
+provenance paragraph must name the selector and carry that find's address.
+
 **Gates.** `npm run check` exit 0 · **389 vitest** (379 → 389, ten new) · **ops suite 215/215** ·
 `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit --omit=dev`
 **0 vulnerabilities** — every one run **on the branch with a commit on it**, the condition run 168

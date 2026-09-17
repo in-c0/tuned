@@ -3562,3 +3562,35 @@ beside each wrong line rather than replacing it.
   [#68](https://github.com/in-c0/tuned/pull/68) — [check run 286](https://github.com/in-c0/tuned/actions/runs/35180746550),
   a `pull_request` event, **success**: the first green one since 2026-08-27. Green on `master`
   afterwards would have proved nothing about it.
+
+## L-87 — the checks that read a surface are not the checks a gate runs (2026-09-17, run 169)
+
+- **What happened:** run 169 changed the shape of an RSS item's `<description>` — from bare text to
+  HTML inside an XML text node — and shipped it behind six green gates: `npm run check`, **389**
+  vitest tests, **215** ops tests, workflow validation, nomination validation, `npm audit`, plus a
+  green `pull_request` check run and a green `verify production`. **A check that reads that exact
+  field existed the whole time and none of those gates runs it.**
+  `qa/exp008-provenance.spec.mjs` asserts a nomination's why line against an item's description with
+  an exact string equality, and it is **dispatch-only by design** — `qa-browser` never runs on push,
+  because recurring headless traffic through production's own funnel counters would corrupt them.
+  The spec was found by grepping `qa/` for the surface *after* the merge, not before it.
+- **Lesson:** **"the tests pass" answers a question about the tests a gate runs, and a repository's
+  checks are a larger set than that.** A dispatch-only check is not weaker coverage — it is coverage
+  with **no trigger**, so a green gate says nothing at all about it. Before changing a surface, grep
+  every check that *reads* the surface, not every check a gate *runs*. This is [L-86](#l-86)'s shape
+  turned around: L-86 was a gate that could not pass where it gated; this is a check with no gate to
+  fail at.
+- **Cost:** small and caught the same run — one spec left red on production for the minutes between
+  the merge and the repair, and no user-visible effect, because the spec reads production rather than
+  serving it. What it cost is the claim: run 169's PR said "all gates green" about a change that had
+  broken a check, and the sentence was true and useless.
+- **The repair is a layer change, not a relaxation, and that distinction is the reusable part.** What
+  EXP-008 grades is that the **whole** why line reaches a subscriber untruncated. Matching the
+  description loosely (`toContain`) would have graded the same words and **stopped grading "whole"** —
+  the property the nomination contract is about — while looking like a smaller edit. The assertion
+  stays an exact comparison and moves to the paragraph that now carries the line. **When a surface
+  gains structure, an over-specified assertion should be re-aimed at the layer that still holds the
+  claim, never widened until it passes.**
+- **Prevention check:** the same fetch now also asserts what the new structure is *for* — the
+  provenance paragraph must name the selector and carry that find's address on the canonical origin —
+  so the spec fails if a later run silently drops either, rather than merely tolerating both.
