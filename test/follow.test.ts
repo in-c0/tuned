@@ -61,7 +61,7 @@ async function seedFeed(handle: string): Promise<void> {
 async function follow(
   handle: string,
   email: unknown,
-  opts: { ua?: string; origin?: string | null } = {}
+  opts: { ua?: string; origin?: string | null; from?: string } = {}
 ): Promise<Response> {
   const headers: Record<string, string> = {
     "content-type": "application/json",
@@ -69,9 +69,13 @@ async function follow(
   };
   const origin = opts.origin === undefined ? ORIGIN : opts.origin;
   if (origin !== null) headers.origin = origin;
+  // `from` is omitted unless a caller sets it, which is the feed page's shape exactly: it sends
+  // no such field. A test that always sent one could not tell the default apart from the axis.
+  const body: Record<string, unknown> = { email };
+  if (opts.from !== undefined) body.from = opts.from;
   const ctx = createExecutionContext();
   const res = await worker.fetch(
-    new Request(`${ORIGIN}/${handle}/follow`, { method: "POST", headers, body: JSON.stringify({ email }) }),
+    new Request(`${ORIGIN}/${handle}/follow`, { method: "POST", headers, body: JSON.stringify(body) }),
     env as never,
     ctx
   );
@@ -480,5 +484,82 @@ describe("follow_rss — the working path, disclosed before the ask and counted"
 
   it("does not reach the landing page, whose views are EXP-011's denominator", async () => {
     expect(await feedPage("/"), "follow_rss reached the landing page").not.toContain("follow_rss");
+  });
+
+  it("keeps the find page's dialog off both of these surfaces, and its own names off theirs", async () => {
+    // The separation runs both ways, and only one direction of it is obvious. A find-page name
+    // appearing on the landing page would put a second script on EXP-011's frozen surface; a
+    // find-page name appearing on a feed page would mean two surfaces writing one counter, which
+    // is the thing the separate names exist to prevent.
+    await seedFeed("sportstech");
+    expect(await feedPage("/"), "a find-page pulse reached the landing page").not.toContain("find_follow");
+    expect(await feedPage("/sportstech"), "a find-page pulse reached a feed page").not.toContain("find_follow");
+  });
+});
+
+// From 2026-09-18 a find page carries a follow dialog too, and this route now serves two surfaces.
+// The axis is what keeps that from silently rewriting history: `follow_submit` is published as
+// "an accepted follow" on a feed page, `followers` is 0, and the first real follow this service
+// ever records would otherwise be read as coming from a surface it did not come from.
+describe("a follow says which surface it came from", () => {
+  it("marks a find-page follow with the axis and leaves the buckets unchanged", async () => {
+    await seedFeed("sportstech");
+
+    const res = await follow("sportstech", "reader@example.com", { from: "find" });
+
+    expect(res.status).toBe(200);
+    expect(await followerCount()).toBe(1);
+    expect(await countersToday()).toEqual({
+      follow_submit: 1,
+      "follow_submit:sportstech": 1,
+      follow_submit_find: 1,
+    });
+  });
+
+  it("leaves a feed-page follow off the axis, because it sends no such field", async () => {
+    // The load-bearing negative. Absence of `from` is what every follow recorded before this run
+    // looks like, so the default must be "not a find page" rather than "unknown".
+    await seedFeed("sportstech");
+
+    await follow("sportstech", "reader@example.com");
+
+    expect(await countersToday()).toEqual({ follow_submit: 1, "follow_submit:sportstech": 1 });
+  });
+
+  it("marks a rejected find-page follow too, so the axis does not only see the wins", async () => {
+    await seedFeed("sportstech");
+
+    const res = await follow("sportstech", "not-an-email", { from: "find" });
+
+    expect(res.status).toBe(400);
+    expect(await followerCount()).toBe(0);
+    expect(await countersToday()).toEqual({ follow_invalid: 1, follow_invalid_find: 1 });
+  });
+
+  it("is an axis over the _bot split, not a bucket beside it", async () => {
+    // Same convention as _offpage, set at run 141: an axis counts a subset of the unsuffixed and
+    // _bot names together and is never itself split by user-agent.
+    await seedFeed("sportstech");
+
+    await follow("sportstech", "crawler@example.com", { ua: BOT_UA, from: "find" });
+
+    expect(await countersToday()).toEqual({
+      follow_submit_bot: 1,
+      "follow_submit_bot:sportstech": 1,
+      follow_submit_find: 1,
+    });
+  });
+
+  it("stores the follow whatever the field says, because this route classifies and never refuses", async () => {
+    // `from` is a string in a request body — forgeable exactly as far as the _bot split is. It
+    // may never become a gate: one real person turned away costs more than every mislabelled
+    // follow combined.
+    await seedFeed("sportstech");
+
+    const res = await follow("sportstech", "reader@example.com", { from: "nonsense" });
+
+    expect(res.status).toBe(200);
+    expect(await followerCount()).toBe(1);
+    expect(await countersToday()).toEqual({ follow_submit: 1, "follow_submit:sportstech": 1 });
   });
 });

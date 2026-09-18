@@ -307,6 +307,17 @@ const PULSE_COUNTERS = new Set([
   // `item_view` exactly as `landing_render` is read against `landing_view` — the share of
   // requests that ran the document, not a count of people, and forgeable on the same one header.
   "item_render",
+  // The find page's follow dialog, counted under names of its own rather than under
+  // `follow_open`/`follow_rss`. Those two are published as properties of a public **feed** page
+  // and `follow_open`'s honest denominator is `feed_render`, which a find page cannot emit;
+  // routing a second surface into them would have changed what a running number means without
+  // changing its name. So `find_follow_open` is the dialog opening on a find page and
+  // `find_follow_rss` is the RSS option inside it, each at most once per page load, same-origin
+  // only, and each read against `item_render` the way the feed-page pair is read against
+  // `feed_render`. Neither is a subscriber and neither is additive with the feed-page name it
+  // mirrors — a visitor who follows from both surfaces is two page loads, not one funnel.
+  "find_follow_open",
+  "find_follow_rss",
 ]);
 app.post("/api/pulse/:name", (c) => {
   const name = c.req.param("name");
@@ -1357,6 +1368,15 @@ app.get("/:handle/:id", async (c) => {
 //                                   the same way application_invalid is not part of
 //                                   application_submit.
 //   follow_invalid_offpage          axis, as above.
+//   follow_submit_find              axis: the subset that came from a find page's follow dialog
+//   follow_invalid_find             rather than a feed page's. Added when /<handle>/<id> gained
+//                                   a follow block of its own — without it, a follow from the
+//                                   surface this site is indexed and shared as would land in a
+//                                   name published as "an accepted follow on a feed page", and
+//                                   the first real one would be read as coming from somewhere
+//                                   it did not. The dialog sends `from: "find"`; the feed page
+//                                   sends no such field, so every follow recorded before this
+//                                   run keeps the meaning it was written with.
 //   follow_duplicate                axis: the subset of accepted follows that changed nothing
 //                                   because that address already followed this feed. It is the
 //                                   name that makes `totals.followers` readable — a day with
@@ -1378,9 +1398,24 @@ app.post("/:handle/follow", async (c) => {
   if (!creator) return c.json({ error: "no such feed" }, 404);
   const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
   const offpage = c.req.header("origin") !== new URL(c.req.url).origin;
-  const { email } = await c.req.json<{ email?: string }>();
+  // Which surface sent it. The find page's dialog posts `from: "find"`; the feed page's posts no
+  // such field, so absence means the feed page and every follow recorded before this run keeps
+  // the meaning it was written with. An axis and not a bucket, on the same terms as `_offpage`:
+  // `follow_submit` and `follow_submit_bot` are still the total and are never reduced by it. It
+  // is a string in a request body, so it is evidence and not proof — forgeable exactly as far as
+  // the `_bot` split is, and never a reason to refuse a follow. This route classifies; it does
+  // not gatekeep.
+  const { email, from } = await c.req.json<{ email?: string; from?: string }>();
+  const fromFind = from === "find";
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) {
-    track(c, countEach(c.env.DB, [`follow_invalid${suffix}`, offpage ? "follow_invalid_offpage" : ""]));
+    track(
+      c,
+      countEach(c.env.DB, [
+        `follow_invalid${suffix}`,
+        offpage ? "follow_invalid_offpage" : "",
+        fromFind ? "follow_invalid_find" : "",
+      ])
+    );
     return c.json({ error: "invalid email" }, 400);
   }
   // `changes` is what separates a new follower from a repeat: INSERT OR IGNORE reports 0 when
@@ -1397,6 +1432,7 @@ app.post("/:handle/follow", async (c) => {
       `follow_submit${suffix}`,
       `follow_submit${suffix}:${creator.handle}`,
       offpage ? "follow_submit_offpage" : "",
+      fromFind ? "follow_submit_find" : "",
       duplicate ? "follow_duplicate" : "",
     ])
   );

@@ -300,16 +300,30 @@ describe("the find surface is counted", () => {
     expect(await counter("item_view:sportstech")).toBe(0);
   });
 
-  it("emits item_render and cannot emit feed_render, having no feed page script", async () => {
-    // Structural, not incidental: feed_render is gated on #follow-btn inside CLIENT_JS, and this
-    // page is served a different script entirely. EXP-011's sibling reading rests on that
-    // denominator, so traffic that never saw a feed page must not be able to move it.
+  it("emits item_render and cannot emit any feed-page counter, having no feed page script", async () => {
+    // Structural, not incidental: feed_render and follow_open are gated on #follow-btn inside
+    // CLIENT_JS, and this page is served a different script entirely. EXP-011's sibling reading
+    // rests on that denominator, so traffic that never saw a feed page must not be able to move
+    // it.
+    //
+    // This assertion moved layer on 2026-09-18 rather than relaxing. It used to read "and this
+    // page has no #follow-btn", which was a *proxy* for "is not served CLIENT_JS" — and the find
+    // page now has a follow button of its own. What the gate is actually for is that a find page
+    // cannot write a name published as a property of a feed page, so that is what it grades now,
+    // by name. `find_` prefixes are excluded with a lookbehind and not by dropping the check:
+    // `find_follow_rss` contains `follow_rss`, and a plain substring test would have passed for
+    // the wrong reason on a page emitting exactly the counters this is meant to forbid.
     const c = await creator("sportstech", "Sportstech");
     const id = await item(c);
     const html = await (await get(`/sportstech/${id}`)).text();
     expect(html).toContain("/api/pulse/item_render");
     expect(html).not.toContain("feed_render");
-    expect(html).not.toContain('id="follow-btn"');
+    expect(html).not.toMatch(/(?<!find_)follow_open/);
+    expect(html).not.toMatch(/(?<!find_)follow_rss/);
+    // The script this page is served is still not CLIENT_JS, which is the fact underneath all of
+    // the above. CLIENT_JS derives the follow endpoint from location.pathname; FIND_JS reads it
+    // from the button. Only one of those is correct at /<handle>/<id>.
+    expect(html).not.toContain("location.pathname.replace");
   });
 
   it("accepts item_render on the pulse route only from this origin", async () => {
@@ -338,6 +352,116 @@ describe("the find surface is counted", () => {
     await waitOnExecutionContext(ctx2);
     expect(foreign.status).toBe(403);
     expect(await counter("item_render")).toBe(1);
+  });
+});
+
+// A find page is the unit this site is indexed and shared as — eighty-seven of them against five
+// feed pages — so it is far more likely than the front door to be a stranger's first Tuned page.
+// Until 2026-09-18 its only subscription affordance was a 12px "RSS" link in the corner, which
+// resolves to an XML document. These tests grade the affordance that replaced that, and the two
+// things it must not do: outrank the outbound link, or move a counter belonging to a feed page.
+describe("a find page can be followed", () => {
+  it("offers the feed, unconditionally and with the handle it belongs to", async () => {
+    // Unconditional matters: `more` is empty on a one-item feed, and an affordance that
+    // disappears on the smallest feeds is not one. This item is the only one in its feed.
+    const c = await creator("sportstech", "Sportstech");
+    const id = await item(c);
+    const html = await (await get(`/sportstech/${id}`)).text();
+    expect(html).toContain('id="follow-btn"');
+    expect(html).toContain('data-feed="/sportstech"');
+    expect(html).toContain('id="follow-dlg"');
+    expect(html).toContain('href="/sportstech/rss.xml"');
+    expect(html).not.toContain("More of what @sportstech");
+  });
+
+  it("keeps the source link as the primary action, and says the dialog is not a destination", async () => {
+    // The doctrine boundary. This page exists to send people to the thing that was attended to;
+    // a follow ask that outranked the outbound link would be the summarizer shape NORTH_STAR
+    // rules out. Graded by document order — the open CTA must come first — and by the standing
+    // honesty of the dialog: an email row goes into a table nothing can deliver from.
+    const c = await creator("sportstech", "Sportstech");
+    const id = await item(c, { url: "https://runnersworld.com/plate" });
+    const html = await (await get(`/sportstech/${id}`)).text();
+    // The anchor's own markup, not the bare class name. `open-cta` is also a selector in the
+    // stylesheet `layout()` inlines into <head>, which is before the body unconditionally — so
+    // `indexOf("open-cta")` finds the rule, and an ordering assertion built on it passes however
+    // the body is ordered. Written that way first, and it survived the mutation that moves the
+    // follow block above the CTA. This is the run-167 shape: a check that graded something else.
+    const cta = html.indexOf('<a class="btn primary open-cta"');
+    const follow = html.indexOf('<button class="btn primary" id="follow-btn"');
+    expect(cta, "the open CTA is not in the document").toBeGreaterThan(-1);
+    expect(follow, "the follow button is not in the document").toBeGreaterThan(-1);
+    expect(cta, "the follow ask outranks the link to the source").toBeLessThan(follow);
+    expect(html).toContain("<b>RSS works today.</b>");
+    expect(html).toContain("<b>Digests are not sending yet</b>");
+  });
+
+  it("posts the follow to the feed's own path, not to the find's", async () => {
+    // CLIENT_JS derives the endpoint by appending "/follow" to location.pathname, which is right
+    // on /<handle> and would POST to /<handle>/<id>/follow here — a route that does not exist.
+    // The regression this guards is a silent one: the dialog would look identical and every
+    // follow taken from a find page would 404 into nothing.
+    const c = await creator("sportstech", "Sportstech");
+    const id = await item(c);
+    const html = await (await get(`/sportstech/${id}`)).text();
+    expect(html).toContain('fetch(feed + "/follow"');
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(
+      new Request(`https://tuned.test/sportstech/${id}/follow`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "user-agent": HUMAN_UA },
+        body: JSON.stringify({ email: "reader@example.com" }),
+      }),
+      env as never,
+      ctx
+    );
+    await waitOnExecutionContext(ctx);
+    expect(res.status).toBe(404);
+  });
+
+  it("counts the dialog under names of its own and never the feed page's", async () => {
+    // The L-87 shape this avoids: `follow_open`'s published denominator is `feed_render`, which a
+    // find page cannot emit. Routing a second surface into that name would have changed what a
+    // running number means without changing its name.
+    const c = await creator("sportstech", "Sportstech");
+    const id = await item(c);
+    const html = await (await get(`/sportstech/${id}`)).text();
+    expect(html).toContain("/api/pulse/find_follow_open");
+    expect(html).toContain("/api/pulse/find_follow_rss");
+
+    for (const name of ["find_follow_open", "find_follow_rss"]) {
+      const ctx = createExecutionContext();
+      const res = await worker.fetch(
+        new Request(`https://tuned.test/api/pulse/${name}`, {
+          method: "POST",
+          headers: { origin: "https://tuned.test", "user-agent": HUMAN_UA },
+        }),
+        env as never,
+        ctx
+      );
+      await waitOnExecutionContext(ctx);
+      expect(res.status).toBe(204);
+      expect(await counter(name)).toBe(1);
+    }
+    // The feed-page pair is untouched by any of it.
+    expect(await counter("follow_open")).toBe(0);
+    expect(await counter("follow_rss")).toBe(0);
+    expect(await counter("feed_render")).toBe(0);
+  });
+
+  it("refuses the find-page pulses from another origin, as every other pulse is refused", async () => {
+    const ctx = createExecutionContext();
+    const foreign = await worker.fetch(
+      new Request("https://tuned.test/api/pulse/find_follow_open", {
+        method: "POST",
+        headers: { origin: "https://elsewhere.test", "user-agent": HUMAN_UA },
+      }),
+      env as never,
+      ctx
+    );
+    await waitOnExecutionContext(ctx);
+    expect(foreign.status).toBe(403);
+    expect(await counter("find_follow_open")).toBe(0);
   });
 });
 
