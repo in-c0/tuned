@@ -609,6 +609,58 @@ function clip(s: string, max: number): string {
   return cut.slice(0, Math.max(cut.lastIndexOf(" "), 1)).trimEnd() + "…";
 }
 
+/** How long ago a feed last published, in the plainest words available.
+ *
+ *  Run 150 put a follow button on every public feed page and run 171 put one on all eighty-seven
+ *  find pages, both carrying some version of *"every find like this one, as it is published"* and
+ *  *"new finds reach your reader as @handle publishes them"*. Those sentences are conditional, so
+ *  neither is false. What they omit is the only fact a stranger needs to decide: **a production
+ *  read of every public feed on 2026-09-18T10:08:54Z found the newest item on `ava` 47.3 days old
+ *  and on `wearables`, `wellbeing` and `graphics` 49.5 days old** (qa-browser 46, EXP005_SUMMARY).
+ *  Sixty-eight of the eighty-seven find pages belong to a feed that has published nothing in seven
+ *  weeks, and subscribing is the one conversion a visitor can complete with no account, no
+ *  application and no owner act. Offering it without saying that spends the single conversion this
+ *  funnel can achieve on a stream that will deliver nothing.
+ *
+ *  Staleness is a fact about the world and not a defect; a page that declines to mention it is the
+ *  defect ([L-18](../ops/LESSONS.md)). So the page says it, and the saying is deliberately
+ *  **unconditional — there is no threshold here and no change of tone above one.** A cut point
+ *  picked by this executor would be a number fitted to the five feeds it can see, which is the
+ *  shape EXP-013's Fork B exists to refuse. Days, never weeks or months, because days are what the
+ *  row holds and they do not round in the flattering direction.
+ *
+ *  Returns "" for a feed with nothing in it, so the caller renders the no-items sentence rather
+ *  than an age of nothing. */
+export function lastPublished(latestIso: string | null | undefined, now = Date.now()): string {
+  if (!latestIso) return "";
+  const t = new Date(latestIso).getTime();
+  if (!Number.isFinite(t)) return "";
+  const days = Math.floor((now - t) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  return `${days} days ago`;
+}
+
+/** The clause the follow block and both follow dialogs carry, after the sentence about publishing.
+ *
+ *  **Bare text, with no element of its own.** It goes into paragraphs and spans that already
+ *  exist, so it adds nothing to `FEED_CSS`/`FIND_CSS` — the two dated page-scoped blocks waiting
+ *  to be folded into `CSS` once EXP-011 is read — and cannot move any layout.
+ *
+ *  The obvious version wrapped the age in `<b>` for emphasis, and browser QA at 390px and 1100px
+ *  caught what that does: `.find-follow .ff-copy b` is `display: block`, because it styles the
+ *  *"Follow @handle"* heading directly above. The emphasis turned one sentence into three lines —
+ *  "…the last was" / "49 days ago" / ". No account, nothing to apply for." — with the full stop
+ *  orphaned onto its own row. Nothing overflowed, so the document-overflow check read clean
+ *  through it. Emphasis is not worth a second styling rule on a surface that has two dated ones
+ *  outstanding already, so there is none. */
+function lastPublishedClause(handle: string, latestIso: string | null | undefined, now = Date.now()): string {
+  const words = lastPublished(latestIso, now);
+  return words
+    ? ` — the last was ${esc(words)}.`
+    : ` — @${esc(handle)} has not published anything yet.`;
+}
+
 function favicon(domain: string): string {
   return `https://icons.duckduckgo.com/ip3/${esc(domain)}.ico`;
 }
@@ -841,7 +893,7 @@ export function publicPage(creator: Creator, items: Item[]): string {
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
     <h3>Follow ${esc(creator.name)}</h3>
-    <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them.</p>
+    <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them${lastPublishedClause(creator.handle, latest)}</p>
     <a class="btn primary rss-cta" id="follow-rss" href="/${esc(creator.handle)}/rss.xml" target="_blank" rel="noopener">Subscribe by RSS</a>
     <p class="or">Or leave an email. <b>Digests are not sending yet</b> — you go on the list and nothing arrives until they start. No spam, no account.</p>
     <form id="follow-form"><input type="email" id="follow-email" required placeholder="you@..."><button class="btn">Add me to the list</button></form>
@@ -1050,6 +1102,16 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
   // Absolute and server-rendered. A relative time needs script; a crawler runs none, and the date
   // an item was selected is the one fact on this page that decays.
   const when = new Date(item.created_at).toUTCString().slice(0, 16);
+  // The age the follow ask reports is the **feed's**, never this page's item. A find page is
+  // reached from a search result or a pasted link, so the item in front of the reader is as
+  // likely to be the oldest thing in the feed as the newest; answering "how old is this find?"
+  // when the question is "will subscribing deliver anything?" would be a true number in the
+  // wrong denominator. `more` is the same creator's other public items ordered `created_at DESC`
+  // (src/index.ts, `GET /:handle/:id`), so the newest of `[item, ...more]` is exactly the feed's
+  // newest public item — no extra query, and exact rather than an approximation of one.
+  const feedLatest = [item, ...more].reduce((a, b) =>
+    new Date(b.created_at).getTime() > new Date(a.created_at).getTime() ? b : a
+  ).created_at;
   const body = `
   <div class="site-top">
     <a class="wordmark" href="/"><b>·</b> ${esc(BRAND.toLowerCase())}</a>
@@ -1088,7 +1150,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
     <div class="find-follow">
       <div class="ff-copy">
         <b>Follow @${esc(creator.handle)}</b>
-        <span>Every find like this one, as it is published. No account, nothing to apply for.</span>
+        <span>Every find like this one, as it is published${lastPublishedClause(creator.handle, feedLatest)} No account, nothing to apply for.</span>
       </div>
       <button class="btn primary" id="follow-btn" data-feed="/${esc(creator.handle)}">Follow</button>
     </div>
@@ -1105,7 +1167,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
     <h3>Follow ${esc(creator.name)}</h3>
-    <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them.</p>
+    <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them${lastPublishedClause(creator.handle, feedLatest)}</p>
     <a class="btn primary rss-cta" id="follow-rss" href="/${esc(creator.handle)}/rss.xml" target="_blank" rel="noopener">Subscribe by RSS</a>
     <p class="or">Or leave an email. <b>Digests are not sending yet</b> — you go on the list and nothing arrives until they start. No spam, no account.</p>
     <form id="follow-form"><input type="email" id="follow-email" required placeholder="you@..."><button class="btn">Add me to the list</button></form>
