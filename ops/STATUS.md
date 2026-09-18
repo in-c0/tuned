@@ -1,5 +1,101 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-19 08:35 Sydney (2026-09-18 22:35 UTC), run 173 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-172 and not re-argued here, per [L-07](LESSONS.md).** **EXP-011 is graded:
+686 human-flagged landing views produced 4 rendering browsers.**
+
+**The reading, on its pre-named date.** [EXP-011](EXPERIMENTS.md) asked whether `landing_view` is a
+browser at all. Over the **eleven complete UTC days 2026-09-05 … 2026-09-15** — the window as shortened
+by run 166 under its own regression clause — **R = Σ `landing_render` ÷ Σ `landing_view` = 4 ÷ 686 =
+0.58%**. The cut point registered on 2026-09-04, before the counter existed, was **R < 10% ⇒ Fork R-A,
+*mostly not a browser***. 0.58% is one seventeenth of it, so this is not a coin toss. **Nine of the
+eleven days produced no rendering browser at all**; all four renders fell on 09-07 and 09-09.
+`landing_engage` read **1** across the window and `application_start` **0**.
+
+**What that settles, and it is the question this loop has been arguing with itself about since
+2026-08-18.** The standing claim — *"the landing page is not the bottleneck, distribution is"* — rested
+on [EXP-007](EXPERIMENTS.md) Fork A: one day of an interaction counter, which **cannot distinguish
+*nobody real arrives* from *real people arrive and the offer does not move them***. Both worlds predict
+the same near-zero. Eleven days of a render beacon distinguish them, and the answer is the first: the
+traffic is overwhelmingly clients that take the HTML and execute none of it. The claim is **upheld and
+upgraded from an inference to a measurement**, and [NORTH_STAR](NORTH_STAR.md) now carries the measured
+basis.
+
+**Three counter rules now bind every later run.** `landing_view` is **retired as an audience number** —
+it stays a true count of requests that did not declare themselves as automation, and it is not a visit,
+a session or a person; **0.58% is the measured size of that gap.** `landing_render` is **the denominator
+of every landing-page reading** from here. And **no rate is formed on this window**: `landing_engage ÷
+landing_render` is 1 ÷ 4, that quotient is Fork R-C's next action and **not R-A's**, and computing it
+anyway would be [L-37](LESSONS.md)'s error with a numerator of four.
+
+**Said as plainly as the result.** **R is not a count of people and 4 is not four visitors** — a
+JS-executing crawler that does not declare itself is indistinguishable from a person here, and the owner
+is a member who clicks around inside Tuned, so **4 is an upper bound on rendering browsers and may be
+zero humans.** It is not demand, not traction, and **it does not certify the landing page**: Fork R-A
+moves effort off the page because almost nothing reached it, not because the page was found good.
+**EXP-011 is closed** — one reading, one date, no extension, no recomputation.
+
+**The direction this sets for the rest of the window.** Fork R-A's registered next action, written blind
+on 2026-09-04, is that **the remaining runs go to getting real arrivals rather than to the page.** That
+is now the standing answer to any candidate proposing to improve `/`, recorded in
+[DECISIONS](DECISIONS.md). **Sixteen days left.**
+
+**The instrument shipped alongside, and the honest limit on it.** Every pre-registered reading here is
+defined over *complete* UTC days, and **nothing in the repository could tell a complete day from a
+partial one** — a snapshot taken at 23:05Z writes a row for today that is indistinguishable, at the
+point of use, from the same row taken after midnight. `ops/METRICS.md` carries ~10 hand-written *"this
+day is partial"* notes, and [L-37](LESSONS.md) records run 57 getting it wrong and publishing a rate off
+an unfinished day. Worse, the mechanism built to remove the hazard was **withdrawn by something nobody
+was watching**: `metrics-snapshot.yml`'s `15 0 * * *` schedule exists, in its own header's words, so the
+previous day is on disk *"complete, within minutes of ending"* — and its six most recent fires landed
+**4.48h, 4.65h, 4.58h, 4.68h, 4.70h and 4.55h late, none inside fifteen minutes**.
+`scripts/metrics-window.mjs` now answers that one question and fails closed; the snapshot's commit
+message carries `complete through <day>`, so `git log -- ops/metrics/` is a ledger.
+**It did not rescue this reading** — run 166 had already shortened the window, so the source was
+admissible by 2.2 days and the guard returned ADMISSIBLE on the first call. It is prospective, for
+EXP-012 and EXP-013, whose readings are still ahead. [L-91](LESSONS.md#l-91).
+
+**A second unpinned fact, found while discharging Fork R-E and the same shape again.** R-E fires if any
+first-party client renders `/` without declaring itself. It did **not** fire. But the ops verifier
+survives it because the word **`uptime`** happens to appear in a human-readable parenthetical —
+*"first-party uptime and metrics check"* — and `BOT_UA` matches on it. Rewording that to *"first-party
+health and metrics check"*, an edit that reads as pure prose, would have routed **every** `verify
+production` and `metrics snapshot` probe into the unsuffixed `landing_view` that R divides by, with
+nothing red anywhere. Two assertions in `test/metrics.test.ts` now import the real classifier and grade
+both first-party strings; that rewording turns them red.
+
+**Gates.** `npm run check` exit 0 · **423 vitest** (421 → 423, two new) · **ops suite 237/237**
+(215 → 237, twenty-two new) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs`
+8 valid · `npm audit --omit=dev` **0 vulnerabilities**. **Twelve mutations, named tests red on each**,
+every source file restored byte-identical: eight against `scripts/metrics-window.mjs` (the day
+subtraction dropped, the open-window comparison pointed at the wrong bound, the empty-`daily` verdict
+made admissible, the rolled-over-date rejection removed, the short-history check removed, the
+window-close instant moved a day early, an unreadable snapshot downgraded from *could-not-ask* to
+*clean no*, and a bad `generated_at` defaulting to epoch), and four against the first-party
+user-agents (the `uptime` prose rewording, the Playwright UA undeclaring itself, the `USER_AGENT`
+constant renamed away, and the shell quoting changed).
+
+**Deliberately NOT touched.** **No `src/` runtime change — the deployed Worker is byte-identical**, so
+nothing deployed, nothing could regress, and no rollback path was required. **`FEED_CSS` and `FIND_CSS`
+were NOT folded into `CSS`**, although runs 171 and 172 both said that unblocks the moment EXP-011 is
+read: bundling a `src/pages.ts` refactor into the run taking a one-shot reading couples deploy risk to
+a measurement. It is bookkeeping and it keeps. No route, schema, counter, secret, dependency, page or
+public claim; no new data category. `arrival:<tag>` and RSS are byte-untouched. The agent-scout schedule
+is still disarmed and the threshold-2 proposal is **still unruled** — no reviewer directive since
+2026-09-01. No item published, amended, retracted or restored. No spend.
+
+**Not claimed.** This adds no traffic, no user and no dollar, and nothing here predicts any. What it
+changes is that the loop now **knows** the landing page has essentially no rendering audience, instead
+of inferring it from a counter that could not tell the two worlds apart — and knows it well enough to
+stop spending the remaining days there.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **16 days left.**
+
+---
+
+## Run 172 (2026-09-18 20:35 Sydney) — eighty-seven pages asked strangers to subscribe to feeds that stopped publishing in July
+
 **Last updated:** 2026-09-18 20:35 Sydney (2026-09-18 10:35 UTC), run 172 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-171 and not re-argued here, per [L-07](LESSONS.md).** **Eighty-seven pages
 asked strangers to subscribe to feeds that stopped publishing in July.**

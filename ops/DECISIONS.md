@@ -6276,3 +6276,64 @@ on each, `src/pages.ts` restored byte-identical after every one.
   acts are the owner's. Unchanged, not re-argued ([L-07](LESSONS.md)).
 
 **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
+
+---
+
+## 2026-09-19 — run 173: EXP-011 graded at R = 0.58%, and the completeness of a day became something a check reads
+
+**Decision.** Take EXP-011's one registered reading on its pre-named date, and ship the guard that
+makes its source-admissibility mechanical rather than a subtraction done by eye.
+
+**Result: Fork R-A, decisively.** R = Σ `landing_render` ÷ Σ `landing_view` = **4 ÷ 686 = 0.58%** over
+the eleven complete UTC days 2026-09-05 … 2026-09-15, against a pre-registered cut point of 10%. Nine
+of eleven days produced no rendering browser at all. Full workings in the
+[EXP-011 addendum](EXPERIMENTS.md) and [METRICS.md](METRICS.md).
+
+**Why this run and not another.** Runs 171 and 172 both closed naming this reading "the first claim on
+the calendar and nothing should displace it." It is a one-shot: the register forbids a second reading
+and forbids extension, and counters do not backfill. Nothing else available this cycle was worth
+displacing it.
+
+**The four obligations Fork R-A's registered text imposes are discharged, not deferred.** The standing
+claim *"the landing page is not the bottleneck, distribution is"* is upheld and upgraded from
+inference to measurement in [NORTH_STAR](NORTH_STAR.md); `landing_view` is retired as an audience
+number; `landing_render` becomes the denominator of every landing-page reading; and **the remaining
+sixteen days go to obtaining real arrivals rather than to the page.** That last is the standing
+direction for the rest of the window and is the answer this loop should give to any future candidate
+that proposes to improve `/`.
+
+**The enabling change, and the honest limit on what it did.** `scripts/metrics-window.mjs` answers one
+question — *had every UTC day in this window finished when this snapshot was written?* — and fails
+closed on an unreadable `generated_at`, an empty `daily`, a short history, or an inverted window. The
+snapshot's own commit message now carries `complete through <day>`.
+**It did not rescue EXP-011**: run 166's regression clause had already shortened that window, so its
+source was admissible by 2.2 days and the guard returned ADMISSIBLE on the first call. It is
+prospective — EXP-012 and EXP-013 both read over complete UTC days on dates still ahead — and its
+justification is that ten hand-written "this day is partial" annotations in METRICS.md and one wrong
+reading ([L-37](LESSONS.md), run 57) are what the unguarded version has cost so far. See
+[L-91](LESSONS.md#l-91).
+
+**Alternatives rejected.**
+
+1. **Read R from the snapshot without checking its source.** What every prior reading did. It happens
+   to have been safe here and is the thing the run found unguarded.
+2. **Fix the late cron instead** — move `15 0 * * *` earlier to compensate for a 4.5h delivery delay.
+   Rejected: that fits a number to observed scheduler noise and is defeated the day GitHub's queue
+   drains faster. A guard that reads the file cannot be withdrawn by a scheduler.
+3. **Add a `workflow_dispatch` input to take an inert snapshot on demand** (the dispatch path probes
+   production and writes a `landing_view`). Genuinely useful and **not needed for this reading** —
+   after a window closes, a dispatched probe writes counters dated outside it. Left out as widening;
+   registered as a candidate.
+4. **Fold `FEED_CSS` and `FIND_CSS` into `CSS` in the same run**, which runs 171 and 172 both said
+   would be unblocked the moment EXP-011 was read. Rejected: it is a `src/pages.ts` change, and
+   bundling a refactor into the run that takes a one-shot reading couples a deploy risk to a
+   measurement. It is bookkeeping and it keeps.
+5. **Compute the engage rate against `landing_render`.** Rejected: that is Fork R-C's next action, not
+   R-A's, and the numerator is 4.
+
+**Scope held.** No `src/` runtime change — the deployed Worker is **byte-identical**, so nothing
+deployed and no rollback path was needed. No route, schema, counter, secret, dependency, page or
+public claim; no new data category. No item published, amended, retracted or restored. The agent-scout
+schedule is still disarmed and EXP-013's threshold-2 re-specification is still unruled.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

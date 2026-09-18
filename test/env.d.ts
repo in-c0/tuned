@@ -30,3 +30,13 @@ declare module "*.mjs?raw" {
   const content: string;
   export default content;
 }
+
+// Run 173. Pointed at a shell script, for the same reason as the two above and one narrower
+// one: scripts/prod-http.sh defines the user-agent every production probe sends, and whether
+// that string matches BOT_UA in src/metrics.ts decides which counter bucket every probe lands
+// in. Nothing links the two files. Reading the shell as text is what lets a TypeScript test
+// assert the relationship.
+declare module "*.sh?raw" {
+  const content: string;
+  export default content;
+}
