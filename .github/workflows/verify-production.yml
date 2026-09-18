@@ -727,7 +727,37 @@ jobs:
             echo "::error::on ${find} the follow ask now precedes the link to the source. Tuned's job is to send people to the thing that was attended to. Roll back."
             exit 1
           }
-          echo "Find page ${find} ships the follow block under \`find_follow_*\`, no feed-page counter, source link still first." >> "$GITHUB_STEP_SUMMARY"
+          # Run 172. The follow ask must state how long ago that feed last published, on the
+          # served document. Four of five feeds have published nothing since 30 July, and the
+          # ask is the only conversion a stranger can complete here — offering it without the
+          # age spends that conversion on a stream with nothing coming.
+          #
+          # The age itself is not asserted: it changes every day, and a check pinning a number
+          # would fail for the passage of time rather than for a regression. What is asserted
+          # is the SHAPE — a recognised age phrase, in place, on both surfaces. Both documents
+          # are already in hand from the fetches above, so this adds no request.
+          #
+          # Matched as one uninterrupted run through to the sentence after it, which is the
+          # property and not the prose: `.find-follow .ff-copy b` is `display: block`, so any
+          # markup reintroduced around the age breaks this sentence across three lines with the
+          # full stop orphaned — and nothing overflows when it does, so no overflow check sees
+          # it. This regex is what does.
+          age='(today|yesterday|[0-9]+ days ago)'
+          grep -qE "as it is published — the last was ${age}\. No account" /tmp/follow-find.html || {
+            echo "::error::${find} no longer states when @$(printf '%s' "$find" | cut -d/ -f2) last published, or has markup splitting the sentence. The follow ask is a promise again. Roll back."
+            exit 1
+          }
+          grep -qE "publishes them — the last was ${age}\." /tmp/follow-find.html || {
+            echo "::error::${find}'s follow dialog no longer states when the feed last published. Roll back."
+            exit 1
+          }
+          grep -qE "publishes them — the last was ${age}\." /tmp/follow-feed.html || {
+            echo "::error::/sportstech's follow dialog no longer states when the feed last published. Roll back."
+            exit 1
+          }
+          echo "Cadence disclosed: $(grep -oE "the last was ${age}" /tmp/follow-find.html | head -1) on ${find}."
+
+          echo "Find page ${find} ships the follow block under \`find_follow_*\`, no feed-page counter, source link still first, and states the feed's publishing age." >> "$GITHUB_STEP_SUMMARY"
 
       - name: A find page can be reached from the feed page, not only from the sitemap
         env:
