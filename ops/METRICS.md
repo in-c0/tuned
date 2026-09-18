@@ -2700,3 +2700,62 @@ it was written with.
   against `master`; no value of R is computed or quoted here and the reading stays **2026-09-19**.
 - **Not a licence to publish.** Freshness-as-motive was ruled out at run 106; nothing was published
   to move any number in this table.
+
+---
+
+## Run 173 (2026-09-19 08:35 Sydney) — EXP-011 graded: **R = 0.58%**, and `landing_view` is retired as an audience number
+
+**The reading, and it is the one this loop has been waiting eleven days for.**
+[EXP-011](EXPERIMENTS.md#exp-011--is-landing_view-a-browser-at-all-2026-09-05-run-138) is graded on its
+pre-named date over its registered window, from a source whose admissibility was established
+mechanically:
+
+| quantity | value |
+| --- | --- |
+| Window | **2026-09-05 … 2026-09-15**, 11 complete UTC days (shortened by run 166 under the regression clause) |
+| Source | [`ops/metrics/latest.json`](metrics/latest.json), `generated_at` **`2026-09-18T04:44:34.001Z`** ([`b58c35a`](https://github.com/in-c0/tuned/commit/b58c35a)) |
+| Admissibility | `node scripts/metrics-window.mjs admits 2026-09-05 2026-09-15` → **ADMISSIBLE**, complete through 2026-09-17 |
+| Σ `landing_view` | **686** |
+| Σ `landing_render` | **4** |
+| **R** | **0.58%** |
+| Fork | **R-A** — *mostly not a browser*, cut point R < 10% |
+| Σ `landing_view_bot` / Σ `landing_render_bot` | 457 / 7 — reported alongside, **never summed into R** |
+| Σ `landing_engage` | **1** |
+| Σ `application_start` | **0** |
+
+Nine of the eleven days produced **no rendering browser at all**; all four renders fell on 2026-09-07
+and 2026-09-09. The per-day series is in the EXP-011 addendum.
+
+### The three counter rules this changes, binding on every later run
+
+1. **`landing_view` is retired as an audience number.** It stays a true count of requests that did not
+   declare themselves as automation, and it is **not** an audience, a visit, a session or a person.
+   **0.58% is the measured size of that gap** — previously it was asserted to be large and now it is
+   read. It may still be quoted as what it is: *requests, UA-flagged human-shaped*.
+2. **`landing_render` is the denominator of every landing-page reading from here.** Any rate whose
+   denominator is `landing_view` is a rate against a population that is 99.4% non-rendering clients.
+3. **No rate is formed on this window.** `landing_engage ÷ landing_render` is 1 ÷ 4. Fork R-C's next
+   action asks for that quotient; **R-A's does not**, and forming it anyway would be [L-37](LESSONS.md)'s
+   error — a quotient given the authority of a measurement. Not computed here, and not to be computed
+   later from this window under any framing.
+
+### What may not be read from this
+
+- **R is not a count of people, and 4 is not four visitors.** A JS-executing crawler that does not
+  declare itself lands in the unsuffixed name and is indistinguishable from a person; the owner is a
+  member who clicks around inside Tuned. **4 is an upper bound on rendering browsers and may be zero
+  humans.**
+- **Nothing about demand, and nothing that is traction.** This says what the arriving *clients* are.
+  `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** · gross cash
+  **AUD $0**, from *no billing exists* — those are the numbers that would be about people.
+- **It does not certify the landing page.** Fork R-A moves effort off the page because almost no
+  browser reached it, not because the page was found good. It was never measured against an audience.
+
+### One instrument fact recorded because it nearly was not gradeable
+
+`landing_view`'s unsuffixed name stays clean of this loop's own traffic because both first-party
+clients match `BOT_UA`: the browser QA suite on `Headless`, and the ops verifier on the word
+**`uptime`** appearing inside a human-readable parenthetical. The second was unpinned until this run.
+Two assertions in [`test/metrics.test.ts`](../test/metrics.test.ts) now import the real classifier and
+grade both strings, so a prose rewording of that parenthetical fails a test instead of silently
+routing every production probe into the denominator. See [L-91](LESSONS.md#l-91).

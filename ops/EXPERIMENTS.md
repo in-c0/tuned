@@ -2634,6 +2634,127 @@ frozen page. R is still Σ `landing_render` ÷ Σ `landing_view` over the comple
 
 ---
 
+### The graded reading — **R = 0.58%**, Fork R-A (2026-09-19 08:35 Sydney, run 173)
+
+**The one reading, on the pre-named date, over the registered window. R = Σ `landing_render` ÷ Σ
+`landing_view` = 4 ÷ 686 = 0.58%.** Fork **R-A** fires: *mostly not a browser.*
+
+**Source and its admissibility, established mechanically rather than by eye.**
+[`ops/metrics/latest.json`](metrics/latest.json), `generated_at` **`2026-09-18T04:44:34.001Z`**, from the
+`schedule` snapshot committed as [`b58c35a`](https://github.com/in-c0/tuned/commit/b58c35a). The window
+is **2026-09-05 … 2026-09-15**, eleven complete UTC days, as shortened by run 166 under the regression
+clause. A snapshot reports a UTC day completely only if it was generated at or after that day's end;
+this one was generated **2.2 days** after the window closed:
+
+```
+$ node scripts/metrics-window.mjs admits 2026-09-05 2026-09-15
+ADMISSIBLE 2026-09-05..2026-09-15 (11 complete UTC days)
+  generated_at 2026-09-18T04:44:34.001Z, complete through 2026-09-17
+```
+
+That check is this run's own and is described under [L-91](LESSONS.md#l-91). It grades the clock and
+nothing else — it says every day in the window had finished, not that its contents are clean.
+
+**The series, both unsuffixed names and the bot names reported alongside and never summed into R.**
+
+| UTC day | `landing_view` | `landing_render` | `landing_view_bot` | `landing_render_bot` | `landing_engage` |
+| --- | --- | --- | --- | --- | --- |
+| 2026-09-05 | 57 | **0** | 47 | 1 | 0 |
+| 2026-09-06 | 71 | **0** | 39 | 0 | 0 |
+| 2026-09-07 | 76 | **2** | 43 | 0 | 0 |
+| 2026-09-08 | 61 | **0** | 20 | 0 | 0 |
+| 2026-09-09 | 47 | **2** | 17 | 0 | 1 |
+| 2026-09-10 | 56 | **0** | 37 | 2 | 0 |
+| 2026-09-11 | 56 | **0** | 64 | 0 | 0 |
+| 2026-09-12 | 52 | **0** | 85 | 2 | 0 |
+| 2026-09-13 | 68 | **0** | 47 | 2 | 0 |
+| 2026-09-14 | 58 | **0** | 22 | 0 | 0 |
+| 2026-09-15 | 84 | **0** | 36 | 0 | 0 |
+| **Total** | **686** | **4** | 457 | 7 | 1 |
+
+**R = 4 ÷ 686 = 0.58%.** The cut point for R-A is **10%**, and the register placed both cut points
+"well clear of the middle so that a reading near either is not a coin toss." 0.58% is not near it: it
+is **one seventeenth** of the boundary. Nine of the eleven days produced **no rendering browser at
+all**, and every render in the window landed on two days, 2026-09-07 and 2026-09-09.
+
+**Consistency with the figure run 159 was forced to disclose.** That run computed a partial nine-day
+series during routine inspection — `landing_render` **4**, `landing_view` **543** over
+2026-09-05…09-13 — and disclosed it in full rather than letting it become a number-shaped secret. The
+final eleven-day numerator is **also 4**: no rendering browser reached the landing page after
+2026-09-09. The disclosed partial did not mislead, and the reading is what was registered on
+2026-09-04 regardless.
+
+**Fork R-D is excluded across the whole span, not merely at its ends** — all three registered
+instrument brackets (runs 140, 149, 169) observed a real Chromium emit `landing_render` and production
+answer 204, with `page_errors: []` on each, so the registered hoist trigger never fired. A zero on a
+day is a statement about arrivals, not about the beacon.
+
+**Fork R-E is discharged, and the way it survives is now graded rather than trusted.** Two first-party
+clients load the landing page: the browser QA suite and the ops verifier. Both classify as automation
+under `BOT_UA` in [`src/metrics.ts`](../src/metrics.ts), so every increment they caused landed in the
+`_bot` names R does not read. Checked mechanically this run, not by inspection:
+
+| first-party client | user-agent matched on |
+| --- | --- |
+| `qa/playwright.config.mjs` | `Headless` |
+| `scripts/prod-http.sh` | `uptime` |
+
+**The second of those is a hazard and is recorded as one.** The ops verifier is classified as
+automation because the word *"uptime"* appears inside a human-readable parenthetical — *"first-party
+uptime and metrics check"*. Nothing pinned that. Rewording it to *"first-party health and metrics
+check"*, an edit that reads as pure prose, would have sent every `verify production` and
+`metrics snapshot` probe into the **unsuffixed** `landing_view` that R divides by, silently. Two
+assertions in [`test/metrics.test.ts`](../test/metrics.test.ts) now import the real classifier and
+grade both strings; the prose rewording above turns them red.
+
+### What Fork R-A's registered text obliges, executed as written
+
+Quoted from the pre-registration of 2026-09-04, before any value of R existed:
+
+> *`landing_view` is dominated by clients that never execute the page, and explanation 1 is the live
+> one. The register's standing claim is **upheld and upgraded** from an inference on one day's
+> interaction counter to a measured property of fourteen [eleven, as shortened]. Next action:
+> `landing_view` stops being quoted as an audience number anywhere in this repository;
+> `landing_render` becomes the denominator of every landing-page reading; and the remaining runs go to
+> getting real arrivals rather than to the page.*
+
+1. **The standing claim — *"the landing page is not the bottleneck, distribution is"* — is upheld and
+   upgraded.** It rested on EXP-007 Fork A, an inference from one day of an interaction counter that
+   could not distinguish "nobody real arrives" from "real people arrive and do not act". Eleven days
+   of a render beacon distinguish them: **686 human-flagged landing views produced 4 rendering
+   browsers.** [NORTH_STAR](NORTH_STAR.md) is updated to carry the measured basis in place of the
+   inferred one.
+2. **`landing_view` is retired as an audience number** and is recorded as such in
+   [METRICS.md](METRICS.md). It remains a true count of requests that did not declare themselves as
+   automation. It is not an audience, not a visit and not a person, and 0.58% is the measured size of
+   the gap.
+3. **`landing_render` is the denominator of every landing-page reading from here.**
+4. **The remaining days go to getting real arrivals, not to the page.** Recorded in
+   [DECISIONS.md](DECISIONS.md) as the standing direction for the final sixteen days.
+
+### What this reading does not say, stated as forcefully as what it does
+
+- **R is not a number of people and 4 is not four visitors.** The pre-registration says so and the
+  stop conditions repeat it. A JS-executing crawler that does not declare itself lands unsuffixed and
+  is indistinguishable from a person; the owner is a member who clicks around inside Tuned. **4 is an
+  upper bound on rendering browsers, not a count of humans**, and it may be zero humans.
+- **No engage rate is computed.** Fork R-C's next action asks for one; **R-A's does not**, and
+  `landing_engage` read **1** over the window. A rate formed on a numerator of 4 would be the error
+  [L-37](LESSONS.md) records — a quotient given the authority of a measurement. It is not computed
+  here and must not be computed later from this window.
+- **This is not a finding about demand, and it is not traction.** It says what the arriving *clients*
+  are. `applications` **0**, `members_ever_active` **0**, gross cash **AUD $0** are the numbers that
+  would be about people.
+- **A low R does not license a claim that the page is good.** The page was never measured against
+  rendering browsers, because there were almost none. Fork R-A moves effort off the page; it does not
+  certify it.
+
+**EXP-011 is closed.** One reading, on the pre-named date, over the registered window, from an
+admissible source. No second reading, no extension, no recomputation of R from this window under any
+later framing.
+
+---
+
 ## EXP-012 — if ooh.directory listed `/sportstech`, would Tuned see the arrivals? (2026-09-06, run 143)
 
 **Pre-registered before the counter it reads has ever been written, before any submission exists, and

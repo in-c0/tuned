@@ -3723,3 +3723,75 @@ beside each wrong line rather than replacing it.
   that only measures overflow cannot see a layout that is merely wrong. The assertion that replaced
   it reads the whole sentence as one uninterrupted run, which is the property rather than the prose.
 
+
+---
+
+## L-91 — the file said which days it reported and never which of them had finished (2026-09-19, run 173)
+
+**Every pre-registered reading in this register is defined over *complete* UTC days. Nothing in the
+repository could tell a complete day from a partial one.**
+
+A metrics snapshot is a JSON file with a `daily` list of `{day, name, count}` rows. A run takes a
+reading by opening it and summing rows. The row for a day still in progress has the day's name, has
+counts, and sits in a file named after the day. The only thing wrong with it is that several hours of
+that day had not happened yet — and that fact lives one level away, in `generated_at`, which nothing
+compared against anything.
+
+**The evidence that this is a real failure mode and not a tidiness argument is in this loop's own
+files.** `ops/METRICS.md` carries roughly ten hand-written *"this day is partial"* annotations — ten
+separate runs re-deriving the same subtraction by eye, correctly. [L-37](#l-37) records the run that
+did not: run 57 read a partial day of `arrival_fetch:qa`, divided 16 by elapsed hours, and reported
+the quotient as *"the shape of a feed client or an indexer."* The day closed at 23 and the next 4.1
+hours produced 1. The lesson written that day was **"a partial day is not a rate."** It was written as
+prose. Prose is not a gate, so the twenty-odd readings since have each depended on whoever took them
+noticing again.
+
+**And the mechanism built to remove the hazard was withdrawn by something nobody was watching.**
+`metrics-snapshot.yml` carries a second schedule, `15 0 * * *`, added for exactly this. Its header
+states the intent in its own words: the run *"exists so the previous UTC day is on disk, complete,
+within minutes of ending."* **It has never once done that.** Measured from the repository's own commit
+history, that cron's six most recent fires landed **4.48h, 4.65h, 4.58h, 4.68h, 4.70h and 4.55h**
+late — **none inside fifteen minutes, none inside four hours.** Scheduled delivery in this repository
+runs 1.6h–4.5h late on every firing, which `scripts/executor-liveness.mjs` already measures
+independently and which `scripts/deploy-staleness.mjs` already reasons about explicitly for its own
+verdict. Two instruments knew. The one design that depended on punctuality did not ask either of them.
+
+So a morning run finds the *previous evening's* 20:40 snapshot, whose last day is partial by roughly
+three hours and which is indistinguishable, at the point of use, from the thing the 00:15 run was
+added to provide.
+
+**The shape, which is the part worth carrying.** This is the fourth consecutive run to land on the
+same family and the first where the missing grader is on *time* rather than on markup:
+[L-88](#l-88) — the checks graded `requestfailed` and a 404 is not one. [L-89](#l-89) — the assertion
+found the stylesheet, not the element. [L-90](#l-90) — the honesty rule's check read `GET /` and every
+surface that converts was outside it. Here — the completeness of a day was present in the file and
+nothing read it. **In all four the information was already in hand and no check asked it the
+question.** A fact a repository holds and does not grade will be read as decoration, including by the
+run that wrote it down.
+
+**The repair is a guard that reads the file, because a guard that reads the file cannot be withdrawn
+by a scheduler.** `scripts/metrics-window.mjs` answers one question — *has every day in this window
+finished by the time this file was written?* — and fails closed on an unreadable `generated_at`, an
+empty `daily`, a history too short for the window, and an inverted window. It grades the clock and
+claims nothing about contents: contamination and thresholds stay in `ops/EXPERIMENTS.md`, which is the
+only place they belong. The snapshot's own commit message now carries `complete through <day>`, so
+`git log -- ops/metrics/` is a ledger of which snapshots are which.
+
+**Stated plainly, because the temptation is to claim more: this did not rescue EXP-011.** Run 166 had
+already shortened that window to 2026-09-05…09-15 under the regression clause, so its source was
+admissible by 2.2 days and the guard returned `ADMISSIBLE` on the first call. The reading this run
+took was never in danger. The guard is prospective — EXP-012 and EXP-013 both read over complete UTC
+days on dates still ahead — and the honest summary is that the register's own regression clause
+happened to move this one reading out of the path of a hazard that was live and unguarded for
+twenty-odd readings before it.
+
+**A second thing was found while discharging the same reading's contamination fork, and it is the
+same shape again.** EXP-011's Fork R-E fires if any first-party client renders the landing page under
+a user-agent that does not declare itself. It did not fire. But the ops verifier survives the fork
+because the word *"uptime"* appears in a human-readable parenthetical — `tuned-ops-verifier/1.0
+(+https://github.com/in-c0/tuned; first-party uptime and metrics check)` — and `BOT_UA` happens to
+match on it. Rewording that phrase to *"first-party health and metrics check"*, an edit that reads as
+pure prose in a comment-like string, would have routed every `verify production` and `metrics
+snapshot` probe into the **unsuffixed** `landing_view` that every landing-page ratio divides by, with
+nothing red anywhere. Two assertions in `test/metrics.test.ts` now import the real classifier and
+grade both first-party strings. The prose rewording turns them red.

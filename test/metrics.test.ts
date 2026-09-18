@@ -10,6 +10,8 @@
 import { env, createExecutionContext, waitOnExecutionContext } from "cloudflare:test";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import schemaSql from "../schema.sql?raw";
+import playwrightConfigSource from "../qa/playwright.config.mjs?raw";
+import prodHttpSource from "../scripts/prod-http.sh?raw";
 import worker from "../src/index";
 import { count, isBot, memberActive, snapshot, utcDay } from "../src/metrics";
 
@@ -287,5 +289,39 @@ describe("the funnel is actually wired to the routes", () => {
 
     expect(res.status).toBe(200);
     expect(await counterFor("application_submit", utcDay())).toBe(1);
+  });
+});
+
+// Every first-party client that loads a public page writes a counter. Which bucket it lands
+// in is decided by isBot() reading a user-agent string that lives in a different file, in a
+// different language, with no link between them.
+//
+// EXP-011's Fork R-E is written against exactly this: "Any first-party client renders the
+// landing page inside the window under a user-agent that does NOT match BOT_UA... R is not a
+// measurement of third parties." The fork was checked by hand at each bracket and did not
+// fire. But look at WHY it did not fire for the ops verifier:
+//
+//   'tuned-ops-verifier/1.0 (+https://github.com/in-c0/tuned; first-party uptime and metrics check)'
+//
+// It is classified as automation because the word "uptime" appears in a human-readable
+// parenthetical describing what the check is for. Nothing says so. Reword that phrase to
+// "first-party health and metrics check" — an edit that reads as pure prose — and every
+// verify-production and metrics-snapshot probe starts landing in the unsuffixed landing_view
+// that every landing-page ratio is divided by, silently, with no test red anywhere.
+//
+// That is the shape this loop keeps meeting: the fact is present in the repository and
+// nothing grades it. These two assertions grade it. They import the real classifier rather
+// than restating the pattern, because a mirrored allowlist that drifts is L-56.
+describe("first-party clients are classified as automation, so they stay out of R", () => {
+  it("the browser QA suite declares itself", () => {
+    const ua = playwrightConfigSource.match(/const USER_AGENT\s*=\s*\n?\s*"([^"]+)"/)?.[1];
+    expect(ua, "qa/playwright.config.mjs no longer defines USER_AGENT as a literal").toBeTruthy();
+    expect(isBot(ua as string), `browser QA user-agent would enter the unsuffixed counters: ${ua}`).toBe(true);
+  });
+
+  it("the ops verifier declares itself", () => {
+    const ua = prodHttpSource.match(/^UA='([^']+)'/m)?.[1];
+    expect(ua, "scripts/prod-http.sh no longer defines UA as a single-quoted literal").toBeTruthy();
+    expect(isBot(ua as string), `ops verifier user-agent would enter the unsuffixed counters: ${ua}`).toBe(true);
   });
 });

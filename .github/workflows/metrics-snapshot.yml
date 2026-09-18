@@ -127,9 +127,19 @@ jobs:
             echo "No metric change."
             exit 0
           fi
+          # Which UTC days this snapshot reports COMPLETELY, in the commit message, because
+          # that is the one place a later run is guaranteed to look. The 00:15 schedule above
+          # exists to make the previous day complete "within minutes of ending" and has never
+          # once been delivered on time — 4.5h late on every firing — so the snapshot a morning
+          # run finds is usually the previous evening's, whose last day is partial and looks
+          # identical to a whole one. `git log -- ops/metrics/` is now a ledger of which is
+          # which. scripts/metrics-window.mjs is the enforcing half; this is the legible half.
+          through=$(node scripts/metrics-window.mjs complete-through)
+          note="complete through ${through}"
           if [ "${ZONE_BLOCKED}" = "true" ]; then
-            git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d) (read via Worker origin; justtuned.com not serving)"
-          else
-            git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d)"
+            note="${note}; read via Worker origin, justtuned.com not serving"
           fi
+          echo "Snapshot reports complete UTC days through ${through}."
+          echo "Snapshot reports complete UTC days through \`${through}\`." >> "$GITHUB_STEP_SUMMARY"
+          git commit -m "ops: metrics snapshot $(date -u +%Y-%m-%d) (${note})"
           git push
