@@ -1,5 +1,89 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-18 20:35 Sydney (2026-09-18 10:35 UTC), run 172 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-171 and not re-argued here, per [L-07](LESSONS.md).** **Eighty-seven pages
+asked strangers to subscribe to feeds that stopped publishing in July.**
+
+**In plain terms.** A production read of **every** public feed this run — `2026-09-18T10:08:54Z`,
+[qa-browser 46](https://github.com/in-c0/tuned/actions/runs/35333163076), against `b58c35a` — found
+`ava` **1134.6h** stale, `sportstech` **143.8h**, and `wearables`, `wellbeing` and `graphics` all
+**1187.3h**. **Four of five feeds have published nothing since 30 July**, and **sixty-eight of the
+eighty-seven find pages belong to one of them.** Run 150 gave every feed page a follow button and run
+171 gave all eighty-seven find pages one, both carrying *"every find like this one, as it is
+published"* and *"new finds reach your reader as @handle publishes them."* Those sentences are
+conditional, so neither is false — and neither says the thing the decision turns on.
+
+**Why that is the defect and not a quibble.** **RSS is the only subscription on this platform that
+delivers anything.** `followers` holds addresses no code in `src/` can send to — there is no mail
+provider, no sender, no digest job — so following is the **one conversion a stranger can complete with
+no account, no application and no owner act**, and it was being spent on a stream with nothing coming.
+[L-18](LESSONS.md) already settled the rule: staleness is a fact about the world and not a defect; a
+page that declines to mention it is.
+
+**The part worth more than the copy change.** The loop **has** an instrument for exactly this rule —
+`qa/freshness.spec.mjs`, `retiredClaimsStillPresent`, green on every run since 2026-08-13 — and it
+reads **`GET /` and nothing else.** Every surface it grades is the landing page. The two surfaces that
+actually convert were outside it **by construction**, so two runs shipped a claim into a domain the
+rule's own check could not see, and the check kept passing. That is [L-90](LESSONS.md#l-90), and it is
+[L-87](LESSONS.md#l-87)'s family one level up: there the gate did not run the check, here the gate is
+sound and its *subject* is stale.
+
+**What shipped.** [PR #73](https://github.com/in-c0/tuned/pull/73) →
+[`6cab57b`](https://github.com/in-c0/tuned/commit/6cab57b78b5559cd3c113fb5508da97f4734b424).
+`lastPublished()` renders the age of the feed's newest public item in days; `lastPublishedClause()`
+goes into the find page's follow block and into **both** follow dialogs. **The age reported on a find
+page is the FEED's, never the rendered item's** — a find page is arrived at from a search result or a
+pasted link, so its item is as likely to be the feed's oldest as its newest, and *"how old is this
+find?"* is a true number answering the wrong question. `more` is already ordered `created_at DESC`, so
+the newest of `[item, ...more]` is the feed's newest exactly, with **no extra query**. It is
+**unconditional — no threshold, no change of tone above one**: a cut point chosen here would be a
+number fitted to the five feeds this executor can see, which is the shape [EXP-013](EXPERIMENTS.md)'s
+Fork B exists to refuse. **Days, floored:** 143.8h reads as *5 days*, not 6, and never as "seven
+weeks". An empty feed says it has published nothing rather than reporting the age of nothing.
+
+**Browser QA caught a defect the overflow check structurally could not.** The first version wrapped
+the age in `<b>`, and `.find-follow .ff-copy b` is **`display: block`** because it styles the *"Follow
+@handle"* heading directly above. One sentence became **three lines with the full stop orphaned on its
+own row** — and `docOverflow` read **0** throughout, because nothing overflowed. A layout check that
+only measures overflow cannot see a layout that is merely wrong. The markup was dropped rather than a
+rule added, and the block test now asserts the whole sentence as **one uninterrupted run**, which is
+the property rather than the prose.
+
+**Gates.** `npm run check` exit 0 · **421 vitest** (408 → 421, thirteen new) · **ops suite 215/215** ·
+`validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit --omit=dev`
+**0 vulnerabilities** — every one on the branch with the commit on it.
+[check 105565006610](https://github.com/in-c0/tuned/actions/runs/35334146869), a `pull_request` event,
+**success**, alongside Workers Builds and GitGuardian. **Eight mutations, named tests red on each**,
+`src/pages.ts` restored byte-identical after every one: `feedLatest` collapsed to this page's item, the
+clause dropped from each of the three surfaces, `floor` relaxed to `round`, the empty-feed branch made
+to report an age, a threshold introduced so the age shows only when stale, and the `<b>` put back.
+**Browser QA at 390px and 1100px** against a local `wrangler dev` seeded to the real `graphics` dates:
+`docOverflow` 0, no element past the viewport, the dialog fits both, one running sentence, and **no
+first-party HTTP errors**.
+
+**Deliberately NOT touched.** **`landingPage` is byte-identical, asserted against `master` rather than
+claimed**, so **[EXP-011](EXPERIMENTS.md#exp-011) is untouched by this run** — its reading stays
+**2026-09-19** and **no value of R is computed, quoted or recorded here.** **No new CSS rule**, so
+`FEED_CSS` and `FIND_CSS` are byte-unchanged and still waiting to be folded into `CSS` after that
+reading. No route, schema, counter, secret, dependency or public claim; no new data category.
+`arrival:<tag>` is byte-untouched. RSS is byte-untouched. **Nothing was published to make a feed look
+alive** — freshness-as-motive was ruled out at run 106 and [EXP-008](EXPERIMENTS.md)'s binding clauses
+disqualify it; the honest response to a dormant feed is to say it is dormant. The agent-scout schedule
+is still disarmed and the threshold-2 proposal is **still unruled** — no reviewer directive since
+2026-09-01. No item published, amended, retracted or restored. No spend.
+
+**Not claimed.** This adds no traffic and nothing here predicts that it will. It makes the one
+conversion this funnel can complete an **informed** one, and on four of five feeds that will mean
+**fewer** follows, honestly. `find_follow_open` and `follow_open` have read **0** throughout, so
+nothing measurable was lost in the eight days before it — **which is luck, not mitigation.**
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **17 days left.**
+
+---
+
+## Run 171 (2026-09-18 14:35 Sydney) — the page this site is indexed and shared as had no way to follow anything
+
 **Last updated:** 2026-09-18 14:35 Sydney (2026-09-18 04:35 UTC), run 171 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-170 and not re-argued here, per [L-07](LESSONS.md).** **The page this site
 is indexed and shared as had no way to follow anything.**

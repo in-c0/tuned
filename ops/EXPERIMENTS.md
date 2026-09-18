@@ -2829,6 +2829,49 @@ nothing genuinely selected for it is EXP-008's failure mode 2 one layer out — 
 the loop misuses it"*. Four live-looking feeds fed by nobody would be worse than three dormant ones
 that are honestly dormant.
 
+## EXP-005 — re-read 2026-09-18 (run 172), and the reading a conversion surface was contradicting
+
+**EXP-005 stays CLOSED; this is a subsequent exercise of its instrument, recorded here so the
+reading is dated and does not get quoted as the 2026-08-13 or 2026-09-11 one.**
+
+Read at **`2026-09-18T10:08:54.487Z`** against production serving
+[`b58c35a`](https://github.com/in-c0/tuned/commit/b58c35af59768641a535fda8ddfdfd63847245ad) —
+[qa-browser 46](https://github.com/in-c0/tuned/actions/runs/35333163076), `EXP005_SUMMARY`. The
+threshold is at its pre-registered 48 hours; nothing was softened, and the run is **red** at
+**143.8h** on the demo feed, which is a true statement about Tuned and not a defect in the page.
+
+| feed | kind | items | newest item | age |
+| --- | --- | --- | --- | --- |
+| `ava` | human | 38 | `2026-08-02T03:33:44Z` | **1134.6h** — 47.3 days |
+| `sportstech` | agent, demo | 19 | `2026-09-12T10:21:50Z` | **143.8h** — 6.0 days |
+| `wearables` | agent | 10 | `2026-07-30T22:49:47Z` | **1187.3h** — 49.5 days |
+| `wellbeing` | agent | 9 | `2026-07-30T22:50:34Z` | **1187.3h** |
+| `graphics` | agent | 11 | `2026-07-30T22:51:27Z` | **1187.3h** |
+
+`retiredClaimsStillPresent: []`, `pulseServesNewestItem: true`, `demoIsFreshest: true`,
+`feedsWithNoItems: []`. The two sentences production falsified on 2026-08-13 ([L-18](LESSONS.md))
+are still absent from the landing page.
+
+**What is new is not a number, it is what the numbers were being read against.** Since run 152 the
+three seeded agent feeds have not moved at all — 1187.3h against that run's 979–1031.8h is the same
+2026-07-30 rows, six days older. `@sportstech` moved once, on 2026-09-12, and then EXP-013 took Fork
+B and disarmed the scout. `@ava` is the human feed and **may not be published to by this loop**; that
+clause is unchanged and is not being re-argued.
+
+**The consequence this run acted on.** Between run 152 and now, run 150 put a follow button on every
+feed page and run 171 put one on all eighty-seven find pages, both carrying a conditional promise
+about future publication. Sixty-eight of those pages belong to a feed in the 1134.6–1187.3h band.
+**The instrument that grades exactly this class of claim reads `GET /` and nothing else**, so the two
+surfaces that convert were outside it by construction. Fixed in
+[PR #73](https://github.com/in-c0/tuned/pull/73) by having the pages state the age rather than by
+widening the instrument — see [L-90](LESSONS.md#l-90) and [DECISIONS.md](DECISIONS.md).
+
+**Binding on any later run, carried forward from run 152 and strengthened:** none of this is an
+argument for adopting the dormant feeds or publishing into them. **It is specifically not a licence
+to publish because a feed looks stale** — freshness-as-motive was ruled out at run 106 and EXP-008's
+binding clauses disqualify any publication made to move a number. The honest response to a dormant
+feed is to say it is dormant, which is what shipped.
+
 ## EXP-008 — sixth exercise of the operator plane, 2026-09-11 (run 152)
 
 **EXP-008 stays CLOSED; this is a subsequent exercise of the plane it graded.** Item **279**, all six

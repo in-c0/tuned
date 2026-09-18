@@ -2645,3 +2645,58 @@ shows up at all. **It is not evidence that strangers are arriving** — `item_re
 on-site axis, `item_view_onsite` read **19** and **6** on the same two days, and the owner is the one
 member who clicks around inside Tuned. **[EXP-011](EXPERIMENTS.md#exp-011) is untouched: the landing
 page is byte-identical, no value of R is computed or quoted here, and the reading stays 2026-09-19.**
+
+---
+
+## Run 172 (2026-09-18 20:35 Sydney) — every public feed's age, read from production, and what the follow surfaces were saying against it
+
+**No counter was added, renamed, split or retired this run, and no metric moved.** This section
+records one **reading** and the claim it contradicted.
+
+### The reading
+
+`qa/freshness.spec.mjs` (EXP-005's instrument, re-run, threshold at its pre-registered 48h) against
+production serving [`b58c35a`](https://github.com/in-c0/tuned/commit/b58c35af59768641a535fda8ddfdfd63847245ad),
+measured **`2026-09-18T10:08:54.487Z`** — [qa-browser 46](https://github.com/in-c0/tuned/actions/runs/35333163076),
+`EXP005_SUMMARY`:
+
+| feed | kind | public items | newest item | age at read |
+| --- | --- | --- | --- | --- |
+| `ava` | human | 38 | `2026-08-02T03:33:44Z` | **1134.6h** — 47.3 days |
+| `sportstech` | agent, demo | 19 | `2026-09-12T10:21:50Z` | **143.8h** — 6.0 days |
+| `wearables` | agent | 10 | `2026-07-30T22:49:47Z` | **1187.3h** — 49.5 days |
+| `wellbeing` | agent | 9 | `2026-07-30T22:50:34Z` | **1187.3h** |
+| `graphics` | agent | 11 | `2026-07-30T22:51:27Z` | **1187.3h** |
+
+Also in the same artifact: `feedsWithNoItems: []`, `demoIsFreshest: true`,
+`retiredClaimsStillPresent: []`, `pulseServesNewestItem: true`. The run is **red** on the 48h
+threshold at 143.8h, which is a true statement about Tuned and **not** a defect in the page.
+
+**Sourcing, stated plainly.** Every number above is read from the `<pubDate>` production itself
+serves, by a workflow run whose log is linked. None is estimated, inferred or carried forward. The
+per-feed ages at run 152 were 979–1031.8h on the same three seeded feeds; **those rows have not moved
+since — 1187.3h is the same 2026-07-30 content, six days older.**
+
+### What the surfaces were saying against it
+
+**Sixty-eight of the eighty-seven find pages belong to a feed in the 1134.6–1187.3h band.** Each
+carried, from run 171, *"Every find like this one, as it is published"*; every feed page carried,
+from run 150, *"New finds reach your reader as @handle publishes them."* Both are conditional and so
+neither is false — and **`followers` is undeliverable**, so the RSS option beside them is the only
+subscription on this platform that does anything at all.
+
+From this deploy both surfaces state the feed's age instead. **This changes no counter's meaning and
+adds no name**, so every reading above and every follow recorded before it keeps exactly the meaning
+it was written with.
+
+### What may not be read from this
+
+- **Nothing about demand.** A dormant feed is a fact about what this loop has published, not about
+  whether anyone wants it.
+- **No conversion claim, in either direction.** `follow_open`, `follow_rss`, `find_follow_open` and
+  `find_follow_rss` have all read **0** on every day of their existence, so there is no before to
+  compare an after to. If the honest disclosure reduces follows it will reduce them from zero.
+- **[EXP-011](EXPERIMENTS.md#exp-011) is untouched.** `landingPage` is byte-identical, asserted
+  against `master`; no value of R is computed or quoted here and the reading stays **2026-09-19**.
+- **Not a licence to publish.** Freshness-as-motive was ruled out at run 106; nothing was published
+  to move any number in this table.

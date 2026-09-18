@@ -6188,3 +6188,91 @@ figure is forecast and none is claimed.**
   same days, and the owner is the one member who clicks around inside Tuned. **No arrival by a
   stranger is claimed, and none is claimable from these names.**
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-18 — run 172: the follow surfaces state the feed's age, because the rule's own instrument could not see them
+
+**Directive.** None new — **no reviewer directive since 2026-09-01**. Run 171 closed naming
+EXP-011's 2026-09-19 reading as the first claim on the calendar and nothing else scheduled, so this
+run selected its own bounded action under [NORTH_STAR rule 7](NORTH_STAR.md), which committed run 171
+and its successors to **arrival or product, not instruments**.
+
+**Decision: make the follow ask state how long ago the feed last published, on every surface that
+makes it.** Shipped as [PR #73](https://github.com/in-c0/tuned/pull/73) →
+[`6cab57b`](https://github.com/in-c0/tuned/commit/6cab57b78b5559cd3c113fb5508da97f4734b424).
+
+**The evidence it rests on, taken this run and sourced.** A production read of every public feed at
+`2026-09-18T10:08:54Z` ([qa-browser 46](https://github.com/in-c0/tuned/actions/runs/35333163076),
+against `b58c35a`): `ava` **1134.6h**, `sportstech` **143.8h**, `wearables` / `wellbeing` /
+`graphics` **1187.3h** each. **Four of five feeds have published nothing since 30 July**, and
+**sixty-eight of the eighty-seven find pages belong to one of them.** Full table in
+[METRICS.md](METRICS.md) and [EXPERIMENTS.md](EXPERIMENTS.md).
+
+**Why it is the highest-value bounded action available.** Following is **the only conversion a
+stranger can complete with no account, no application and no owner act** — and **RSS is the only
+subscription on this platform that delivers anything**, because `followers` holds addresses no code
+in `src/` can send to. Run 150 and run 171 put that ask on ninety-two public pages. On sixty-eight of
+them it pointed at a stream with nothing coming, and said nothing about it.
+
+**The finding underneath the copy, which is the part worth recording.** The loop **has** a rule
+against asserting freshness in prose ([L-18](LESSONS.md)) and an instrument enforcing it —
+`retiredClaimsStillPresent`, green since 2026-08-13. **That instrument reads `GET /` and nothing
+else.** Both follow surfaces were outside its domain by construction, so two runs shipped a claim the
+rule covers into a place the rule's check could not look, and the check kept passing.
+[L-90](LESSONS.md#l-90).
+
+**Four sub-decisions, each pinned by a test rather than left to inspection:**
+
+- **The age reported on a find page is the FEED's, never the rendered item's.** A find page is
+  arrived at from a search result or a pasted link, so its item is as likely to be the feed's oldest
+  as its newest; *"how old is this find?"* is a true number answering the wrong question. `more` is
+  already ordered `created_at DESC`, so the newest of `[item, ...more]` is the feed's newest exactly
+  — **no extra query, and exact rather than an approximation.**
+- **Unconditional: no threshold, and no change of tone above one.** A cut point chosen here would be
+  a number fitted to the five feeds this executor can see — the shape [EXP-013](EXPERIMENTS.md)'s
+  Fork B exists to refuse. The mutation that discloses only when the feed is stale turns a named test
+  red.
+- **Days, floored.** 143.8h reads as *5 days*, not 6, and never as "seven weeks". Flooring is the
+  direction that cannot overstate freshness; days do not round into a flattering unit.
+- **A feed with nothing in it says so** rather than reporting the age of nothing.
+
+**A defect of this run's own, found by browser QA and recorded rather than quietly fixed.** The first
+version wrapped the age in `<b>`. `.find-follow .ff-copy b` is **`display: block`** — it styles the
+*"Follow @handle"* heading above — so one sentence rendered as **three lines with the full stop
+orphaned on its own row**, and **`docOverflow` read 0 through all of it**, because nothing overflowed.
+A layout check that only measures overflow cannot see a layout that is merely wrong. The markup was
+dropped rather than a rule added — `FEED_CSS` and `FIND_CSS` are two dated workarounds already
+outstanding, and emphasis is not worth a third — and the test now asserts the sentence as one
+uninterrupted run. Recorded as the second half of [L-90](LESSONS.md#l-90).
+
+**Gates.** `npm run check` exit 0 · **421 vitest** (408 → 421) · **ops 215/215** · workflows ok, 13 ·
+nominations 8 valid · audit **0 vulnerabilities**.
+[check 105565006610](https://github.com/in-c0/tuned/actions/runs/35334146869) success on the
+`pull_request` event, with Workers Builds and GitGuardian green. **Eight mutations**, named tests red
+on each, `src/pages.ts` restored byte-identical after every one.
+
+**Alternatives considered and rejected:**
+
+- **Widen `qa/freshness.spec.mjs` to grade the new surfaces' prose.** Rejected as the control-plane
+  answer to a product defect, and the weaker one: a rendered age **cannot** go stale or be
+  re-asserted by a later run's copy, so it needs no check to keep it true. NORTH_STAR rule 7 also
+  bars a third instrument cycle in four.
+- **Publish into the dormant feeds so the claim becomes true.** Rejected, and it is the one thing
+  this finding must not be read as licensing. Freshness-as-motive was ruled out at run 106 and
+  EXP-008's binding clauses disqualify any publication made to move a number. `@ava` is the human
+  feed and may not be published to by this loop at all — a star is the attention Tuned carries, and
+  manufacturing one fabricates the only signal the product has.
+- **Hide the follow button on dormant feeds.** Rejected: an affordance that disappears is not a
+  disclosure, it is a silent removal of the funnel's only completable step, and it would need exactly
+  the threshold this decision refuses to pick.
+- **Ship a site-wide `/rss.xml` so a subscriber gets whichever feed is alive.** Rejected for this
+  cycle and recorded because it was the runner-up. It is defensible but arguable against the doctrine
+  boundary — following *a person's* attention is the unit — and its natural home is autodiscovery on
+  the landing page, which **EXP-011 freezes until 2026-09-19**. Raised for the reviewer rather than
+  shipped on this executor's own reading of a doctrine question.
+- **A pricing or paid-intent surface.** Rejected again, on run 163's standing reasoning, which is
+  unchanged and not re-argued.
+- **Spend the cycle on something that could produce a user.** Rejected on the standing finding: **A0
+  is architectural** — this executor can perform no write at any third party — and the two remaining
+  acts are the owner's. Unchanged, not re-argued ([L-07](LESSONS.md)).
+
+**Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.

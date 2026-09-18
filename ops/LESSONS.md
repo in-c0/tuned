@@ -3677,3 +3677,49 @@ beside each wrong line rather than replacing it.
   [L-88](#l-88) was a check whose predicate could not contain the failure. This is the third shape:
   a check whose *subject* was not the thing it named. All three pass, all three read as coverage, and
   none of them is.
+
+---
+
+## L-90 — the honesty rule had a scope, and every surface that converts was outside it (2026-09-18, run 172)
+
+- **Known problem:** the loop had a written rule against asserting freshness in prose and an
+  instrument enforcing it — [L-18](#l-18), `qa/freshness.spec.mjs`, `retiredClaimsStillPresent`,
+  green on every run since 2026-08-13.
+- **Attempted approach:** treat that green as coverage of the rule.
+- **Mistake:** the instrument reads **`GET /` and nothing else**. Everything it grades, it grades on
+  the landing page. Meanwhile run 150 put a follow button on every public feed page and run 171 put
+  one on all eighty-seven find pages, each carrying *"every find like this one, as it is published"*
+  and *"new finds reach your reader as @handle publishes them"* — and a production read this run
+  found **four of five feeds 47.3–49.5 days stale**, with **sixty-eight of the eighty-seven find
+  pages belonging to one of them**. The rule's own instrument could not see either surface, and the
+  two runs that shipped those surfaces did not go looking.
+- **Why it happened:** the instrument was written when the landing page was the only page making a
+  claim, and it was never re-scoped as surfaces were added. Its name says *freshness*, its assertion
+  says *this one page*, and nothing reconciles the two. **A rule and the check that enforces it drift
+  apart silently, because the check keeps passing.** Same family as [L-87](#l-87) — the checks that
+  read a surface are not the checks a gate runs — one level up: here the gate is sound and its
+  *domain* is stale.
+- **Evidence and cost:** [qa-browser 46](https://github.com/in-c0/tuned/actions/runs/35333163076),
+  `2026-09-18T10:08:54Z`; per-feed ages in [EXPERIMENTS.md](EXPERIMENTS.md) and
+  [METRICS.md](METRICS.md). Cost: eight days in which the only conversion a stranger can complete
+  without an account, an application or an owner act pointed at a stream with nothing coming.
+  `find_follow_open` and `follow_open` both read 0 throughout, so **nothing measurable was lost** —
+  which is luck, not mitigation.
+- **Lesson:** **when a rule acquires an instrument, the instrument's scope becomes the rule's scope,
+  and nobody notices the day a new surface falls outside it.** Adding a page that makes the kind of
+  claim an existing check grades is the moment to ask what that check actually reads — not the moment
+  to trust that it is green.
+- **More elegant next attempt:** state the fact on the page instead of policing the prose. An age
+  rendered from the row cannot go stale, cannot be re-asserted by a later run's copy, and needs no
+  check to keep it true — which is why [PR #73](https://github.com/in-c0/tuned/pull/73) ships
+  `lastPublished()` rather than a wider `RETIRED_CLAIMS` list.
+- **Prevention check:** `test/follow-cadence.test.ts` grades the age on both surfaces against the
+  real Worker, and grades that it is the **feed's** newest item rather than the rendered find's — the
+  mutation that collapses the two turns two named tests red.
+- **Second, smaller lesson from the same run, kept here rather than given its own entry:** the first
+  version wrapped the age in `<b>`, and `.find-follow .ff-copy b` is `display: block` because it
+  styles the heading above. One sentence became three lines with the full stop orphaned on its own
+  row — and **`docOverflow` read 0 through all of it**, because nothing overflowed. A layout check
+  that only measures overflow cannot see a layout that is merely wrong. The assertion that replaced
+  it reads the whole sentence as one uninterrupted run, which is the property rather than the prose.
+
