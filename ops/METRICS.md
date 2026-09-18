@@ -2595,3 +2595,53 @@ type — rather than merely noticed.
 **Contamination.** Two dispatches, GETs plus the landing page's own three pulse beacons, headless
 user-agent throughout, so every increment is `_bot`-classified and no human-flagged denominator
 moved. `mutatingRequests: 0`, `rowsInserted: 0`, the application form typed into and never submitted.
+
+## `find_follow_*` and the `follow_*_find` axis — four names for a second follow surface (added 2026-09-18, run 171)
+
+**What changed in the product:** a find page at `/<handle>/<id>` gained a follow block and the same
+dialog a feed page has. Shipped in [PR #72](https://github.com/in-c0/tuned/pull/72) →
+[`f394af2`](https://github.com/in-c0/tuned/commit/f394af264233b7681c17b1ac8bead05c6a2fa210).
+
+**Why four new names instead of reusing four existing ones.** `follow_open` and `follow_rss` are
+published in `src/metrics.ts` as properties of a **public feed page**, and `follow_open`'s stated
+denominator is `feed_render` — a counter a find page **structurally cannot emit**, being served a
+different script with no feed on it. Routing a second surface into those names would have changed
+what a running number means **without changing its name**, which is the [L-87](LESSONS.md#l-87)
+failure wearing the appearance of code reuse.
+
+| Name | Kind | Definition |
+| --- | --- | --- |
+| `find_follow_open[_bot]` | bucket | the follow dialog was opened **on a find page**. Page-reported, same-origin only, at most once per page load, site-wide and carrying no handle. |
+| `find_follow_rss[_bot]` | bucket | the RSS option **inside that dialog** was clicked. Same terms. The find page's header RSS link is deliberately not wired to it, exactly as on a feed page. |
+| `follow_submit_find` | **axis** | the subset of accepted follows on `POST /<handle>/follow` whose body carried `from: "find"`. Counted across the unsuffixed and `_bot` names together, **never summed into either**. |
+| `follow_invalid_find` | **axis** | the same subset of follows rejected by email validation. |
+
+**How to read them, and the limits.**
+
+- **Denominator.** `find_follow_open ÷ item_render`, on the same reasoning that pairs `follow_open`
+  with `feed_render`: the beacon and the dialog are on the same page load. `find_follow_open ÷
+  item_view` is **not** that ratio — `item_view` counts requests, including ones that ran no script.
+- **`find_follow_rss`'s honest denominator is `find_follow_open`**, being gated on the same dialog.
+- **Not additive with the feed-page pair.** A visitor who follows from both surfaces is two page
+  loads, not one funnel. Never sum `follow_open + find_follow_open` and call it "follows opened".
+- **Neither is a subscriber, a person, or proof of anything.** Both are page-reported and forgeable
+  on the same one header as every other page-reported name here.
+- **The axis is evidence, not proof.** `from` is a string in a request body. Absence means the feed
+  page, which is what makes **every follow recorded before 2026-09-18 keep the meaning it was written
+  with** — and it never gates: the route classifies and never refuses.
+- **All four read 0 on every day before 2026-09-18** because none of them existed. That is a
+  statement about the instrument, not about traffic. Counters start at zero on the deploy that
+  introduces them; nothing is backfilled.
+
+**One withdrawal.** The note in `src/metrics.ts` said a find page *"carries no follow button"*. True
+when written, false from this deploy, and withdrawn in place rather than deleted. What still holds is
+the part that mattered: the find page's dialog writes the `find_*` names and never the feed page's.
+
+**No metric moved and none is claimed.** The reading that motivated the change is recorded with its
+limit: over the three complete UTC days `item_render` has existed it read **3, 2, 2**, against
+`landing_render` **0, 1, 0** on `landing_view` **84, 55, 40**
+([`ops/metrics/latest.json`](metrics/latest.json)). The find surface is where a rendering browser
+shows up at all. **It is not evidence that strangers are arriving** — `item_render` carries no
+on-site axis, `item_view_onsite` read **19** and **6** on the same two days, and the owner is the one
+member who clicks around inside Tuned. **[EXP-011](EXPERIMENTS.md#exp-011) is untouched: the landing
+page is byte-identical, no value of R is computed or quoted here, and the reading stays 2026-09-19.**

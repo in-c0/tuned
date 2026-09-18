@@ -661,6 +661,74 @@ jobs:
       # the permalink is there — so it is asserted here rather than left to the unit suite, which
       # cannot see production. The handle is taken from the sitemap rather than hard-coded, for the
       # same reason the step above takes the find that way.
+      # The conversion action on the surface this site is indexed and shared as. A find page is the
+      # unit search results and pasted links point at — eighty-seven of them against five feed
+      # pages — so the check that the feed page's follow button is still there has an exact twin
+      # here, and the find page needs it more: nothing else on that page offers a subscription
+      # except a 12px link to raw XML.
+      #
+      # The counter names are checked by name and not merely by prefix. `find_follow_rss` contains
+      # `follow_rss`, so a prefix test would pass on a page emitting the feed page's counters —
+      # which is precisely the regression this step exists to catch, since routing a second
+      # surface into `follow_open` silently changes what a running number means.
+      - name: Follow affordance is deployed on a find page, under its own counter names
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          for name in find_follow_open find_follow_rss; do
+            code=$(scripts/prod-http.sh post "${BASE}/api/pulse/${name}")
+            case "$code" in
+              403) echo "/api/pulse/${name} with no Origin: HTTP 403 — allowlisted, and refusing a caller that is not the page." ;;
+              404)
+                echo "::error::/api/pulse/${name} returned 404 — it is not on the allowlist in production, so the find page's follow rung would read zero forever. Roll back."
+                exit 1 ;;
+              204)
+                echo "::error::/api/pulse/${name} accepted a POST with NO Origin — the same-origin guard is gone. Roll back."
+                exit 1 ;;
+              *)
+                echo "::error::/api/pulse/${name} returned unexpected HTTP $code"
+                exit 1 ;;
+            esac
+          done
+          # Read a real published find, discovered from the feed page rather than hard-coded: an id
+          # pinned here would go stale the first time that item is hidden, and the step would then
+          # fail for a reason that has nothing to do with the follow block.
+          code=$(scripts/prod-http.sh get "${BASE}/sportstech" /tmp/follow-feed.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/sportstech returned HTTP $code"; exit 1; }
+          find=$(grep -o 'class="card-permalink" href="/[a-z0-9-]*/[0-9]*"' /tmp/follow-feed.html \
+            | sed -n 's|.*href="\([^"]*\)".*|\1|p' | sort -u | sed -n '1p')
+          [ -n "$find" ] || { echo "::error::/sportstech offers no find permalink to check"; exit 1; }
+          code=$(scripts/prod-http.sh get "${BASE}${find}" /tmp/follow-find.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::${find} returned HTTP $code"; exit 1; }
+          grep -q 'id="follow-btn"' /tmp/follow-find.html || {
+            echo "::error::${find} no longer carries a follow button — the most-indexed page on this site is a dead end again. Roll back."
+            exit 1
+          }
+          grep -q 'id="follow-dlg"' /tmp/follow-find.html || {
+            echo "::error::${find} has a follow button and no dialog for it to open. Roll back."
+            exit 1
+          }
+          grep -q '/api/pulse/find_follow_open' /tmp/follow-find.html || {
+            echo "::error::${find} no longer fires find_follow_open — the route is live and nothing will ever call it. Roll back."
+            exit 1
+          }
+          # The feed page's own counters must not appear here. This is the separation, checked on
+          # the served document rather than trusted from the source.
+          if grep -oE '/api/pulse/[a-z_]+' /tmp/follow-find.html | grep -qxE '/api/pulse/(follow_open|follow_rss|feed_render)'; then
+            echo "::error::${find} emits a feed-page counter. follow_open's denominator is feed_render, which a find page cannot emit — this silently redefines a running number. Roll back."
+            exit 1
+          fi
+          # And the source link must still outrank the follow ask, on the served page.
+          cta=$(grep -bo '<a class="btn primary open-cta"' /tmp/follow-find.html | sed -n '1s/:.*//p')
+          btn=$(grep -bo '<button class="btn primary" id="follow-btn"' /tmp/follow-find.html | sed -n '1s/:.*//p')
+          [ -n "$cta" ] || { echo "::error::${find} has no outbound CTA to the source. Roll back."; exit 1; }
+          [ "$cta" -lt "$btn" ] || {
+            echo "::error::on ${find} the follow ask now precedes the link to the source. Tuned's job is to send people to the thing that was attended to. Roll back."
+            exit 1
+          }
+          echo "Find page ${find} ships the follow block under \`find_follow_*\`, no feed-page counter, source link still first." >> "$GITHUB_STEP_SUMMARY"
+
       - name: A find page can be reached from the feed page, not only from the sitemap
         env:
           BASE: ${{ steps.vantage.outputs.base }}

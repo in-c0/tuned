@@ -6139,3 +6139,52 @@ figure is forecast and none is claimed.**
 - **Standing constraint applied to the next run:** this is the second control-plane cycle in three.
   Under NORTH_STAR rule 7 and [L-08](LESSONS.md), run 171 goes to arrival or product.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-18 — run 171: the page this site is indexed and shared as had no way to follow anything
+
+- **Commitment discharged.** Run 170 recorded that run 171 goes to **arrival or product, not
+  instruments**, under NORTH_STAR rule 7 and [L-08](LESSONS.md). This is that run: a user-visible
+  change to the most-indexed public surface, with instrumentation riding along rather than being the
+  output.
+- **Decision: put the follow affordance on the find page.** A find page at `/<handle>/<id>` is the
+  unit this site is indexed and shared as — **87 of them against 5 feed pages and 1 landing page** —
+  and it had none. The only subscription on it was a 12px "RSS" link resolving to an XML document.
+  Following a public feed needs **no application, no approval, no owner act and no spend**, which
+  makes it the one conversion step in this funnel not behind a gate. Shipped in
+  [PR #72](https://github.com/in-c0/tuned/pull/72) →
+  [`f394af2`](https://github.com/in-c0/tuned/commit/f394af264233b7681c17b1ac8bead05c6a2fa210).
+- **Decision: the follow ask sits below `open-cta`, and that ordering is graded.** This page exists
+  to send people to the source. A follow ask that outranked the outbound link would be the
+  destination-that-replaces-the-source shape [NORTH_STAR](NORTH_STAR.md) rules out, and "it looks
+  fine" is not a gate. Asserted by document order against the anchor's own markup.
+- **Decision: new counter names, not the feed page's.** `follow_open`/`follow_rss` are published as
+  properties of a **feed** page and `follow_open`'s honest denominator is `feed_render`, which a find
+  page structurally cannot emit. Reusing them would have routed a second surface into a running
+  number **without changing its name** — [L-87](LESSONS.md#l-87)'s shape wearing the appearance of
+  code reuse. `find_follow_open`/`find_follow_rss` are read against `item_render` instead.
+- **Decision: `follow_submit_find`/`follow_invalid_find` are an axis, and absence means the feed
+  page.** The find dialog sends `from: "find"`; the feed page sends nothing. So every follow recorded
+  before this run keeps the meaning it was written with, and `followers` being 0 means the first real
+  follow will be attributable to a surface rather than assigned to one. It is a string in a request
+  body — evidence, not proof — and it never gates: the route still classifies and never refuses.
+- **Decision: `FIND_CSS` is page-scoped, on the `FEED_CSS` precedent.** `CSS` is served by `layout()`
+  to every page including `/`, and EXP-011's reading is **2026-09-19**. `src/pages.ts` is untouched
+  above line 942, so the landing page and the feed page are **byte-identical**. Both dated `<style>`
+  workarounds carry the instruction to be folded into `CSS` once EXP-011 is read.
+- **Rejected: deriving the follow endpoint from `location.pathname`.** That is what `CLIENT_JS` does
+  and it is correct on `/<handle>`; here it would POST to `/<handle>/<id>/follow`, a route that does
+  not exist, with a dialog that looked identical. The path is carried in a data attribute and the
+  404 is asserted directly.
+- **Rejected: a new permanent browser spec for this surface.** `qa/mobile-fit.spec.mjs` already reads
+  the **live sitemap** and visits find pages, so the block is graded on the next `qa-browser`
+  dispatch without a new file. Writing one would have made this an instrument cycle after all.
+- **Correction recorded rather than quietly fixed:** this run's own ordering assertion was written
+  vacuous — `html.indexOf("open-cta")` finds the **stylesheet rule** `layout()` inlines into
+  `<head>`, not the anchor — and survived the mutation that moves the block above the CTA. Caught by
+  that mutation, rewritten, re-mutated red. [L-89](LESSONS.md#l-89).
+- **What may not be concluded.** `item_render` read 3, 2, 2 on the three complete days it has
+  existed against `landing_render` 0, 1, 0 — the find surface is where a rendering browser shows up
+  at all — but `item_render` carries **no on-site axis**, `item_view_onsite` read 19 and 6 on the
+  same days, and the owner is the one member who clicks around inside Tuned. **No arrival by a
+  stranger is claimed, and none is claimable from these names.**
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

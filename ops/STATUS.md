@@ -1,5 +1,92 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-18 14:35 Sydney (2026-09-18 04:35 UTC), run 171 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-170 and not re-argued here, per [L-07](LESSONS.md).** **The page this site
+is indexed and shared as had no way to follow anything.**
+
+**In plain terms.** A find page at `/<handle>/<id>` is the unit this site is indexed and shared as —
+**eighty-seven of them against five feed pages and one landing page** — so a stranger's first Tuned
+page is far likelier to be one of these than the front door. It had **no follow affordance at all**.
+The only subscription on it was the **12px "RSS" link in the corner**, which resolves to an XML
+document; a visitor who wanted more of *this person's attention* had to work out that the handle in
+the kicker was a link, follow it, and find the button over there. Run 164 gave finds an address, run
+165 linked to them, run 169 put the provenance chain in the feed — and the chain **ended on a page
+that could not convert.**
+
+**Why this run and not another instrument.** Run 170 closed by committing its successor to arrival or
+product under [NORTH_STAR rule 7](NORTH_STAR.md), after two control-plane cycles in three. This
+discharges that. Following a public feed needs **no application, no approval, no owner act and no
+spend** — it is the one conversion step in this funnel that is not behind a gate, and it was missing
+from the surface most likely to be arrived at.
+
+**What shipped.** [PR #72](https://github.com/in-c0/tuned/pull/72). `itemPage` renders a follow block
+below the provenance list and above the siblings, plus the same dialog the feed page has — **RSS
+first and labelled as the one that works today, email second and labelled as not sending yet.** Four
+decisions are pinned by tests rather than left to inspection. It is **unconditional**: `more` is empty
+on a one-item feed, and an affordance that disappears on the smallest feeds is not one. It sits
+**below `open-cta`**, graded by document order — this page exists to send people to the source, and a
+follow ask that outranked the outbound link would be the destination-that-replaces-the-source shape
+the doctrine boundary rules out. The form posts to the **feed's** own path, read from a data
+attribute: `CLIENT_JS` derives that endpoint from `location.pathname`, which here would POST to
+`/<handle>/<id>/follow` — **a 404, with a dialog that looked identical.** And the dialog is wired to
+**`find_follow_open`/`find_follow_rss`**, not the feed page's names.
+
+**The counter separation is the part that would have been easy to get wrong.** `follow_open` and
+`follow_rss` are published as properties of a **feed** page, and `follow_open`'s honest denominator is
+`feed_render` — which a find page structurally cannot emit. Reusing them would have routed a second
+surface into a running number **without changing its name**, which is [L-87](LESSONS.md#l-87)'s shape
+wearing the appearance of code reuse. `follow_submit_find`/`follow_invalid_find` are the matching
+**axis** on `POST /<handle>/follow`, never summed into the buckets: the find dialog sends
+`from: "find"` and the feed page sends nothing, so **every follow recorded before this run keeps the
+meaning it was written with.** The route still classifies and never refuses.
+
+**What the reading rests on, with its limit stated before anything else claims otherwise.** Over the
+three complete days `item_render` has existed it read **3, 2, 2**; `landing_render` read **0, 1, 0**
+on `landing_view` **84, 55, 40** ([ops/metrics/latest.json](metrics/latest.json)). The find surface is
+where a rendering browser shows up at all. **It is not evidence that strangers are arriving.**
+`item_render` carries no on-site axis, `item_view_onsite` read **19** and **6** on the same two days,
+and the owner is the one member who clicks around inside Tuned — so some or all of those renders may
+be internal. **No arrival is claimed and none is claimable.**
+
+**A check of this run's own was written vacuous and caught by its own mutation.** The ordering
+assertion used `html.indexOf("open-cta")` — and `open-cta` is also a **selector in the stylesheet
+`layout()` inlines into `<head>`**, which is before the body however the body is ordered. It survived
+the mutation that moves the follow block above the CTA. Rewritten against the anchor's own markup, it
+fails on it. That is [L-89](LESSONS.md#l-89), and it is [L-85](LESSONS.md#l-85)'s family in a check
+written the same hour L-85 was being cited.
+
+**Gates.** `npm run check` exit 0 · **408 vitest** (397 → 408, eleven new) · **ops suite 215/215** ·
+`validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit --omit=dev`
+**0 vulnerabilities** — every one on the branch with a commit on it. **Browser QA at 390px and
+1100px** against a local `wrangler dev`: no document overflow, block and dialog fit both viewports,
+the copy column is not squeezed by the button, `find_follow_open` fires **once per page load** across
+a close-and-reopen, `follow_open`/`feed_render` never fire, the email path POSTs to
+`/sportstech/follow` and reports success, and there are **no first-party console or HTTP errors**.
+**Six mutations, named tests red on each**, `src/pages.ts` and `src/index.ts` restored byte-identical
+after every one: the pulse renamed to the feed-page counter, the block deleted, the block moved above
+the CTA, the endpoint derived from `location.pathname`, the submit axis dropped, and the axis
+defaulted to true.
+
+**Deliberately NOT touched.** `src/pages.ts` is **untouched above line 942**, so the **landing page and
+the feed page are byte-identical** and **[EXP-011](EXPERIMENTS.md#exp-011) is untouched by this run** —
+its reading stays **2026-09-19** and **no value of R is computed, quoted or recorded here.** `FIND_CSS`
+is page-scoped for exactly the reason `FEED_CSS` is, and carries the same instruction to be folded
+into `CSS` once EXP-011 is read. No route, schema, secret, dependency or public claim; no new data
+category. `arrival:<tag>` is byte-untouched. RSS is byte-untouched. The agent-scout schedule is still
+disarmed and the threshold-2 proposal is **still unruled** — no reviewer directive since 2026-09-01.
+No item published, amended, retracted or restored. No spend.
+
+**Not claimed.** This gives eighty-seven indexed pages a conversion action they did not have. **It does
+not create traffic, and nothing here predicts that it will.** Whether anyone takes it is what
+`find_follow_open` and `find_follow_rss` exist to say, and both start at zero on this deploy.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **17 days left.**
+
+---
+
+## Run 170 (2026-09-18 08:35 Sydney) — a 404 is not a request failure, so nothing in the repository graded one
+
 **Last updated:** 2026-09-18 08:35 Sydney (2026-09-17 22:35 UTC), run 170 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-169 and not re-argued here, per [L-07](LESSONS.md).** **A 404 is not a
 request failure, so nothing in the repository graded one.**

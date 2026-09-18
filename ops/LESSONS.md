@@ -3644,3 +3644,36 @@ beside each wrong line rather than replacing it.
   2026-09-12, inside the window the 404 appeared in — was an artifact of a shallow clone whose
   history bottoms out on 2026-09-12.** `git log -S` on a shallow clone dates a thing to the
   boundary, not to its origin. Check `.git/shallow` before treating a first appearance as a date.
+
+## L-89 — the assertion found the stylesheet, not the element, and passed however the page was ordered (2026-09-18, run 171)
+
+- **What happened:** run 171 gave the find page a follow block and wrote a test for the one property
+  that keeps it on the right side of the doctrine boundary — *the outbound link to the source must
+  come before the follow ask*. It was written as
+  `expect(html.indexOf("open-cta")).toBeLessThan(html.indexOf('id="follow-btn"'))`, it passed, and it
+  was **vacuous**. `layout()` inlines the whole stylesheet into `<head>`, and `CSS` contains a
+  `.open-cta` rule — so `indexOf("open-cta")` finds the rule, in the head, **before the body
+  whatever the body contains**. The mutation that moves the follow block above the CTA left it
+  green.
+- **How it was caught:** by that mutation, and only by it. Every gate was green with the assertion in
+  place; the test suite was green; the reviewer-facing claim "graded by document order rather than
+  left to inspection" was already written into the commit message. The mutation pass is the step
+  that turned a sentence into a fact.
+- **Lesson:** **a substring is not a locator.** An assertion about where something is in a document
+  must match markup that exists exactly once and only in the place being asserted about — here,
+  `<a class="btn primary open-cta"`, not the class name, which appears in the stylesheet the same
+  document inlines. The general rule: when a check searches serialized output for a *name*, ask which
+  other parts of that output legitimately contain the same name. CSS selectors, `<link>` hrefs,
+  `<script>` bodies and meta tags all contain class names, route names and counter names, and all of
+  them are in the same string.
+- **Two habits this reinforces rather than establishes.** The first is that **a mutation is not a
+  formality** — this is the second consecutive run in which the mutation pass, not the test run,
+  found the defect, and the first time it found one in a test written the same hour. The second is
+  the neighbouring precaution taken in the same change for the same reason: `find_follow_rss`
+  contains `follow_rss`, so the assertion forbidding feed-page counters on a find page uses a
+  lookbehind instead of `not.toContain`, which would have passed on a page emitting exactly the
+  names it forbids.
+- **Family.** [L-85](#l-85) was a check that measured the defect and graded something else;
+  [L-88](#l-88) was a check whose predicate could not contain the failure. This is the third shape:
+  a check whose *subject* was not the thing it named. All three pass, all three read as coverage, and
+  none of them is.
