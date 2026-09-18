@@ -90,10 +90,23 @@ const PULSE_PREFIX = "/api/pulse/";
 // The mirror has to be exact or the guard in test/pulse.test.ts goes red, but listing them here
 // widens the "outside the allowlist" assertion below — so `NEVER_HERE` names them separately and
 // is asserted on its own. Anything added to PULSE_COUNTERS for another page belongs in both lists.
-const ALLOWED = ["landing_render", "landing_engage", "application_start", "follow_open", "feed_render", "follow_rss", "item_render"];
+const ALLOWED = [
+  "landing_render",
+  "landing_engage",
+  "application_start",
+  "follow_open",
+  "feed_render",
+  "follow_rss",
+  "item_render",
+  "find_follow_open",
+  "find_follow_rss",
+];
 // `item_render` belongs to a find page (`/<handle>/<id>`), which is served a different script
 // from both the landing page and a feed page, so it joins the names that must never fire on `/`.
-const NEVER_HERE = ["follow_open", "feed_render", "follow_rss", "item_render"];
+// `find_follow_open` and `find_follow_rss` are that page's follow dialog, added 2026-09-18 and
+// deliberately separate names from the feed page's pair: they belong to the same different
+// script, and they must never fire on `/` for the same reason.
+const NEVER_HERE = ["follow_open", "feed_render", "follow_rss", "item_render", "find_follow_open", "find_follow_rss"];
 
 // The one pulse on this page that asks nothing of the visitor. Every other name here is
 // interaction-gated, and that difference is what the assertions below are built around.

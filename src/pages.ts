@@ -939,13 +939,79 @@ function siblingCard(handle: string, item: Item): string {
 
 /** The client script for a find page. Deliberately NOT `CLIENT_JS`.
  *
- *  `feed_render` is gated on `#follow-btn` inside that bundle, and this page has no follow
- *  button, so serving it here would already not fire one. Serving a different script makes that
- *  structural rather than incidental: there is no code path from this page to `feed_render`, so
- *  the denominator EXP-011's sibling reading rests on cannot be moved by traffic that never saw
- *  a feed page. The date is rendered server-side for the same reason a crawler gets one. */
+ *  This page now carries a follow button too, and the separation matters more because of it, not
+ *  less. `CLIENT_JS` gates `feed_render` and `follow_open` on `#follow-btn` — the element this
+ *  page has just gained — so serving it here would start feeding a find page's traffic into two
+ *  counters whose published meaning is "a public **feed** page", one of which is the denominator
+ *  EXP-011's sibling reading rests on. That is the L-87 shape: a change that looks like reuse and
+ *  silently redefines a running number. So the dialog is wired here instead, against
+ *  `find_follow_open` and `find_follow_rss`, and no name on the feed page moves.
+ *
+ *  `item_render` stays first and unconditional. It is the rung under everything below it and it
+ *  must not become gated on the button, or a markup change would take out the denominator too.
+ *  The date is rendered server-side for the same reason a crawler gets one. */
 const FIND_JS = /* js */ `
 fetch("/api/pulse/item_render", { method: "POST", keepalive: true }).catch(() => {});
+
+const fbtn = document.getElementById("follow-btn");
+if (fbtn) {
+  const dlg = document.getElementById("follow-dlg");
+  // The feed's own path, read from the button rather than from location.pathname. CLIENT_JS
+  // derives the follow endpoint by appending "/follow" to the current path, which is right on
+  // /<handle> and wrong here: this page is /<handle>/<id>, and that derivation would POST to
+  // /<handle>/<id>/follow — a route that does not exist. Carrying it in a data attribute keeps
+  // the handle escaped by the same esc() as the rest of the document.
+  const feed = fbtn.dataset.feed;
+  let opened = false;
+  fbtn.addEventListener("click", () => {
+    dlg.showModal();
+    if (opened) return;
+    opened = true;
+    fetch("/api/pulse/find_follow_open", { method: "POST", keepalive: true }).catch(() => {});
+  });
+  const rssCta = document.getElementById("follow-rss");
+  let rssTaken = false;
+  if (rssCta) rssCta.addEventListener("click", () => {
+    if (rssTaken) return;
+    rssTaken = true;
+    fetch("/api/pulse/find_follow_rss", { method: "POST", keepalive: true }).catch(() => {});
+  });
+  document.getElementById("follow-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("follow-email").value;
+    const res = await fetch(feed + "/follow", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, from: "find" })
+    });
+    const out = document.getElementById("follow-out");
+    if (res.ok) { out.textContent = "You're on the list. Nothing sends until digests start — the RSS link above is live now."; e.target.style.display = "none"; }
+    else { out.textContent = "That didn't work — check the email?"; }
+  });
+}
+`;
+
+/** The follow block's styling, served to the find page and to nothing else.
+ *
+ *  Same dated workaround as `FEED_CSS` above and for the same reason: `CSS` is served by
+ *  `layout()` to **every** page including `/`, EXP-011 freezes the landing page until its reading
+ *  on 2026-09-19, and this loop has held that page byte-identical rather than argue each edit
+ *  harmless one at a time. **After EXP-011 is read, fold this and `FEED_CSS` into `CSS` and delete
+ *  both extra `<style>` blocks.** The dialog's own rules are already in `CSS` and are not
+ *  duplicated here — only the block that opens it is new.
+ *
+ *  `min-width: 0` on the copy column is load-bearing, not tidiness: the row is a flex line and a
+ *  long handle in the heading would otherwise refuse to shrink below its min-content width and
+ *  push the button off a 390px viewport, which is the run-167 defect exactly. */
+const FIND_CSS = /* css */ `
+.find-follow {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin: 24px 0 4px; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel2);
+}
+.find-follow .ff-copy { flex: 1 1 200px; min-width: 0; }
+.find-follow .ff-copy b { display: block; font-size: 14px; margin-bottom: 3px; }
+.find-follow .ff-copy span { font-size: 12px; color: var(--muted); }
+.find-follow .btn { white-space: nowrap; }
 `;
 
 /** One find, at an address of its own.
@@ -965,7 +1031,19 @@ fetch("/api/pulse/item_render", { method: "POST", keepalive: true }).catch(() =>
  *
  *  `more` is other public finds from the same feed. It is not decoration: a sitemap-only page with
  *  no inbound link is an orphan, and eighty-seven orphans are a doorway pattern. These links make
- *  the set a connected graph a crawler can walk from any entry point. */
+ *  the set a connected graph a crawler can walk from any entry point.
+ *
+ *  **The follow block, and why it belongs here rather than only on the feed page.** These pages are
+ *  the unit this site is indexed and shared as — eighty-seven of them against five feed pages — so
+ *  a stranger's first Tuned page is far more likely to be one of these than the front door. Until
+ *  now the only subscription affordance on it was the 12px "RSS" link in the corner, which resolves
+ *  to an XML document; a visitor who wanted more of *this person's attention* had to work out that
+ *  the handle in the kicker was a link, follow it, and find the button there. The block sits below
+ *  the provenance list and above the siblings, which keeps `open-cta` the primary action: this page
+ *  exists to send people to the source, and a follow ask that outranked the outbound link would be
+ *  the destination-that-replaces-the-source shape the doctrine boundary above rules out. It is
+ *  rendered unconditionally — `more` can be empty on a one-item feed, and an affordance that
+ *  disappears on the smallest feeds is not one. */
 export function itemPage(creator: Creator, item: Item, more: Item[]): string {
   const img = imageSrc(item.image_url);
   const source = item.site_name || item.domain;
@@ -1007,6 +1085,13 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
       <div class="disclaim">Tuned does not host this and did not write it. This page records that
       someone paid attention to it, and who — nothing more. The link above goes to the source.</div>
     </div>
+    <div class="find-follow">
+      <div class="ff-copy">
+        <b>Follow @${esc(creator.handle)}</b>
+        <span>Every find like this one, as it is published. No account, nothing to apply for.</span>
+      </div>
+      <button class="btn primary" id="follow-btn" data-feed="/${esc(creator.handle)}">Follow</button>
+    </div>
     ${
       more.length
         ? `<div class="more-finds">
@@ -1017,7 +1102,15 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
         : ""
     }
   </div>
-  <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>`;
+  <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
+  <dialog id="follow-dlg">
+    <h3>Follow ${esc(creator.name)}</h3>
+    <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them.</p>
+    <a class="btn primary rss-cta" id="follow-rss" href="/${esc(creator.handle)}/rss.xml" target="_blank" rel="noopener">Subscribe by RSS</a>
+    <p class="or">Or leave an email. <b>Digests are not sending yet</b> — you go on the list and nothing arrives until they start. No spam, no account.</p>
+    <form id="follow-form"><input type="email" id="follow-email" required placeholder="you@..."><button class="btn">Add me to the list</button></form>
+    <div class="status" id="follow-out"></div>
+  </dialog>`;
   // Everything below is assembled from what the page already says out loud. The description leads
   // with the attention claim rather than the source's blurb, because that is what distinguishes
   // this result from the source's own — two pages carrying the same summary is the shape a search
@@ -1028,6 +1121,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
     300
   );
   const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">
+<style>${FIND_CSS}</style>
 ${socialHead({
     path: `/${creator.handle}/${item.id}`,
     title: `${item.title} — @${creator.handle} on ${BRAND}`,
