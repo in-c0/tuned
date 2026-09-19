@@ -18,47 +18,41 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **Tuned cannot be found by search. I checked today, three different ways, and the site has zero pages in the search index I can query.**
+> # **Two pages on the site promised people an email, and Tuned has no way to send email. Fixed today.**
 >
-> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
-> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
-> neither is re-argued here. **But one of them just got more important, and that part is new.**
+> **What it said.** When someone applied, the page told them *"you'll hear back by email."* When an
+> approved member went to sign in, that page told them *"we send you a personal sign-in link."*
 >
-> **What I found.** I searched for the site three ways: by domain, by its exact name, and by a
-> sentence that appears at the bottom of every single page on it. **All three came back with nothing
-> from justtuned.com.** To be sure the search itself worked, I ran the same kind of query against a
-> site I knew was indexed — that one returned nine pages. The method works. We're just not there.
+> **What is actually true.** Tuned has no mail setup at all — no email service connected, no account
+> with one, no code anywhere that sends a message. A sign-in link is produced by an admin call and
+> comes back in the response, for you to pass to the person yourself. Both sentences went live on
+> 2026-08-06 and stood for 44 days.
 >
-> **One honest caveat, and I'd rather state it than bury it.** I can query one search engine from
-> here, and it may not be the one you'd check. So the precise claim is *"absent from the index I can
-> reach, on three query shapes, against a working control"* — not *"Google has never indexed us"*,
-> which I can't verify from this session. If you want the Google-specific answer, searching
-> `site:justtuned.com` yourself takes ten seconds and settles it.
+> **Why I treated this as the run's job rather than a typo to tidy up.** We had already decided this
+> and already fixed it — *once*. The Follow box on a feed page says plainly "Nothing sends until
+> digests start", and last run's README says the email Follow does not send. So the loop knew, wrote
+> the honest version, and put it on **one of the three places** that make the promise. The test suite
+> even describes the sign-in page correctly, as an interstitial that asks you for a link — while the
+> page itself told visitors the opposite. Nothing compared the two.
 >
-> **The strange part is that everything we built for this is correct.** Over the last seven weeks
-> this loop shipped the robots file, the sitemap with all 95 of our URLs, the canonical tags, the
-> social preview cards, the feed autodiscovery — and every one is tested and working. **And the
-> crawlers do come.** They fetch our robots file 24–52 times a day, the sitemap 9–24 times a day, and
-> in the last four days they walked all 87 find pages. **They take everything and index none of it.**
+> **Being straight about the size of this: almost certainly nobody read either sentence.** Four
+> rendering browsers in eleven days, and we're not in the search index. **No number moves because of
+> this.** What changes is that the front door is no longer carrying a promise we can't keep — which
+> matters the moment [§1](#1-owner-action-required) opens the door, not before.
 >
-> **Why.** Nothing on the internet links to us. That's the whole answer. A site with no inbound links
-> doesn't get indexed no matter how clean it is. It isn't a bug — there's nothing to fix in the code.
+> **The part worth your attention.** A check now reads *every* page a stranger can reach — worked out
+> from the routes themselves, not from a list I wrote — and it fails in both directions: no page may
+> promise email, and any page asking for an email address must say on that same page that nothing is
+> sent to it. Deleting the honest sentence is as loud a failure as adding a dishonest one. It also
+> runs against the live site after every deploy, not only in tests.
 >
-> **What I did about it.** For the one search that returns this project at all, the result is our
-> **GitHub repository** — and that repo's front page didn't link to the site anywhere. The address
-> appeared twice, both times inside code examples, which aren't clickable. So anyone who found the
-> project couldn't click through to the product. That's fixed: the repo now opens with the live link
-> and points at a feed page, its RSS and the landing page.
+> **One thing only you can do, and I am deliberately not making it a third card.** Making those
+> sentences *true* — actually emailing people — needs a mail provider account, which means a login and
+> probably a small spend. Until that exists, approving a member is a manual job: read the applications
+> endpoint, create the member, and send them the link yourself. Nobody has applied yet, so nothing is
+> waiting on you today.
 >
-> **I'm not going to oversell that.** GitHub tells search engines not to count links on those pages,
-> so this mainly helps a *human* who finds the repo. **One README will not get us indexed**, and
-> I'm not predicting it will.
->
-> **What this means for your two-minute paste.** The directory submission was filed as "our first
-> real distribution test". It's now also **the only way this site gets an inbound link at all** — and
-> therefore the only way it ever shows up in search. A directory listing is a page search engines already
-> read, linking to us. **There is nothing I can build that substitutes for that.**
-
+> **[§1](#1-owner-action-required) is unchanged: TWO, undeadlined, not re-argued here.**
 ---
 
 > # **Eighty-seven pages on this site can be found by search or shared in a message. Not one of them had a way to follow anything.**

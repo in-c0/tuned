@@ -6418,3 +6418,35 @@ byte-untouched. No item published, amended, retracted or restored. The agent-sco
 disarmed and EXP-013's threshold-2 re-specification is still unruled.
 
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-19 (evening) — run 175: two public pages promised email from a Worker with no sender
+
+- **Decision:** spend the cycle making the product's only commitments to a user true, rather than on
+  the bookkeeping candidates runs 173 and 174 both deferred here. Rationale: `/` told every applicant
+  *"you'll hear back by email"* and `/login` told every approved member *"we send you a personal
+  sign-in link"*, and **this Worker cannot send email** — no mail binding in `wrangler.jsonc`, no mail
+  secret, no call to any mail provider in `src/`. Both shipped 2026-08-06 and stood 44 days. The hard
+  rule against unsupported public claims does not have an audience threshold: a promise nobody read is
+  still a promise shipped, and it becomes a broken one the instant distribution opens.
+- **Why this was not landing-page work barred by Fork R-A.** R-A moves effort off *improving the page
+  for conversion*. This changed no offer, no layout and no call to action; it removed two statements
+  the service cannot back. The standing answer to a candidate proposing to improve `/` is unchanged.
+- **Decision: the sweep is derived from the route table, not from a list.** `test/promises.test.ts`
+  fetches every registered GET route anonymously and keeps whatever answers with HTML. **Filtering by
+  `isPrivatePath` was considered and rejected** — it is the *indexing* policy and `PRIVATE_EXACT`
+  contains `/login`, so that sweep would have skipped one of the two known defects and reported a
+  clean pass. "May a crawler index this" and "can someone with no credentials read this" are different
+  questions and only the second one is this check's subject.
+- **Decision: the premise is read, never declared.** Whether a mail capability exists is derived from
+  `wrangler.jsonc` and a glob of `src/`, not a hand-set boolean, so the day a real sender ships the
+  suite goes red and the copy is re-decided rather than left disclaiming a capability the service has.
+  A constant would have been a mirror, and mirrors drift ([L-56](LESSONS.md)).
+- **Recorded, not acted on: a mail sender is an owner boundary.** Making these sentences *true* rather
+  than merely accurate needs a mail-provider account — a credential and probably a spend — so it is
+  outside this session's envelope. **Deliberately not raised as a third owner card** ([L-07](LESSONS.md)):
+  it is stated once in STATUS and here. Until one exists, approving a member is a manual act — read
+  `/api/applications`, call `POST /api/creators`, convey the returned `login_url` by hand.
+- **Not touched:** the feed and find follow dialogs, which already disclose and are byte-identical; the
+  new assertion confirms them rather than rewriting them. No route, schema, counter, secret, dependency
+  or workflow. Third-party write boundary not re-tested; no child session spawned.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

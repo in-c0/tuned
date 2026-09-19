@@ -375,6 +375,36 @@ jobs:
             echo "${path}: HTTP 200, contact is legal@justtuned.com, no personal address"
           done
 
+      # Run 172 learned to grade a disclosure on the deployed page and not only in workerd
+      # (445f980). This is that lesson applied to the one this service is least able to keep.
+      #
+      # The Worker has no mail binding, no mail secret and no call to any mail provider, and until
+      # 3550684 two public pages said otherwise: / promised "you'll hear back by email" and /login
+      # promised "we send you a personal sign-in link". test/promises.test.ts asserts the fix
+      # against a real Worker in workerd. This asserts it against the thing actually serving
+      # justtuned.com, which is a different claim — a unit test cannot see a bad deploy, a reverted
+      # commit, or an edge that rewrites the document.
+      #
+      # Both directions, for the reason the unit test gives: the promise must be absent AND the
+      # disclosure must be present, because a page that silently dropped the honest sentence would
+      # pass a one-directional check while telling an applicant nothing at all. ops/LESSONS.md L-93.
+      - name: No public page promises email the Worker cannot send
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          for path in / /login; do
+            code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/promise.html 'text/html')
+            [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code"; exit 1; }
+            if grep -qiE "we'?l?l? ?(will )?send you|we'?l?l? ?(will )?email you|hear back by email|check your inbox" /tmp/promise.html; then
+              echo "::error::${path} promises email, and this Worker has no sender. Roll back."
+              exit 1
+            fi
+            grep -qiE 'sends no automated email' /tmp/promise.html || {
+              echo "::error::${path} no longer discloses that no email is sent"; exit 1; }
+            echo "${path}: HTTP 200, promises no email, discloses that none is sent"
+          done
+
       # A feed page that stops announcing its feed is a distribution regression, and it is
       # the exact regression that went unnoticed for the product's whole operating life:
       # until 2026-08-25 no page here carried <link rel="alternate">, so every feed reader,

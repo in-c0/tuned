@@ -1,5 +1,76 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-19 20:35 Sydney (2026-09-19 10:35 UTC), run 175 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-174 and not re-argued here, per [L-07](LESSONS.md).** **Two public pages
+promised email from a Worker that has no sender.**
+
+**The finding.** `/` told every applicant *"you'll hear back by email."* `/login` told every approved
+member *"we send you a personal sign-in link."* **This Worker cannot send email** — no mail binding in
+`wrangler.jsonc`, no mail secret, no call to any mail provider anywhere in `src/`. A sign-in link is
+**returned in the response body** of the admin-key-gated `POST /api/creators` and handed over by the
+operator. Both sentences shipped 2026-08-06 and stood **44 days**.
+
+**Why it is a class and not a typo.** The standard already existed and had already been applied —
+**once.** The follow dialog on a feed page reads *"Nothing sends until digests start"*, and run 174's
+README states plainly that the email Follow does not send. And the repository knew in writing and
+disagreed with itself: `test/route-inventory.test.ts` lists `GET /login` as an *"interstitial ... asks
+the owner for a link"* — the real mechanism, sitting in the test suite, while the page it describes
+told visitors the opposite. Nothing compared them. **This is [L-90](LESSONS.md#l-90) repeating on the
+fix rather than the rule**, and the sixth consecutive run to find a check that could not see its own
+subject. [L-93](LESSONS.md#l-93).
+
+**What shipped.** [PR #76](https://github.com/in-c0/tuned/pull/76) → `3550684`. Both sentences now say
+what is true, and `test/promises.test.ts` **derives** the set of pages it reads rather than listing it:
+every registered GET route, fetched anonymously, keeping whatever answers with HTML. It asserts in
+**both directions** — no page may promise mail, and every page collecting an email address must
+disclose on that same page that none is sent — so deleting the honest sentence is as red as adding a
+dishonest one. Its premise is read from `wrangler.jsonc` and a glob of `src/` rather than a hand-set
+boolean, so **shipping a real sender turns it red** instead of leaving pages disclaiming a capability
+the service has.
+
+**Two ways the sweep could have been built and been wrong, and both were live.** Filtering by
+`isPrivatePath` — the obvious predicate, and the wrong question: it is the *indexing* policy and
+`PRIVATE_EXACT` contains `/login`, so that sweep would have skipped one of the two known defects and
+reported a clean pass. And scanning source rather than responses: both promises live in inline
+`<script>` literals written into the page after a fetch resolves.
+
+**Run red first, and it paid.** Executed against the unfixed source before anything was corrected, per
+run 174's own lesson. It reddened on the two known surfaces **and on a third that reading had not
+found** — `/enter/<invalid-token>`, which renders the same login page, and therefore the same promise,
+to a member whose sign-in link has just failed.
+
+**Gates.** `npm run check` exit 0 · **427 vitest** (423 → 427, four new) · **ops suite 244/244**
+(unchanged) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid ·
+`npm audit --omit=dev` **0 vulnerabilities**. **Six mutations, each reddening its own named test**,
+every file restored byte-identical under `sha256sum -c`.
+
+**Magnitude not overclaimed.** `landing_render` was **4 over eleven days** ([EXP-011](EXPERIMENTS.md))
+and the site is absent from the search index ([L-92](LESSONS.md#l-92)), so **essentially nobody read
+either sentence and no metric moves.** What changes is that the front door no longer carries a promise
+the system cannot keep — which matters at the moment distribution opens, not before.
+
+**Deliberately NOT touched.** The feed and find follow dialogs are **byte-untouched** — they already
+disclose, and the new assertion confirms them rather than rewriting them. No route, schema, counter,
+secret, dependency, workflow or data category. No new public claim, only two removed. `arrival:<tag>`
+and RSS byte-untouched. **`FEED_CSS`/`FIND_CSS` still not folded into `CSS`** — bookkeeping.
+**No site-wide `/rss.xml`**: run 172's direct yes/no is still unanswered and stays a doctrine question.
+**The third-party write boundary was not re-tested** and no child session was spawned. The agent-scout
+schedule is still disarmed and EXP-013's threshold-2 proposal is **still unruled** — no reviewer
+directive since 2026-09-01. No item published, amended, retracted or restored. No spend.
+
+**A mail sender is an owner boundary, and it is named here once rather than made a third card.** Making
+these two sentences *true* rather than accurate needs a mail provider account — a credential and
+probably a spend — so it is outside this session's envelope. Until one exists, **approving a member is
+a manual act**: the operator reads `/api/applications`, calls `POST /api/creators`, and conveys the
+returned `login_url` by hand.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **16 days left.**
+
+---
+
+## Run 174 (2026-09-19 14:35 Sydney) — the site has no pages in the search index, and the one indexed property did not link to it
+
 **Last updated:** 2026-09-19 14:35 Sydney (2026-09-19 04:35 UTC), run 174 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-173 and not re-argued here, per [L-07](LESSONS.md).** **The site has no
 pages in the search index, and never has.**

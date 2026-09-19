@@ -3843,3 +3843,66 @@ surface it either — mutating the link into a fence turned a *different* test r
 coverage. Only running the new gate against the original document showed it. **A check is not
 validated by passing on the fixed state and reddening under mutation; it is validated by failing on
 the state it was written to catch.**
+
+---
+
+## L-93 — the honesty fix was applied to one of three surfaces, and nothing swept the rest (2026-09-19, run 175)
+
+**Two public pages promised email from a Worker that has no sender.** `/` told every applicant
+*"you'll hear back by email"*; `/login` told every approved member *"we send you a personal sign-in
+link"*. There is no mail binding in `wrangler.jsonc`, no mail secret, and no call to any mail
+provider anywhere in `src/`. A sign-in link is **returned in the response body** of the
+admin-key-gated `POST /api/creators` and handed over by the operator.
+
+**What makes this a lesson and not a typo is that the standard already existed and had already been
+applied — once.** The follow dialog on a feed page reads *"Nothing sends until digests start"*, and
+run 174's `README.md` states plainly that the email Follow does not send. So the loop had noticed
+that this service cannot deliver mail, had decided that pages must say so, and had changed **one**
+of the three surfaces that make the promise. The other two kept their copy for 44 days.
+
+**The repository knew, in writing, and disagreed with itself.** `test/route-inventory.test.ts` lists
+`GET /login` as an *"interstitial with no form; ... asks the owner for a link"* — an accurate
+description of the real mechanism, sitting in the test suite, while the page it describes told
+visitors the opposite. Neither document was wrong by accident; nothing compared them.
+
+**This is L-88/89/90/91/92's family and it is specifically L-90 repeating.** L-90 was *the honesty
+rule whose check only ever read one page*. This run found the honesty **fix** with the same shape: a
+correction applied at one page, and no sweep behind it. Six consecutive runs have now found a check
+that could not see its own subject.
+
+**Two ways the sweep written this run could have been built and been wrong, both live hazards rather
+than hypotheticals:**
+
+- **Filtering by `isPrivatePath`.** That predicate exists and is the obvious one to reach for, and it
+  would have been the wrong question. It is the *indexing* policy, and `PRIVATE_EXACT` contains
+  `/login` — so a sweep defining "public surface" that way would have skipped one of the two known
+  defects while reporting a clean pass. The question a promise-check asks is not *may a crawler index
+  this* but *can someone with no credentials read it*, and those two sets are different.
+- **Scanning source rather than responses.** Both promises live in inline `<script>` string literals
+  written into the page after a `fetch` resolves. A read of the static markup finds neither.
+
+**Run red first, and it paid.** Per run 174's own lesson the gate was executed against the unfixed
+source before anything was corrected. It reddened on the two known surfaces **and on a third that
+reading had not found**: `/enter/<invalid-token>`, which renders the same login page — and therefore
+the same promise — to a member whose sign-in link has just failed. That is the worst instant on the
+whole funnel to be told mail is coming.
+
+- **Evidence and cost:** the two sentences shipped 2026-08-06 and stood 44 days. Cost to users is
+  **plausibly zero** and is stated that way rather than dramatised: `landing_render` was **4 over
+  eleven days** ([EXP-011](EXPERIMENTS.md)) and the site is absent from the search index
+  ([L-92](#l-92)), so almost nobody read them. The cost is that the front door was carrying an
+  unkeepable promise at the exact moment the loop was spending every cycle trying to open
+  distribution to it.
+- **Lesson:** **a correction is not finished at the surface where the defect was noticed.** When a
+  fix is a statement of fact about what the system cannot do, every surface that makes the same
+  claim is in scope, and the sweep that establishes that has to be derived from the route table
+  rather than from the writer's memory of which pages exist.
+- **More elegant next attempt:** when correcting a claim, first enumerate every surface that could
+  make it — mechanically, from the routes — and only then decide which to change. The enumeration is
+  the work; the edit is small.
+- **Prevention check:** `test/promises.test.ts` fetches every registered GET route anonymously, keeps
+  whatever answers with HTML, and asserts in both directions — no page may promise mail, and every
+  page collecting an email address must disclose on that same page that none is sent. Its premise is
+  read from `wrangler.jsonc` and a glob of `src/` rather than a hand-set boolean, so **shipping a
+  real sender turns it red** and forces the copy to be re-decided instead of leaving pages
+  disclaiming a capability the service has.
