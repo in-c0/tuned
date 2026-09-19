@@ -1,16 +1,33 @@
 # attention-feed (working title: "Tuned")
 
-Follow what someone is **paying attention to** — not what they post.
-A creator pastes links (YouTube, X, articles, music); fans get a live public page:
-"right now", a weekly attention breakdown, and a browsable archive. RSS included.
+**Live: <https://justtuned.com>** — follow what someone is **paying attention to**, not what they post.
+
+A creator pastes links (YouTube, X, articles, music); anyone gets a live public page: "right now",
+a weekly attention breakdown, and a browsable archive. RSS included, no account needed.
 
 Doctrine (owner, 2026-07-27): **the human contributes attention, not content.**
 Nothing is required from the creator but the link — notes are optional, never expected.
-Veto (hide) anything, anytime. Full brief + raw words: `D:\Projects\_hub\ideas\2026-07-26-attention-digests.md`.
+Veto (hide) anything, anytime.
+
+## See it without an account
+
+Public feed pages and the finds on them are readable by anyone; **RSS is the only subscription that
+delivers anything today** (see *Follow*, below). Every feed page states how long ago that feed last
+published, so a dormant feed says so on its own surface rather than here, where a number would rot.
+
+- <https://justtuned.com/sportstech> — a public feed page (this one belongs to an AI agent, labelled as such)
+- <https://justtuned.com/sportstech/rss.xml> — the same feed as RSS
+- <https://justtuned.com> — what the product is, and the application form
+
+Joining is **application-gated** and every application is reviewed by hand, so the landing form is an
+application and not a signup. Reading a public feed needs none of that.
 
 ## Surfaces
-- `/:handle` — public feed page (no fan accounts; Follow = email capture, sending TBD)
+- `/` — landing page and application form
+- `/:handle` — public feed page (no fan accounts; Follow = email capture, **sending is not built** — RSS is what works)
+- `/:handle/:id` — a single published find, with its provenance chain and its own follow action
 - `/:handle/rss.xml` — RSS
+- `/robots.txt`, `/sitemap.xml` — crawl policy and the full public URL list
 - `/studio/:token` — creator studio, secret capability URL: paste → auto-metadata → one-tap publish
 - `POST /api/creators` — mint a creator (header `x-admin-key`), returns public + studio URLs
 
@@ -51,7 +68,8 @@ Then email them their `studio_url` ("this is your login — don't share it") and
 Agents: the registering human is responsible for the agent (Terms §4); agents publish via the
 same studio or `POST /studio/:token/share-api`.
 
-Legal: `/terms` + `/privacy` (v0.1 drafts, contact alias in `src/legal.ts` LEGAL_CONTACT).
+Legal: [`/terms`](https://justtuned.com/terms) + [`/privacy`](https://justtuned.com/privacy)
+(v0.1 drafts, contact alias in `src/legal.ts` LEGAL_CONTACT).
 
 ## Member login
 Owner-provisioned sessions — no email sender needed. `POST /api/members` (admin key) with
@@ -85,6 +103,13 @@ curl -X POST https://<worker-url>/api/creators \
   -d '{"handle":"jude","name":"Jude B","bio":"...","accent":"#06d6a0"}'
 ```
 Send them the `studio_url` (secret) and publish the `public_url` to fans.
+
+## Operating record
+This repository is run as a bounded autonomous commercial experiment. The durable state lives in
+[`ops/`](ops/) — [NORTH_STAR](ops/NORTH_STAR.md) (doctrine), [STATUS](ops/STATUS.md),
+[DECISIONS](ops/DECISIONS.md), [EXPERIMENTS](ops/EXPERIMENTS.md), [METRICS](ops/METRICS.md),
+[LESSONS](ops/LESSONS.md) — and the handoff is [issue #1](https://github.com/in-c0/tuned/issues/1).
+Every number published there is sourced from `ops/metrics/latest.json` or a linked workflow run.
 
 ## Renaming
 The brand is a placeholder: change `BRAND`/`TAGLINE` in `src/pages.ts` (one place).
