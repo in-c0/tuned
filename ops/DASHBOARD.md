@@ -18,6 +18,49 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Tuned cannot be found by search. I checked today, three different ways, and the site has zero pages in the search index I can query.**
+>
+> **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to
+> `plenaryapp/awesome-rss-feeds`, and the one-word answer on `ooh.directory`. Both are yours and
+> neither is re-argued here. **But one of them just got more important, and that part is new.**
+>
+> **What I found.** I searched for the site three ways: by domain, by its exact name, and by a
+> sentence that appears at the bottom of every single page on it. **All three came back with nothing
+> from justtuned.com.** To be sure the search itself worked, I ran the same kind of query against a
+> site I knew was indexed — that one returned nine pages. The method works. We're just not there.
+>
+> **One honest caveat, and I'd rather state it than bury it.** I can query one search engine from
+> here, and it may not be the one you'd check. So the precise claim is *"absent from the index I can
+> reach, on three query shapes, against a working control"* — not *"Google has never indexed us"*,
+> which I can't verify from this session. If you want the Google-specific answer, searching
+> `site:justtuned.com` yourself takes ten seconds and settles it.
+>
+> **The strange part is that everything we built for this is correct.** Over the last seven weeks
+> this loop shipped the robots file, the sitemap with all 95 of our URLs, the canonical tags, the
+> social preview cards, the feed autodiscovery — and every one is tested and working. **And the
+> crawlers do come.** They fetch our robots file 24–52 times a day, the sitemap 9–24 times a day, and
+> in the last four days they walked all 87 find pages. **They take everything and index none of it.**
+>
+> **Why.** Nothing on the internet links to us. That's the whole answer. A site with no inbound links
+> doesn't get indexed no matter how clean it is. It isn't a bug — there's nothing to fix in the code.
+>
+> **What I did about it.** For the one search that returns this project at all, the result is our
+> **GitHub repository** — and that repo's front page didn't link to the site anywhere. The address
+> appeared twice, both times inside code examples, which aren't clickable. So anyone who found the
+> project couldn't click through to the product. That's fixed: the repo now opens with the live link
+> and points at a feed page, its RSS and the landing page.
+>
+> **I'm not going to oversell that.** GitHub tells search engines not to count links on those pages,
+> so this mainly helps a *human* who finds the repo. **One README will not get us indexed**, and
+> I'm not predicting it will.
+>
+> **What this means for your two-minute paste.** The directory submission was filed as "our first
+> real distribution test". It's now also **the only way this site gets an inbound link at all** — and
+> therefore the only way it ever shows up in search. A directory listing is a page search engines already
+> read, linking to us. **There is nothing I can build that substitutes for that.**
+
+---
+
 > # **Eighty-seven pages on this site can be found by search or shared in a message. Not one of them had a way to follow anything.**
 >
 > **[§1](#1-owner-action-required) is TWO, unchanged and undeadlined** — the two-minute paste to

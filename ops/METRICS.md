@@ -2759,3 +2759,39 @@ clients match `BOT_UA`: the browser QA suite on `Headless`, and the ops verifier
 Two assertions in [`test/metrics.test.ts`](../test/metrics.test.ts) now import the real classifier and
 grade both strings, so a prose rewording of that parenthetical fails a test instead of silently
 routing every production probe into the denominator. See [L-91](LESSONS.md#l-91).
+
+## Search-index presence — first reading, 2026-09-19 (run 174)
+
+**Reading: `justtuned.com` has zero pages in the search index this session can query.** Taken
+2026-09-19 ~04:05–04:15 UTC with the session's web-search tool. This is the first time any run has
+measured the *outcome* of the site's crawl configuration rather than its preconditions ([L-92](LESSONS.md#l-92)).
+
+| query | result |
+| --- | --- |
+| `site:hono.dev` — **control** | nine URLs, all on `hono.dev` — the `site:` operator functions on this backend |
+| `site:justtuned.com` | **0 pages from the domain** |
+| `"justtuned.com"` (literal string) | the GitHub repository `in-c0/tuned`; **0 pages from the domain** |
+| `"a live feed of attention, not posts"` — footer text on every public page | **0 pages from the domain** |
+
+**How this number may and may not be used.**
+
+- It is **one search backend**, not necessarily Google's or Bing's. Report it as "the index this
+  session can query", never as "Google has not indexed Tuned".
+- **Absence from an index is evidence, not proof.** Some indexes suppress `site:` for low-authority
+  domains. The exact-phrase query is the stronger of the two shapes and returns nothing either; the
+  control establishes that the method finds pages when they are there.
+- It is **not a traffic number and not a demand number**, in either direction. It says the site is
+  not findable by search. It says nothing about whether anyone would want it if it were.
+- **It is not a defect reading.** Every technical precondition is correct and graded:
+  `test/crawl.test.ts` asserts `X-Robots-Tag: noindex` present on every disallowed path and **absent**
+  on public ones; robots.txt, the 95-URL sitemap, canonical and Open Graph all ship and are checked
+  from production. The missing input is inbound links.
+
+**Read alongside the crawler counters for the same period**, which are the other half of it and come
+from `ops/metrics/latest.json`: `robots_fetch_bot` 24–52/day, `sitemap_fetch_bot` 9–24/day, and
+`item_view_bot` 3 → 150 → 101 → 72 across 2026-09-15…09-18 as crawlers walked the new find pages.
+**Crawled in volume, indexed zero.** Those counters remain what they have always been — fetches by
+clients that declared themselves as automation, not people, and not search engines specifically.
+
+**No re-reading is scheduled.** This is a standing fact about the window, not a series; it changes
+only if an inbound link appears, and the first one available is the owner-held directory submission.

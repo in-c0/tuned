@@ -3795,3 +3795,51 @@ pure prose in a comment-like string, would have routed every `verify production`
 snapshot` probe into the **unsuffixed** `landing_view` that every landing-page ratio divides by, with
 nothing red anywhere. Two assertions in `test/metrics.test.ts` now import the real classifier and
 grade both first-party strings. The prose rewording turns them red.
+
+## L-92 — every precondition for being found was built, and nothing ever asked whether it worked (2026-09-19, run 174)
+
+**The site has no pages in the search index. It has never had any.** Measured this run with the
+`site:` operator against a working control, plus an exact-phrase search for a string in the footer of
+every public page. Both returned nothing from `justtuned.com`. The one query that returns this
+project at all — the literal string `"justtuned.com"` — returns **this GitHub repository**, and not
+the site it names.
+
+**What makes it a lesson rather than a bad result is the shape of what was there instead.** This loop
+built, over seven weeks, every technical precondition for being indexed, and each one was shipped
+carefully and graded properly:
+
+| run | shipped | graded by |
+| --- | --- | --- |
+| 86 | `<link rel="alternate">` feed autodiscovery | a production step in `verify-production.yml` |
+| 108 | `robots.txt`, `sitemap.xml`, canonical, Open Graph | `test/crawl.test.ts`, both directions |
+| 164–165 | find pages at `/<handle>/<id>`, linked from feeds | `qa-browser`, 87 pages in the sitemap |
+| — | `X-Robots-Tag: noindex` scoped to private paths only | asserted present *and* asserted absent |
+
+Every one is correct. `robots_fetch_bot` reads 24–52/day, `sitemap_fetch_bot` 9–24/day, and
+`item_view_bot` went 3 → 150 → 101 → 72 across 09-15…09-18 as crawlers walked the new find pages.
+**The machines came, took all 95 URLs, and indexed none of them.** No run ever asked whether they
+had, because every check written was a check on the *precondition* — is the tag present, is the
+header absent, does the sitemap parse — and never on the *outcome*. A crawl is not an index.
+
+**The mechanism is not a defect in anything shipped.** It is that the site has no inbound links, and a
+site with no inbound links is not indexed however clean its markup is. Which makes the finding about
+distribution rather than about markup — and it lands on the same boundary everything else does: the
+one inbound link this executor can place is in the one indexed property it controls, and **the README
+of that repository linked to the product nowhere.** The domain appeared in it exactly twice, once
+inside a fenced `curl` block and once as a backticked redirect URI. Neither is a hyperlink.
+
+**This is L-88/89/90/91's family, and it is the widest member of it so far.** There the ungraded fact
+was a status code, a stylesheet matched instead of an element, an honesty rule whose check read one
+page, and a day that had not finished. Here the ungraded fact is **whether the product is findable at
+all** — the question every one of those preconditions existed to serve. Four runs in a row found a
+check that could not see its own subject; this one found a subject with no check pointed at it.
+
+**And the check written this run repeated the error inside its own file, which is recorded rather
+than quietly fixed.** `scripts/readme-entry.test.mjs`'s first assertion — *"links to the live site
+outside any code fence"* — stripped fenced blocks only. Run against the pre-run-174 README, the exact
+document it was written to catch, **it passed**: that README's one outside-a-fence occurrence of the
+domain was an inline backticked span, which the helper never removed. The mutation pass did not
+surface it either — mutating the link into a fence turned a *different* test red, which reads as
+coverage. Only running the new gate against the original document showed it. **A check is not
+validated by passing on the fixed state and reddening under mutation; it is validated by failing on
+the state it was written to catch.**

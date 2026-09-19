@@ -6337,3 +6337,84 @@ public claim; no new data category. No item published, amended, retracted or res
 schedule is still disarmed and EXP-013's threshold-2 re-specification is still unruled.
 
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-19 (04:20 UTC) — run 174: the site is not in the search index, and the one indexed property did not link to it
+
+**Decision: measure whether Tuned is findable at all, record that it is not, and make the single
+indexed property this executor controls an honest entry point to the product.**
+
+**Why this and not a page change.** [EXP-011](EXPERIMENTS.md) closed yesterday at R = 0.58% and its
+Fork R-A next action, registered blind on 2026-09-04, sends the remaining runs **to obtaining real
+arrivals rather than to the landing page**. Three arrival levers were listed as available. This run
+graded the one that needed nobody's permission — search — and found it is not available either.
+
+**The reading, with its control stated first.** Taken 2026-09-19 ~04:05–04:15 UTC.
+
+| query | result |
+| --- | --- |
+| `site:hono.dev` — **control** | nine URLs, all on `hono.dev`; the operator works on this backend |
+| `site:justtuned.com` | **zero pages from the domain** |
+| `"justtuned.com"` (literal) | the **GitHub repository** `in-c0/tuned`, plus an unrelated creator brand; **no page of the site** |
+| `"a live feed of attention, not posts"` — a string in the footer of **every** public page | **nothing from the domain** |
+
+**The honest limits, stated before the conclusion.** This is one search backend and not necessarily
+Google's; absence from an index is evidence and not proof, because some indexes suppress `site:` for
+low-authority domains. The exact-phrase test is the stronger of the two and it also returns nothing.
+**What is established is that Tuned is absent from the index this session can query, on three
+independent query shapes, against a control proving the method works.**
+
+**Not a technical defect, and that was checked before it was concluded.** `noindex` is scoped to
+`isPrivatePath` and `test/crawl.test.ts` asserts it present on every disallowed path *and absent* on
+public ones; robots.txt, the 95-URL sitemap, canonical and Open Graph are all correct and all graded.
+Crawlers are arriving in volume — `robots_fetch_bot` 24–52/day, `sitemap_fetch_bot` 9–24/day,
+`item_view_bot` 3 → 150 → 101 → 72 across 09-15…09-18. **They take every URL and index none.** The
+missing input is inbound links, which is a distribution fact and not a markup one. [L-92](LESSONS.md#l-92).
+
+**What this settles about the candidate list.** **The search lever is closed as an arrival channel for
+this window** and should not consume another cycle. A domain with zero inbound links does not get
+indexed, and even if it were, 87 of the 95 URLs are pages *about other people's content* — the weakest
+possible thing to rank. No run should propose SEO work on this evidence; the standing answer is here.
+
+**What shipped, and it is deliberately small.** For the one query that returns this project at all,
+the result is the GitHub repository — and **its README linked to the product nowhere**: the domain
+appeared twice, once in a fenced `curl` block and once as a backticked redirect URI, neither of them
+a hyperlink. The README now opens with the live link, points at a public feed page, its RSS and the
+landing page, documents the `/:handle/:id` find surface it had never listed, drops a leaked local
+Windows path, and states that email Follow does not send. `scripts/readme-entry.test.mjs` pins seven
+properties, including that only allowlisted **public** paths may be advertised from an indexed page.
+
+**Magnitude not overclaimed.** GitHub marks user-content links `rel="nofollow"`, so this is primarily
+a **human** path from the one place the project is findable, and only incidentally a crawl hint. One
+README will not get 95 URLs indexed and nothing here predicts that it will. What it removes is a dead
+end: until today, someone who found this project could not click through to it.
+
+**Considered and rejected.**
+
+1. **IndexNow** (Bing/Yandex, key file at the origin, no account, no spend). Rejected **on this run's
+   own data**: crawlers already fetch robots and the sitemap tens of times a day and walk all 87 find
+   pages. Discovery is not the constraint; indexing is, and IndexNow does not buy it.
+2. **A site-wide `/rss.xml`.** Run 172 put a direct yes/no on it to the reviewer and it is still
+   unanswered. It remains a doctrine question — following *a person's* attention is the unit — and I
+   am not shipping a doctrine change on my own reading of it for the third run running.
+3. **Re-testing the third-party write boundary (A0).** Refused four times byte-identically; [L-07](LESSONS.md)
+   says stop restating it. No child session was spawned to obtain what this one is scoped out of.
+4. **Folding `FEED_CSS` and `FIND_CSS` into `CSS`.** Still bookkeeping, still keeps; it is a
+   `src/pages.ts` change and this run has no reason to touch the Worker.
+5. **Publishing to any feed to make the site look alive.** Ruled out at run 106; [EXP-008](EXPERIMENTS.md)'s
+   binding clauses disqualify it.
+
+**What this does to the owner card, which is the part worth the reviewer's attention.** The
+`awesome-rss-feeds` submission has stood open and unactioned since 2026-09-04 and is **not re-argued
+here** per [L-07](LESSONS.md). But its *priority class* changes on this evidence, and that is new
+information rather than a restatement: it was filed as *"the first measurable external distribution
+test"*. It is now also **the only mechanism by which this site acquires an inbound link at all**, and
+therefore the precondition for it existing in search. A directory listing is an indexed page that
+links here. Nothing the executor can ship substitutes for one.
+
+**Scope held.** **No `src/` change — the deployed Worker is byte-identical**, so nothing deployed,
+nothing could regress and no rollback path was required. No route, schema, counter, secret,
+dependency, workflow, page or public claim; no new data category. `arrival:<tag>` and RSS are
+byte-untouched. No item published, amended, retracted or restored. The agent-scout schedule is still
+disarmed and EXP-013's threshold-2 re-specification is still unruled.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

@@ -1,5 +1,89 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-19 14:35 Sydney (2026-09-19 04:35 UTC), run 174 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged from runs 143-173 and not re-argued here, per [L-07](LESSONS.md).** **The site has no
+pages in the search index, and never has.**
+
+**The reading.** Measured 2026-09-19 04:05–04:15 UTC, against a working control: `site:hono.dev`
+returns nine pages on that domain, so the operator functions; **`site:justtuned.com` returns zero.**
+A literal search for `"justtuned.com"` returns **this GitHub repository** and no page of the site. An
+exact-phrase search for a string in the footer of **every** public page returns nothing from the
+domain. Three query shapes, one control, same answer. Full reading and its limits in
+[METRICS](METRICS.md); it is one search backend and absence from an index is evidence rather than
+proof, and both caveats are recorded there rather than dropped here.
+
+**What makes this the finding and not a bad result.** Over seven weeks this loop built every
+technical precondition for being found, and each was shipped carefully and graded properly — feed
+autodiscovery (run 86), `robots.txt`, `sitemap.xml`, canonical and Open Graph (run 108), find pages
+and their links (runs 164–165), and `X-Robots-Tag: noindex` scoped to private paths and asserted
+**both present and absent** in `test/crawl.test.ts`. All correct. And the machines came:
+`robots_fetch_bot` **24–52/day**, `sitemap_fetch_bot` **9–24/day**, `item_view_bot` **3 → 150 → 101 →
+72** across 09-15…09-18 as crawlers walked the new find pages. **They took all 95 URLs and indexed
+none of them.** No run ever asked whether they had, because every check written graded a
+*precondition* — is the tag there, is the header absent, does the sitemap parse — and never the
+*outcome*. **A crawl is not an index.** [L-92](LESSONS.md#l-92).
+
+**The cause is not a defect in anything shipped.** It is that the site has **no inbound links**, and a
+site with no inbound links is not indexed however clean its markup is. That makes this a distribution
+fact, not a markup one — and it lands on the same boundary everything else does.
+
+**What that closes.** **The search lever is closed as an arrival channel for this window** and should
+not consume another cycle; the standing answer to any candidate proposing SEO work is recorded in
+[DECISIONS](DECISIONS.md). **IndexNow was considered and rejected on this run's own data** — crawlers
+already fetch robots and the sitemap tens of times daily, so discovery is not the constraint.
+
+**What shipped, and it is deliberately small.** For the one query that returns this project at all,
+the result is the GitHub repository — **and its README linked to the product nowhere.** The domain
+appeared in it exactly twice, once inside a fenced `curl` block and once as a backticked redirect
+URI; neither is a hyperlink. The README now opens with the live link, points at a public feed page,
+its RSS and the landing page, documents the `/:handle/:id` find surface it had never listed, drops a
+leaked local Windows path, and states plainly that the email Follow does not send.
+`scripts/readme-entry.test.mjs` pins seven properties, one of them that **only allowlisted public
+paths may be advertised from an indexed page** — a capability URL must never be published there.
+
+**Magnitude not overclaimed.** GitHub marks user-content links `rel="nofollow"`, so this is chiefly a
+**human** path from the one place the project is findable, and only incidentally a crawl hint. **One
+README will not get 95 URLs indexed and nothing here predicts it will.** What it removes is a dead
+end: until today someone who found this project could not click through to it.
+
+**The check written this run repeated the error inside its own file, and it is recorded rather than
+quietly fixed.** The first assertion — *"links to the live site outside any code fence"* — stripped
+fenced blocks only, and **passed when run against the pre-run-174 README, the exact document it
+exists to catch**, because that README's one outside-a-fence occurrence was an inline backticked
+span. The mutation pass did not surface it either: mutating the link into a fence reddened a
+*different* test, which reads as coverage. Only running the gate against the original document showed
+it. **A check is validated by failing on the state it was written to catch, not by passing on the
+fixed one.** Fixed, re-verified red against the original, re-mutated.
+
+**Gates.** `npm run check` exit 0 · **423 vitest** (unchanged — no `src/` change) · **ops suite
+244/244** (237 → 244, seven new) · `validate-workflows.py` ok, 13 workflows ·
+`validate-nominations.mjs` 8 valid · `npm audit --omit=dev` **0 vulnerabilities**. **Seven mutations,
+each reddening its own named test**, `README.md` restored byte-identical after every one.
+
+**Deliberately NOT touched.** **No `src/` change — the deployed Worker is byte-identical**, so
+nothing deployed, nothing could regress and no rollback path was required. No route, schema, counter,
+secret, dependency, workflow, page or public claim; no new data category. `arrival:<tag>` and RSS are
+byte-untouched. **`FEED_CSS`/`FIND_CSS` still not folded into `CSS`** — bookkeeping, and this run had
+no reason to touch the Worker. **No site-wide `/rss.xml`**: run 172's direct yes/no is still
+unanswered and it stays a doctrine question. **The third-party write boundary was not re-tested** and
+no child session was spawned. The agent-scout schedule is still disarmed and the threshold-2 proposal
+is **still unruled** — no reviewer directive since 2026-09-01. No item published, amended, retracted
+or restored. No spend.
+
+**What this does to the owner card, which is the one thing here that is new rather than restated.**
+The `awesome-rss-feeds` submission is **not re-argued** per [L-07](LESSONS.md). But its *priority
+class* changes on this evidence: it was filed as *"the first measurable external distribution test"*,
+and it is now also **the only mechanism by which this site acquires an inbound link at all** — and
+therefore the precondition for it existing in search. A directory listing is an indexed page that
+links here. **Nothing the executor can ship substitutes for one.**
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **16 days left.**
+
+---
+
+## Run 173 (2026-09-19 08:35 Sydney) — EXP-011 is graded: 686 human-flagged landing views produced 4 rendering browsers
+
 **Last updated:** 2026-09-19 08:35 Sydney (2026-09-18 22:35 UTC), run 173 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-172 and not re-argued here, per [L-07](LESSONS.md).** **EXP-011 is graded:
 686 human-flagged landing views produced 4 rendering browsers.**
