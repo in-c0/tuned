@@ -60,8 +60,17 @@ put a feed on it."* The two that passed are recorded rather than glossed — one
 
 **Gates.** `npm run check` exit 0 · **437 vitest** (427 → 437, ten new) · **ops suite 244/244**
 (unchanged) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid ·
-`npm audit --omit=dev` **0 vulnerabilities**. **Eight mutations, each reddening its own named test**,
+`npm audit --omit=dev` **0 vulnerabilities**. **Nine mutations, each reddening its own named test**,
 every file restored byte-identical under `sha256sum -c`.
+
+**Verified from production, not only in workerd.** This session's egress proxy answers `403 CONNECT`
+for `justtuned.com`, so a workflow step is the only production reading this loop gets — and *"the
+site returns 200"* would have been true even if the new route had not deployed at all.
+`verify-production.yml` now posts to `/ava/desk` **with no cookie** and requires **303 → `/login`**:
+**404 means the deploy is stale**, **200 means the session gate is gone and anyone can write to a
+member's desk.** Deliberately **inert** — the handler returns before it looks up the feed or touches
+a counter, so the check writes no `follows` row and moves no `desk_follow` name. That ordering is
+pinned by a test rather than assumed, and reversing it reddens.
 
 **A correction to run 175's own record, carried here rather than quietly fixed.** Four files —
 `STATUS.md`, `DECISIONS.md`, `LESSONS.md` and `test/promises.test.ts` — stated that the sign-in link

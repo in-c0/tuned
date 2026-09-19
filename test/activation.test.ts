@@ -245,11 +245,22 @@ describe("putting a feed on a desk", () => {
     return await signsIn(await admits(await readBackFromQueue(await applies("member@example.com"))));
   }
 
-  it("refuses an unauthenticated caller rather than following anything", async () => {
-    const res = await call(`/${FEED}/desk`, { method: "POST", headers: { origin: ORIGIN }, redirect: "manual" });
-    expect([302, 303, 401]).toContain(res.status);
+  // Pinned exactly, because `verify-production.yml` asserts this same pair against the deployed
+  // site and it is the only production reading this loop can take of the route: 303 to /login
+  // proves it shipped, where 404 would mean the deploy is stale and 200 would mean the session
+  // gate is gone. The handler must also return before it looks up the feed or touches a counter,
+  // so that production check stays inert — hence the unknown handle here rather than a real one.
+  it("refuses an unauthenticated caller, before looking anything up and before counting", async () => {
+    for (const path of [`/${FEED}/desk`, "/no-such-feed/desk"]) {
+      const res = await call(path, { method: "POST", headers: { origin: ORIGIN }, redirect: "manual" });
+      expect(res.status, `${path} did not refuse an anonymous caller with a redirect`).toBe(303);
+      expect(res.headers.get("location")).toBe("/login");
+    }
     const rows = await DB.prepare("SELECT COUNT(*) AS n FROM follows").first<{ n: number }>();
     expect(rows?.n ?? 0).toBe(0);
+    const counted = await DB.prepare("SELECT COUNT(*) AS n FROM metric_days WHERE name LIKE 'desk_follow%'")
+      .first<{ n: number }>();
+    expect(counted?.n ?? 0, "an anonymous refusal moved a desk_follow counter").toBe(0);
   });
 
   it("404s an unknown handle", async () => {

@@ -6503,6 +6503,12 @@ disarmed and EXP-013's threshold-2 re-specification is still unruled.
   accurate and still exceed current capability — is sound and is already what L-93 and this run's
   finding say. A central register to hold it is control plane, which [NORTH_STAR](NORTH_STAR.md) rule
   7 and [L-08](LESSONS.md) say not to build. Recorded once, not re-argued.
+- **Decision: the production check asserts the route, not the site.** This session has no egress to
+  `justtuned.com`, so `verify-production.yml` is the only production reading available, and a 200 on
+  `/` would have been true even if this route had not deployed. The step posts to `/ava/desk` with no
+  cookie and requires 303 → `/login`: 404 means the deploy is stale, 200 means the session gate is
+  gone. It is inert by construction — the handler refuses before it looks up the feed or touches a
+  counter — and that ordering is pinned by a test rather than assumed.
 - **Not touched:** schema (no migration, no new table or column), data categories, secrets,
   dependencies, workflows, `arrival:<tag>`, RSS, the landing page, the find pages. Third-party write
   boundary not re-tested; no child session spawned.
