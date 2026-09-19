@@ -41,6 +41,22 @@ const DESK_CSS = `
 .agent-h .hit { font-size: 11.5px; color: var(--faint); }
 .agent-h .rule { flex: 1; height: 1px; background: var(--line); }
 .agent-h a { font-size: 12px; color: var(--faint); }
+.desk-follow { display: inline; margin: 0; }
+.desk-follow .linkish {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: inherit; font-size: 12px; color: var(--faint);
+}
+.desk-follow .linkish:hover { color: var(--text); text-decoration: underline; }
+.suggest { margin: 34px 0 10px; }
+.suggest h2 { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
+.suggest-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+}
+.suggest-row .avatar { width: 30px; height: 30px; font-size: 13px; border-radius: 50%; flex: none; }
+.suggest-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.suggest-who a { font-size: 14px; color: var(--text); }
+.suggest-who .hit { font-size: 11.5px; color: var(--faint); }
 .desk-card { position: relative; }
 .desk-card .body { padding-right: 4px; }
 .triage { display: flex; flex-direction: column; gap: 6px; flex: none; justify-content: center; }
@@ -87,12 +103,32 @@ function deskCard(it: DeskItem): string {
   </div>`;
 }
 
+/** A public feed the member does not follow yet, with the count that makes it worth offering. */
+export interface DeskSuggestion extends Creator {
+  public_items: number;
+}
+
+/** The control that puts a feed on this desk, or takes it off again.
+ *
+ *  A real form with a real action, and not a fetch behind a click handler. Three reasons, in the
+ *  order they matter: it works with JavaScript off, it is exactly what the browser submits so
+ *  there is no second code path to keep honest, and the endpoint is legible in the delivered HTML
+ *  — which is what lets a test read the offer the member is shown instead of asserting against a
+ *  path it made up. The desk's offer being unreadable is how "follow more feeds" sat here for
+ *  weeks as an instruction with nothing behind it. */
+function deskForm(handle: string, remove: boolean, label: string, cls: string): string {
+  return `<form method="post" action="/${esc(handle)}/desk" class="desk-follow">${
+    remove ? `<input type="hidden" name="remove" value="1">` : ""
+  }<button class="${cls}" type="submit">${esc(label)}</button></form>`;
+}
+
 export function deskPage(
   member: Member,
   groups: Array<{ stats: AgentStats; items: DeskItem[] }>,
   streak: boolean[], // last 7 days, oldest first; today = last element
   newCount: number,
-  ownHandle: string | null
+  ownHandle: string | null,
+  suggestions: DeskSuggestion[] = []
 ): string {
   const dateStr = new Date().toUTCString().slice(0, 16);
   const triagedToday = streak[streak.length - 1];
@@ -110,6 +146,7 @@ export function deskPage(
         <span class="hit">${stats.found7d} this week · ${rate}</span>
         <div class="rule"></div>
         <a href="#" data-charter-toggle="${stats.creator.id}">steer</a>
+        ${deskForm(stats.creator.handle, true, "remove", "linkish")}
       </div>
       <div class="charter-box" data-charter-box="${stats.creator.id}">
         <textarea data-charter-text="${stats.creator.id}" placeholder="Charter notes for @${esc(stats.creator.handle)} — what to hunt more of, less of. The agent reads this before every run.">${esc(stats.creator.charter ?? "")}</textarea>
@@ -118,6 +155,30 @@ export function deskPage(
       ${items.map(deskCard).join("") || `<div class="empty" style="padding:12px 0">Nothing new from @${esc(stats.creator.handle)}.</div>`}`;
     })
     .join("");
+
+  // Offered whether or not the desk is empty, because "which attention am I following" is the
+  // steering decision this product is about, not a one-time onboarding step. The heading is the
+  // only part that changes: on an empty desk this is the way out of it, and on a full one it is
+  // the way to widen it.
+  const suggestionHtml = suggestions.length
+    ? `
+  <div class="suggest">
+    <h2>${groups.length ? "More attention to follow" : "Feeds you can add"}</h2>
+    ${suggestions
+      .map(
+        (s) => `
+      <div class="suggest-row">
+        <div class="avatar" style="background:linear-gradient(135deg,${esc(s.accent)},#2b2b3d)">${esc(s.name.slice(0, 1))}</div>
+        <div class="suggest-who">
+          <a href="/${esc(s.handle)}">@${esc(s.handle)}</a>
+          <span class="hit">${s.kind === "agent" ? "agent" : "human"} · ${s.public_items} find${s.public_items === 1 ? "" : "s"}</span>
+        </div>
+        ${deskForm(s.handle, false, "Add to desk", "btn small primary")}
+      </div>`
+      )
+      .join("")}
+  </div>`
+    : "";
 
   const body = `
   <div class="site-top">
@@ -132,7 +193,12 @@ export function deskPage(
       <span>${streakDays}/7 day${streakDays === 1 ? "" : "s"}${triagedToday ? "" : " — today's open"}</span>
     </div>
   </div>
-  ${groupHtml || `<div class="all-done"><b>Nothing to read.</b> Your agents run every morning — check back after 7am, or follow more feeds.</div>`}
+  ${groupHtml || `<div class="all-done"><b>Your desk is empty.</b> ${
+    suggestions.length
+      ? "You aren't following anything yet — add a feed and everything it finds lands here."
+      : "You aren't following anything yet, and there is no public feed to add right now."
+  }</div>`}
+  ${suggestionHtml}
   <div class="all-done" id="clear-msg" style="display:none"><b>Desk clear.</b> Everything triaged${ownHandle ? ` — starred items are live on <a href="/${esc(ownHandle)}" target="_blank" style="text-decoration:underline">your feed</a>` : ""}.</div>`;
 
   const js = /* js */ `

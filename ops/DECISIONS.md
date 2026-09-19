@@ -6445,8 +6445,65 @@ disarmed and EXP-013's threshold-2 re-specification is still unruled.
   than merely accurate needs a mail-provider account — a credential and probably a spend — so it is
   outside this session's envelope. **Deliberately not raised as a third owner card** ([L-07](LESSONS.md)):
   it is stated once in STATUS and here. Until one exists, approving a member is a manual act — read
-  `/api/applications`, call `POST /api/creators`, convey the returned `login_url` by hand.
+  `/api/applications`, call `POST /api/members`, convey the returned `login_url` by hand. **[Corrected run 176: the admission act is `POST /api/members`; `/api/creators` mints a feed and returns `public_url`/`studio_url`, no member and no link.]**
 - **Not touched:** the feed and find follow dialogs, which already disclose and are byte-identical; the
   new assertion confirms them rather than rewriting them. No route, schema, counter, secret, dependency
   or workflow. Third-party write boundary not re-tested; no child session spawned.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-20 — run 176: the desk a new member lands on could not be filled, by them or by anybody
+
+- **Decision:** spend the cycle making the funnel's last step reachable, rather than on the
+  bookkeeping candidates runs 173–175 all deferred. Rationale: `follows` is the sole source of
+  everything `GET /today` renders and had **exactly one writer in all of `src/`** — the auto-follow
+  inside `/today`, selecting `creators WHERE member_id = ? AND kind = 'agent'`, which is the agents a
+  member already owns. A member admitted through the front door owns nothing, so **the desk was empty
+  and nothing anywhere in the product could add to it.** The public feed page's Follow button writes
+  to `followers`, a different table holding an email address for a digest with no sender.
+- **Why this outranked distribution work, which is otherwise the standing priority.** It is the same
+  judgement run 174 made in the other direction. Search is closed as an arrival channel and the
+  directory submission is owner-blocked, so the loop cannot add arrivals this cycle — but the thing
+  arrivals would have arrived *at* was a dead end, and that is repairable from here. Criterion 2 of
+  the issue's own commercial hierarchy is *"an owner reaches a useful morning desk and stars/skips
+  real finds"*; no admitted member could reach one.
+- **Decision: a real `<form method="post">`, not a fetch behind a click handler.** Three reasons in
+  the order they matter: it works with JavaScript off; it is exactly what the browser submits, so
+  there is no second code path to keep honest; and the endpoint is legible in the delivered HTML,
+  which is what lets the check grade **the offer the member is actually shown** rather than a path the
+  test made up. The desk's offer being illegible is how *"follow more feeds"* sat there for 45 days as
+  an instruction with nothing behind it.
+- **Decision: the assertion is an outcome, never a presence.** `test/activation.test.ts` reads the
+  endpoint off the page, calls it, and requires the next desk to carry the find. Asserting that a
+  button exists would pass the moment a button is added and say nothing about whether pressing it
+  works. **A control is not a capability** — [L-92](LESSONS.md#l-92)'s *a crawl is not an index* one
+  surface along.
+- **Decision: each stage may use only what the previous stage returned.** Every stage of this funnel
+  already had a green test, and every one of them hand-seeds its own input. That is why four passing
+  suites and a broken funnel coexisted for 45 days: a stage that seeds its input tests no seam, and
+  the defect was in an edge nobody wrote. [L-94](LESSONS.md#l-94).
+- **Decision: removal ships with addition.** A desk you can add to and never subtract from is a
+  one-way door and its own defect, so the same route removes, and the control is on the page that
+  shows the feed as followed.
+- **Decision: a member's own feed is excluded from what they are offered.** Following your own
+  attention is not following anyone's, and the owner is the one member who has feeds — leaving it in
+  means the only desk that exists today offers the owner himself as a subscription.
+- **Recorded, not acted on: the public feed page's follow dialog is byte-untouched.** A signed-in
+  member clicking Follow there still gets the email-intent capture rather than the desk subscription
+  that now exists. Named as the next candidate rather than folded in: this run's job was to make the
+  desk fillable, and the dialog is a second entry point to a capability that until today did not
+  exist. **Deliberately not raised as an owner card** — it needs nothing from the owner.
+- **Correction to run 175's record, carried rather than quietly fixed.** Four files stated the
+  sign-in link is returned by `POST /api/creators`. It is not: that route mints a feed and returns
+  `public_url`/`studio_url`, creates no member and returns no link. The admission act is
+  `POST /api/members`, as `README.md` and `METRICS.md` said all along. The run correcting two pages
+  for describing a mechanism this service lacks misdescribed the admission mechanism in the same
+  commit.
+- **Declined: the claim-authority register proposed on issue #1** (2026-09-19, `Nakagawa-master`, no
+  association). Not a reviewer directive and not treated as one. Its distinction — a statement can be
+  accurate and still exceed current capability — is sound and is already what L-93 and this run's
+  finding say. A central register to hold it is control plane, which [NORTH_STAR](NORTH_STAR.md) rule
+  7 and [L-08](LESSONS.md) say not to build. Recorded once, not re-argued.
+- **Not touched:** schema (no migration, no new table or column), data categories, secrets,
+  dependencies, workflows, `arrival:<tag>`, RSS, the landing page, the find pages. Third-party write
+  boundary not re-tested; no child session spawned.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

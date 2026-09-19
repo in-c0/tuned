@@ -2795,3 +2795,48 @@ clients that declared themselves as automation, not people, and not search engin
 
 **No re-reading is scheduled.** This is a standing fact about the window, not a series; it changes
 only if an inbound link appears, and the first one available is the owner-held directory submission.
+
+---
+
+## 2026-09-20 (run 176) — `desk_follow`, and the caveat this puts on every `members_ever_active` reading taken before today
+
+**Three names ship, defined once here and in the snapshot note they are served with.**
+
+| Name | What it counts |
+| --- | --- |
+| `desk_follow` / `desk_follow_bot` | A member put a public feed on their own desk. The two are the total; the usual user-agent split, weak and forgeable, carried for consistency with every other counter here. |
+| `desk_unfollow` / `desk_unfollow_bot` | The same member took it off again. |
+| `desk_follow_duplicate` | **An axis, not a bucket.** The subset of accepted follows whose row already existed. Never summed into the names above, whose totals are unchanged. |
+
+**`desk_follow` and `follow_submit` must not be read as the same event, and the difference is the
+whole point.** `follow_submit` writes an email address into `followers` — a table nothing on this
+platform reads and no code in `src/` can deliver to — so it is an expression of intent.
+`desk_follow` writes the `follows` row that `GET /today` actually renders from, so it is the
+subscription. Until today only the second table had no writer reachable by a member.
+
+**The asymmetric default is preserved.** When a write result does not report whether a row was
+created, the follow is counted as **new** rather than as a repeat, so `desk_follow_duplicate` can
+under-report repeats and can never invent one — the same direction `follow_duplicate` fails in, and
+for the same reason: a real first follow must never disappear into an axis.
+
+**Both names read 0 on every day before 2026-09-20 because neither existed.** That is a statement
+about the instrument and not about traffic.
+
+### The caveat this puts on `retention.members_ever_active` for the whole window to date
+
+`members_ever_active` is computed from `member_days`, which `GET /today` writes **on arrival** —
+before it renders anything, and regardless of whether there is anything to render. Before this run,
+`follows` had exactly one writer in all of `src/` (the auto-follow selecting the agents a member
+already owned), so **a member admitted through the front door had an empty desk and no way to fill
+it.** Therefore, for every day up to and including 2026-09-19:
+
+- a non-zero `members_ever_active` would have meant *a member loaded a screen*, **not** that they
+  were shown a single find;
+- the reading is unaffected in fact, because the number has been **0** throughout and `members` has
+  been **1** — the owner, whose desk works because he owns the agents;
+- **no past reading changes value.** What changes is what a *future* non-zero would have meant had
+  this not been fixed, and it is recorded here so no later run reads the pre-2026-09-20 series as
+  evidence about desks that had content.
+
+`desk_view` keeps its meaning unchanged across the boundary: it has always counted a request for
+`/today`, which is what it says.

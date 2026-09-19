@@ -55,6 +55,12 @@ const INVENTORY: Record<string, Entry> = {
   "GET /enter/:token": { writes: "member_login[_bot], +_unattended axis" },
   "GET /today": { writes: "desk_view[_bot], +_unattended axis; member_days via memberActive" },
   "POST /read/:id": { writes: "attention_star / attention_skip, +_bot, +_owner axis" },
+  // Counted rather than filed under the member-only block below, and the reason is the block's own
+  // expiry clause. That block's justification is "every request any of them has ever served is the
+  // owner"; this route exists *because* a member who is not the owner had no way to fill their
+  // desk, so the first non-owner to use it is the first evidence that a stranger got past the
+  // door. A counter that only exists after that happens cannot record it.
+  "POST /:handle/desk": { writes: "desk_follow / desk_unfollow, +_bot, +_duplicate axis" },
 
   // ---- public surfaces, deliberately uncounted ----
   //

@@ -2,9 +2,14 @@
 //
 // This Worker has no way to send an email. There is no mail binding in wrangler.jsonc, no mail
 // secret, and no call to any mail provider anywhere in src/. A sign-in link is *returned in the
-// response body* of the admin-key-gated `POST /api/creators` (src/index.ts, `login_url`) — it is
+// response body* of the admin-key-gated `POST /api/members` (src/index.ts, `login_url`) — it is
 // handed to the operator, who conveys it by hand. The route inventory already records this
 // correctly: `GET /login` is listed there as "interstitial ... asks the owner for a link".
+//
+// (This paragraph named `POST /api/creators` when it was written, and so did four ops files. That
+// route mints a *feed* and returns `public_url`/`studio_url`; it returns no sign-in link and
+// creates no member. The run that wrote it was correcting two pages for describing a mechanism
+// this service does not have, and misdescribed the admission mechanism in the same commit.)
 //
 // The pages said something else. Until this file existed, `/` told every applicant "you'll hear
 // back by email" and `/login` told every approved member "we send you a personal sign-in link".
@@ -69,6 +74,7 @@ beforeEach(async () => {
   await DB.batch([
     DB.prepare("DELETE FROM items"),
     DB.prepare("DELETE FROM creators"),
+    DB.prepare("DELETE FROM members"),
     DB.prepare("DELETE FROM metric_days"),
   ]);
   const creator = await DB.prepare(
@@ -123,26 +129,56 @@ function concretise(route: string): string {
     .replace(":token", "not-a-real-token");
 }
 
-async function fetchPath(path: string): Promise<Response> {
+async function fetchPath(path: string, cookie?: string): Promise<Response> {
   const ctx = createExecutionContext();
-  const res = await worker.fetch(new Request(`https://justtuned.com${path}`), env as never, ctx);
+  const res = await worker.fetch(
+    new Request(`https://justtuned.com${path}`, cookie ? { headers: { cookie } } : undefined),
+    env as never,
+    ctx
+  );
   await waitOnExecutionContext(ctx);
   return res;
 }
 
-/** Path → delivered body, for every registered GET route that answers an anonymous request with
- *  HTML. Redirects to /login, JSON, RSS and plain text all drop out here by answering with
- *  something that is not a page. */
-async function publicPages(): Promise<Map<string, string>> {
+/** Path → delivered body, for every registered GET route that answers with HTML. With no cookie
+ *  this is what a stranger can read; with one it is what a member can read.
+ *
+ *  The cookie argument is not a refinement, it is a hole being closed. As first written this swept
+ *  anonymously only, and its own comment recorded the consequence as a convenience — "redirects to
+ *  /login ... drop out here by answering with something that is not a page." What drops out that
+ *  way is `/today` and `/home`: the entire member experience, which is to say every surface on
+ *  which activation happens. A sweep of "every page a stranger can reach" is sound about strangers
+ *  and says nothing about the screens somebody sees *after* they accept the invitation, and those
+ *  screens are the ones nobody had ever read. [L-93](../ops/LESSONS.md) again, one surface along. */
+async function pagesFor(cookie?: string): Promise<Map<string, string>> {
   const pages = new Map<string, string>();
   for (const route of registeredGetPaths()) {
     const path = concretise(route);
     if (path.includes(":")) continue; // an unrecognised parameter shape, not silently substituted
-    const res = await fetchPath(path);
+    const res = await fetchPath(path, cookie);
     if (!(res.headers.get("content-type") ?? "").includes("text/html")) continue;
     pages.set(path, await res.text());
   }
   return pages;
+}
+
+const publicPages = (): Promise<Map<string, string>> => pagesFor();
+
+/** A signed-in member, provisioned the way the product provisions one. */
+async function memberCookie(): Promise<string> {
+  const token = `sess-${Math.random().toString(36).slice(2)}`;
+  await DB.prepare("INSERT INTO members (email, name, session_token) VALUES (?, ?, ?)")
+    .bind(`member-${token}@example.com`, "A Member", token)
+    .run();
+  return `tuned_session=${token}`;
+}
+
+/** Every page, from both vantage points, keyed so a failure names which one. */
+async function everyPage(): Promise<Map<string, string>> {
+  const all = new Map<string, string>();
+  for (const [path, html] of await publicPages()) all.set(path, html);
+  for (const [path, html] of await pagesFor(await memberCookie())) all.set(`${path} (signed in)`, html);
+  return all;
 }
 
 /* ---------- the claims ---------- */
@@ -191,9 +227,20 @@ describe("the Worker cannot send email, and no page may say otherwise", () => {
     expect(paths.filter((p) => COLLECTS_EMAIL.test(pages.get(p)!)).length).toBeGreaterThan(0);
   });
 
-  it("promises no email on any page a stranger can reach", async () => {
+  // The other half of the guard, and the one that was missing. `/today` is where an admitted
+  // member lands and `/home` is where they manage feeds; both answer a redirect when fetched
+  // without a cookie, so the anonymous sweep above has never read either of them. If a future
+  // change makes them unreadable here again, this goes red rather than silently shrinking the set
+  // the assertions below run over.
+  it("serves the pages a member reaches after signing in", async () => {
+    const paths = [...(await pagesFor(await memberCookie())).keys()];
+    expect(paths, "the signed-in sweep cannot see the desk").toContain("/today");
+    expect(paths, "the signed-in sweep cannot see the feed manager").toContain("/home");
+  });
+
+  it("promises no email on any page anyone can reach, signed in or not", async () => {
     if (CAN_SEND_MAIL) return;
-    const pages = await publicPages();
+    const pages = await everyPage();
     const broken: string[] = [];
     for (const [path, html] of pages) {
       for (const { pattern, what } of UNBACKED_PROMISE) {
@@ -202,13 +249,13 @@ describe("the Worker cannot send email, and no page may say otherwise", () => {
     }
     expect(
       broken,
-      "a public page commits this service to sending mail it has no sender for"
+      "a page commits this service to sending mail it has no sender for"
     ).toEqual([]);
   });
 
   it("says what will not be sent, on every page that asks for an email address", async () => {
     if (CAN_SEND_MAIL) return;
-    const pages = await publicPages();
+    const pages = await everyPage();
     const silent = [...pages]
       .filter(([, html]) => COLLECTS_EMAIL.test(html))
       .filter(([, html]) => !DISCLOSURE.some((d) => d.test(html)))
