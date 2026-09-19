@@ -741,7 +741,26 @@ app.get("/today", async (c) => {
   await db.prepare("UPDATE members SET last_desk_at = ? WHERE id = ?").bind(new Date().toISOString(), member.id).run();
   const own = await db.prepare("SELECT handle FROM creators WHERE member_id = ? AND kind = 'human' ORDER BY created_at LIMIT 1")
     .bind(member.id).first<{ handle: string }>();
-  return c.html(deskPage(member, groups, streak, newCount, own?.handle ?? null));
+
+  // The feeds this member could add and has not. Without these the desk had nothing to offer and
+  // its empty state told the member to "follow more feeds" — a verb with no implementation
+  // anywhere in the product. Restricted to feeds that have actually published something, because
+  // offering an empty feed to somebody staring at an empty desk is offering them the same screen
+  // again. Ordered by most recently published, which is the only ranking signal that exists here.
+  const { results: suggestions } = await db.prepare(
+    `SELECT cr.*, MAX(i.created_at) AS last_item_at, COUNT(i.id) AS public_items
+       FROM creators cr JOIN items i ON i.creator_id = cr.id AND i.visibility = 'public'
+      WHERE cr.id NOT IN (SELECT creator_id FROM follows WHERE member_id = ?1)
+        -- Your own feed is not somebody else's attention to follow. Excluded rather than left in
+        -- and ignored, because the owner is the one member who has feeds, so leaving it in means
+        -- the only desk that exists today offers the owner himself as a thing to subscribe to.
+        AND (cr.member_id IS NULL OR cr.member_id <> ?1)
+      GROUP BY cr.id
+      ORDER BY last_item_at DESC
+      LIMIT 12`
+  ).bind(member.id).all<Creator & { public_items: number }>();
+
+  return c.html(deskPage(member, groups, streak, newCount, own?.handle ?? null, suggestions ?? []));
 });
 
 // triage: star (republish to own feed with provenance) or skip
@@ -1437,6 +1456,59 @@ app.post("/:handle/follow", async (c) => {
     ])
   );
   return c.json({ ok: true });
+});
+
+// Put a feed on your desk, or take it off again.
+//
+// Until this route existed, `follows` — the sole source of everything `/today` renders — had
+// exactly one writer in all of src/: the auto-follow in GET /today, which selects
+// `creators WHERE member_id = ? AND kind = 'agent'`. That is the agents a member *already owns*.
+// A member admitted through the front door owns nothing, so the set is empty, the desk is empty,
+// and there was no action anywhere on this site that could add a row. The Follow button on a
+// public feed page writes to `followers`, which is a different table holding an email address for
+// a digest with no sender; it never touched the desk. So the product's one activation surface was
+// unreachable for everybody except the owner, whose desk works only because he owns the agents.
+//
+// A form and not a fetch, deliberately. The desk's offer is a real `<form method="post">` with a
+// real action, so it works with no JavaScript, it is what the member's browser actually submits,
+// and the endpoint is readable straight off the page — which is what lets `test/activation.test.ts`
+// grade the offer the member is shown rather than a path the test hard-codes. That is also why the
+// body is parsed as form encoding and nothing else: this route has one caller and it is a form.
+//
+// It classifies and never refuses, on the same terms as every other counter here: `desk_follow`
+// and `desk_unfollow` carry the usual `_bot` split, and `desk_follow_duplicate` is an axis over
+// the follow names — the subset that changed nothing because the row was already there — never
+// summed into them. `wroteNewRow` carries the asymmetric default, so an unreported write result
+// counts as new rather than as a repeat and a real first follow can never disappear into the axis.
+app.post("/:handle/desk", async (c) => {
+  const member = await currentMember(c);
+  // A form post, so send them where a form post should go when the session is gone: the sign-in
+  // page, rather than a JSON error their browser would render as text.
+  if (!member) return c.redirect("/login", 303);
+  const creator = await c.env.DB.prepare("SELECT id, handle FROM creators WHERE handle = ?")
+    .bind(c.req.param("handle").toLowerCase())
+    .first<{ id: number; handle: string }>();
+  if (!creator) return c.json({ error: "no such feed" }, 404);
+
+  const form = new URLSearchParams(await c.req.text().catch(() => ""));
+  const suffix = botSuffix(c);
+
+  if (form.get("remove") === "1") {
+    await c.env.DB.prepare("DELETE FROM follows WHERE member_id = ? AND creator_id = ?")
+      .bind(member.id, creator.id)
+      .run();
+    track(c, count(c.env.DB, `desk_unfollow${suffix}`));
+    return c.redirect("/today", 303);
+  }
+
+  const written = await c.env.DB.prepare("INSERT OR IGNORE INTO follows (member_id, creator_id) VALUES (?, ?)")
+    .bind(member.id, creator.id)
+    .run();
+  track(
+    c,
+    countEach(c.env.DB, [`desk_follow${suffix}`, wroteNewRow(written.meta) ? "" : "desk_follow_duplicate"])
+  );
+  return c.redirect("/today", 303);
 });
 
 app.onError((err, c) => {

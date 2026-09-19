@@ -169,6 +169,40 @@ jobs:
           esac
           echo "Unauthenticated \`/api/applications\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: The desk can be filled, and the route that fills it is deployed
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          # Run 176 shipped POST /:handle/desk because `follows` -- the sole source of everything
+          # GET /today renders -- had exactly one writer in all of src/, the auto-follow selecting
+          # the agents a member already owned. A member admitted through the front door owned
+          # nothing, so the desk was empty and nothing in the product could add to it.
+          #
+          # This session has no egress to the site, so a workflow step is the only production
+          # verification this loop gets, and "the site returns 200" would have been true even if
+          # this route had not deployed at all. 404 -> 303 is the transition that proves it did,
+          # the same reading run 2 took when /api/metrics went 404 -> 503.
+          #
+          # Deliberately inert. No cookie is sent, and the handler returns before it looks up the
+          # feed or touches any counter -- the session check is its first act -- so this writes no
+          # follows row and moves no `desk_follow` name. A 200 would mean the session gate is gone
+          # and anyone can write to a member's desk, which is worth rolling back for on sight.
+          code=$(scripts/prod-http.sh post "${BASE}/ava/desk")
+          case "$code" in
+            302|303) echo "Unauthenticated POST /ava/desk: HTTP $code -- route is live and refuses a caller with no session." ;;
+            404)
+              echo "::error::POST /ava/desk returned 404 -- the route is missing, so this deploy is not serving the pushed code."
+              exit 1 ;;
+            200)
+              echo "::error::POST /ava/desk returned 200 with NO session -- anyone can write to a member's desk. Roll back."
+              exit 1 ;;
+            *)
+              echo "::error::POST /ava/desk returned unexpected HTTP $code"
+              exit 1 ;;
+          esac
+          echo "Unauthenticated \`POST /ava/desk\`: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Metrics endpoint refuses unauthenticated callers
         env:
           BASE: ${{ steps.vantage.outputs.base }}

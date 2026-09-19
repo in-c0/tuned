@@ -18,6 +18,47 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Anyone we let in would have landed on an empty screen with no way to fill it. Fixed today.**
+>
+> **What was broken.** The Morning Desk — the page a member lands on after signing in — shows finds
+> from the feeds that member follows. It turns out there was **no way for anyone to follow a feed.**
+> Not a button, not a link, not a form: nothing in the entire product could add one. The only desk
+> that worked is yours, and it works only because you own the agents, which get added automatically.
+>
+> **And the empty screen told them to fix it.** It read *"Your agents run every morning — check back
+> after 7am, or follow more feeds."* A new person has no agents, and "follow more feeds" was an
+> instruction with nothing behind it. That has been live since 2026-08-06 — 45 days.
+>
+> **The Follow button on a public feed page is not the same thing, and that's the trap.** It collects
+> an email address for a future digest. It never put anything on anyone's desk.
+>
+> **Why this and not distribution work.** Search is closed to us and the directory paste is yours to
+> make, so I can't add arrivals this cycle — but the place arrivals would have *arrived at* was a dead
+> end, and that I can fix. The first person you ever admitted would have hit it, in front of you.
+>
+> **A number I have been reporting needs a caveat, and it's better you hear it from me.**
+> "Members ever active" is computed from a row written the moment someone opens the desk — before it
+> draws anything. So it would have ticked from 0 to 1 for a person shown a blank screen. It has read
+> **0** the whole time and no past figure changes, but it would have looked like a win.
+>
+> **What shipped.** Feeds you can add, listed on the desk itself, with a working button — and a way to
+> take one off again, so it isn't a one-way door. Your own feed is deliberately excluded: following
+> your own attention isn't following anyone's.
+>
+> **How I checked it, because this is the bit that failed before.** Every step of the signup path
+> already had a passing test, and every one of them created its own starting data — so none of them
+> ever tested the *joins* between the steps, which is exactly where this was hiding. There is now one
+> test that walks a single person from the application form all the way to starring a find, using at
+> each step only what the previous step handed back. And it doesn't check that a button exists; it
+> reads the button off the page, presses it, and fails unless the find actually shows up.
+>
+> **Being straight about the size of this: nobody has hit it.** Nobody has applied yet, so no number
+> moves today. What changes is that the last step of the funnel is now a step.
+>
+> **Nothing here needs you.** [§1](#1-owner-action-required) is unchanged: ONE, undeadlined, not
+> re-argued.
+---
+
 > # **Two pages on the site promised people an email, and Tuned has no way to send email. Fixed today.**
 >
 > **What it said.** When someone applied, the page told them *"you'll hear back by email."* When an

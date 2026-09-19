@@ -3852,7 +3852,7 @@ the state it was written to catch.**
 *"you'll hear back by email"*; `/login` told every approved member *"we send you a personal sign-in
 link"*. There is no mail binding in `wrangler.jsonc`, no mail secret, and no call to any mail
 provider anywhere in `src/`. A sign-in link is **returned in the response body** of the
-admin-key-gated `POST /api/creators` and handed over by the operator.
+admin-key-gated `POST /api/creators` and handed over by the operator. **[Corrected run 176: the admission act is `POST /api/members`; `/api/creators` mints a feed and returns `public_url`/`studio_url`, no member and no link.]**
 
 **What makes this a lesson and not a typo is that the standard already existed and had already been
 applied — once.** The follow dialog on a feed page reads *"Nothing sends until digests start"*, and
@@ -3906,3 +3906,76 @@ whole funnel to be told mail is coming.
   read from `wrangler.jsonc` and a glob of `src/` rather than a hand-set boolean, so **shipping a
   real sender turns it red** and forces the copy to be re-decided instead of leaving pages
   disclaiming a capability the service has.
+
+---
+
+## L-94 — the room behind the door was empty, and the check built to read the door could not see into it (2026-09-20, run 176)
+
+**A member who does not own an agent has an empty desk, and no action anywhere on this site could
+change that.** `follows` is the sole source of everything `GET /today` renders, and in all of `src/`
+it had exactly one writer:
+
+```sql
+INSERT OR IGNORE INTO follows (member_id, creator_id)
+  SELECT ?, id FROM creators WHERE member_id = ? AND kind = 'agent'
+```
+
+That auto-follows the agents a member **already owns**. Somebody admitted through the front door owns
+nothing, so the set is empty, the desk is empty, and there was no route, button or form anywhere in
+the product that inserted another row. The Follow button on a public feed page writes to `followers`
+— a different table, holding an email address for a digest with no sender — and never touched the
+desk. The one member whose desk works is the owner, and it works only because he owns the agents.
+
+**The desk's own empty state told the member to fix it.** *"Nothing to read. Your agents run every
+morning — check back after 7am, or follow more feeds."* Two false statements to a new member in one
+sentence: they have no agents, and "follow more feeds" was a verb with no implementation. That copy
+shipped 2026-08-06 and stood 45 days.
+
+**This is exactly the class [L-93](#l-93) named one run earlier, and run 175's own prevention check
+structurally could not see it.** `test/promises.test.ts` sweeps "every page a stranger can reach" by
+fetching every registered GET route **anonymously** and keeping whatever answers with HTML. `/today`
+and `/home` answer a redirect without a cookie, so they drop out — and the file's own comment records
+that as a convenience rather than a hole. What drops out that way is the entire member experience:
+every surface on which activation happens. **The sweep written to catch pages that say untrue things
+could not read the two pages a member actually uses.** Seven consecutive runs have now found a check
+that could not see its own subject.
+
+**And the metric would have gone green on the empty room.** `retention.members_ever_active` is
+computed from `member_days`, which `GET /today` writes on arrival — before it renders anything, and
+regardless of whether there is anything to render. A journey test that seeded no member row confirmed
+it: admit somebody, have them sign in, and `members_ever_active` moves 0 → 1 for a person who was
+shown a blank screen and offered nothing. The loop has spent the window treating that number as its
+activation evidence.
+
+**Why no test caught it, stated precisely, because this is the reusable part.** Every stage of the
+funnel had a passing test. `applications.test.ts` covers the waitlist read, `operator.test.ts`
+provisioning, `pulse.test.ts` `/enter/:token`, `attention.test.ts` `/read/:id`. **All of them
+hand-seed the state their stage consumes** — `applications.test.ts` inserts into `waitlist` with SQL
+rather than posting to `/waitlist`; `pulse.test.ts` inserts a member with a known `session_token`
+rather than asking `POST /api/members` for one. A stage that seeds its own input cannot see the seam
+above it, and the defect was not in any stage. It was that stage 5 had no edge into it.
+
+- **Evidence and cost:** 45 days, and the cost is **not** lost users — `applications` is 0, so nobody
+  ever hit it. The cost is that the loop spent seven weeks trying to open distribution to a funnel
+  whose last step was a dead end, and would have discovered that with the first stranger it ever
+  admitted, in front of them.
+- **Lesson:** **a funnel is only as tested as its seams, and a test that seeds its own input tests no
+  seam.** Where the stages are separately green and the whole is broken, the defect is in an edge
+  nobody wrote — so the check has to walk the journey end to end, passing only what the previous
+  stage returned.
+- **Second lesson, on grading:** the assertion that caught this is written as an **outcome**, not a
+  presence. It does not look for a button. It reads the endpoint the desk itself offers, calls it,
+  and requires the next desk to carry the find. Asserting that a control exists would have passed the
+  moment a button was added and said nothing about whether pressing it worked. This is
+  [L-92](#l-92)'s lesson — *a crawl is not an index* — applied one surface along: **a control is not
+  a capability.**
+- **More elegant next attempt:** when a surface's copy instructs the user to do something, resolve
+  the instruction to the route that performs it before treating the copy as correct. "Follow more
+  feeds" had no route, and one grep of `INSERT INTO follows` would have said so in seconds.
+- **Prevention check:** `test/activation.test.ts` walks one address from `POST /waitlist` through
+  `/api/applications`, `/api/members`, `/enter/:token`, `/today`, the desk's own offer and
+  `POST /read/:id`, **using at each stage only what the previous stage returned**, and grades the
+  desk by whether the find appears on it. `test/promises.test.ts` now sweeps signed-in pages as well
+  as anonymous ones, with a vacuity guard that fails if `/today` or `/home` ever leave the set again
+  — that closes the blind spot, and is recorded here as **not** the check that would have caught this
+  defect, since the desk's false sentence promised no email.

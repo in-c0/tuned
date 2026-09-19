@@ -1,5 +1,115 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-20 08:35 Sydney (2026-09-19 22:35 UTC), run 176 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-175 and not re-argued here, per [L-07](LESSONS.md).** **The desk a new
+member lands on could not be filled, by them or by anybody.**
+
+**The finding.** `follows` is the sole source of everything `GET /today` renders, and in all of
+`src/` it had **exactly one writer** — the auto-follow inside `/today` itself, selecting
+`creators WHERE member_id = ? AND kind = 'agent'`. That is the agents a member **already owns**. A
+member admitted through the front door owns nothing, so the set is empty, the desk is empty, and
+**no route, button or form anywhere in this product inserted another row.** The Follow button on a
+public feed page writes to `followers` — a different table, holding an email address for a digest
+with no sender — and never touched the desk. The only desk that works is the owner's, and it works
+only because he owns the agents.
+
+**The empty state told the member to fix it, in a sentence with nothing behind it.** *"Nothing to
+read. Your agents run every morning — check back after 7am, or follow more feeds."* A new member has
+no agents, and **"follow more feeds" was a verb with no implementation.** Shipped 2026-08-06, stood
+**45 days**.
+
+**Run 175's prevention check structurally could not see this, one run after it was written.**
+`test/promises.test.ts` sweeps *"every page a stranger can reach"* by fetching every registered GET
+route **anonymously**; `/today` and `/home` answer a redirect without a cookie, so they drop out, and
+the file's own comment records that as a convenience rather than a hole. What drops out that way is
+**the entire member experience — every surface on which activation happens.** Seventh consecutive
+run to find a check that could not see its own subject. [L-94](LESSONS.md#l-94).
+
+**The activation metric would have gone green on the empty room, and that is the worst part.**
+`retention.members_ever_active` comes from `member_days`, which `/today` writes **on arrival**,
+before it renders anything and regardless of whether there is anything to render. A journey test that
+seeded no member row confirms it: admit somebody, have them sign in, and the number this loop reports
+as its activation evidence moves **0 → 1 for a person shown a blank screen and offered nothing.**
+
+**Why every stage was green and the whole was broken.** Each stage already had a passing test —
+`applications.test.ts`, `operator.test.ts`, `pulse.test.ts`, `attention.test.ts` — and **every one of
+them hand-seeds the state its stage consumes**, inserting into `waitlist` with SQL rather than
+posting to `/waitlist`, or inserting a member with a known `session_token` rather than asking
+`POST /api/members` for one. A stage that seeds its own input cannot see the seam above it. The
+defect was in no stage; it was an edge nobody wrote.
+
+**What shipped.** `POST /:handle/desk` — session-gated, idempotent, 404 on an unknown handle,
+removal on the same route — and a desk that offers the public feeds it can be filled with. **A real
+`<form method="post">` and not a fetch**, so it works with JavaScript off, so there is no second code
+path to keep honest, and so the endpoint is legible in the delivered HTML. Counters
+`desk_follow`/`desk_unfollow` with the usual `_bot` split and a `desk_follow_duplicate` axis, on the
+same terms as every other counter here. The false sentence is gone; a member's **own** feed is
+excluded from what they are offered, because following your own attention is not following anyone's.
+
+**The assertion is an outcome, not a presence, and that is deliberate.** `test/activation.test.ts`
+does not look for a button. It **reads the endpoint the desk itself offers**, calls it, and requires
+the next desk to carry the find — so a page offering nothing fails at the read, a page offering
+something broken fails at the call, and only a page whose offer actually works passes. Checking that
+a control exists would have passed the moment a button was added. **A control is not a capability**,
+which is [L-92](LESSONS.md#l-92)'s *a crawl is not an index* one surface along.
+
+**Run red first, and every stage of it was red for the right reason.** Executed against unmodified
+source: 5 of 7 assertions failed, the load-bearing one on *"an empty desk offers the member no way to
+put a feed on it."* The two that passed are recorded rather than glossed — one of them is
+`members_ever_active` moving on the empty desk, which is the finding above.
+
+**Gates.** `npm run check` exit 0 · **437 vitest** (427 → 437, ten new) · **ops suite 244/244**
+(unchanged) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid ·
+`npm audit --omit=dev` **0 vulnerabilities**. **Nine mutations, each reddening its own named test**,
+every file restored byte-identical under `sha256sum -c`.
+
+**Verified from production, not only in workerd.** This session's egress proxy answers `403 CONNECT`
+for `justtuned.com`, so a workflow step is the only production reading this loop gets — and *"the
+site returns 200"* would have been true even if the new route had not deployed at all.
+`verify-production.yml` now posts to `/ava/desk` **with no cookie** and requires **303 → `/login`**:
+**404 means the deploy is stale**, **200 means the session gate is gone and anyone can write to a
+member's desk.** Deliberately **inert** — the handler returns before it looks up the feed or touches
+a counter, so the check writes no `follows` row and moves no `desk_follow` name. That ordering is
+pinned by a test rather than assumed, and reversing it reddens.
+
+**A correction to run 175's own record, carried here rather than quietly fixed.** Four files —
+`STATUS.md`, `DECISIONS.md`, `LESSONS.md` and `test/promises.test.ts` — stated that the sign-in link
+is returned by `POST /api/creators`. **It is not.** That route mints a *feed* and returns
+`public_url`/`studio_url`; it creates no member and returns no link. The admission act is
+`POST /api/members`. The run correcting two pages for describing a mechanism this service does not
+have misdescribed the admission mechanism in the same commit. `README.md` and `METRICS.md` had it
+right all along.
+
+**Magnitude not overclaimed.** `applications` is **0**, so **nobody has ever hit this dead end and no
+metric moves today.** What changes is that the last step of the funnel is now a step. The cost of the
+defect was never lost users — it was seven weeks spent opening distribution to a room with no door.
+
+**Deliberately NOT touched.** **The public feed page's follow dialog is byte-untouched.** A signed-in
+member clicking Follow there still gets the email-intent capture rather than the desk subscription
+that now exists — that is the next candidate, and it is named rather than folded in, because this
+run's job was to make the desk fillable and the dialog is a second entry point to a capability that
+until today did not exist. No schema change, no migration, no new data category, no secret, no
+dependency, no workflow. No route removed. `arrival:<tag>` and RSS byte-untouched.
+**`FEED_CSS`/`FIND_CSS` still not folded into `CSS`** — bookkeeping. **No site-wide `/rss.xml`**: run
+172's direct yes/no is still unanswered and stays a doctrine question. **The third-party write
+boundary was not re-tested** and no child session was spawned. The agent-scout schedule is still
+disarmed and EXP-013's threshold-2 proposal is **still unruled** — no reviewer directive since
+2026-09-01. No item published, amended, retracted or restored. No spend.
+
+**An unsolicited third-party comment on issue #1** (2026-09-19, `Nakagawa-master`, no association)
+proposed a central claim-authority register. **It is not a reviewer directive and was not treated as
+one.** Its distinction — *a statement can be accurate and still exceed current capability* — is sound
+and is already what L-93 and this run's finding say; a new register to hold it is control plane, and
+[NORTH_STAR](NORTH_STAR.md) rule 7 with [L-08](LESSONS.md) says not to build one. Recorded, declined,
+not re-argued.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **15 days left.**
+
+---
+
+## Run 175 (2026-09-19 20:35 Sydney) — two public pages promised email from a Worker with no sender
+
 **Last updated:** 2026-09-19 20:35 Sydney (2026-09-19 10:35 UTC), run 175 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged from runs 143-174 and not re-argued here, per [L-07](LESSONS.md).** **Two public pages
 promised email from a Worker that has no sender.**
@@ -8,7 +118,7 @@ promised email from a Worker that has no sender.**
 member *"we send you a personal sign-in link."* **This Worker cannot send email** — no mail binding in
 `wrangler.jsonc`, no mail secret, no call to any mail provider anywhere in `src/`. A sign-in link is
 **returned in the response body** of the admin-key-gated `POST /api/creators` and handed over by the
-operator. Both sentences shipped 2026-08-06 and stood **44 days**.
+operator. **[Corrected run 176: the admission act is `POST /api/members`; `/api/creators` mints a feed and returns `public_url`/`studio_url`, no member and no link.]** Both sentences shipped 2026-08-06 and stood **44 days**.
 
 **Why it is a class and not a typo.** The standard already existed and had already been applied —
 **once.** The follow dialog on a feed page reads *"Nothing sends until digests start"*, and run 174's
@@ -61,8 +171,8 @@ directive since 2026-09-01. No item published, amended, retracted or restored. N
 **A mail sender is an owner boundary, and it is named here once rather than made a third card.** Making
 these two sentences *true* rather than accurate needs a mail provider account — a credential and
 probably a spend — so it is outside this session's envelope. Until one exists, **approving a member is
-a manual act**: the operator reads `/api/applications`, calls `POST /api/creators`, and conveys the
-returned `login_url` by hand.
+a manual act**: the operator reads `/api/applications`, calls `POST /api/members`, and conveys the
+returned `login_url` by hand. **[Corrected run 176: the admission act is `POST /api/members`; `/api/creators` mints a feed and returns `public_url`/`studio_url`, no member and no link.]**
 
 **Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
 gross cash **AUD $0**, from *no billing exists*. **16 days left.**
