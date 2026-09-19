@@ -31,6 +31,27 @@ declare module "*.mjs?raw" {
   export default content;
 }
 
+// Run 175. Pointed at the deployment config, so a test can ask what the *deployed Worker* is
+// wired to rather than what a constant claims. test/promises.test.ts reads it to establish that
+// no mail binding exists, which is the premise every email disclosure on the public pages rests
+// on — and a premise read from wrangler.jsonc cannot drift away from the deploy the way a
+// hand-set boolean can.
+declare module "*.jsonc?raw" {
+  const content: string;
+  export default content;
+}
+
+// Run 175. The narrowest possible declaration of Vite's glob, added instead of pulling in
+// `vite/client` wholesale. test/promises.test.ts sweeps *every* file in src/ for an outbound mail
+// call; a hand-written list of files to scan would silently stop covering a src/ file added
+// later, which is the same drift the ?raw declarations above exist to prevent.
+interface ImportMeta {
+  glob(
+    pattern: string,
+    options: { query: "?raw"; import: "default"; eager: true }
+  ): Record<string, string>;
+}
+
 // Run 173. Pointed at a shell script, for the same reason as the two above and one narrower
 // one: scripts/prod-http.sh defines the user-agent every production probe sends, and whether
 // that string matches BOT_UA in src/metrics.ts decides which counter bucket every probe lands

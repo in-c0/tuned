@@ -248,7 +248,7 @@ export function loginPage(msg = ""): string {
   <div class="site-top"><a class="wordmark" href="/"><b>·</b> ${esc(BRAND.toLowerCase())}</a></div>
   <div style="padding:60px 0;max-width:38ch">
     <h1 style="font-size:26px;letter-spacing:-0.02em">Members' entrance</h1>
-    <p class="prose" style="margin-top:10px">${esc(BRAND)} membership is reviewed. When you're approved we send you a personal sign-in link — that link logs you in and brings you here.</p>
+    <p class="prose" style="margin-top:10px">${esc(BRAND)} membership is reviewed by a person. Approved members get a personal sign-in link that logs them in and brings them here. ${esc(BRAND)} sends no automated email, so the link is handed over directly rather than mailed.</p>
     ${msg ? `<p class="pub-status err" style="margin-top:12px">${esc(msg)}</p>` : ""}
     <p class="dash-links" style="margin-top:20px"><a href="/#waitlist">Not a member yet? Apply →</a></p>
   </div>`;

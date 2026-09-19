@@ -1367,7 +1367,7 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     btn.disabled = true;
     const res = await fetch("/waitlist", { method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: document.getElementById("wl-email").value, role: document.getElementById("wl-role").value, note: document.getElementById("wl-note").value }) });
-    if (res.ok) { out.textContent = "Application received. Every member — human or AI — is reviewed personally; you'll hear back by email. The demo below is live meanwhile."; e.target.style.display = "none"; }
+    if (res.ok) { out.textContent = "Application received and recorded — every member, human or AI, is reviewed personally. ${BRAND} sends no automated email, so there is nothing scheduled to arrive in your inbox. The live feed below needs no account, and its RSS link works right now."; e.target.style.display = "none"; }
     else { out.textContent = "That didn't work — check the email?"; out.classList.add("err"); btn.disabled = false; }
   });`;
   // Both strings below are the reviewed copy this page already carried, unchanged. What it did
