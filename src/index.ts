@@ -704,11 +704,30 @@ app.get("/today", async (c) => {
   let newCount = 0;
 
   for (const cr of followed) {
+    // `OR r.action IS NULL` — a find the member has never triaged is not hidden by the window.
+    //
+    // The seven-day floor is the right rule for a daily-return surface and it stays exactly as it
+    // was **for everything the member has seen**. What it could not survive is being the rule for
+    // everything they have not. On the day this changed, the five public feeds on this site held
+    // 87 public items and **not one of them was inside the window**: `wearables`, `wellbeing` and
+    // `graphics` last published 30 July, `ava` 4 August, `sportstech` — the freshest — eight days
+    // earlier. So a member who took the offer run 177 put on all eighty-seven find pages was
+    // redirected here and shown `0 this week · unrated` over *"Nothing new from @wearables"*,
+    // having just clicked a row that advertised **19 finds**. The desk was empty by construction
+    // and would have stayed empty for every feed, for every member, until a feed published again.
+    //
+    // This is not "show the archive forever", and the distinction is the whole design: the moment
+    // the member triages a find it is theirs, it falls back under the window, and it does not come
+    // back tomorrow. `test/desk-window.test.ts` pins both halves, and the second is the one that
+    // would rot if it were only a comment.
+    //
+    // No extra query: `r` is the LEFT JOIN this statement already had, on this member and this
+    // item, which is what `read_action` is read from one line above.
     const { results: items } = await db.prepare(
       `SELECT i.*, cr.handle, cr.name AS agent_name, cr.kind AS agent_kind, r.action AS read_action
        FROM items i JOIN creators cr ON cr.id = i.creator_id
        LEFT JOIN reads r ON r.item_id = i.id AND r.member_id = ?
-       WHERE i.creator_id = ? AND i.visibility = 'public' AND i.created_at > ?
+       WHERE i.creator_id = ? AND i.visibility = 'public' AND (i.created_at > ? OR r.action IS NULL)
        ORDER BY i.created_at DESC LIMIT 40`
     ).bind(member.id, cr.id, weekAgo).all<DeskItem>();
 
@@ -721,13 +740,29 @@ app.get("/today", async (c) => {
       if (!it.read_action) newCount++;
       kept.push(it);
     }
+    // `last_item_at` joins this query rather than adding one. It exists because `found7d` is a
+    // true statistic that now renders directly above however many cards the fallback produced:
+    // "0 this week" over three finds is not false, and read alone it is unreadable. The age of
+    // the feed's newest public item is the sentence that reconciles them — and it is the sentence
+    // run 172 put on the follow block and both follow dialogs (L-18: staleness is a fact about
+    // the world, a page that declines to mention it is the defect).
     const st = await db.prepare(
       `SELECT
         (SELECT COUNT(*) FROM items WHERE creator_id = ?1 AND created_at > ?2 AND visibility='public') AS found7d,
+        (SELECT MAX(created_at) FROM items WHERE creator_id = ?1 AND visibility='public') AS last_item_at,
         (SELECT COUNT(*) FROM reads r JOIN items i ON i.id = r.item_id WHERE i.creator_id = ?1 AND r.member_id = ?3 AND r.action='star' AND r.created_at > ?2) AS starred7d,
         (SELECT COUNT(*) FROM reads r JOIN items i ON i.id = r.item_id WHERE i.creator_id = ?1 AND r.member_id = ?3 AND r.action='skip' AND r.created_at > ?2) AS skipped7d`
-    ).bind(cr.id, weekAgo, member.id).first<{ found7d: number; starred7d: number; skipped7d: number }>();
-    groups.push({ stats: { creator: cr, found7d: st?.found7d ?? 0, starred7d: st?.starred7d ?? 0, skipped7d: st?.skipped7d ?? 0 }, items: kept });
+    ).bind(cr.id, weekAgo, member.id).first<{ found7d: number; last_item_at: string | null; starred7d: number; skipped7d: number }>();
+    groups.push({
+      stats: {
+        creator: cr,
+        found7d: st?.found7d ?? 0,
+        lastItemAt: st?.last_item_at ?? null,
+        starred7d: st?.starred7d ?? 0,
+        skipped7d: st?.skipped7d ?? 0,
+      },
+      items: kept,
+    });
   }
 
   // 7-day triage streak (any read action that day, member-local ≈ UTC for now)
@@ -758,7 +793,7 @@ app.get("/today", async (c) => {
       GROUP BY cr.id
       ORDER BY last_item_at DESC
       LIMIT 12`
-  ).bind(member.id).all<Creator & { public_items: number }>();
+  ).bind(member.id).all<Creator & { public_items: number; last_item_at: string | null }>();
 
   return c.html(deskPage(member, groups, streak, newCount, own?.handle ?? null, suggestions ?? []));
 });

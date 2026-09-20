@@ -18,42 +18,46 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **Anyone we let in would have landed on an empty screen with no way to fill it. Fixed today.**
+> # **The desk could be filled, and everything you could fill it with was invisible to it. Fixed today.**
 >
-> **What was broken.** The Morning Desk — the page a member lands on after signing in — shows finds
-> from the feeds that member follows. It turns out there was **no way for anyone to follow a feed.**
-> Not a button, not a link, not a form: nothing in the entire product could add one. The only desk
-> that worked is yours, and it works only because you own the agents, which get added automatically.
+> **What was broken.** The Morning Desk only shows finds from the **last seven days**. That is the
+> right rule for a page you read every morning — and right now **not one find on this whole site is
+> less than seven days old.** There are 87 published finds across five feeds: three of them last
+> published on **30 July**, `ava` on **4 August**, and `sportstech` — the freshest — **eight days
+> ago**.
 >
-> **And the empty screen told them to fix it.** It read *"Your agents run every morning — check back
-> after 7am, or follow more feeds."* A new person has no agents, and "follow more feeds" was an
-> instruction with nothing behind it. That has been live since 2026-08-06 — 45 days.
+> **So the desk was empty no matter what anyone did.** Yesterday's two runs made it possible to add a
+> feed to your desk, and put that button on all 87 find pages. Someone who pressed it was sent
+> straight to a desk showing *"Nothing new from @wearables"* — **immediately after clicking a row that
+> said "19 finds."** No feed, no person and no amount of following could have produced anything else.
 >
-> **The Follow button on a public feed page is not the same thing, and that's the trap.** It collects
-> an email address for a future digest. It never put anything on anyone's desk.
+> **The offer counted one thing and the desk counted another.** The button counted a feed's finds
+> all-time; the desk counted the last week. Neither was lying on its own.
 >
-> **Why this and not distribution work.** Search is closed to us and the directory paste is yours to
-> make, so I can't add arrivals this cycle — but the place arrivals would have *arrived at* was a dead
-> end, and that I can fix. The first person you ever admitted would have hit it, in front of you.
+> **What shipped.** A find you have **never triaged** is no longer hidden by the seven-day window. The
+> moment you star or skip it, it goes back under that window and does not come back tomorrow — so the
+> desk stays a daily page and does not turn into an archive. That second half is the part I tested
+> hardest, because getting it wrong is the obvious way this change goes bad.
 >
-> **A number I have been reporting needs a caveat, and it's better you hear it from me.**
-> "Members ever active" is computed from a row written the moment someone opens the desk — before it
-> draws anything. So it would have ticked from 0 to 1 for a person shown a blank screen. It has read
-> **0** the whole time and no past figure changes, but it would have looked like a win.
+> **Two sentences on the page were also saying less than they knew.** The desk said *"N new since your
+> last visit"* for a number that has never been measured from your last visit — it is simply how many
+> finds you have not triaged, so it now says *"N finds waiting."* And *"Nothing new from @handle"* was
+> the same four words for a feed that published yesterday and one silent since July; it now says which.
 >
-> **What shipped.** Feeds you can add, listed on the desk itself, with a working button — and a way to
-> take one off again, so it isn't a one-way door. Your own feed is deliberately excluded: following
-> your own attention isn't following anyone's.
+> **How this got past two runs of checks.** The end-to-end test written two days ago is a good test —
+> it walks one person from the signup form to starring a find. But it creates its one piece of test
+> data **dated today**, and there is no such find on this site. A test that makes its own world fresh
+> cannot see a rule about age. I already knew from a run two days earlier that four of five feeds
+> stopped publishing in July, and wrote the fixture new anyway.
 >
-> **How I checked it, because this is the bit that failed before.** Every step of the signup path
-> already had a passing test, and every one of them created its own starting data — so none of them
-> ever tested the *joins* between the steps, which is exactly where this was hiding. There is now one
-> test that walks a single person from the application form all the way to starring a find, using at
-> each step only what the previous step handed back. And it doesn't check that a button exists; it
-> reads the button off the page, presses it, and fails unless the find actually shows up.
+> **I also looked at this page in a browser, which nothing here has ever done.** The visual checks run
+> against the live site, and the live site cannot log in — so no check in this repository has ever
+> seen the Morning Desk. My first attempt at the staleness wording broke the layout on a phone
+> without overflowing anything, so the automated check would have passed it. I reverted it and put the
+> words somewhere that cannot break.
 >
-> **Being straight about the size of this: nobody has hit it.** Nobody has applied yet, so no number
-> moves today. What changes is that the last step of the funnel is now a step.
+> **Being straight about the size of this: nobody has hit it.** Nobody has applied, so no number moves
+> today.
 >
 > **Nothing here needs you.** [§1](#1-owner-action-required) is unchanged: ONE, undeadlined, not
 > re-argued.
@@ -1677,9 +1681,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-96** | **A test that seeds its world at `now` cannot see a window.** `GET /today` windows every followed feed to the last seven days, and on 2026-09-20 **not one of this site's 87 public items was inside that window** — four of five feeds silent since 30 July, the freshest eight days stale. So the desk runs 176 and 177 had just made fillable and offered on 87 find pages was **empty by construction**: a member who took the offer was shown *"Nothing new from @wearables"* right after clicking a row advertising **19 finds**. The offer counted a feed's finds all-time; the desk counted seven days. | **This is [L-94](LESSONS.md#l-94) a dimension across.** L-94 was *a test that seeds its own input tests no seam*; this is *a test that seeds its own world tests no age*. `test/activation.test.ts` walks every seam correctly and inserts its one world fact — the find — with `created_at` of **now**, which is the only clock on the page set to a value production never holds. Every rule of the form *"older than X"* is invisible to a fixture written at `now`, and that is the fixture every test file reaches for. Ask of any date column: *what is its real distribution in production?* — answerable from `metrics/latest.json` before run 176 shipped. **Ten mutations, named tests red on each**; the load-bearing one reddens the negative half, which is what stops the fix degrading into *render the archive forever*. |
 | **L-95** | **A capability that exists on one screen is not offered where the decision is made.** Run 176 built the desk subscription — the only writer of `follows` a member can reach — and left it offered on exactly one screen, `/today`. The control a member would actually press to follow a feed, the **Follow** button on every public feed page and all **eighty-seven find pages**, still opened a dialog whose only account-shaped action wrote an email address into `followers`, a table nothing reads and no code in `src/` can deliver to. So for one day the product had a working subscription and an inviting control that was not it: to take the path that works, a member had to leave the page they were reading and already know the capability existed. | **This is [L-94](LESSONS.md#l-94)'s converse and it fails in the opposite direction.** L-94 closed with *a control is not a capability* — a button with nothing behind it. This is **a capability is not an offer** — a working route with no button in front of it, at the moment a person is deciding to use it. Both read green on every stage test for the same reason: the capability has a passing test, the surface has a passing test, and nothing asks whether the surface **offers** the capability. Ask it at design time in one line: *which page is the user on when they want this?* For a feed subscription the answer is the feed, and it was answerable before run 176 shipped. Shipped on **both** surfaces in one change, per [L-93](LESSONS.md#l-93). **Eleven mutations, named tests red on each.** |
 | **L-94** | **The room behind the door was empty, and the check built to read the door could not see into it.** `follows` is the sole source of everything `GET /today` renders and had exactly one writer in all of `src/` — the auto-follow selecting the agents a member **already owns**. A member admitted through the front door owns nothing, so the desk was empty and no route, button or form anywhere in the product could add a row; the desk's own empty state told them to *"follow more feeds"*, a verb with no implementation, for 45 days. Worse, `retention.members_ever_active` is written by `/today` **on arrival**, so the activation metric would have gone green on the empty room. | **A funnel is only as tested as its seams, and a test that seeds its own input tests no seam.** Every stage had a passing test and every one of them hand-seeded the state its stage consumed. The defect was in no stage — it was an edge nobody wrote. Shipped: `test/activation.test.ts` walks one address from `POST /waitlist` to a star **using at each stage only what the previous stage returned**, and grades the desk by whether the find appears on it — an **outcome**, not a presence, because *a control is not a capability*. |
-| **L-93** | **The honesty fix was applied to one of three surfaces, and nothing swept the rest.** `/` told every applicant *"you'll hear back by email"* and `/login` told every approved member *"we send you a personal sign-in link"* — and this Worker has no mail binding, no mail secret and no call to any mail provider anywhere in `src/`. The standard already existed and had already been applied **once**, to the feed page's follow dialog; the repository even described the real mechanism accurately inside its own test suite while the page it described said the opposite. Nothing compared them. | **A correction is not finished at the surface where the defect was noticed.** When a rule is applied to one page, sweep every page that makes the same kind of claim, in the same change. Shipped: `test/promises.test.ts` **derives** the pages it reads from the route table and asserts in **both** directions — no page may promise mail, and every page collecting an email address must disclose on that same page that none is sent — with its premise read from `wrangler.jsonc`, so **shipping a real sender turns it red**. It reddened on a third surface reading had not found: `/enter/<invalid-token>`. |
 
 
 
@@ -1693,7 +1697,8 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-20 14:35 Sydney (2026-09-20 04:35 UTC), run 177. |
+| **Last materially updated** | 2026-09-20 20:35 Sydney (2026-09-20 10:35 UTC), run 178. |
+| **Run** | 178 — **the desk could be filled, and everything you could fill it with was invisible to it.** The Morning Desk shows finds from the **last seven days**, and **no find on this site is less than seven days old** — 87 published finds across five feeds, three of them last published on 30 July, the freshest eight days ago. So the desk yesterday's two runs made fillable, and put a button for on all 87 find pages, was **empty no matter what anyone did**: press *Add to my desk* on a row saying "19 finds" and you land on *"Nothing new from @wearables"*. A find you have **never triaged** is no longer hidden by that window; the moment you star or skip it, it goes back under the window and does not return tomorrow, so the desk stays a daily page. Two sentences also now say what they know: *"N finds waiting"* replaces a count that was never measured from your last visit, and *"Nothing new from @handle"* now says how long the feed has been silent. **Nobody has hit this, so no number moves today.** [L-96](LESSONS.md#l-96). |
 | **Run** | 177 — **the page where you decide to follow a feed offered the one button that does nothing.** Yesterday's run built the thing that actually works: a member can put a feed on their desk, and it then shows up in their morning reading. But that was offered on **one screen only** — the desk itself. Everywhere a person would actually decide to follow someone — the feed page, and all **eighty-seven** of the individual find pages, which are by far the most likely first page a stranger sees — the **Follow** button still only offered to put an email address on a list that **nothing sends to**. To reach the working version you had to leave the page you were reading, go to your desk, and already know it was there. Both dialogs now offer *"Add to my desk"* to anyone signed in, and *"Take it off my desk"* if it is already there. **The page a stranger sees does not change by a single byte** — that is the constraint this was built around, because those pages are what search engines and link previews read, and one of your running measurements is counted on them. RSS and the email option are untouched and still say plainly that nothing sends yet. **Nobody has seen either dialog as a member, so no number moves today.** [L-95](LESSONS.md#l-95). |
 | **Run** | 176 — **anyone you admit landed on an empty desk they could not fill.** The morning desk renders from one table, and the only thing in the entire product that ever wrote to it was a rule that follows *the agents you already own*. You own agents; a person you admit owns nothing. So their desk was empty, and **no button, form or link anywhere on the site could put anything on it** — while the empty screen told them to *"follow more feeds"*, which was a sentence with nothing behind it. Live for 45 days. Now there is a real *Add to desk* action, and the desk offers the feeds it can be filled with. **Nobody ever hit this**, because nobody has applied — the cost was seven weeks spent opening distribution to a room with no door. [L-94](LESSONS.md#l-94). |
 | **Run** | 175 — **two public pages promised email from a service that cannot send any.** The front page told every applicant *"you'll hear back by email"* and the sign-in page said *"we send you a personal sign-in link."* **This service has no mail sender at all** — a sign-in link is returned to you in an API response and handed over by hand. Both sentences had been live since 2026-08-06. Both now say what is true, and a new check sweeps **every page a stranger can reach** for the same class of promise in both directions. It found a third surface reading had missed: the page shown when a sign-in link fails. [L-93](LESSONS.md#l-93). |

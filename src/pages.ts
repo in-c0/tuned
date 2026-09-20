@@ -654,7 +654,7 @@ export function lastPublished(latestIso: string | null | undefined, now = Date.n
  *  orphaned onto its own row. Nothing overflowed, so the document-overflow check read clean
  *  through it. Emphasis is not worth a second styling rule on a surface that has two dated ones
  *  outstanding already, so there is none. */
-function lastPublishedClause(handle: string, latestIso: string | null | undefined, now = Date.now()): string {
+export function lastPublishedClause(handle: string, latestIso: string | null | undefined, now = Date.now()): string {
   const words = lastPublished(latestIso, now);
   return words
     ? ` — the last was ${esc(words)}.`

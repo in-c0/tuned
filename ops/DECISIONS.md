@@ -6564,3 +6564,50 @@ disarmed and EXP-013's threshold-2 re-specification is still unruled.
   schedule disarmed, EXP-013's threshold-2 proposal unruled, `FEED_CSS`/`FIND_CSS` unfolded, run
   172's site-wide `/rss.xml` question unanswered.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-20 — run 178: the desk's window hid every find this site has
+
+- **Decision: a find the member has never triaged is not hidden by the seven-day window.** One
+  clause in `GET /today`'s per-feed query — `AND (i.created_at > ? OR r.action IS NULL)`, on the
+  `LEFT JOIN` the statement already had, so **no extra query**. Rationale: every public item on this
+  site was outside the window (87 items, newest 8 days old, four of five feeds silent since 30 July),
+  so a member who took the desk offer shipped by runs 176–177 was redirected to a desk that was empty
+  **by construction** and would have stayed empty until a feed published again. The offer counted
+  finds all-time; the desk counted seven days. See [L-96](LESSONS.md#l-96).
+- **Decision: the window still governs everything the member has seen, and that is the design and
+  not a compromise.** The moment a find is triaged it falls back under the window and does not return
+  tomorrow. Without that half this is "render the archive forever" and `/today` stops being a daily
+  surface. Pinned by its own assertion; mutation 2 (window removed entirely) reddens that assertion
+  and only that one.
+- **Decision: the desk stops calling its count a reading it has never been.** `newCount` is the
+  number of rendered items the member has not triaged — `members.last_desk_at` is written on every
+  arrival and **read by nothing** — so *"N new since your last visit"* was false before this change
+  and would have been more so after it. Now *"N finds waiting"*. No number on a page describes a
+  measurement this service does not take.
+- **Decision: the feed age goes on the two sentences that need it, and `lastPublishedClause()` is
+  exported rather than re-worded.** The desk's suggestion row (built one run after run 172 put that
+  disclosure on every other surface offering a feed) advertised `19 finds` with no hint the newest was
+  from July; *"Nothing new from @handle"* was the same four words for a feed that published yesterday
+  and one silent for two months. L-93's shape, and L-18's rule.
+- **Reversed within the run, recorded rather than quietly dropped:** the age was first put in the feed
+  header's stat span, which added two `DESK_CSS` rules and, at 390px, broke that flex row into three
+  lines with nothing overflowing. Both rules reverted. **This change adds no CSS rule at all.**
+- **Verification:** `npm run check` exit 0 · **463 vitest** (457 → 463, six new) · ops suite 244/244 ·
+  `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid · `npm audit
+  --omit=dev` 0 vulnerabilities. **Ten mutations, each reddening its own named test**, all three
+  touched files restored byte-identical under `sha256sum -c`. Browser QA at 390px and 1100px on the
+  rendered desk — the first visual reading this page has ever had, since the QA suite targets
+  production and cannot sign in.
+- **No production step added, and the reason is stated rather than dressed up.** Everything here
+  renders only for a signed-in member; `verify production` cannot sign in and this loop will not mint
+  a production member to obtain a session. Shipping is established by the expected-commit gate, and
+  run 177's step 22 already fails loudly if any member control reaches a signed-out visitor. A step
+  that could not see its own subject is the defect this loop has now found eight runs running.
+- **Not touched:** schema (no migration, no new table or column), data categories, secrets,
+  dependencies, routes, counters (**none added, renamed, split or retired**), the public feed and find
+  pages, `POST /:handle/follow`, RSS, the landing page. No item published, amended, retracted or
+  restored.
+- **Standing and unchanged, not re-argued** per [L-07](LESSONS.md): one owner action, the agent-scout
+  schedule disarmed, EXP-013's threshold-2 proposal unruled, `FEED_CSS`/`FIND_CSS` unfolded, run 172's
+  site-wide `/rss.xml` question unanswered.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
