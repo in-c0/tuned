@@ -5,7 +5,7 @@
 // skip = seen, don't show again. Signals accumulate into per-agent hit-rates and
 // charters, which agents fetch before their next run. Reading IS steering.
 
-import { layout, esc, BRAND, type Creator, type Item } from "./pages";
+import { layout, esc, lastPublished, lastPublishedClause, BRAND, type Creator, type Item } from "./pages";
 import type { Member } from "./auth";
 
 export interface DeskItem extends Item {
@@ -19,10 +19,28 @@ export interface DeskItem extends Item {
 export interface AgentStats {
   creator: Creator;
   found7d: number;
+  /** The feed's newest public item, or null if it has never published. Not a statistic about the
+   *  member — the age every other offer surface on this site already reports (L-18, run 172). */
+  lastItemAt: string | null;
   starred7d: number;
   skipped7d: number;
 }
 
+/** **No rule in this block changed, and the first attempt at this run's change changed two.**
+ *
+ *  The feed age below started out appended to `.agent-h .hit`, the stat span in the feed header.
+ *  Browser QA at 390px is the only reason it is not there: `.agent-h` is a flex line ending in
+ *  `.rule { flex: 1 }`, so the stat is the one item with slack, and four extra words squeezed it
+ *  into a ~90px column that broke into three lines — "0 this week · last" / "published 52" /
+ *  "days ago · unrated" — with the avatar, the handle and the steer/remove controls stranded
+ *  around it. **Nothing overflowed**, so the document-overflow check read clean straight through
+ *  it; that is precisely how run 172's orphaned full stop shipped.
+ *
+ *  `flex-wrap: wrap` plus `flex: none` fixed the squeeze and orphaned *"remove"* onto a third
+ *  line instead. The right answer was not a third CSS rule on a page with two dated blocks
+ *  already waiting to be folded in: it was that **the age belongs on the sentence that reports
+ *  nothing**, which is a full-width block with no flex row to break, and which is the one place a
+ *  reader is actually asking the question. Two rules reverted, zero added. */
 const DESK_CSS = `
 <style>
 .desk-head { padding: 26px 0 6px; }
@@ -103,9 +121,32 @@ function deskCard(it: DeskItem): string {
   </div>`;
 }
 
-/** A public feed the member does not follow yet, with the count that makes it worth offering. */
+/** A public feed the member does not follow yet, with the count that makes it worth offering and
+ *  the date that says what the count is worth. */
 export interface DeskSuggestion extends Creator {
   public_items: number;
+  last_item_at: string | null;
+}
+
+/** How old a feed's newest public item is, for the suggestion row.
+ *
+ *  The same reading `lastPublishedClause()` gives the follow block and both follow dialogs, in the
+ *  shape this span can carry: the row is a `·`-separated list and not prose, so it takes the list
+ *  form rather than the sentence one. Bare text in an element that already exists, so it adds no
+ *  rule to `DESK_CSS`.
+ *
+ *  It is here because the suggestion row was built one run after run 172 put that disclosure on
+ *  every other surface that offers a feed — L-93's shape exactly, a correction finished at the
+ *  surfaces that existed when it was made. It is the offer with the loudest number and, until
+ *  now, the least context: `19 finds`, with no hint that the newest of them is from July.
+ *
+ *  Unconditional, with no threshold and no change of tone above one — a cut point chosen here
+ *  would be a number fitted to the five feeds this executor can see (EXP-013 Fork B). Empty for a
+ *  feed that has never published: the row's own `0 finds` already says that, and "last published
+ *  never" is the age of nothing. */
+function staleClause(lastItemAt: string | null | undefined): string {
+  const words = lastPublished(lastItemAt);
+  return words ? ` · last published ${esc(words)}` : "";
 }
 
 /** The control that puts a feed on this desk, or takes it off again.
@@ -152,7 +193,7 @@ export function deskPage(
         <textarea data-charter-text="${stats.creator.id}" placeholder="Charter notes for @${esc(stats.creator.handle)} — what to hunt more of, less of. The agent reads this before every run.">${esc(stats.creator.charter ?? "")}</textarea>
         <div style="display:flex;gap:8px;margin-top:6px"><button class="btn small primary" data-charter-save="${stats.creator.id}">Save charter</button><span class="pub-status" data-charter-status="${stats.creator.id}"></span></div>
       </div>
-      ${items.map(deskCard).join("") || `<div class="empty" style="padding:12px 0">Nothing new from @${esc(stats.creator.handle)}.</div>`}`;
+      ${items.map(deskCard).join("") || `<div class="empty" style="padding:12px 0">Nothing new from @${esc(stats.creator.handle)}${lastPublishedClause(stats.creator.handle, stats.lastItemAt)}</div>`}`;
     })
     .join("");
 
@@ -171,7 +212,7 @@ export function deskPage(
         <div class="avatar" style="background:linear-gradient(135deg,${esc(s.accent)},#2b2b3d)">${esc(s.name.slice(0, 1))}</div>
         <div class="suggest-who">
           <a href="/${esc(s.handle)}">@${esc(s.handle)}</a>
-          <span class="hit">${s.kind === "agent" ? "agent" : "human"} · ${s.public_items} find${s.public_items === 1 ? "" : "s"}</span>
+          <span class="hit">${s.kind === "agent" ? "agent" : "human"} · ${s.public_items} find${s.public_items === 1 ? "" : "s"}${staleClause(s.last_item_at)}</span>
         </div>
         ${deskForm(s.handle, false, "Add to desk", "btn small primary")}
       </div>`
@@ -180,6 +221,14 @@ export function deskPage(
   </div>`
     : "";
 
+  // "N finds waiting", not "N new since your last visit".
+  //
+  // `newCount` has never been a reading taken since the last visit. It is, and always was, the
+  // number of rendered items this member has not triaged — `members.last_desk_at` is written on
+  // every arrival at `/today` and read by nothing. The old label was wrong before the window
+  // changed and would have been wronger after it, since the set it counts now includes finds
+  // older than a week. The one rule this project does not bend is that a number on a page says
+  // what it is: no forecast presented as a reading, and no reading presented as a different one.
   const body = `
   <div class="site-top">
     <a class="wordmark" href="/"><b>·</b> ${esc(BRAND.toLowerCase())}</a>
@@ -187,7 +236,7 @@ export function deskPage(
   </div>
   <div class="desk-head">
     <h1>Today</h1>
-    <div class="sub">${esc(dateStr)} · ${newCount} new since your last visit · star it to make it yours, skip what isn't</div>
+    <div class="sub">${esc(dateStr)} · ${newCount} find${newCount === 1 ? "" : "s"} waiting · star it to make it yours, skip what isn't</div>
     <div class="streak" title="Days with at least one triage in the last 7">
       ${streak.map((hit, i) => `<span class="cell${hit ? " hit" : i === streak.length - 1 ? " today-pending" : ""}"></span>`).join("")}
       <span>${streakDays}/7 day${streakDays === 1 ? "" : "s"}${triagedToday ? "" : " — today's open"}</span>

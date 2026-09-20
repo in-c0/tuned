@@ -1,5 +1,110 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-20 20:35 Sydney (2026-09-20 10:35 UTC), run 178 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-177 and not re-argued here, per [L-07](LESSONS.md).** **Every find this
+site has published was outside the window the desk renders, so the desk was empty by construction.**
+
+**The finding.** `GET /today` windows every followed feed's items to `i.created_at > now - 7 days`.
+Production holds **87 public items across five feeds**, and on this date **not one of them was inside
+that window**: `wearables`, `wellbeing` and `graphics` last published **30 July**, `ava` **4 August**,
+and `sportstech` — the freshest — **eight days** earlier. So a member who took the offer run 177 put
+on all **eighty-seven find pages** was redirected to `/today` and shown `0 this week · unrated` over
+the sentence *"Nothing new from @wearables"* — **having just clicked a row advertising 19 finds.**
+
+**Empty by construction, not by accident.** The offer counted a feed's finds all-time; the desk
+counted seven days. No feed, no member and no amount of following could have produced a non-empty
+desk until some feed published again — and four of the five have published nothing in seven weeks.
+The empty-state sentence run 176 wrote for exactly this moment (*"add a feed and everything it finds
+lands here"*) does not even render, because `groups.length` is 1: the member **has** a feed, and it
+is empty.
+
+**Runs 176 and 177 were right about the problem and could not see this.** Run 176 made the desk
+fillable; run 177 offered it where the decision is made. What it fills with was nothing, both times,
+and both runs' checks passed.
+
+**[L-96](LESSONS.md#l-96) — a test that seeds its world at `now` cannot see a window.**
+`test/activation.test.ts` is the right file: it walks the whole funnel using at each stage only what
+the previous stage returned, which is how L-94 was found. It has **exactly one** piece of world state
+inserted with SQL — the public find — and it seeds it with `created_at` of **now**. That is the only
+clock on the page, set to a value production never holds. **The seam test that fixed L-94 froze the
+clock.** L-94 was *a test that seeds its own input tests no seam*; this is the same failure a
+dimension across — *a test that seeds its own world tests no age*. Run 172 had already established
+that four of five feeds stopped publishing in July. **The loop knew the data was old and wrote its
+fixture new.**
+
+**What shipped.** One clause: `AND (i.created_at > ? OR r.action IS NULL)`, on the `LEFT JOIN` the
+statement already had, so **no extra query**. A find the member has **never triaged** is not hidden
+by the window.
+
+**The negative half is the design, not a compromise.** The moment a find is triaged it falls **back**
+under the window and does not return tomorrow. Without that, this is *render the archive forever* and
+`/today` stops being a daily surface. It is pinned by its own assertion: **mutation 2 — removing the
+window entirely — reddens that assertion and nothing else.**
+
+**The desk stops calling its count a reading it has never been.** `newCount` is the number of
+rendered items the member has not triaged; `members.last_desk_at` is written on every arrival at
+`/today` and **read by nothing**. *"N new since your last visit"* was false before this change and
+would have been more so after it. It now reads **"N finds waiting"**. No number on a page describes a
+measurement this service does not take.
+
+**The age goes on the two sentences that need it, in run 172's own words.**
+`lastPublishedClause()` is **exported rather than re-worded**. The desk's suggestion row — built one
+run *after* run 172 put that disclosure on every other surface offering a feed — advertised `19 finds`
+with no hint the newest was from July. And *"Nothing new from @handle"* was the same four words for a
+feed that published yesterday and one silent two months, which are opposite facts about whether to
+keep it on a desk. [L-93](LESSONS.md#l-93)'s shape, [L-18](LESSONS.md)'s rule.
+
+**A reversal inside the run, recorded rather than quietly dropped.** The age was first appended to the
+feed header's stat span. `.agent-h` is a flex row ending in `.rule { flex: 1 }`, so the stat is the
+one item with slack: at **390px** four extra words squeezed it into a ~90px column and broke it into
+three lines — *"0 this week · last" / "published 52" / "days ago · unrated"* — with the avatar, the
+handle and the controls stranded around it. **Nothing overflowed**, so a document-overflow check reads
+clean straight through it, which is how run 172's orphaned full stop shipped. Two CSS rules fixed the
+squeeze and orphaned *"remove"* onto a third line instead. The answer was not a third rule: **the age
+belongs on the sentence that reports nothing** — a full-width block with no flex row to break. Both
+rules reverted. **This change adds no CSS rule at all.**
+
+**Run red first.** `test/desk-window.test.ts` was executed against unmodified source: **all six
+assertions failed**, each for its own reason, the load-bearing one on *"the member took the desk's own
+offer and the desk does not carry the find."*
+
+**Gates.** `npm run check` exit 0 · **463 vitest** (457 → 463, six new) · **ops suite 244/244**
+(unchanged) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid ·
+`npm audit --omit=dev` **0 vulnerabilities**. **Ten mutations, each reddening its own named test**,
+all three touched files restored byte-identical under `sha256sum -c` — **by copy, per L-95**.
+
+**Browser QA at 390px and 1100px, on the rendered desk.** The first visual reading this page has ever
+had: `qa/` targets production, production cannot sign in, so **no check in this repository has ever
+looked at `/today`.** That is the eighth consecutive run to find a check that could not see its own
+subject, and it is what caught the flex-row break above.
+
+**No production step added, and the reason is stated rather than dressed up.** Everything here renders
+only for a signed-in member. `verify production` **cannot sign in**, and this loop **will not mint a
+production member to obtain a session**, so shipping is established by the expected-commit gate; run
+177's step 22 already fails loudly if any member control reaches a signed-out visitor. Adding a step
+that could not see its own subject is the defect, not the remedy.
+
+**Deliberately NOT touched.** No schema change, no migration, no new data category, no secret, no
+dependency, no route added or removed, and **no counter added, renamed, split or retired**. The public
+feed and find pages are byte-untouched, `POST /:handle/follow` and the email capture are untouched,
+RSS and the landing page are untouched. **`FEED_CSS`/`FIND_CSS` still not folded into `CSS`** —
+bookkeeping, and this change adds no CSS. **No site-wide `/rss.xml`**: run 172's direct yes/no is
+still unanswered and stays a doctrine question. The agent-scout schedule is still disarmed and
+EXP-013's threshold-2 proposal is **still unruled** — no reviewer directive since 2026-09-01. No item
+published, amended, retracted or restored. No spend.
+
+**Magnitude not overclaimed.** `applications` is **0** and `members` is **1**, so **nobody has ever
+been shown the empty desk and no metric moves today.** The defect cost no users. What changes is that
+the two runs spent making the funnel's last step a step now have something behind them. This is an
+activation-surface fix, not a growth intervention, and it is not offered as one.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **15 days left.**
+
+---
+
+## Run 177 (2026-09-20 14:35 Sydney) — the follow button offered the one control on the page that does nothing
+
 **Last updated:** 2026-09-20 14:35 Sydney (2026-09-20 04:35 UTC), run 177 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-176 and not re-argued here, per [L-07](LESSONS.md).** **The page where a
 member decides to follow a feed offered them the one control that does nothing.**

@@ -4030,3 +4030,52 @@ arrivals land on.
   with the mutation**. One file's edits were lost and had to be rewritten. Back up by copy, restore
   by copy, and verify with `sha256sum -c` — which is what the procedure already said and what the
   shorthand quietly stopped doing.
+
+## L-96 — a test that seeds its world at `now` cannot see a window (2026-09-20, run 178)
+
+**The defect.** `GET /today` windows every followed feed's items to `i.created_at > now - 7 days`.
+On the day this was found the five public feeds held **87 public items and not one was inside that
+window**: `wearables`, `wellbeing` and `graphics` last published 30 July, `ava` 4 August, and
+`sportstech` — the freshest — eight days earlier. So a member who took the offer run 177 put on all
+eighty-seven find pages was redirected to `/today` and shown `0 this week · unrated` over *"Nothing
+new from @wearables"*, having just clicked a row advertising **19 finds**. The desk was empty **by
+construction**, for every feed and every member, until some feed published again.
+
+**Why every check was green.** `test/activation.test.ts` — written one run earlier, and the right
+file — walks the whole funnel using at each stage only what the previous stage returned. It has
+exactly one piece of world state inserted with SQL: the public find. It seeds it with
+`created_at` of **now**. That is the only clock on the page, and it was set to a value production
+never holds. **The seam test that fixed L-94 froze the clock**, and the defect it could not see was
+one query away from the one it was written to catch.
+
+**The class.** L-94 was *a test that seeds its own input tests no seam.* This is the same failure a
+dimension across: **a test that seeds its own world tests no age.** Freshness, expiry, retention,
+staleness, rate limits, token lifetimes, cache windows — every rule of the form *"older than X"* is
+invisible to a fixture written at `now`, and a fixture written at `now` is the default every test
+file reaches for. Run 172 had already established that four of five feeds stopped publishing in
+July. **The loop knew the site's data was old and wrote its fixture new.**
+
+- **Evidence and cost:** eight days for all five feeds, fourteen for four of them; **no user was
+  affected** — `applications` is 0 and `members` is 1. The cost is that runs 176 and 177 spent two
+  cycles making a desk fillable and offering it where the decision is made, and what it filled with
+  was nothing.
+- **Lesson:** seed fixtures with the ages the data actually has. Where a rule is about age, the
+  fixture is the test — `created_at: now` asserts that no rule about age exists.
+- **More elegant next attempt:** ask of any date column in a fixture, *what is the real distribution
+  of this column in production?* It is answerable from `ops/metrics/latest.json` and the freshness
+  reading the QA suite already takes, and it was answerable before run 176 shipped.
+- **Prevention check:** `test/desk-window.test.ts` seeds one feed with finds 52, 57 and 61 days old
+  — production's shape — and walks the journey to the desk. Its **negative control is the
+  load-bearing half**: a find the member has already triaged and which is outside the window must
+  **not** come back, so the fix cannot degrade into "render the archive forever." Mutation 2
+  (removing the window entirely) reddens that assertion and nothing else.
+- **A second thing this run learned, about browser QA and not the product.** The feed age was first
+  appended to the stat span in the feed header. `.agent-h` is a flex row ending in
+  `.rule { flex: 1 }`, so the stat is the one item with slack: at 390px four extra words squeezed it
+  into a ~90px column and broke it into three lines, with the avatar, the handle and the controls
+  stranded around it. **Nothing overflowed**, so the document-overflow check read clean straight
+  through it — [L-90](#l-90)'s shape, and exactly how run 172's orphaned full stop shipped. Two CSS
+  rules fixed the squeeze and orphaned *"remove"* onto a third line instead. The answer was not a
+  third rule: **the age belongs on the sentence that reports nothing**, a full-width block with no
+  flex row to break, and the one place a reader is asking the question. Two rules reverted, zero
+  added. A screenshot at phone width is not optional when a change adds words to a flex row.
