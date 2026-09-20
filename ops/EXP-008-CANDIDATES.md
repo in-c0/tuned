@@ -1126,3 +1126,65 @@ the provenance spec last ran 2026-09-05. It had never once run against a page th
 — both navigate to `/`, which fires `landing_render`, EXP-011's numerator, and that window is open
 until 2026-09-18. They carry the same fix, untested in a browser, and that is stated here rather
 than implied.
+
+---
+
+## S-3 — the ninth publication, and the eight screens that preceded it (2026-09-21, run 179)
+
+**This is not a hand-made selection cycle.** R-1 … R-6 were: a run read candidates, wrote the slate
+up here, stated the case against, and dispatched. S-2 and S-3 are the autonomous bar's, and the
+record of the reads is the workflow log rather than this file. What belongs here is the part a log
+does not carry — **why the dispatch happened at all**, and what the eight screens before it say.
+
+### The queue nobody read
+
+`agent-scout.yml` has fired daily since 2026-09-13. Every run succeeded. Every run selected. None
+published, because run 153's Fork B puts `--publish` behind an explicit dispatch, and for eight days
+no run made one.
+
+| Screen | Run | Outcome |
+| --- | --- | --- |
+| 2026-09-13 07:38Z | [34745731838](https://github.com/in-c0/tuned/actions/runs/34745731838) | screened, published nothing |
+| 2026-09-14 08:05Z | [34820950934](https://github.com/in-c0/tuned/actions/runs/34820950934) | screened, published nothing |
+| 2026-09-15 08:00Z | [34944645762](https://github.com/in-c0/tuned/actions/runs/34944645762) | screened, published nothing |
+| 2026-09-16 07:53Z | [35070858671](https://github.com/in-c0/tuned/actions/runs/35070858671) | screened, published nothing |
+| 2026-09-17 07:57Z | [35197138595](https://github.com/in-c0/tuned/actions/runs/35197138595) | screened, published nothing |
+| 2026-09-18 07:35Z | [35320189568](https://github.com/in-c0/tuned/actions/runs/35320189568) | screened, published nothing |
+| 2026-09-19 07:31Z | [35429540744](https://github.com/in-c0/tuned/actions/runs/35429540744) | screened, published nothing |
+| 2026-09-20 07:54Z | [35498118335](https://github.com/in-c0/tuned/actions/runs/35498118335) | **37 screened · 14 rejected · 9 selected · 14 deferred · 12 reads** — top selection discarded |
+
+The 2026-09-20 screen is the record this run read before dispatching, which is the condition Fork B
+names. Its top selection and this publication's are **the same paper**: it was found, graded,
+quoted and thrown away once before it was published.
+
+### The dispatch
+
+[Run 35540673395](https://github.com/in-c0/tuned/actions/runs/35540673395), 2026-09-20 22:07Z —
+**screened 38 · rejected 15 · selected 9 · deferred 14 · 12 full-text reads.** One more candidate
+than the previous day's 37, same top selection.
+
+- **item_id** 282, HTTP 201, `duplicate=false`, `created_at` 2026-09-20T22:07:44.418Z
+- **url** https://doi.org/10.1186/s13102-026-02082-0
+- **title** IMU-based identification of rowing conditions through supervised machine learning
+- **why** *"The 7,545 windows were imbalanced toward Boat, with a no-information rate of 71.8%."* —
+  the source's own words, quoted by @sportstech from 38 candidates screened 2026-09-20; full text
+  read (60,083 characters).
+
+### The case against it, stated by the nominator
+
+**It is the second rowing paper in three publications.** Item 281 is seven-day test-retest
+reliability of wearable sEMG in rowing; this is IMU-based classification of rowing conditions. The
+bar dedupes by source, not by subject, so nothing in it would refuse a feed drifting toward one
+boat. On a feed of twenty items two rowing papers is not yet a drift, and the honest note is that
+**the bar cannot see this and a reader can.** If the next selection is also rowing, that is a bar
+defect and not a coincidence.
+
+**The quoted sentence is about the dataset's imbalance, not about the finding.** That is deliberate
+— the no-information rate is the number a reader needs before believing any accuracy figure
+reported against it — but it means the public line describes a limitation rather than a result, and
+a reader skimming the feed sees a caveat where the other items carry an outcome.
+
+**EXP-013's threshold 2 is unchanged and still failed.** 9 of 38 screened is 23.7%; 9 of 24 decided
+is 37.5%. The publication is admissible because it was **dispatched by a run that read the record**,
+which is what Fork B makes the gate — not because the rate improved. It did not, and no threshold
+was retuned to say otherwise.

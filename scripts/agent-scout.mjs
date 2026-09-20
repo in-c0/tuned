@@ -219,7 +219,7 @@ export async function screen({
  *  already owns the owner scoping, the handle validation, the field budgets, the replay
  *  guard and the retract/restore audit trail, and an agent that published around it would be
  *  an authority this repository has never reviewed. */
-async function publishOne({ handle, base, key, find, fetchImpl = fetch, log = console.log }) {
+export async function publishOne({ handle, base, key, find, fetchImpl = fetch, log = console.log }) {
   const payload = {
     url: find.url,
     title: find.title,
@@ -246,10 +246,20 @@ async function publishOne({ handle, base, key, find, fetchImpl = fetch, log = co
     // Deliberately not echoed: an unexpected body from a credentialed endpoint is the one
     // thing that must not reach a public log.
     log(`  publish: HTTP ${res.status} with a body that is not JSON (${text.length} bytes, not printed)`);
-    return { status: res.status, published: false, duplicate: false, itemId: null };
+    return { status: res.status, published: false, duplicate: false, itemId: null, createdAt: null };
   }
-  log(`  publish: HTTP ${res.status} · published=${parsed.published ?? false} duplicate=${parsed.duplicate ?? false} item_id=${parsed.item_id ?? "none"}${parsed.error ? ` error=${parsed.error}` : ""}`);
-  return { status: res.status, published: Boolean(parsed.published), duplicate: Boolean(parsed.duplicate), itemId: parsed.item_id ?? null, error: parsed.error };
+  log(`  publish: HTTP ${res.status} · published=${parsed.published ?? false} duplicate=${parsed.duplicate ?? false} item_id=${parsed.item_id ?? "none"} created_at=${parsed.created_at ?? "none"}${parsed.error ? ` error=${parsed.error}` : ""}`);
+  return {
+    status: res.status,
+    published: Boolean(parsed.published),
+    duplicate: Boolean(parsed.duplicate),
+    itemId: parsed.item_id ?? null,
+    // The one field qa/nominations/ cannot be written without, kept rather than dropped.
+    // An older plane that does not send it reads `null` here, which is the honest answer
+    // and not a clock this process invents to fill the gap.
+    createdAt: typeof parsed.created_at === "string" ? parsed.created_at : null,
+    error: parsed.error,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -538,7 +548,9 @@ async function main() {
       "",
       find ? `**Top selection:** [${find.title}](${find.url})\n\n> ${find.why}` : "**Nothing passed the bar this cycle.**",
       "",
-      publication ? `Publication: HTTP ${publication.status} · published=${publication.published} · duplicate=${publication.duplicate} · item_id=${publication.itemId ?? "none"}` : "No publication attempted.",
+      publication
+        ? `Publication: HTTP ${publication.status} · published=${publication.published} · duplicate=${publication.duplicate} · item_id=${publication.itemId ?? "none"} · created_at=${publication.createdAt ?? "none"}`
+        : "No publication attempted.",
     ];
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
   }

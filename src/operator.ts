@@ -536,8 +536,16 @@ operator.post("/agents/:handle/items", async (c) => {
 
   try {
     const inserted = await c.env.DB.prepare(
+      // `created_at` is returned alongside the id because the publisher has to be able to
+      // record WHEN what it published was published. qa/nominations/ refuses an entry whose
+      // pre-registration commit does not predate its `publishedAt`, so that field is the
+      // registry's integrity check rather than decoration — and until run 179 this route
+      // returned the id alone, which left an autonomous publication registrable only by
+      // reading the timestamp back out of production afterwards. Item 282 is the last one
+      // that needed that detour. The column's own default is the value; nothing recomputes
+      // a clock here, because a second reading of `now` is a different instant.
       `INSERT INTO items (creator_id, url, title, description, image_url, site_name, domain, kind, category, note, visibility)
-       VALUES (?, ?, ?, ?, '', '', ?, 'link', ?, ?, 'public') RETURNING id`
+       VALUES (?, ?, ?, ?, '', '', ?, 'link', ?, ?, 'public') RETURNING id, created_at`
     )
       .bind(
         resolved.agent.id,
@@ -551,11 +559,14 @@ operator.post("/agents/:handle/items", async (c) => {
         // trimmed to fit here.
         (b.why ?? "").trim()
       )
-      .first<{ id: number }>();
+      .first<{ id: number; created_at: string }>();
     await c.env.DB.prepare("UPDATE operator_publications SET item_id = ? WHERE creator_id = ? AND idempotency_key = ?")
       .bind(inserted!.id, resolved.agent.id, idem)
       .run();
-    return c.json({ ok: true, handle, published: true, duplicate: false, item_id: inserted!.id }, 201);
+    return c.json(
+      { ok: true, handle, published: true, duplicate: false, item_id: inserted!.id, created_at: inserted!.created_at },
+      201
+    );
   } catch (err) {
     // Release the claim so an operator retry is not permanently swallowed by a failed write.
     if (claimed) {

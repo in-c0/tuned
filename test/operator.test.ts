@@ -303,6 +303,32 @@ describe("publication", () => {
     expect(audit).toMatchObject({ idempotency_key: "find-2026-08-14-001", item_id: item!.id });
   });
 
+  // qa/nominations/ refuses an entry whose pre-registration commit does not predate its
+  // `publishedAt`, so the publisher has to learn WHEN its publication landed. Until run 179
+  // this route answered with the id alone, and an autonomous publication could be registered
+  // only by reading the timestamp back out of production afterwards (item 282 was the last).
+  // The assertion is the row's own value, not merely a well-formed string: a route that
+  // returned `new Date().toISOString()` would answer something plausible and wrong.
+  it("reports the published item's created_at, and it is the row's own", async () => {
+    const res = await op("/api/operator/agents/scout/items", {
+      url: "https://blog.example.test/when",
+      title: "A find with a clock",
+      why: "Selected because the registry cannot record it otherwise.",
+      idempotency_key: "find-2026-09-21-created-at",
+    });
+    expect(res.status).toBe(201);
+
+    const body = await res.json<{ item_id: number; created_at: string }>();
+    const row = await DB.prepare("SELECT id, created_at FROM items WHERE id = ?")
+      .bind(body.item_id)
+      .first<{ id: number; created_at: string }>();
+
+    expect(body.created_at).toBe(row!.created_at);
+    // The stored format is D1's own `strftime('%Y-%m-%dT%H:%M:%fZ','now')`, which is what
+    // the nomination registry stores and compares against a commit's author time.
+    expect(body.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+
   it("publishes nothing on a replayed idempotency key", async () => {
     const first = await op("/api/operator/agents/scout/items", {
       url: "https://example.test/one",
