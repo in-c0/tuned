@@ -823,6 +823,51 @@ jobs:
 
           echo "Find page ${find} ships the follow block under \`find_follow_*\`, no feed-page counter, source link still first, and states the feed's publishing age." >> "$GITHUB_STEP_SUMMARY"
 
+      # The follow dialog on a feed page and on a find page now offers a signed-in member the
+      # desk subscription instead of only the email capture. That half is member-only by
+      # construction and cannot be read from here: this job holds no session and will not mint a
+      # production member to obtain one. It is graded in workerd by test/activation.test.ts, and
+      # the fact that it shipped is established by the expected-commit gate at the top of this
+      # job — not by a body check. Said plainly rather than dressed up as a production reading of
+      # the feature.
+      #
+      # What IS checkable from here is the invariant the change rests on, and it is the half that
+      # can hurt: **a caller with no session must get the same public document as before.** These
+      # two pages are the surfaces this site is indexed and shared as, and EXP-011's denominator is
+      # counted on them. If a member-only control ever renders anonymously, then every crawler,
+      # unfurler and shared cache in front of this Worker is being handed member state, and the
+      # anonymous document stops being the one that was measured.
+      #
+      # Both documents are already in hand from the step above, so this adds no request — the same
+      # reason that step gives for reading the cadence off files it already fetched. The
+      # `cache-control: private` half of the change is asserted in workerd rather than here: it
+      # guards an edge rewriting the response, which this change does not introduce, and checking
+      # it would cost two more first-party fetches of a feed whose counters this loop reads.
+      #
+      # Guarded against the vacuous pass run 175 caught: the dialog is asserted present first, so
+      # an empty or error body fails at that line rather than sailing through two negative greps
+      # that find nothing because there is nothing there.
+      - name: A signed-out visitor gets no member controls on the public pages
+        run: |
+          set -euo pipefail
+          check_anonymous() {
+            local path="$1" file="$2"
+            grep -q 'id="follow-dlg"' "$file" \
+              || { echo "::error::${path} carries no follow dialog — the checks below would pass on nothing"; exit 1; }
+            if grep -qE 'action="/[a-z0-9-]+/desk"' "$file"; then
+              echo "::error::${path} offers a desk form to a caller with NO session. The public document now varies by member state for everybody, crawlers and caches included. Roll back."
+              exit 1
+            fi
+            if grep -qiE 'is on your desk|Add to my desk' "$file"; then
+              echo "::error::${path} shows member-only desk copy to an anonymous caller. Roll back."
+              exit 1
+            fi
+            echo "${path}: follow dialog present, no desk form, no member copy"
+          }
+          check_anonymous /sportstech /tmp/follow-feed.html
+          check_anonymous "find page" /tmp/follow-find.html
+          echo "Signed-out feed and find pages carry no member controls" >> "$GITHUB_STEP_SUMMARY"
+
       - name: A find page can be reached from the feed page, not only from the sitemap
         env:
           BASE: ${{ steps.vantage.outputs.base }}

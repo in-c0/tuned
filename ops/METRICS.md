@@ -2840,3 +2840,42 @@ it.** Therefore, for every day up to and including 2026-09-19:
 
 `desk_view` keeps its meaning unchanged across the boundary: it has always counted a request for
 `/today`, which is what it says.
+
+## 2026-09-20 (run 177) — `desk_follow_feed` / `desk_follow_find`: which surface produced the subscription
+
+**An axis on `desk_follow`, not two more buckets.**
+
+| Name | What it counts |
+| --- | --- |
+| `desk_follow_feed` | The subset of accepted desk follows whose request body carried `from: 'feed'` — the follow dialog on a public feed page. |
+| `desk_follow_find` | The same, for `from: 'find'` — the follow dialog on a find page. |
+
+Counted across the unsuffixed and `_bot` names together and **never summed into either**, whose
+total is unchanged. A day with `desk_follow` 3, `desk_follow_feed` 1 and `desk_follow_find` 1 is
+three follows, one from each page type and one from the desk itself.
+
+**Why it exists.** A member can now put a feed on their desk from three places: the desk's own
+suggestion list at `/today`, the feed page's follow dialog and the find page's. `desk_follow` alone
+cannot separate *"the desk's suggestion list works"* from *"people follow feeds where they read
+them"*, and those two answers point at different next changes — the first says build out the list,
+the second says the reading surfaces are where the subscription decision is made.
+
+**Absence means the desk.** The desk's own offer sends no `from` field, so a follow with neither
+name is one taken from `/today` — which is every desk follow recorded before this run, so none of
+them changes meaning. It is a string in a request body, so it is **evidence and not proof**, on the
+same terms as `follow_submit_find`; the follow is stored either way, because this route classifies
+and never refuses.
+
+**There is deliberately no matching axis on `desk_unfollow`.** Removal is offered on all three
+surfaces too, but what is being read here is which surface produces *subscriptions*. A second pair
+of names that would read 0 on almost every day is instrument for its own sake, which is the thing
+[NORTH_STAR](NORTH_STAR.md) rule 7 and [L-08](LESSONS.md) rule out.
+
+**Both read 0 on every day before 2026-09-20 because neither existed** — a statement about the
+instrument, not about traffic.
+
+**What these names cannot tell you, stated here rather than discovered later.** `members` is **1**
+and that member is the owner, so the first value either name ever holds will be the owner's own
+click unless it arrives alongside a member the owner did not create. Read them against `members`
+before reading them as demand — the same discipline `attention_star_owner` exists to enforce one
+surface along.

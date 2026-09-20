@@ -661,6 +661,61 @@ function lastPublishedClause(handle: string, latestIso: string | null | undefine
     : ` — @${esc(handle)} has not published anything yet.`;
 }
 
+/** What the request knows about the person reading a public page, and nothing more.
+ *
+ *  `null` for everybody who is not signed in, which is the whole point: with no session cookie
+ *  the Worker runs no extra query and both pages render the byte-identical document they always
+ *  did. A crawler, a stranger and a preview fetcher see no member state, and there is no variant
+ *  of these pages for a shared cache to get wrong. */
+export interface FeedViewer {
+  /** This feed is already on the member's desk — so the honest offer is removal, not another add. */
+  following: boolean;
+  /** This feed is the member's own. Following your own attention is not following anyone's, so
+   *  the desk option is withheld and the dialog is exactly the one a stranger is shown. This is
+   *  the same exclusion the desk's own suggestion list makes, one surface along. */
+  own: boolean;
+}
+
+/** The desk subscription, offered inside the follow dialog to a member who can actually take it.
+ *
+ *  Run 176 gave `follows` its first real writer — `POST /:handle/desk` — and said in its own
+ *  record that the public feed page's dialog was left byte-untouched: a signed-in member who
+ *  clicked Follow there still got the email capture. That capture writes an address into
+ *  `followers`, a table nothing on this platform reads and no code in `src/` can deliver to.
+ *  So the one control on the page a member would press to follow a feed was the one that does
+ *  nothing, while the control that works lived only on `/today` — reachable only by a member who
+ *  had already worked out that the desk offers feeds, on the screen they would have left.
+ *
+ *  **Prepended, never a rewrite.** Everything below it in the dialog — the RSS paragraph, the
+ *  email disclosure, the form — is byte-identical to what a stranger is served, because those
+ *  sentences are graded by `promises.test.ts` and `follow-cadence.test.ts` and are not this
+ *  change's business. RSS also still works for a member; it is simply no longer the only thing
+ *  in the dialog that does.
+ *
+ *  **A real `<form method="post">`** for the three reasons run 176 gave: it works with JavaScript
+ *  off, it is exactly what the browser submits so there is no second code path, and the endpoint
+ *  is legible in the delivered HTML — which is what lets a test grade the offer the member is
+ *  shown rather than a path the test hard-codes. The dialog itself needs script to open, so this
+ *  is not a no-JS path end to end; the desk's own offer at `/today` remains that, and this one is
+ *  still readable off the document either way.
+ *
+ *  **No CSS rule is added.** `FEED_CSS` and `FIND_CSS` are two dated page-scoped blocks waiting to
+ *  be folded into `CSS`, and a third dated block for one button would be a third thing to unpick.
+ *  The two inline styles do what `dialog form { display: flex }` needs and nothing else. */
+function deskOption(handle: string, from: "feed" | "find", viewer: FeedViewer | null): string {
+  if (!viewer || viewer.own) return "";
+  const form = (label: string, cls: string, remove: boolean) =>
+    `<form method="post" action="/${esc(handle)}/desk" style="margin-bottom:16px">` +
+    `<input type="hidden" name="from" value="${from}">` +
+    (remove ? `<input type="hidden" name="remove" value="1">` : "") +
+    `<button class="btn ${cls}" style="flex:1">${label}</button></form>`;
+  return viewer.following
+    ? `<p><b>@${esc(handle)} is on your desk.</b> New finds land at <a href="/today">your morning desk</a>, to star or skip.</p>` +
+        form("Take it off my desk", "", true)
+    : `<p><b>You're signed in.</b> Put @${esc(handle)} on your desk and every new find lands at <a href="/today">your morning desk</a>, to star or skip.</p>` +
+        form("Add to my desk", "primary", false);
+}
+
 function favicon(domain: string): string {
   return `https://icons.duckduckgo.com/ip3/${esc(domain)}.ico`;
 }
@@ -852,7 +907,7 @@ function groupByDay(items: Item[]): Array<{ day: string; items: Item[] }> {
   return groups;
 }
 
-export function publicPage(creator: Creator, items: Item[]): string {
+export function publicPage(creator: Creator, items: Item[], viewer: FeedViewer | null = null): string {
   const now = Date.now();
   const today = items.filter((i) => now - new Date(i.created_at).getTime() < 24 * 3600_000);
   const earlier = items.filter((i) => now - new Date(i.created_at).getTime() >= 24 * 3600_000);
@@ -892,7 +947,7 @@ export function publicPage(creator: Creator, items: Item[]): string {
   ${items.length === 0 ? `<div class="empty">Nothing here yet — ${esc(creator.name)} hasn't shared any attention.</div>` : ""}
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
-    <h3>Follow ${esc(creator.name)}</h3>
+    <h3>Follow ${esc(creator.name)}</h3>${deskOption(creator.handle, "feed", viewer)}
     <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them${lastPublishedClause(creator.handle, latest)}</p>
     <a class="btn primary rss-cta" id="follow-rss" href="/${esc(creator.handle)}/rss.xml" target="_blank" rel="noopener">Subscribe by RSS</a>
     <p class="or">Or leave an email. <b>Digests are not sending yet</b> — you go on the list and nothing arrives until they start. No spam, no account.</p>
@@ -1096,7 +1151,7 @@ const FIND_CSS = /* css */ `
  *  the destination-that-replaces-the-source shape the doctrine boundary above rules out. It is
  *  rendered unconditionally — `more` can be empty on a one-item feed, and an affordance that
  *  disappears on the smallest feeds is not one. */
-export function itemPage(creator: Creator, item: Item, more: Item[]): string {
+export function itemPage(creator: Creator, item: Item, more: Item[], viewer: FeedViewer | null = null): string {
   const img = imageSrc(item.image_url);
   const source = item.site_name || item.domain;
   // Absolute and server-rendered. A relative time needs script; a crawler runs none, and the date
@@ -1166,7 +1221,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[]): string {
   </div>
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
-    <h3>Follow ${esc(creator.name)}</h3>
+    <h3>Follow ${esc(creator.name)}</h3>${deskOption(creator.handle, "find", viewer)}
     <p><b>RSS works today.</b> New finds reach your reader as @${esc(creator.handle)} publishes them${lastPublishedClause(creator.handle, feedLatest)}</p>
     <a class="btn primary rss-cta" id="follow-rss" href="/${esc(creator.handle)}/rss.xml" target="_blank" rel="noopener">Subscribe by RSS</a>
     <p class="or">Or leave an email. <b>Digests are not sending yet</b> — you go on the list and nothing arrives until they start. No spam, no account.</p>

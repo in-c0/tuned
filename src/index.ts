@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { resolveLink } from "./meta";
-import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState } from "./pages";
+import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState, type FeedViewer } from "./pages";
 import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
@@ -1155,6 +1155,37 @@ app.get("/studio/:token/setup", async (c) => {
 const ARRIVAL_TAGS = new Set(["qa", "awesome-rss-feeds", "ooh-directory"]);
 
 // ---------- public feed ----------
+/** What a public page may say to the person reading it, beyond what it says to everybody.
+ *
+ *  Returns `null` — and runs **no query at all** — when the request carries no session cookie,
+ *  which is every crawler, every stranger and every preview fetch. That is deliberate and is the
+ *  property the tests pin: with no member there is no second variant of a public page, so the
+ *  document a search engine is served is byte-for-byte the one it was served yesterday, and there
+ *  is nothing for a shared cache to leak. The signed-in variant is the one that carries member
+ *  state, so it is the one marked `private, no-store` by the callers below.
+ *
+ *  One statement answers both questions. `following` decides whether the honest offer is "add" or
+ *  "remove"; `own` withholds the offer entirely on a member's own feed, the same exclusion the
+ *  desk's suggestion list makes at `GET /today`. */
+async function feedViewer(c: Context, creatorId: number): Promise<FeedViewer | null> {
+  const member = await currentMember(c);
+  if (!member) return null;
+  const row = await (c.env.DB as D1Database)
+    .prepare(
+      `SELECT EXISTS(SELECT 1 FROM follows WHERE member_id = ? AND creator_id = ?) AS following,
+              EXISTS(SELECT 1 FROM creators WHERE id = ? AND member_id = ?) AS own`
+    )
+    .bind(member.id, creatorId, creatorId, member.id)
+    .first<{ following: number; own: number }>();
+  return { following: !!row?.following, own: !!row?.own };
+}
+
+/** A page whose body depends on who asked must never be stored by a cache that does not know who
+ *  asked. Nothing in front of this Worker caches HTML today, so this is the header that keeps that
+ *  true if something ever does — and it is set only on the variant that carries member state, so
+ *  the anonymous response is unchanged in its headers as well as its bytes. */
+const PRIVATE_HTML = { "cache-control": "private, no-store" } as const;
+
 app.get("/:handle", async (c) => {
   const handle = c.req.param("handle").toLowerCase();
   if (RESERVED_HANDLES.has(handle)) return c.notFound();
@@ -1175,7 +1206,8 @@ app.get("/:handle", async (c) => {
     ])
   );
   const items = await itemsFor(c.env.DB, creator.id, true);
-  return c.html(publicPage(creator, items));
+  const viewer = await feedViewer(c, creator.id);
+  return viewer ? c.html(publicPage(creator, items, viewer), 200, PRIVATE_HTML) : c.html(publicPage(creator, items));
 });
 
 app.get("/:handle/rss.xml", async (c) => {
@@ -1358,7 +1390,10 @@ app.get("/:handle/:id", async (c) => {
   )
     .bind(creator.id, Number(id))
     .all<Item>();
-  return c.html(itemPage(creator, item, more));
+  const viewer = await feedViewer(c, creator.id);
+  return viewer
+    ? c.html(itemPage(creator, item, more, viewer), 200, PRIVATE_HTML)
+    : c.html(itemPage(creator, item, more));
 });
 
 // The one conversion action on a public feed page, and until now it wrote no counter at all.
@@ -1492,6 +1527,18 @@ app.post("/:handle/desk", async (c) => {
 
   const form = new URLSearchParams(await c.req.text().catch(() => ""));
   const suffix = botSuffix(c);
+  // Which surface made the offer the member took. An axis on the same terms as
+  // `follow_submit_find`: counted across the unsuffixed and `_bot` names together, never summed
+  // into either, and read as evidence rather than proof, because it is a string in a request body.
+  // The desk's own offer at `/today` sends no `from` field, so absence means the desk — which is
+  // where every follow recorded before this run came from, and keeps their meaning unchanged.
+  //
+  // It exists because there are now three places a member can subscribe to a feed and only one
+  // reading that matters: which of them a member actually uses. A single `desk_follow` cannot
+  // separate "the desk's list works" from "people follow feeds where they read them", and those
+  // two answers point at different next changes.
+  const from = form.get("from");
+  const origin = from === "feed" || from === "find" ? `desk_follow_${from}` : "";
 
   if (form.get("remove") === "1") {
     await c.env.DB.prepare("DELETE FROM follows WHERE member_id = ? AND creator_id = ?")
@@ -1506,7 +1553,11 @@ app.post("/:handle/desk", async (c) => {
     .run();
   track(
     c,
-    countEach(c.env.DB, [`desk_follow${suffix}`, wroteNewRow(written.meta) ? "" : "desk_follow_duplicate"])
+    countEach(c.env.DB, [
+      `desk_follow${suffix}`,
+      wroteNewRow(written.meta) ? "" : "desk_follow_duplicate",
+      origin,
+    ])
   );
   return c.redirect("/today", 303);
 });

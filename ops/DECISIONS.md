@@ -6513,3 +6513,54 @@ disarmed and EXP-013's threshold-2 re-specification is still unruled.
   dependencies, workflows, `arrival:<tag>`, RSS, the landing page, the find pages. Third-party write
   boundary not re-tested; no child session spawned.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-20 — run 177: the follow dialog offers the subscription that works
+
+- **Decision: put the desk subscription in the follow dialog, on both public surfaces, in the same
+  change.** Run 176 shipped `POST /:handle/desk` and named the feed page's dialog as the next
+  candidate. A signed-in member clicking **Follow** on a feed page or a find page was still offered
+  only the email capture, which writes into `followers` — a table nothing reads and no code in
+  `src/` can deliver to. The working subscription existed on exactly one screen, `/today`, reachable
+  only by a member who already knew it was there. Both surfaces were done together rather than the
+  feed page alone, on [L-93](LESSONS.md#l-93)'s terms: *a correction is not finished at the surface
+  where the defect was noticed.* Fixing one and naming the other would have repeated the lesson the
+  run before last was written to teach.
+- **Decision: prepend, never rewrite.** The RSS paragraph, the email disclosure and the follow form
+  are byte-identical to what a stranger is served. Those sentences are graded by
+  `test/promises.test.ts` and `test/follow-cadence.test.ts` and are not this change's business; RSS
+  still works for a member, it is simply no longer the only thing in the dialog that does.
+- **Decision: the anonymous document does not move a byte, and that is the load-bearing constraint.**
+  With no session cookie the Worker runs **no extra query** and renders exactly what it rendered
+  yesterday. These two pages are the surfaces this site is indexed and shared as, and EXP-011's
+  denominator is counted on them; a member-only control rendering anonymously would hand member state
+  to every crawler, unfurler and shared cache, and change what those counters count. Asserted with a
+  **positive control**, so it cannot pass on a page that changed for nobody.
+- **Decision: `cache-control: private, no-store` on the signed-in variant only.** Nothing in front of
+  this Worker caches HTML today. The header is what keeps that safe if something ever does, and
+  setting it only on the variant that carries member state leaves the public response unchanged in
+  its headers as well as its bytes.
+- **Decision: a surface axis, and only on the follow.** `desk_follow_feed` / `desk_follow_find`
+  record which of the three offers a member took, never summed into `desk_follow`, with absence
+  meaning the desk — so every follow recorded before today keeps its meaning. No matching
+  `desk_unfollow` axis: removal is offered on all three surfaces too, but what is being read is which
+  surface produces *subscriptions*, and a second pair of names that would read 0 on almost every day
+  is instrument for its own sake ([NORTH_STAR](NORTH_STAR.md) rule 7, [L-08](LESSONS.md)).
+- **Decision: the production check grades the negative half, and says so.** `verify production`
+  cannot sign in and **this loop will not mint a production member to obtain a session**, so the
+  member-facing half is graded in workerd and its shipping is established by the expected-commit
+  gate, not by a body check. The new step asserts what a signed-out caller must *not* see, on
+  documents the job already fetched, so it adds no request and moves no counter. Its grep patterns
+  are read out of the workflow by `test/desk-offer-render.test.ts` rather than copied into it — a
+  duplicated pattern keeps passing after the workflow's has drifted, and the workflow is the one
+  guarding production.
+- **Decision: the desk offer is withheld on a member's own feed.** Following your own attention is
+  not following anyone's — the same exclusion `GET /today`'s suggestion list makes.
+- **Not touched:** schema (no migration, no new table or column), data categories, secrets,
+  dependencies, the desk page itself, `POST /:handle/follow`, `arrival:<tag>`, RSS, the landing page,
+  the redirect target of `POST /:handle/desk` (still `/today`, deliberately — the member's first desk
+  with something on it is the activation event, and showing it to them is the confirmation).
+  Third-party write boundary not re-tested; no child session spawned.
+- **Standing and unchanged, not re-argued** per [L-07](LESSONS.md): one owner action, the agent-scout
+  schedule disarmed, EXP-013's threshold-2 proposal unruled, `FEED_CSS`/`FIND_CSS` unfolded, run
+  172's site-wide `/rss.xml` question unanswered.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
