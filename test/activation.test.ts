@@ -177,6 +177,39 @@ function offersOnDesk(html: string): string[] {
   return out;
 }
 
+/** Every desk offer a page makes, as the browser would submit it: the action, plus the hidden
+ *  fields the form carries. Read off the document rather than written here, for the reason the
+ *  file's header gives — what is graded is the offer the member is actually shown. Returning the
+ *  body as well as the action is what lets an assertion check the *whole* offer: a form that
+ *  posts to the right endpoint but mislabels where it came from is a broken offer too, and a test
+ *  that hand-wrote the body would pass through it. */
+interface Offer {
+  action: string;
+  body: string;
+}
+
+function deskOffers(html: string): Offer[] {
+  const out: Offer[] = [];
+  const forms = /<form\b([^>]*)>([\s\S]*?)<\/form>/gi;
+  let form: RegExpExecArray | null;
+  while ((form = forms.exec(html))) {
+    const attrs = form[1];
+    const action = /\baction=["']([^"']+)["']/i.exec(attrs)?.[1];
+    const method = /\bmethod=["']([^"']+)["']/i.exec(attrs)?.[1] ?? "";
+    if (!action || !/\/desk$/.test(action) || method.toLowerCase() !== "post") continue;
+    const params = new URLSearchParams();
+    const inputs = /<input\b[^>]*>/gi;
+    let input: RegExpExecArray | null;
+    while ((input = inputs.exec(form[2]))) {
+      if (!/\btype=["']hidden["']/i.test(input[0])) continue;
+      const name = /\bname=["']([^"']*)["']/i.exec(input[0])?.[1];
+      if (name) params.set(name, /\bvalue=["']([^"']*)["']/i.exec(input[0])?.[1] ?? "");
+    }
+    out.push({ action, body: params.toString() });
+  }
+  return out;
+}
+
 describe("a stranger becomes an activated member", () => {
   it("walks the whole funnel, and the desk they land on can be filled", async () => {
     const typed = "Stranger@Example.com";
@@ -356,5 +389,195 @@ describe("putting a feed on a desk", () => {
     await call(`/${FEED}/desk`, { method: "POST", headers, body: "remove=1", redirect: "manual" });
     const row = await DB.prepare("SELECT count FROM metric_days WHERE name = 'desk_unfollow'").first<{ count: number }>();
     expect(row?.count).toBe(1);
+  });
+});
+
+// The follow control on the page where a member actually decides to follow.
+//
+// Run 176 gave `follows` its first real writer and recorded, in its own next-candidate line, that
+// the public feed page's follow dialog was left byte-untouched: a signed-in member clicking Follow
+// there still got the email capture, which writes an address into `followers` — a table nothing on
+// this platform reads and no code in `src/` can deliver to. So the working subscription existed on
+// exactly one screen, `/today`, and the member had to already know it was there.
+//
+// That is the same class as the defect run 176 fixed, one surface along, which is why it is graded
+// here and not by a presence check. **A control is not a capability** (L-92, L-94). These tests
+// read the offer off the served document, submit it exactly as the browser would — hidden fields
+// included, so a form that posts to the right place while mislabelling its origin fails too — and
+// require the *desk* to change. A page that offers nothing fails at the read; a page that offers
+// something broken fails at the call.
+//
+// The negative assertion is the load-bearing one in the other direction. These pages are the only
+// surfaces this site is indexed and shared as, so the document served to somebody with no session
+// must not move a byte. Anything else changes what every crawler, unfurler and EXP-011 denominator
+// is looking at, in exchange for a member affordance none of them can use.
+describe("following a feed from the page the member is reading it on", () => {
+  async function member(email = "reader@example.com"): Promise<string> {
+    return await signsIn(await admits(await readBackFromQueue(await applies(email))));
+  }
+
+  async function page(path: string, cookie?: string): Promise<Response> {
+    return await call(path, { headers: { ...CLICKED, ...(cookie ? { cookie } : {}) } });
+  }
+
+  /** The find page's own address, which is the surface most of this site's URLs are. */
+  function findPath(): string {
+    return `/${FEED}/${publicItemId}`;
+  }
+
+  for (const [surface, path] of [
+    ["feed page", () => `/${FEED}`],
+    ["find page", findPath],
+  ] as const) {
+    it(`offers a signed-in member the desk on the ${surface}, and the offer puts the find on it`, async () => {
+      const cookie = await member(`${surface.replace(/\W/g, "")}@example.com`);
+      const html = await (await page(path(), cookie)).text();
+
+      const offers = deskOffers(html);
+      expect(
+        offers,
+        `the ${surface} offers a signed-in member no way to put this feed on their desk — the only control it shows them is the email capture, which writes to a table nothing reads`
+      ).not.toEqual([]);
+      const offer = offers.find((o) => o.action.includes(FEED))!;
+      expect(offer, `the ${surface} offers no desk route to @${FEED}`).toBeTruthy();
+
+      const taken = await call(offer.action, {
+        method: "POST",
+        headers: { cookie, origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...CLICKED },
+        body: offer.body,
+        redirect: "manual",
+      });
+      expect([200, 302, 303]).toContain(taken.status);
+
+      expect(
+        await desk(cookie),
+        `the desk does not carry the find after the member took the ${surface}'s offer`
+      ).toContain("The find on the desk");
+    });
+
+    it(`offers removal on the ${surface} once the feed is already on the desk`, async () => {
+      const cookie = await member(`rm${surface.replace(/\W/g, "")}@example.com`);
+      await call(`/${FEED}/desk`, { method: "POST", headers: { cookie, origin: ORIGIN }, redirect: "manual" });
+
+      const offers = deskOffers(await (await page(path(), cookie)).text());
+      const removal = offers.find((o) => new URLSearchParams(o.body).get("remove") === "1");
+      expect(
+        removal,
+        `the ${surface} shows a followed feed no way off the desk — an add with no matching remove is a one-way door`
+      ).toBeTruthy();
+
+      const res = await call(removal!.action, {
+        method: "POST",
+        headers: { cookie, origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...CLICKED },
+        body: removal!.body,
+        redirect: "manual",
+      });
+      expect([200, 302, 303]).toContain(res.status);
+      const rows = await DB.prepare("SELECT COUNT(*) AS n FROM follows").first<{ n: number }>();
+      expect(rows?.n ?? 0).toBe(0);
+    });
+
+    it(`serves a stranger the byte-identical ${surface} it always did`, async () => {
+      const cookie = await member(`anon${surface.replace(/\W/g, "")}@example.com`);
+
+      const plain = await page(path());
+      const body = await plain.text();
+      expect(deskOffers(body), `the ${surface} offers a desk route to somebody with no session`).toEqual([]);
+      expect(body).not.toMatch(/your desk/i);
+
+      // A cookie that is not a session must land on the same document as no cookie at all —
+      // otherwise the "no session, no variant" property holds only for requests carrying nothing.
+      const junk = await page(path(), "tuned_session=not-a-real-token");
+      expect(
+        await junk.text(),
+        `the ${surface} renders differently for an unrecognised session cookie`
+      ).toBe(body);
+
+      // The positive control, without which the two assertions above pass on a page that changed
+      // for nobody.
+      expect(
+        await (await page(path(), cookie)).text(),
+        `the ${surface} is identical for a member and a stranger — the desk offer did not render`
+      ).not.toBe(body);
+    });
+
+    it(`marks only the signed-in ${surface} private, so no shared cache can hand it to a stranger`, async () => {
+      const cookie = await member(`cache${surface.replace(/\W/g, "")}@example.com`);
+      expect((await page(path())).headers.get("cache-control") ?? "").not.toMatch(/private|no-store/);
+      const signedIn = (await page(path(), cookie)).headers.get("cache-control") ?? "";
+      expect(
+        signedIn,
+        `the ${surface} varies by cookie and says nothing about it — a shared cache may store one member's page and serve it on`
+      ).toMatch(/private|no-store/);
+    });
+  }
+
+  // The owner is the one member who has feeds, so the only desk that exists would otherwise be
+  // offered its own owner as a subscription. Same exclusion the desk's suggestion list makes.
+  it("does not offer a member their own feed", async () => {
+    const cookie = await member("owner@example.com");
+    const me = await DB.prepare("SELECT id FROM members WHERE email = 'owner@example.com'").first<{ id: number }>();
+    await DB.prepare(
+      "INSERT INTO creators (handle, name, token, kind, member_id) VALUES ('mine', 'Mine', 'tok-mine', 'human', ?)"
+    ).bind(me!.id).run();
+
+    expect(deskOffers(await (await page("/mine", cookie)).text()), "a member is offered their own feed").toEqual([]);
+    expect(
+      deskOffers(await (await page(`/${FEED}`, cookie)).text()),
+      "somebody else's feed stopped being offered"
+    ).not.toEqual([]);
+  });
+
+  // Which surface the follow came from, as an axis and never as a bucket. There are now three
+  // places a member can subscribe and only one reading that matters — which of them they use —
+  // and a single `desk_follow` cannot separate "the desk's list works" from "people follow feeds
+  // where they read them".
+  //
+  // Three members and not one, because a second follow of the same feed by the same member is a
+  // *removal* offer, not another add — which is the correct behaviour and is asserted above. One
+  // member taking both offers in turn would follow, then unfollow, and the axis would read 1 and 0
+  // for a reason that has nothing to do with the instrument.
+  it("counts the surface the follow came from, without moving the totals", async () => {
+    const take = async (from: "feed" | "find", email: string) => {
+      const cookie = await member(email);
+      const at = from === "find" ? findPath() : `/${FEED}`;
+      const offers = deskOffers(await (await page(at, cookie)).text());
+      const offer = offers.find((o) => o.action.includes(FEED))!;
+      expect(new URLSearchParams(offer.body).get("from"), `the ${from} page does not label its offer`).toBe(from);
+      expect(new URLSearchParams(offer.body).get("remove"), `a fresh member is offered removal`).toBeNull();
+      const res = await call(offer.action, {
+        method: "POST",
+        headers: { cookie, origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...CLICKED },
+        body: offer.body,
+        redirect: "manual",
+      });
+      expect([200, 302, 303]).toContain(res.status);
+    };
+    await take("feed", "fromfeed@example.com");
+    await take("find", "fromfind@example.com");
+    // And the desk's own offer, which sends no `from` at all — the shape every follow recorded
+    // before this run has, and the reason absence has to keep meaning "the desk".
+    await call(`/${FEED}/desk`, {
+      method: "POST",
+      headers: {
+        cookie: await member("fromdesk@example.com"),
+        origin: ORIGIN,
+        "content-type": "application/x-www-form-urlencoded",
+        ...CLICKED,
+      },
+      body: "",
+      redirect: "manual",
+    });
+
+    const { results } = await DB.prepare("SELECT name, count FROM metric_days").all<{ name: string; count: number }>();
+    const byName = Object.fromEntries(results.map((r) => [r.name, r.count]));
+    expect(byName["desk_follow_feed"] ?? 0).toBe(1);
+    expect(byName["desk_follow_find"] ?? 0).toBe(1);
+    // An axis is inside the total, not beside it: three follows by three members, three counted,
+    // two of them labelled with where the member was standing.
+    expect(byName["desk_follow"] ?? 0).toBe(3);
+    expect(byName["desk_follow_duplicate"] ?? 0).toBe(0);
+    expect(byName["desk_follow_bot"] ?? 0).toBe(0);
+    expect(byName["desk_unfollow"] ?? 0, "a follow was recorded as a removal").toBe(0);
   });
 });

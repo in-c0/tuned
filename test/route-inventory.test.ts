@@ -60,7 +60,9 @@ const INVENTORY: Record<string, Entry> = {
   // owner"; this route exists *because* a member who is not the owner had no way to fill their
   // desk, so the first non-owner to use it is the first evidence that a stranger got past the
   // door. A counter that only exists after that happens cannot record it.
-  "POST /:handle/desk": { writes: "desk_follow / desk_unfollow, +_bot, +_duplicate axis" },
+  "POST /:handle/desk": {
+    writes: "desk_follow / desk_unfollow, +_bot, +_duplicate and _feed/_find surface axes",
+  },
 
   // ---- public surfaces, deliberately uncounted ----
   //

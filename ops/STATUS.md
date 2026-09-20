@@ -1,5 +1,105 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-20 14:35 Sydney (2026-09-20 04:35 UTC), run 177 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-176 and not re-argued here, per [L-07](LESSONS.md).** **The page where a
+member decides to follow a feed offered them the one control that does nothing.**
+
+**The finding.** Run 176 shipped `POST /:handle/desk` — the first writer of `follows` a member can
+reach, and the subscription `GET /today` actually renders from. It was offered on **exactly one
+screen**: the desk's own suggestion list. Meanwhile the control a member would press to follow a
+feed — the **Follow** button on every public feed page and on all **eighty-seven find pages** —
+still opened a dialog whose only account-shaped action wrote an email address into `followers`, *a
+table nothing on this platform reads and no code in `src/` can deliver to.*
+
+**So for one day this product had a working subscription and an inviting control that was not it.**
+A signed-in member reading `/sportstech` who wanted more of that attention was shown the path that
+does nothing. To take the path that works they had to leave the page they were reading, go to
+`/today`, and find the feed again in a list — that is, **to already know the capability existed, on
+the screen they had just left.**
+
+**[L-95](LESSONS.md#l-95) is L-94's converse, and it fails in the opposite direction.** L-94 closed
+with *a control is not a capability* — a button with nothing behind it. This is **a capability is not
+an offer**: a working route with no button in front of it, at the only moment a person is deciding to
+use it. Both read green on every stage test for the same reason — the capability has a passing test,
+the surface has a passing test, and nothing asks whether the surface offers the capability.
+
+**Both surfaces, in one change, and that is the point.** Fixing the feed page and naming the find
+page would have repeated [L-93](LESSONS.md#l-93) — *a correction is not finished at the surface where
+the defect was noticed* — which is the lesson the run before last was written to teach. The find
+pages are also where it matters most: **eighty-seven of them against five feed pages**, so a
+stranger's first Tuned page is overwhelmingly likely to be one of those and not `/today`.
+
+**What shipped.** The follow dialog on both surfaces now **prepends** a real
+`<form method="post" action="/<handle>/desk">` for a signed-in member: *Add to my desk*, or *Take it
+off my desk* when the feed is already there. A member's **own** feed is excluded, the same exclusion
+the desk's suggestion list makes. Counters `desk_follow_feed` / `desk_follow_find` as an **axis**,
+never summed into `desk_follow`, with **absence meaning the desk** — so every follow recorded before
+today keeps its meaning.
+
+**Prepended, never a rewrite.** The RSS paragraph, the email disclosure and the follow form are
+**byte-identical** to what a stranger is served. Those sentences are graded by `promises.test.ts` and
+`follow-cadence.test.ts` and are not this change's business. RSS still works for a member; it is
+simply no longer the only thing in the dialog that does.
+
+**The load-bearing constraint is the negative one, not the feature.** With no session cookie the
+Worker runs **no extra query** and renders exactly the document it rendered yesterday. These two
+pages are the surfaces this site is indexed and shared as, and **EXP-011's denominator is counted on
+them**; a member-only control rendering anonymously would hand member state to every crawler,
+unfurler and shared cache and change what those counters count. Asserted with a **positive control**,
+so it cannot pass on a page that changed for nobody. `cache-control: private, no-store` is set on the
+signed-in variant **only**, so the public response is unchanged in its headers as well as its bytes.
+
+**Run red first.** `test/activation.test.ts` was executed against unmodified source before anything
+changed: **10 of its new assertions failed**, including the byte-identity test — red on its *positive
+control*, which is the guard that stops it passing on a page nobody's session ever changes.
+
+**Gates.** `npm run check` exit 0 · **457 vitest** (437 → 457, twenty new) · **ops suite 244/244**
+(unchanged) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 8 valid ·
+`npm audit --omit=dev` **0 vulnerabilities**. **Eleven mutations, each reddening its own named
+test**, every file restored byte-identical under `sha256sum -c`.
+
+**The production check grades the negative half, and says so rather than dressing it up.**
+`verify production` cannot sign in and **this loop will not mint a production member to obtain a
+session**, so the member-facing half is graded in workerd and its *shipping* is established by the
+expected-commit gate, not by a body check. The new step asserts what a signed-out caller must **not**
+see, on documents the job already fetched — so it adds **no request** and moves **no counter**. Its
+grep patterns are read **out of the workflow** by `test/desk-offer-render.test.ts` rather than copied
+into it: a duplicated pattern keeps passing after the workflow's has drifted, and the workflow is the
+one guarding production.
+
+**A mistake of this run's own, recorded rather than quietly fixed.** Mutation testing restored files
+with `git checkout -- <file>`, which restores from the **index** — so on a working tree full of
+uncommitted work it discarded the change under test along with the mutation. `src/pages.ts` lost its
+edits and had to be rewritten; the rewrite is confirmed byte-identical to the original by hash, and
+the whole mutation pass was re-run from copy-based backups. Carried into [L-95](LESSONS.md#l-95)
+because the procedure already said `sha256sum -c` and the shorthand quietly stopped doing it.
+
+**Magnitude not overclaimed.** `applications` is **0** and `members` is **1**, so **nobody has ever
+seen either dialog as a member and no metric moves today.** The defect cost no users. What changes is
+that the subscription is now offered where the decision is made, which matters at the moment
+distribution opens and not before. This is an activation-surface fix, not a growth intervention, and
+it is not offered as one.
+
+**Deliberately NOT touched.** No schema change, no migration, no new data category, no secret, no
+dependency, no route added or removed. `POST /:handle/follow` and the email capture are **byte-
+untouched** — a member can still take either, and both still say plainly that nothing sends.
+The redirect target of `POST /:handle/desk` is still `/today`, deliberately: **a member's first desk
+with something on it is the activation event**, and showing it to them is the confirmation. No
+`desk_unfollow` surface axis — what is being read is which surface produces *subscriptions*, and a
+second pair of names reading 0 on almost every day is instrument for its own sake.
+**`FEED_CSS`/`FIND_CSS` still not folded into `CSS`** — bookkeeping, and this change adds **no CSS
+rule at all**. **No site-wide `/rss.xml`**: run 172's direct yes/no is still unanswered and stays a
+doctrine question. The third-party write boundary was not re-tested and no child session was spawned.
+The agent-scout schedule is still disarmed and EXP-013's threshold-2 proposal is **still unruled** —
+no reviewer directive since 2026-09-01. No item published, amended, retracted or restored. No spend.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
+gross cash **AUD $0**, from *no billing exists*. **15 days left.**
+
+---
+
+## Run 176 (2026-09-20 08:35 Sydney) — a member who owns no agent had an empty desk and no way to fill it
+
 **Last updated:** 2026-09-20 08:35 Sydney (2026-09-19 22:35 UTC), run 176 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-175 and not re-argued here, per [L-07](LESSONS.md).** **The desk a new
 member lands on could not be filled, by them or by anybody.**
@@ -105,8 +205,6 @@ not re-argued.
 
 **Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers` **0** ·
 gross cash **AUD $0**, from *no billing exists*. **15 days left.**
-
----
 
 ## Run 175 (2026-09-19 20:35 Sydney) — two public pages promised email from a Worker with no sender
 

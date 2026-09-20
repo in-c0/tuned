@@ -3979,3 +3979,54 @@ above it, and the defect was not in any stage. It was that stage 5 had no edge i
   as anonymous ones, with a vacuity guard that fails if `/today` or `/home` ever leave the set again
   — that closes the blind spot, and is recorded here as **not** the check that would have caught this
   defect, since the desk's false sentence promised no email.
+
+## L-95 — a capability that exists on one screen is not offered where the decision is made (2026-09-20, run 177)
+
+**Run 176 built the desk subscription and left it reachable from one place.** `POST /:handle/desk` is
+the only writer of `follows` a member can reach, and the only surface that offered it was the desk's
+own suggestion list at `/today`. Meanwhile the control a member would actually press to follow a
+feed — the **Follow** button on the public feed page and on all eighty-seven find pages — still
+opened a dialog whose only account-shaped action wrote an email address into `followers`, a table
+nothing on this platform reads and no code in `src/` can deliver to.
+
+**So for one day the product had a working subscription and an inviting control that was not it.**
+A signed-in member reading `/sportstech`, who wanted more of that attention, was shown the path that
+does nothing. To take the path that works they had to leave the page they were reading, go to
+`/today`, and find the feed again in a list — that is, to already know the capability existed, on the
+screen they had just left.
+
+**The distinction, and it is the reusable part.** [L-94](#l-94) closed with *a control is not a
+capability.* This is its converse and it fails in the opposite direction: **a capability is not an
+offer.** L-94's defect was a button with nothing behind it. This one is a working route with no
+button in front of it, at the only moment a person is deciding to use it. Both read green on every
+stage test, for the same reason — the capability has a passing test, the surface has a passing test,
+and nothing asks whether the surface offers the capability.
+
+**Where the decision is made is a fact about the product, not a preference.** This site is indexed
+and shared as its find pages, eighty-seven of them against five feed pages. A stranger's first Tuned
+page is overwhelmingly likely to be one of those, not `/today`. Placing the only real subscription
+behind `/today` put it on the surface the fewest arrivals reach, and specifically not on the surface
+arrivals land on.
+
+- **Evidence and cost:** one day, and **no user was affected** — `applications` is 0 and `members` is
+  1. The cost is the pattern, not the incident: run 176 named this in its own next-candidate line, so
+  the loop knew before the deploy that the capability was reachable from one place and shipped it
+  that way anyway. Naming a gap in a report is not the same as leaving it closed.
+- **Lesson:** when a capability ships, enumerate the surfaces on which a user forms the intent it
+  serves, and check each one offers it. The question is not "is it reachable" but "is it offered
+  where the decision happens."
+- **More elegant next attempt:** ask it at design time, in one line — *which page is the user on when
+  they want this?* For a feed subscription the answer is the feed, and it was answerable before
+  run 176 shipped, not after.
+- **Prevention check:** `test/activation.test.ts` now reads the desk offer off the **feed page and the
+  find page served to a signed-in member**, submits it exactly as the browser would — hidden fields
+  included — and requires the desk to carry the find afterwards. Outcome, not presence, on L-94's
+  terms. Its negative half is the one that constrains: the document served without a session must be
+  byte-identical, asserted with a positive control so it cannot pass on a page that changed for
+  nobody.
+- **A second thing this run learned, about the tooling and not the product.** Mutation testing was
+  run by editing a file and restoring it with `git checkout -- <file>`. That restores from the index,
+  which on a working tree full of uncommitted work means **it discards the change under test along
+  with the mutation**. One file's edits were lost and had to be rewritten. Back up by copy, restore
+  by copy, and verify with `sha256sum -c` — which is what the procedure already said and what the
+  shorthand quietly stopped doing.

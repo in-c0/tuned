@@ -61,3 +61,13 @@ declare module "*.sh?raw" {
   const content: string;
   export default content;
 }
+
+// Run 177. Pointed at a workflow, for the reason the four above exist. The desk offer this run
+// adds to the follow dialog is member-only, so `verify production` cannot sign in to check it —
+// all it can do is grep the anonymous document and require the member control to be absent. That
+// makes the grep patterns load-bearing, and a pattern copied into a test keeps passing after the
+// workflow's has drifted. test/desk-offer-render.test.ts reads them out of the workflow itself.
+declare module "*.yml?raw" {
+  const content: string;
+  export default content;
+}
