@@ -47,7 +47,7 @@ import {
   sameSource,
   searchUrl,
 } from "./lib/agent-scout.mjs";
-import { screen, publishedSources, amendCycle, fetchRecord, USER_AGENT } from "./agent-scout.mjs";
+import { screen, publishedSources, amendCycle, fetchRecord, publishOne, USER_AGENT } from "./agent-scout.mjs";
 
 const NOW = "2026-09-12T04:00:00.000Z";
 
@@ -1289,4 +1289,80 @@ test("the correction cycle reports which budget refused, and does not send eithe
   assert.equal(outcome.exitCode, 0);
   assert.equal(outcome.atPublishBudget.quote, "", "this abstract has no finding at either budget");
   assert.ok(lines.some((l) => l.includes("not the mark's doing")), lines.join("\n"));
+});
+
+// ---------------------------------------------------------------------------
+// What the publisher keeps from the plane's answer — L-97
+// ---------------------------------------------------------------------------
+//
+// `qa/nominations/index.mjs` refuses an entry whose pre-registration commit does not
+// predate its `publishedAt`, so that timestamp is the registry's integrity check and not
+// decoration. Until run 179 this function parsed the plane's response and kept four fields
+// out of it, none of them the clock — so every autonomous publication was registrable only
+// by reading the timestamp back out of production afterwards. These assert the keeping.
+
+function publishResponse(body, status = 201) {
+  return { status, text: async () => JSON.stringify(body) };
+}
+
+test("a publication keeps the created_at the plane reports, so it can be registered", async () => {
+  const lines = [];
+  const outcome = await publishOne({
+    handle: "sportstech",
+    base: "https://example.test",
+    key: "not-a-real-key",
+    find: { url: "https://doi.org/10.1/x", title: "A find", why: "because", idempotencyKey: "scout-abc" },
+    log: (l) => lines.push(String(l)),
+    fetchImpl: async () =>
+      publishResponse({ ok: true, published: true, duplicate: false, item_id: 282, created_at: "2026-09-20T22:07:44.418Z" }),
+  });
+
+  assert.equal(outcome.itemId, 282);
+  assert.equal(outcome.createdAt, "2026-09-20T22:07:44.418Z");
+  assert.ok(
+    lines.some((l) => l.includes("created_at=2026-09-20T22:07:44.418Z")),
+    "the screening record's log is the audit trail, so the timestamp belongs in it too"
+  );
+});
+
+test("a plane that reports no created_at yields null, never a clock this process invented", async () => {
+  const outcome = await publishOne({
+    handle: "sportstech",
+    base: "https://example.test",
+    key: "not-a-real-key",
+    find: { url: "https://doi.org/10.1/x", title: "A find", why: "because", idempotencyKey: "scout-abc" },
+    log: () => {},
+    // The pre-run-179 plane: an id and nothing else.
+    fetchImpl: async () => publishResponse({ ok: true, published: true, duplicate: false, item_id: 282 }),
+  });
+
+  assert.equal(outcome.itemId, 282);
+  assert.equal(outcome.createdAt, null);
+});
+
+test("a non-string created_at is refused rather than carried into the registry", async () => {
+  const outcome = await publishOne({
+    handle: "sportstech",
+    base: "https://example.test",
+    key: "not-a-real-key",
+    find: { url: "https://doi.org/10.1/x", title: "A find", why: "because", idempotencyKey: "scout-abc" },
+    log: () => {},
+    fetchImpl: async () => publishResponse({ ok: true, published: true, duplicate: false, item_id: 282, created_at: 1758405 }),
+  });
+
+  assert.equal(outcome.createdAt, null, "a number is not the ISO instant the registry stores");
+});
+
+test("a response that is not JSON reports no timestamp and does not throw", async () => {
+  const outcome = await publishOne({
+    handle: "sportstech",
+    base: "https://example.test",
+    key: "not-a-real-key",
+    find: { url: "https://doi.org/10.1/x", title: "A find", why: "because", idempotencyKey: "scout-abc" },
+    log: () => {},
+    fetchImpl: async () => ({ status: 502, text: async () => "<html>gateway</html>" }),
+  });
+
+  assert.equal(outcome.published, false);
+  assert.equal(outcome.createdAt, null);
 });

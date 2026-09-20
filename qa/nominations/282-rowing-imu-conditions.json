@@ -1,0 +1,17 @@
+{
+  "itemId": 282,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.1186/s13102-026-02082-0",
+  "title": "IMU-based identification of rowing conditions through supervised machine learning",
+  "category": "Research",
+  "why": "“The 7,545 windows were imbalanced toward Boat, with a no-information rate of 71.8%.” — the source's own words, quoted by @sportstech from 38 candidates screened 2026-09-20; full text read (60,083 characters).",
+  "preregistration": {
+    "commit": "af26cc39b8632c080048c46467bc860bc1cb9d17",
+    "committedAt": "2026-09-13T04:09:18Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/35540673395",
+    "verifyWith": "git show af26cc3 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-20T22:07:44.418Z",
+  "notes": "S-3, run 179. THE FIRST PUBLICATION THIS FEED HAS MADE SINCE THE SCHEDULE WAS DISARMED, and it is what the disarming was designed to allow: run 153 put publication behind 'an explicit dispatch by someone who has read the screening record', and this run read the record of the 2026-09-20 07:54Z scheduled screen (https://github.com/in-c0/tuned/actions/runs/35498118335) before dispatching. The schedule is still disarmed, EXP-013's threshold 2 is still unruled, and neither was touched. What changed is that the last gate had someone standing at it for the first time in eight days. THE SCREEN THAT PUBLISHED THIS IS ITS OWN RECORD: screened 38, rejected 15, selected 9, deferred 14, 12 full-text reads - one more candidate than the previous day's 37 and the same top selection, which had been selected and discarded unpublished on the preceding screen. What `commit` names is the rule that composed this line (af26cc3, 2026-09-13T04:09:18Z, the last change to scripts/lib/agent-scout.mjs before this publication), not a transcription of these strings - a selector cannot pre-register an item it has not seen, which is what form autonomous-bar records. PUBLISHEDAT WAS READ OUT OF PRODUCTION, NOT OUT OF THE PUBLISH RESPONSE, and that is the defect this run then fixed. The operator plane answered `RETURNING id` and returned the item id alone, so the publisher had no way to learn when its own publication landed - and this field is the registry's ordering invariant, not decoration. The value above is production's own `created_at`, read back at millisecond precision from the pulse block by qa/freshness.spec.mjs (https://github.com/in-c0/tuned/actions/runs/35540755846, demoBlockNewestItem 2026-09-20T22:07:44.418Z); the RSS pubDate on the same read carries the same instant truncated to the second. Item 282 is the last publication that needs that detour: the plane now returns created_at and publishOne keeps it. The find is a real result: an IMU on a rowing boat, classified by supervised learning into rowing conditions, where the honest sentence is the one the agent quoted - the 7,545 windows were imbalanced toward Boat and the no-information rate was 71.8%, which is the number a reader needs to judge any accuracy figure reported against it."
+}

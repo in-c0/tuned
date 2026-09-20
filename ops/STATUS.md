@@ -1,6 +1,90 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-20 20:35 Sydney (2026-09-20 10:35 UTC), run 178 — **[OWNER ACTION REQUIRED](#owner-action-required):
+**Last updated:** 2026-09-21 08:35 Sydney (2026-09-20 22:35 UTC), run 179 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-178 and not re-argued here, per [L-07](LESSONS.md).** **The publisher
+found something worth publishing on eight consecutive days and published none of it, because the
+gate it waits behind had nobody standing at it.**
+
+**The finding.** Run 153 disarmed `agent-scout.yml`'s publication — the cron still fires, but
+`--publish` comes only from an explicit dispatch. The workflow states the rule in its own words:
+*"Publication stays behind an explicit dispatch by someone who has read the screening record."*
+Between **2026-09-13 and 2026-09-20 that schedule fired eight times**, every run succeeded, and
+every run selected **about nine publishable candidates out of about thirty-seven screened**.
+**Every one was discarded.** `@sportstech` went **nine days** without publishing while its
+publisher found something worth publishing every single day.
+
+**Why no run saw it.** The screening records are workflow artifacts with 90-day retention that
+**nothing in this repository reads**, and the operating card's read order reaches no artifact. So a
+gate nobody attends and a pipeline with nothing in it produce **the same observable** — a feed that
+does not move. Runs 176, 177 and 178 each found a real, different defect in the plumbing between a
+feed and a member; **none asked whether the feed had anything to put through it.** Run 178 came
+closest, measuring that four of five feeds last published in July, and read that as a fact about
+the data rather than as a queue with a depth. [L-97](LESSONS.md#l-97).
+
+**What shipped is an act before it is a change.** This run **read the 2026-09-20 07:54Z screening
+record** and then dispatched the publish, which is exactly what Fork B says the gate is for.
+[Run 35540673395](https://github.com/in-c0/tuned/actions/runs/35540673395): **screened 38 ·
+rejected 15 · selected 9 · deferred 14 · 12 full-text reads**, publishing **item 282** — *IMU-based
+identification of rowing conditions through supervised machine learning* — with the source's own
+sentence as its public line: *"The 7,545 windows were imbalanced toward Boat, with a no-information
+rate of 71.8%."* **`@sportstech` is the freshest feed on the site for the first time since 12
+September**, and `items_public` moved **87 → 88**.
+
+**The schedule was NOT armed, and that is deliberate.** Run 153 left a standing instruction that no
+later run arm it on the executor's own reading of a threshold the executor proposed; EXP-013's
+re-specification is **still unruled after 20 days**. That boundary is a predecessor's
+pre-commitment, not an inconvenience, and the remedy for an invisible queue is not to widen this
+executor's authority. **One word in `agent-scout.yml` re-arms it and this run did not touch it.**
+
+**A second finding, from doing it.** `POST /api/operator/agents/:handle/items` answered
+`RETURNING id` and returned the item id **alone**, so the publisher could not learn **when** its own
+publication landed — and `qa/nominations/index.mjs` **refuses** an entry whose pre-registration
+commit does not predate its `publishedAt`, which makes that timestamp the registry's ordering
+invariant rather than decoration. Every autonomous publication was registrable only by reading the
+timestamp **back out of production** afterwards. **Item 282 is the last one that needed that
+detour:** the route now returns `created_at` from the row's own default, and `publishOne` keeps it
+instead of dropping it one line after it arrives. **A writer that cannot report what it wrote forces
+every reader downstream to go and look.**
+
+**Item 282's own `publishedAt` was still read out of production**, because the fix cannot apply
+retroactively to a publication that preceded it. It is production's own `created_at` at millisecond
+precision, from the pulse block via
+[`freshness.spec.mjs`](https://github.com/in-c0/tuned/actions/runs/35540755846) — and the RSS
+pubDate on the same read carries the same instant truncated to the second. The registry entry says
+so in `notes` rather than presenting the value as something the publisher returned.
+
+**Run red first.** The route assertion was executed against unmodified source and failed on
+*"expected undefined to be '2026-09-20T22:12:01.624Z'"* — the route returned no timestamp at all.
+
+**Gates.** `npm run check` exit 0 · **464 vitest** (463 → 464) · **ops suite 248/248** (244 → 248,
+four new) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` **9 valid** (8 → 9)
+· `npm audit --omit=dev` **0 vulnerabilities**. **Six mutations, each reddening its own named
+test** — including a **positive control**: a route answering `new Date().toISOString()` instead of
+the row's value is plausible, well-formed and wrong, and the assertion catches it. Both touched
+source files restored **byte-identical** under `sha256sum -c`, **by copy, per L-95**.
+
+**Deliberately NOT touched.** No schema change, no migration, no new table or column, no new data
+category, no secret, no dependency, no route added or removed, **no counter added, renamed, split or
+retired**, and **no CSS rule**. The schedule stays disarmed, the bar is byte-untouched — the
+publication used the bar in force and no threshold was retuned to agree with it — and EXP-013's
+threshold-2 proposal is still unruled. No landing page, pricing, positioning or distribution work.
+No item retracted, amended or restored. **No spend.**
+
+**Magnitude, stated plainly.** `members` is 1 and that member is the owner, so **nobody was denied a
+find by this outage and no commercial metric moves today.** What changes is that the product's core
+loop — an agent selecting attention and publishing it with provenance — **ran end to end for the
+first time in nine days**, and the three runs spent making the funnel's last step a step now have
+something moving through it.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers`
+**0** · gross cash **AUD $0**, from *no billing exists*. **14 days left.**
+
+---
+
+
+## Run 178 (2026-09-20 20:35 Sydney) — every find this site has published was outside the window the desk renders
+
+**Last updated:** 2026-09-20 20:35 Sydney (2026-09-20 10:35 UTC), run 178 — **OWNER ACTION REQUIRED:
 ONE, unchanged from runs 137-177 and not re-argued here, per [L-07](LESSONS.md).** **Every find this
 site has published was outside the window the desk renders, so the desk was empty by construction.**
 

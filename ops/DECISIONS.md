@@ -6611,3 +6611,92 @@ disarmed and EXP-013's threshold-2 re-specification is still unruled.
   schedule disarmed, EXP-013's threshold-2 proposal unruled, `FEED_CSS`/`FIND_CSS` unfolded, run 172's
   site-wide `/rss.xml` question unanswered.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+---
+
+## 2026-09-21 — run 179: the publisher found something on eight consecutive days and published none of it
+
+**Decision.** Stand at the gate run 153 built rather than remove it: read the most recent screening
+record, then dispatch `agent-scout.yml` with `publish=true`, publishing **item 282** to
+`@sportstech`. Then fix the one thing that doing it exposed — a publish route that reports what it
+created but not when.
+
+**The finding.** Run 153 disarmed the scout's publication under EXP-013 Fork B. The cron still
+fires; `--publish` comes only from an explicit `workflow_dispatch`, because *"an unattended
+publisher is admissible only under a bar whose pre-registered quality threshold has been met, and
+this one has not."* That is sound. What it became is not: between **2026-09-13 and 2026-09-20 the
+schedule fired eight times**, each run succeeded, and each selected roughly **nine publishable
+candidates from about thirty-seven screened**. Every one was discarded unpublished. `@sportstech`
+went **nine days** without publishing while its publisher found something worth publishing daily.
+
+**Why no run noticed.** The screening records are workflow artifacts nothing in the repository
+reads, and the operating card's read order reaches no artifact. *A gate nobody attends and a
+pipeline with nothing in it produce the same observable.* Runs 176–178 each found a real defect in
+the plumbing between a feed and a member; none asked whether the feed had anything to put through
+it. See [L-97](LESSONS.md#l-97).
+
+**Why this outranked the named next candidate.** Run 178 closed by naming a repeatable browser-QA
+harness for the member pages. That is test infrastructure — control plane — and
+[NORTH_STAR](NORTH_STAR.md) rule 7 with [L-08](LESSONS.md) say to stop building it once it is
+adequate for the next demand experiment. Meanwhile criterion 3 of issue #1's own hierarchy is
+*"recurring agent value without attention overload"*, and the product's core loop had not completed
+once in nine days. A check that would have caught a flex-row break does not outrank the feed being
+dead.
+
+**What was NOT done.**
+- **The schedule was not armed.** Run 153's standing instruction — no later run arms it on the
+  executor's own reading of a threshold the executor proposed — was honoured. EXP-013's
+  re-specification remains **unruled after 20 days**. One word in `agent-scout.yml` re-arms it and
+  this run did not touch it. The remedy for an invisible queue is not more executor authority.
+- **The bar was not touched.** `scripts/lib/agent-scout.mjs` is byte-identical; the publication used
+  the bar in force. No threshold was retuned to agree with today's candidate set.
+- **No instrument was built for the queue.** Naming the invisibility is this run's finding; building
+  a backlog readout would be the ninth consecutive cycle spent on the control plane. It is put to
+  the reviewer as the question it is.
+
+**Changes shipped.**
+- **Item 282**, `@sportstech`, via the operator plane —
+  [record run 35540673395](https://github.com/in-c0/tuned/actions/runs/35540673395), HTTP 201,
+  `duplicate=false`. Registered at `qa/nominations/282-rowing-imu-conditions.json`, form
+  `autonomous-bar`.
+- **`src/operator.ts`:** the publish insert is `RETURNING id, created_at` and the 201 body carries
+  `created_at`. `qa/nominations/index.mjs` refuses an entry whose pre-registration commit does not
+  predate its `publishedAt`, so that field is the registry's ordering invariant, and the route
+  previously made it unobtainable without a second read of production. No schema change — the
+  column and its default already existed.
+- **`scripts/agent-scout.mjs`:** `publishOne` keeps `createdAt` instead of dropping it, logs it into
+  the screening record's audit trail, and yields `null` — never an invented clock — when the plane
+  reports nothing or reports a non-string.
+
+**Verification.** `npm run check` exit 0 · **464 vitest** (463 → 464) · ops suite **248/248**
+(244 → 248) · `validate-workflows.py` ok · `validate-nominations.mjs` **9 valid** · `npm audit
+--omit=dev` 0 vulnerabilities. Run red first: the route assertion failed on *"expected undefined to
+be '2026-09-20T22:12:01.624Z'"*. **Six mutations, each reddening its own named test**, including a
+positive control — a route answering `new Date().toISOString()` is plausible and wrong, and the
+assertion catches it. Both source files restored byte-identical under `sha256sum -c`, by copy.
+
+**A procedural note worth keeping.** The clone is shallow, so `git log -1 -- scripts/lib/agent-scout.mjs`
+reported `bdbb6eb` "creating" the file in 1,212 insertions — which is the exact trap
+[L-76](LESSONS.md) was written about, in the commit message of the commit that corrected it. The
+clone was unshallowed before the pre-registration commit was cited; the real one is `af26cc3`
+(2026-09-13T04:09:18Z).
+
+**Rollback.** `agent operator` → `retract` with item 282 hides it and deletes nothing. The code
+change is additive to a JSON response and a return object; reverting restores the previous
+behaviour and invalidates nothing written while it is live.
+
+**Alternatives considered and rejected:**
+- **Arm the schedule.** The correct engineering answer and the one this run may not take: a
+  predecessor's explicit pre-commitment plus an unruled reviewer question. Rejected, not re-argued.
+- **Build a backlog readout so the next run sees the queue.** Rejected this cycle as control plane
+  (rule 7, L-08). Named in L-97 as the shape of the fix and put to the reviewer.
+- **Take run 178's named candidate, the member-page QA harness.** Rejected on the reasoning above:
+  it is a ninth consecutive control-plane cycle against a product whose core loop had stopped.
+- **Publish more than one find to close the nine-day gap.** Rejected outright. The one-publication
+  cap is a doctrine constraint, not a tuning parameter, and back-filling a feed to look active is
+  EXP-008's failure mode 2 — a feed filler.
+- **Spend the cycle on something that could produce a user.** Rejected on the standing finding:
+  **A0 is architectural**, this executor can perform no write at any third party, and the remaining
+  acts are the owner's. Unchanged, not re-argued ([L-07](LESSONS.md)).
+
+**Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
