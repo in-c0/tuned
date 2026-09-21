@@ -17,6 +17,8 @@ import {
   MIN_BODY_CHARACTERS,
   MIN_SPORT_MENTIONS,
   MIN_STATISTIC_FAMILIES,
+  nominationEntry,
+  nominationFilename,
   countSportMentions,
   hasStrongSportTerm,
   buildSearchQuery,
@@ -47,7 +49,11 @@ import {
   sameSource,
   searchUrl,
 } from "./lib/agent-scout.mjs";
-import { screen, publishedSources, amendCycle, fetchRecord, publishOne, USER_AGENT } from "./agent-scout.mjs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { screen, publishedSources, amendCycle, fetchRecord, publishOne, writeNomination, USER_AGENT } from "./agent-scout.mjs";
+import { validateNomination } from "../qa/nominations/index.mjs";
 
 const NOW = "2026-09-12T04:00:00.000Z";
 
@@ -1365,4 +1371,145 @@ test("a response that is not JSON reports no timestamp and does not throw", asyn
 
   assert.equal(outcome.published, false);
   assert.equal(outcome.createdAt, null);
+});
+
+// ---------------------------------------------------------------------------
+// The publication's own registry entry
+// ---------------------------------------------------------------------------
+//
+// `scout-gate.mjs` reads qa/nominations/ to decide whether a run should open a screening
+// record, and the bar's `not-already-published` clause reads the same directory. Both were
+// fed by a hand transcription out of a run log. These grade the composer that replaces it.
+
+const FIND = Object.freeze({
+  url: "https://doi.org/10.3390/sports14080353",
+  title: "Neuromuscular Activation Strategies of the Lower Limb During Maximal Sprinting",
+  why: "Selected by @sportstech from 35 open-access candidates screened 2026-09-21: full text read (41,335 characters).",
+  idempotencyKey: "scout-b2aee844368bb449",
+});
+const BAR = Object.freeze({ commit: "88fe7d5aefd10e226fc17462641073c336faaa7b", committedAt: "2026-09-14T10:17:29+00:00" });
+const RECORD_RUN = "https://github.com/in-c0/tuned/actions/runs/35586751724";
+const PUBLISHED = Object.freeze({ status: 201, published: true, duplicate: false, itemId: 283, createdAt: "2026-09-21T10:04:55.788Z" });
+
+const entryOf = (over = {}) =>
+  nominationEntry({ handle: "sportstech", find: FIND, publication: PUBLISHED, bar: BAR, recordRun: RECORD_RUN, ...over });
+
+test("the emitted entry is one the registry accepts", () => {
+  const problems = validateNomination(entryOf(), "emitted");
+  assert.deepEqual(problems, [], `the publisher must not compose an entry its own registry refuses: ${problems.join("; ")}`);
+});
+
+test("publishedAt is the plane's created_at, never a clock read a second time", () => {
+  assert.equal(entryOf().publishedAt, "2026-09-21T10:04:55.788Z");
+});
+
+test("no entry is composed when the plane reported no timestamp", () => {
+  // The ordering invariant is the only thing the registry proves. An entry whose publishedAt
+  // this process invented would satisfy the invariant against a fact it made up.
+  assert.equal(entryOf({ publication: { ...PUBLISHED, createdAt: null } }), null);
+});
+
+test("no entry is composed for a duplicate or a refused publication", () => {
+  assert.equal(entryOf({ publication: { ...PUBLISHED, published: false, duplicate: true } }), null);
+  assert.equal(entryOf({ publication: null }), null);
+});
+
+test("no entry is composed when git could not name the bar", () => {
+  // A shallow clone is the real case. Guessing a sha would point an auditor at the wrong rule,
+  // which is exactly the defect in item 282's hand-written entry.
+  assert.equal(entryOf({ bar: null }), null);
+});
+
+test("the entry names the bar that composed the line, and says how to check it", () => {
+  const entry = entryOf();
+  assert.equal(entry.preregistration.commit, BAR.commit);
+  assert.equal(entry.preregistration.form, "autonomous-bar");
+  assert.equal(entry.preregistration.recordRun, RECORD_RUN);
+  assert.match(entry.preregistration.verifyWith, /^git show 88fe7d5 -- scripts\/lib\/agent-scout\.mjs/);
+});
+
+test("an entry with no recordRun is refused by the registry rather than written", () => {
+  // Positive control on the rule that makes the autonomous form auditable at all: the strings
+  // live in a run log, so an entry that names no run is an assertion about itself.
+  const problems = validateNomination(entryOf({ recordRun: "" }), "no-run");
+  assert.ok(
+    problems.some((p) => /recordRun/.test(p)),
+    `a missing recordRun must be caught: ${problems.join("; ")}`
+  );
+});
+
+test("the filename matches the shape already in the registry", () => {
+  assert.equal(nominationFilename(entryOf()), "283-neuromuscular-activation-strategies-of-the.json");
+});
+
+// The glue, exercised rather than assumed. An unexported helper with a typo in it breaks the
+// next publication's emission and nothing says so until a gate misreads days later — which is
+// the shape of defect this file's own subject exists to stop.
+
+test("a successful publication leaves a committable file behind", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nominations-"));
+  const lines = [];
+  const file = writeNomination({
+    handle: "sportstech",
+    find: FIND,
+    publication: PUBLISHED,
+    dir,
+    bar: BAR,
+    recordRun: RECORD_RUN,
+    log: (l) => lines.push(l),
+  });
+
+  assert.equal(path.basename(file), "283-neuromuscular-activation-strategies-of-the.json");
+  const written = JSON.parse(fs.readFileSync(file, "utf8"));
+  assert.deepEqual(validateNomination(written, "written"), [], "the file on disk must satisfy the registry");
+  assert.equal(written.publishedAt, "2026-09-21T10:04:55.788Z");
+  assert.ok(
+    lines.some((l) => /COMMIT THIS/.test(l)),
+    "the log must say the file is owed to the registry, since nothing else enforces it"
+  );
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("nothing is written, and the reason is logged, when there is no entry to write", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nominations-"));
+  const lines = [];
+  const file = writeNomination({
+    handle: "sportstech",
+    find: FIND,
+    publication: { ...PUBLISHED, createdAt: null },
+    dir,
+    bar: BAR,
+    recordRun: RECORD_RUN,
+    log: (l) => lines.push(l),
+  });
+
+  assert.equal(file, null);
+  assert.deepEqual(fs.readdirSync(dir), [], "a publication that cannot be registered must not leave a half-entry");
+  assert.ok(lines.some((l) => /not composed/.test(l)), `the refusal must be named: ${lines.join(" | ")}`);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("an entry the composer builds but the registry refuses is not written", () => {
+  // Not hypothetical: recordRunUrl() returns "" whenever GITHUB_RUN_ID is absent, which is
+  // every invocation outside Actions. nominationEntry() has no opinion on that string and
+  // composes an entry regardless; the registry refuses it, and this is the guard that stops a
+  // file landing in qa/nominations/ that loadNominations() will then throw on.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nominations-"));
+  const lines = [];
+  const file = writeNomination({
+    handle: "sportstech",
+    find: FIND,
+    publication: PUBLISHED,
+    dir,
+    bar: BAR,
+    recordRun: "",
+    log: (l) => lines.push(l),
+  });
+
+  assert.notEqual(nominationEntry({ handle: "sportstech", find: FIND, publication: PUBLISHED, bar: BAR, recordRun: "" }), null,
+    "precondition: the composer does build this entry — the refusal has to come from validation");
+  assert.equal(file, null);
+  assert.deepEqual(fs.readdirSync(dir), []);
+  assert.ok(lines.some((l) => /does not validate/.test(l)), `the registry's refusal must be named: ${lines.join(" | ")}`);
+  fs.rmSync(dir, { recursive: true, force: true });
 });

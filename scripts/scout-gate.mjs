@@ -29,11 +29,34 @@
 // claims to be the record itself.
 //
 // WHICH DIRECTION IT CAN BE WRONG IN. A `@sportstech` publication that was never registered here
-// (an early hand dispatch, say) makes this report the feed staler than it is, which costs a run
-// one look at a screening record and corrects itself. It cannot make the feed look fresher than
-// it is, because a missing entry can only move the newest publication backwards. The same holds
-// for the delivery allowance below: it counts a screen only once that screen has *certainly* been
+// makes this report the feed staler than it is. It cannot make the feed look fresher than it is,
+// because a missing entry can only move the newest publication backwards. The same holds for the
+// delivery allowance below: it counts a screen only once that screen has *certainly* been
 // delivered, so it under-reports discarded screens and can never invent one.
+//
+// **What run 180 wrote here next was wrong, and run 181 corrected it rather than softening it.**
+// It said an unregistered publication "costs a run one look at a screening record and corrects
+// itself" — true of the *reading*, false of what the reading is for. `ATTEND` is the verdict that
+// sends the next run to the record **in order to publish**. So an unregistered publication does
+// not cost a look, it buys a second publication; and the run after it a third, because nothing in
+// that sequence registers anything either. Three scheduled runs a day against a one-item-per-run
+// cap is how "recurring agent value *without attention overload*" stops holding — by way of the
+// mechanism built to protect it. Under-reporting in the safe direction was the whole argument for
+// reading the registry, and the argument only covers the sentence this prints, not the act it
+// asks for.
+//
+// The registry is load-bearing twice over, which is the other half of why this matters:
+// `publishedSources()` in scripts/agent-scout.mjs reads the same directory as the bar's
+// `not-already-published` clause, so an unregistered publication is also invisible to the screen
+// that must not re-select it. The plane's idempotency key catches that one at the far end; the
+// gate has no such backstop.
+//
+// **The fix is not a louder instruction.** Runs 179 and 180 both read this file and neither had
+// one. `nominationEntry()` in scripts/lib/agent-scout.mjs composes the entry inside the publisher,
+// at the moment it publishes, and `agent-scout.mjs` leaves it in the working tree with its path in
+// the log. A run still chooses to commit it — that is a claim about a publication and belongs to a
+// run that looked — but nobody retypes it out of a log any more, which is where both of the
+// registry's recorded transcription defects came from.
 //
 // WHY NEITHER VERDICT IS A FAILURE. This is a reading, not a gate: `ATTEND` and `CURRENT` both
 // exit 0, and only a registry it cannot read at all exits non-zero. Failing a build — and so

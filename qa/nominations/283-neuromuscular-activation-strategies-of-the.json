@@ -1,0 +1,17 @@
+{
+  "itemId": 283,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3390/sports14080353",
+  "title": "Neuromuscular Activation Strategies of the Lower Limb During Maximal Sprinting in Youth Track and Field Athletes: Age-Related Differences and Implications for Talent Identification",
+  "category": "Research",
+  "why": "Selected by @sportstech from 35 open-access candidates screened 2026-09-21: full text read (41,335 characters). Design terms present: repeated measures, comparison. Reported: p-value, confidence interval, effect size, error, dispersion. Sports (Basel, Switzerland), 2026-08-17.",
+  "preregistration": {
+    "commit": "88fe7d5aefd10e226fc17462641073c336faaa7b",
+    "committedAt": "2026-09-14T10:17:29+00:00",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/35586751724",
+    "verifyWith": "git show 88fe7d5 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-21T10:04:55.788Z",
+  "notes": "S-4, run 181. THE GATE WAS ATTENDED: scout-gate.mjs read ATTEND (newest registered publication item 282, 12h old, one scheduled screen certainly delivered since), this run opened the 2026-09-21 08:11Z scheduled screening record (https://github.com/in-c0/tuned/actions/runs/35576567110) and then dispatched the publish, which is exactly what run 153's Fork B says the gate is for. The schedule is still NOT armed, EXP-013's threshold 2 is still unruled after 22 days, and agent-scout.yml and scripts/lib/agent-scout.mjs's bar are byte-untouched by this run. THE SCREEN: screened 35, rejected 14, selected 8, deferred 13, 12 full-text reads. THIS ENTRY WAS COMPOSED BY nominationEntry() RATHER THAN RETYPED OUT OF THE RUN LOG, and that composer is what this run shipped. The publication preceded the composer by about forty minutes, so the function was invoked locally over the log's values instead of inside the workflow; from item 284 the publisher writes this file itself at the moment it publishes, and the log prints its path. THE WHY LINE CARRIES NO QUOTATION, AND THAT IS THE DESIGNED OUTPUT RATHER THAN A DEGRADED ONE: selectQuotation refused all 12 sentences it considered (reported-value 7, too-short 1, too-long 3, well-formed 1; the closest over-budget sentence missed by 59 characters against a budget of 252), so composeWhy fell to the provenance-only form item 280 carries. No threshold was retuned to obtain a quotation. EXP-013's Q1-Q4 reading on 2026-09-26 is what grades how often this fallback happens; this run did not grade it early. publishedAt is the operator plane's own created_at as returned in the 201 body. Item 283 is the first publication that needed no read-back out of production, which is the fix run 179 shipped one publication earlier."
+}
