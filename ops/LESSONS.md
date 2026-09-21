@@ -4233,3 +4233,49 @@ justifying it is true of every case the tests then held. The case that pins it i
 `recordRunUrl()` returns `""` on every invocation outside Actions, the composer has no opinion on
 that string, and the registry refuses it. **A guard over a second component is unpinned until a test
 supplies an input the first component accepts and the second does not.**
+
+## L-100 — a disclosure rule applied surface by surface gets finished three times, and the funnel's first screen was last (2026-09-22, run 182)
+
+- **Known problem:** a visitor choosing which feed to open should be told how current each one is.
+  Staleness is a fact about the world; a page that declines to mention it is the defect ([L-18](#l-18)).
+- **Attempted approach, three times.** Run 172 put the disclosure on the public feed page's follow
+  block and both follow dialogs. Run 177 added it to the desk's suggestion row, **one run later**,
+  because that row did not exist when run 172 made its pass — recorded then as [L-93](#l-93)'s shape.
+  Run 182 found the landing page's feed list still without it, **10 days after the rule was set**.
+- **Mistake:** the surface the funnel *starts* at was the last one to get the rule, and it was the
+  worst one to be missing it. `GET /`'s list was built from `SELECT … FROM creators ORDER BY
+  created_at` — **the query read no item at all**, so its cards *could not* report an age — under a
+  heading reading **"Live feeds"**. On [EXP-005's per-feed reading](EXPERIMENTS.md#exp-005--re-read-2026-09-11-run-152-and-the-first-per-feed-reading-on-record)
+  (run 152) four of the five destinations under that word had published nothing for six weeks, and
+  the oldest-registered of them led the list.
+- **Why it happened:** each run swept the surfaces it was *already looking at*. Run 172 was working
+  on the follow dialogs, run 177 on the desk, and the landing page was nobody's subject — so the
+  rule spread by adjacency rather than by enumeration. The reason it hid so well is that this defect
+  **has no wrong string to find**: the page said nothing, and nothing is what a grep for a false
+  claim returns. The one string that *was* wrong, "Live feeds", is two words in a heading and reads
+  as a section label rather than as an assertion. **The same page had already been corrected for
+  exactly this** — the demo block one section down carries the rule in its own comment: *"A claim
+  about freshness that is hardcoded is a claim nobody can keep true."*
+- **Evidence and cost:** the list shipped dateless on 2026-08-06 and the rule it broke was set
+  2026-09-18 (run 172). Cost to users is **plausibly zero and is stated that way rather than
+  dramatised**: `landing_render` reads six rendering browsers across forty-seven days
+  ([EXP-011](EXPERIMENTS.md)), so almost nobody read it. The cost is the same one L-93 named — the
+  front door carried a claim the product could not keep.
+- **Lesson:** **a rule applied to "the surfaces that do X" is not applied until the set of surfaces
+  is written down somewhere a run cannot walk past.** Adjacency is not coverage. And the hardest
+  instance of the rule to find is the surface that makes the claim by *omission*, because the audit
+  everyone reaches for is a search for the wrong sentence.
+- **More elegant next attempt, with its difficulty stated rather than waved at:** a check that
+  derives the offer surfaces from the **delivered HTML** — for every public path, if the response
+  carries a feed-offer affordance then it must also carry an age — the way `promises.test.ts`
+  (L-93's remedy) reads responses rather than source, and `mobile-fit.spec.mjs` takes its page list
+  from the sitemap rather than from a literal.
+- **Prevention check, and what was deliberately NOT built.** An enumerated sweep over the four known
+  offer surfaces was written and **discarded**: all four are pinned individually already, so it
+  could not redden on the realistic recurrence — a **fifth** surface it does not know about — and it
+  would have read like a safeguard while being decoration. That is run 180's finding and
+  [L-95](#l-95) applied to a test instead of to a line of SQL, and the same battery that caught it
+  caught a real one in the same run: `ORDER BY latest_item_at IS NULL, …` changed nothing any input
+  could observe, because SQLite already orders `NULL` below every value, so `DESC` puts a
+  never-published feed last on its own. **Both were removed. A check no input can distinguish is not
+  weaker prevention than none — it is worse, because the next run reads it and stops looking.**

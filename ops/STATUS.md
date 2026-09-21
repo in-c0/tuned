@@ -1,5 +1,105 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-22 08:35 Sydney (2026-09-21 22:35 UTC), run 182 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-181 and not re-argued here, per [L-07](LESSONS.md).** **The page that
+picks a feed for a visitor was the one surface on this site that never said how old any of them
+are, and its heading called all five of them live.**
+
+**The gate was attended first, and it said do nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 283, 12h old, **zero** scheduled screens certainly delivered since, the next
+one due 02:40Z. Nothing was owed at the gate, so **nothing was published, amended or retracted this
+run**, and the cycle's action was chosen elsewhere. That is the second time the mechanism's first act
+has been to tell a run not to act.
+
+**The finding, and it is on the first screen of the funnel.** `GET /` built its feed list from
+`SELECT … FROM creators ORDER BY created_at` — **no item was read at all.** So the cards under the
+heading **"Live feeds"** could not report how current any destination was, and the order a visitor
+scanned them in was registration date.
+
+**What that was sitting on top of.** [EXP-005's per-feed reading](EXPERIMENTS.md#exp-005--re-read-2026-09-11-run-152-and-the-first-per-feed-reading-on-record)
+(run 152, off live production): `@wearables`, `@wellbeing` and `@graphics` last published
+**2026-07-30**, `@ava` **2026-08-04**. **Four of the five destinations under the word *live* had
+published nothing for six weeks**, and the oldest-registered of them led the list.
+
+**It is the demo block's own defect, one section up the same page.** That block was fixed at run 139
+and its comment states the rule this list broke: *"A claim about freshness that is hardcoded is a
+claim nobody can keep true — so this one is derived."* ***Live*** is such a claim. The same comment
+adds *"the landing page must not be able to look fresher than the feed it is showing"* — which is
+exactly what a card with no date does.
+
+**And it is [L-93](LESSONS.md#l-93)'s shape a third time, which is the part worth keeping.** Run 172
+put this disclosure on the follow block and both follow dialogs. Run 177 put it on the desk's
+suggestion row **one run later**, because that row did not exist when run 172 made its pass. The
+surface the funnel *starts* at is the one that still did not have it, 10 days on. [L-100](LESSONS.md#l-100).
+
+**What shipped.** [`src/index.ts`](../src/index.ts) — the landing query carries each feed's newest
+**public** item as `latest_item_at` via a correlated subquery, and orders by it: freshest first,
+never-published last, `created_at` still breaking ties among those so the old order survives where
+there is nothing to order by. `visibility = 'public'` sits **inside** the subquery, so a queued
+Spotify capture or a hidden item cannot date a feed on the most public page Tuned has.
+[`src/pages.ts`](../src/pages.ts) — `LandingFeed`, `feedAgeLine()`, and the heading moved to **"All
+feeds"**: what the block *is*, with no claim about activity. How current each feed is, each card now
+says for itself.
+
+**The age is deliberately NOT folded into `.desc`.** That element is `-webkit-line-clamp: 2`, and at
+390px the two sentences together land on exactly the second line — so a longer handle would clamp the
+disclosure away **silently**, which is the one failure mode a disclosure must not have. It renders in
+`.fine`, a rule the shared CSS already serves, so this adds **no declaration** and no flex row that
+can squeeze. Both L-18's and L-93's regressions were a disclosure folded into a line that already had
+a job, and neither overflowed anything.
+
+**Unlike the desk row it does not fall silent on an empty feed.** That row can, because its own
+`0 finds` already says so. This card carries no other number, so silence would have left the emptiest
+case the only undisclosed one: it reads *"nothing published yet"*.
+
+**A clause removed because no mutation could redden it.** The `ORDER BY` was written
+`latest_item_at IS NULL, latest_item_at DESC, …`. SQLite orders `NULL` below every other value, so
+`DESC` already puts a never-published feed last and the explicit clause changed **nothing any input
+could observe**; the outcome stays pinned by its own test either way. Removed rather than kept, with
+the engine rule written into the comment instead — run 180's finding, [L-95](LESSONS.md#l-95).
+
+**A sweep was considered and deliberately NOT shipped, and the reason is the same one.** L-93's
+remedy for this family was a sweep, and the obvious move here was one over the surfaces that offer a
+feed. **It would have been decoration:** all three are already pinned individually, and an enumerated
+list cannot redden on the realistic recurrence — a *fourth* surface it does not know about. What would
+prevent it is a check that derives the offer surfaces from the delivered HTML rather than from a list
+a run typed; its difficulty is recorded in [L-100](LESSONS.md#l-100) rather than papered over with a
+check that reads like a safeguard and is not.
+
+**Gates.** `npm run check` exit 0 · **471 vitest** (464 → 471, seven new) · **ops suite 276/276**
+(unchanged — no `scripts/` file touched) · `validate-workflows.py` ok, 13 workflows ·
+`validate-nominations.mjs` **10 valid** · `npm audit --omit=dev` **0 vulnerabilities**. **Seven
+mutations, each reddening its own named test**; the seventh was the positive control above and **did
+not redden**, which is why the clause is gone. Both touched sources restored **byte-identical** under
+`sha256sum -c`, **by copy, per L-95**.
+
+**The honest cost, stated rather than buried.** This trades a flattering first screen for a true one —
+the same trade run 172 made on the follow dialogs — and pairs it with the ordering change so the one
+feed that **is** current leads the list instead of sitting fourth.
+
+**The schedule is still NOT armed, and no threshold was touched.** Run 153's pre-commitment binds
+this run as it bound 179-181, **EXP-013's threshold 2 is unruled at 23 days**, and `agent-scout.yml`
+and the bar in `scripts/lib/agent-scout.mjs` are **byte-untouched**. **No threshold graded early** —
+EXP-013's reading is due **2026-09-26**.
+
+**Deliberately NOT touched.** No schema, no migration, no new data category, no new counter, no new
+CSS declaration, no secret, no dependency, no workflow. No item published, amended, retracted or
+restored. No pricing, positioning or distribution work. **No spend.**
+
+**Magnitude, stated plainly.** `members` is 1 and that member is the owner, so **this moves no
+commercial metric and is not offered as growth work.** It is the **eleventh** consecutive cycle whose
+output is not a user or a dollar. What is different from the last three is where the change landed:
+this is the first screen an arriving stranger sees, and it is the first change in ten runs that a
+stranger could notice. Six rendering browsers in forty-seven days is the whole of the demand signal
+it will be read against, and that is not a forecast of anything.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers`
+**0** · gross cash **AUD $0**, from *no billing exists*. **14 days left.**
+
+---
+
+## Run 181 (2026-09-21 20:35 Sydney) — the gate that decides whether to publish is fed by a file nobody is obliged to write
+
 **Last updated:** 2026-09-21 20:35 Sydney (2026-09-21 10:35 UTC), run 181 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-180 and not re-argued here, per [L-07](LESSONS.md).** **The gate that
 decides whether to publish is fed by a file nobody is obliged to write, and this run was the first

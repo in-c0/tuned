@@ -409,6 +409,45 @@ jobs:
             echo "${path}: HTTP 200, contact is legal@justtuned.com, no personal address"
           done
 
+      # The landing page's feed list is where a visitor picks a destination, and until f75b642 it
+      # was the one offer surface on this site that stated no age at all — its query read no item —
+      # under a heading reading "Live feeds", while four of the five feeds under it had published
+      # nothing for six weeks (EXP-005 per feed, run 152; L-100).
+      #
+      # Asserted here for the reason the step below this one exists: run 172 learned to grade a
+      # disclosure on the DEPLOYED page and not only in workerd. The vitest suite pins the rendering
+      # against a seeded D1; this pins that the deployed page carries it against the real one, and
+      # its log is where the production reading of those ages actually lands.
+      #
+      # It counts rather than pattern-matches one card: every feed card must carry the line, because
+      # a disclosure present on four of five feeds is the defect this replaced.
+      - name: Every feed the landing page offers states how current it is
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh get "${BASE}/" /tmp/landing.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/ returned HTTP $code"; exit 1; }
+
+          cards=$(grep -o 'is paying attention to</div>' /tmp/landing.html | wc -l)
+          dated=$(grep -o 'is paying attention to</div><div class="fine">' /tmp/landing.html | wc -l)
+          [ "$cards" -ge 1 ] || { echo "::error::the landing page offers no feed at all"; exit 1; }
+          if [ "$cards" != "$dated" ]; then
+            echo "::error::${cards} feed cards on / and only ${dated} state an age"
+            exit 1
+          fi
+
+          # The heading is a claim of its own. "Live feeds" over a dateless list is the exact
+          # sentence this replaced, and it is the one string whose return would be silent.
+          if grep -q 'Live feeds' /tmp/landing.html; then
+            echo "::error::/ has gone back to heading the feed list 'Live feeds'"
+            exit 1
+          fi
+
+          echo "${cards} feed cards on /, each stating its age. What production says right now:"
+          grep -o '<div class="fine">[^<]*</div>' /tmp/landing.html \
+            | sed -e 's|<div class="fine">|  |' -e 's|</div>||'
+
       # Run 172 learned to grade a disclosure on the deployed page and not only in workerd
       # (445f980). This is that lesson applied to the one this service is least able to keep.
       #
