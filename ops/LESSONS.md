@@ -4137,3 +4137,46 @@ which makes that timestamp the registry's ordering invariant rather than decorat
 autonomous publication was therefore registrable only by reading the timestamp back out of
 production afterwards. Item 282 is the last one that needed that detour. **A writer that cannot
 report what it wrote forces every reader downstream to go and look.**
+
+---
+
+## L-98 — a remedy queued behind an unanswered question is the same stoppage, one level up (2026-09-21, run 180)
+
+**What happened.** Run 179 found [L-97](#l-97): publication had been moved behind an attended gate,
+the queue behind it was a workflow artifact no run was obliged to open, and eight consecutive
+screens each selected about nine candidates out of about thirty-seven and published none of them.
+It named the remedy in its own words — *make the screening backlog legible to the run that is
+supposed to attend the gate* — and then **did not ship it**, on two grounds. The first was
+NORTH_STAR rule 7: a ninth consecutive control-plane change is what the rule forbids. The second
+was that the remedy "only pays off if the gate stays attended — which is question 1", the reviewer's
+unruled EXP-013 re-specification.
+
+The second ground is the defect. **Question 1 was 20 days old when it was used as the reason to
+wait, and no reviewer directive has been posted since 2026-09-01.** The fix for a gate nobody
+attends was placed in a queue behind a question nobody is answering — which is L-97's own shape,
+recursed, and it presents identically: the feed stays quiet, every check stays green, and the run
+that deferred has a written reason.
+
+**Lesson:** when you find that work is stalled behind an unattended gate, check whether your own
+remedy is being filed behind another one. A deferral is only a deferral if something is expected to
+arrive; when nothing is, it is a decision not to do the work, and it should be argued as one. L-07
+already says to escalate a blocker once and then stop restating it — **stop restating it is not the
+same as stop acting around it.**
+
+**More elegant next attempt:** put a date on every deferral, and name the event that would end it.
+"Pending the reviewer" with no answer in three weeks is not an event; "if no answer by run N, ship
+the narrow version" is. The narrow version here was eight lines a run executes — small enough that
+the cost of shipping it unruled was always below the cost of one more silent day.
+
+**What this does not license.** It is not a reason to decide question 1. The schedule stays
+disarmed, run 153's pre-commitment stands, and `agent-scout.yml` and `scripts/lib/agent-scout.mjs`
+are byte-untouched. **Attending a gate and removing it are different acts, and only the first of
+them was ever this executor's to perform.**
+
+**A second finding, from the mutation battery.** The instant walk in `scripts/scout-gate.mjs`
+started a day early, commented "so the instant on the publication's own UTC day is never skipped".
+**No mutation could redden it** — `setUTCHours` already produces that instant, and the comparison
+drops it when it precedes the publication. A defensive line that no test can pin is not a
+safeguard; it is decoration read with a safeguard's authority, and the next reader budgets for a
+risk that was never there. It was removed rather than kept. Ask of any guard: *which mutation of
+the code around it does it survive?*
