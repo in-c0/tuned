@@ -18,8 +18,10 @@ scanned them in was registration date.
 
 **What that was sitting on top of.** [EXP-005's per-feed reading](EXPERIMENTS.md#exp-005--re-read-2026-09-11-run-152-and-the-first-per-feed-reading-on-record)
 (run 152, off live production): `@wearables`, `@wellbeing` and `@graphics` last published
-**2026-07-30**, `@ava` **2026-08-04**. **Four of the five destinations under the word *live* had
-published nothing for six weeks**, and the oldest-registered of them led the list.
+**2026-07-30**, `@ava` **2026-08-02** (run 152's entry and runs 178–181 carried *2026-08-04* for
+`@ava`; the reading below, taken off production this run, measures `2026-08-02T03:33:44Z` and is what
+this file now states). **Four of the five destinations under the word *live* had published nothing
+for six weeks**, and the oldest-registered of them led the list.
 
 **It is the demo block's own defect, one section up the same page.** That block was fixed at run 139
 and its comment states the rule this list broke: *"A claim about freshness that is hardcoded is a
@@ -65,6 +67,33 @@ list cannot redden on the realistic recurrence — a *fourth* surface it does no
 prevent it is a check that derives the offer surfaces from the delivered HTML rather than from a list
 a run typed; its difficulty is recorded in [L-100](LESSONS.md#l-100) rather than papered over with a
 check that reads like a safeguard and is not.
+
+**The production reading, taken after the deploy with EXP-005's own instrument.** `qa/freshness.spec.mjs`
+against `https://justtuned.com`, [run 35662417563](https://github.com/in-c0/tuned/actions/runs/35662417563)
+at `2026-09-21T22:24Z` — **passed**, `feedsWithNoItems: []`, `demoIsFreshest: true`,
+`retiredClaimsStillPresent: []`:
+
+| feed | items | newest public item | age | the card's line |
+| --- | --- | --- | --- | --- |
+| `@sportstech` | 21 | `2026-09-21T10:04:55Z` | **12.3h** | last published today |
+| `@ava` | 38 | `2026-08-02T03:33:44Z` | **1218.8h** | last published 50 days ago |
+| `@graphics` | 11 | `2026-07-30T22:51:27Z` | **1271.5h** | last published 52 days ago |
+| `@wellbeing` | 9 | `2026-07-30T22:50:34Z` | **1271.6h** | last published 52 days ago |
+| `@wearables` | 10 | `2026-07-30T22:49:47Z` | **1271.6h** | last published 52 days ago |
+
+**That is the whole case for the change in one table.** Four of five feeds are between **50 and 53
+days** stale, and until `f75b642` the first screen of this site presented all five identically, under
+the word *live*, with `@wearables` — the stalest — reachable before `@sportstech` because it was
+registered earlier. The instrument's `feeds` array is in exactly descending-freshness order, which is
+consistent with the new `ORDER BY` and is reported as consistency rather than as proof of it.
+
+**And the ages are asserted on the deployed page, not only in workerd.** One step added to
+`verify-production.yml`: it counts the feed cards on the live landing page, requires **every** one to
+carry an age line, and fails if the heading returns to *"Live feeds"*. **Run red first, per run
+174, and it paid both ways** — executed against the pre-change page rendered from
+`2a367b6:src/pages.ts` it reports *"5 feed cards on / and only 0 state an age"* and the heading clause
+reddens too; against production at `3153afd` it passes, as **step 16 of
+[run 35662212331](https://github.com/in-c0/tuned/actions/runs/35662212331)**.
 
 **Gates.** `npm run check` exit 0 · **471 vitest** (464 → 471, seven new) · **ops suite 276/276**
 (unchanged — no `scripts/` file touched) · `validate-workflows.py` ok, 13 workflows ·

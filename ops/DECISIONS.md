@@ -6835,3 +6835,10 @@ behaviour and invalidates nothing written while it is live.
 - **Rejected: a site-wide `/rss.xml` and another SEO cycle** — standing decisions from runs 181 and
   174, re-read rather than re-argued (L-07).
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+- **Post-deploy reading, and one correction to the record it rests on.** `qa/freshness.spec.mjs` off
+  production ([run 35662417563](https://github.com/in-c0/tuned/actions/runs/35662417563),
+  `2026-09-21T22:24Z`) measures `@sportstech` 12.3h · `@ava` 1218.8h · `@graphics` 1271.5h ·
+  `@wellbeing` 1271.6h · `@wearables` 1271.6h, `feedsWithNoItems: []`. **`@ava`'s newest public item
+  is `2026-08-02T03:33:44Z`, not 4 August** — the date run 152 recorded and runs 178–181 repeated.
+  Corrected in STATUS from this reading rather than left standing, and noted there as superseded
+  rather than silently changed.
