@@ -1311,12 +1311,58 @@ export function studioPage(creator: Creator, items: Item[]): string {
   return layout(`Studio — ${creator.name}`, creator.accent, body, CLIENT_JS + STUDIO_JS + swJs, head);
 }
 
-export function landingPage(creators: Creator[], demo?: { creator: Creator; items: Item[] }): string {
+/** A creator as the landing page's feed list needs it: the row, plus how current the feed is.
+ *
+ *  The age is a separate column rather than a field on `Creator`, for the reason `AgentStats`
+ *  keeps `lastItemAt` beside its creator instead of inside it — it is a fact about the feed's
+ *  items, and `Creator` is the row. Only this surface reads it. */
+export interface LandingFeed extends Creator {
+  /** The newest **public** item's timestamp, or `null` for a feed that has never published one.
+   *  Queued and hidden items are excluded, on the same reasoning the demo block excludes them:
+   *  private state must not date a public surface. */
+  latest_item_at: string | null;
+}
+
+/** The age line on a feed card in the landing page's list.
+ *
+ *  `lastPublished()`'s reading in the shape a card can carry — a line of its own rather than the
+ *  desk row's `·`-separated clause, because there is no list here to join. It uses `.fine`, a rule
+ *  the shared CSS already serves, so this adds no declaration to `CSS` and no flex row that can
+ *  squeeze (L-18, L-93: both of those regressions were a disclosure folded into a line that
+ *  already had a job).
+ *
+ *  **It is deliberately NOT appended to `.desc`.** That element is `-webkit-line-clamp: 2`, and at
+ *  390px the two sentences together land on exactly the second line — so a longer handle would
+ *  clamp the age away silently, which is the one failure mode a disclosure must not have.
+ *
+ *  Unconditional, with no threshold and no change of tone above one, exactly as `lastPublished`
+ *  and `staleClause` are: a cut point chosen here would be a number fitted to the five feeds this
+ *  executor can see (EXP-013 Fork B). Unlike the desk row it does **not** fall silent on a feed
+ *  that has never published, because this card carries no other number — no `0 finds` — so
+ *  silence here would leave the emptiest case the only undisclosed one. */
+function feedAgeLine(latestIso: string | null | undefined, now = Date.now()): string {
+  const words = lastPublished(latestIso, now);
+  return `<div class="fine">${words ? `last published ${esc(words)}` : "nothing published yet"}</div>`;
+}
+
+/** The heading over the feed list, and the reason it no longer says *"Live feeds"*.
+ *
+ *  That phrasing is the defect the demo block one section down was already fixed for, and that
+ *  block's own comment states the rule it broke: *"A claim about freshness that is hardcoded is a
+ *  claim nobody can keep true — so this one is derived."* **Live* is such a claim.* It was made
+ *  over a list whose query read no item at all, and on EXP-005's per-feed reading (run 152) four
+ *  of the five destinations under it had published nothing for six weeks.
+ *
+ *  So the heading states what the block IS — the complete list — and says nothing about activity.
+ *  How current each feed is, each card now says for itself and derives from the row. */
+const FEED_LIST_HEADING = "All feeds";
+
+export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; items: Item[] }): string {
   const list = creators
     .map(
       (c) => `<a class="card-link" href="/${esc(c.handle)}"><div class="card">
         <div class="avatar" style="width:44px;height:44px;font-size:18px;background:linear-gradient(135deg,${esc(c.accent)},#2b2b3d)">${c.avatar_url ? `<img src="${esc(c.avatar_url)}" alt="">` : esc(c.name.slice(0, 1).toUpperCase())}</div>
-        <div class="body"><h3>${esc(c.name)}${c.kind === "agent" ? ` <span class="ai-badge">AI agent</span>` : ""}</h3><div class="desc">what @${esc(c.handle)} is paying attention to</div></div>
+        <div class="body"><h3>${esc(c.name)}${c.kind === "agent" ? ` <span class="ai-badge">AI agent</span>` : ""}</h3><div class="desc">what @${esc(c.handle)} is paying attention to</div>${feedAgeLine(c.latest_item_at)}</div>
       </div></a>`
     )
     .join("");
@@ -1373,7 +1419,7 @@ export function landingPage(creators: Creator[], demo?: { creator: Creator; item
     <p class="fine">Follow a person, their agents, or both — no account needed, open RSS on every feed.</p>
   </div>
 
-  ${list ? `<div class="section-h"><h2>Live feeds</h2><div class="rule"></div></div>` + list : ""}
+  ${list ? `<div class="section-h"><h2>${FEED_LIST_HEADING}</h2><div class="rule"></div></div>` + list : ""}
   <footer>${esc(TAGLINE)} · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
   const js = /* js */ `
   const rel = (t) => {

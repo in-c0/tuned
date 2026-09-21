@@ -128,3 +128,102 @@ describe("the landing page does not claim freshness it does not have", () => {
     expect(html).toContain("Follow what people");
   });
 });
+
+// The feed list's freshness claim, made executable on the same terms as the demo block's.
+//
+// The demo block above got these tests at run 139 because EXP-005 caught a hardcoded "right now"
+// over an 11-day-old item. The list *underneath* it kept the identical defect for six more weeks
+// in a louder form: a heading reading "Live feeds" over cards built by a query that selected no
+// item, on a reading (EXP-005 per feed, run 152) where four of the five destinations had published
+// nothing for six weeks. Every other surface that offers a feed discloses the age — the follow
+// block, both follow dialogs (run 172), the desk's suggestion row (run 177). The top of the funnel
+// was the one that did not.
+describe("the landing page's feed list says how current each destination is", () => {
+  it("reports each feed's age on its own card, derived from the row", async () => {
+    const fresh = await creator("current", ago(1000));
+    const dormant = await creator("dormant", ago(2000));
+    await item(fresh, ago(2));
+    await item(dormant, ago(54 * 24));
+
+    const html = await landing();
+    expect(html).toContain("last published today");
+    expect(html).toContain("last published 54 days ago");
+  });
+
+  it("puts the age in an element of its own, not inside the clamped description", async () => {
+    // `.desc` is `-webkit-line-clamp: 2`, and at 390px the two sentences together land on exactly
+    // the second line — so folding the age in there would clamp it away silently on a longer
+    // handle. A disclosure that disappears when the text grows is the L-18/L-93 failure mode, and
+    // this is the assertion that keeps it out of that element.
+    const id = await creator("somebody", ago(1000));
+    await item(id, ago(54 * 24));
+
+    const html = await landing();
+    expect(html).toContain('<div class="fine">last published 54 days ago</div>');
+    expect(html).not.toContain("is paying attention to · last published");
+  });
+
+  it("says so plainly for a feed that has never published, rather than showing no age", async () => {
+    // The desk's suggestion row falls silent in this case because its own `0 finds` already says
+    // it. This card carries no other number, so silence here would leave the emptiest feed the
+    // only undisclosed one.
+    await creator("never", ago(1000));
+
+    const html = await landing();
+    expect(html).toContain('<div class="fine">nothing published yet</div>');
+    expect(html).not.toContain("last published");
+  });
+
+  it("orders the list by the newest item, not by registration date", async () => {
+    // The same defect the demo block was fixed for, on the list it sits above: registration date
+    // is a fact about when a feed was registered and says nothing about whether anything on it is
+    // current. A visitor choosing a destination is shown the freshest first.
+    const registeredFirst = await creator("stale-but-old", ago(2000));
+    const registeredLater = await creator("fresh-but-new", ago(100));
+    await item(registeredFirst, ago(54 * 24));
+    await item(registeredLater, ago(3));
+
+    const html = await landing();
+    const freshAt = html.indexOf('<a class="card-link" href="/fresh-but-new">');
+    const staleAt = html.indexOf('<a class="card-link" href="/stale-but-old">');
+    expect(freshAt).toBeGreaterThan(-1);
+    expect(staleAt).toBeGreaterThan(-1);
+    expect(freshAt).toBeLessThan(staleAt);
+  });
+
+  it("sorts a feed that has never published below every feed that has", async () => {
+    const published = await creator("has-published", ago(100));
+    await creator("has-not", ago(2000));
+    await item(published, ago(54 * 24));
+
+    const html = await landing();
+    expect(html.indexOf('<a class="card-link" href="/has-published">')).toBeLessThan(
+      html.indexOf('<a class="card-link" href="/has-not">')
+    );
+  });
+
+  it("does not let a queued or hidden item date a feed in the list", async () => {
+    // A queued Spotify capture is private until a member approves it. Dating a card from one
+    // would leak private state onto the most public page Tuned has — the rule the demo block's
+    // own query already follows, applied to the list.
+    const id = await creator("mixed", ago(1000));
+    await item(id, ago(54 * 24));
+    await item(id, ago(1), "queued");
+    await item(id, ago(2), "hidden");
+
+    const html = await landing();
+    expect(html).toContain('<div class="fine">last published 54 days ago</div>');
+    expect(html).not.toContain("last published today");
+    expect(html).not.toContain("last published yesterday");
+  });
+
+  it("no longer heads the list with a freshness claim the query cannot keep", async () => {
+    const id = await creator("whoever", ago(1000));
+    await item(id, ago(54 * 24));
+
+    const html = await landing();
+    expect(html).toContain("All feeds");
+    // The exact heading this replaces. If it returns, so does the claim.
+    expect(html).not.toContain("Live feeds");
+  });
+});
