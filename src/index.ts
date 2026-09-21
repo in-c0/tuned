@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { resolveLink } from "./meta";
-import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type ShareState, type FeedViewer } from "./pages";
+import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type LandingFeed, type ShareState, type FeedViewer } from "./pages";
 import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
@@ -113,7 +113,39 @@ async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean):
 // ---------- landing ----------
 app.get("/", async (c) => {
   track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "landing_view_bot" : "landing_view"));
-  const { results } = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators ORDER BY created_at").all<Creator>();
+  // The feed list carries each feed's age, and is ordered by it — both for the reason the demo
+  // block below was already fixed for, applied to the list the demo block sits above.
+  //
+  // This query used to be `SELECT … FROM creators ORDER BY created_at`: it read no item, so the
+  // cards it rendered could not report how current any destination was, under a heading that
+  // called all of them *live*. EXP-005's per-feed reading (run 152) is what that was sitting on
+  // top of — `@wearables`, `@wellbeing` and `@graphics` last published 2026-07-30, `@ava`
+  // 2026-08-04 — and the desk's suggestion row, both follow dialogs and the follow block all
+  // disclose exactly this (L-18, run 172; the desk row, run 177). **The one surface that did not
+  // is the one the funnel starts at**, which is L-93's shape a third time.
+  //
+  // `ORDER BY` is part of the same defect and not a second change: registration date is, in the
+  // words of the comment below, "a fact about when the feed was registered and says nothing about
+  // whether there is anything current on it". A visitor choosing a destination is shown the
+  // freshest first, never-published last, and `created_at` still breaks ties among those so the
+  // old order survives where there is nothing to order by.
+  //
+  // A never-published feed sorts last because SQLite orders NULL below every other value, so
+  // `DESC` puts them at the end — it is NOT ordered here by an explicit `latest_item_at IS NULL`.
+  // That clause was written first and removed after no mutation could redden it: the outcome it
+  // was supposed to protect is pinned by a test either way, and a line no input can distinguish
+  // is decoration that the next reader will mistake for a safeguard (run 180's finding, L-95).
+  //
+  // `visibility = 'public'` sits inside the subquery deliberately: a queued Spotify capture or a
+  // hidden item must not date a feed on the most public page Tuned has, which is the rule the
+  // demo block's own query already follows.
+  const { results } = await c.env.DB.prepare(
+    `SELECT cr.id, cr.handle, cr.name, cr.bio, cr.avatar_url, cr.accent, cr.kind, cr.created_at,
+            (SELECT MAX(i.created_at) FROM items i
+              WHERE i.creator_id = cr.id AND i.visibility = 'public') AS latest_item_at
+     FROM creators cr
+     ORDER BY latest_item_at DESC, cr.created_at`
+  ).all<LandingFeed>();
   // The demo is the feed with the most recently published item, not the oldest creator.
   //
   // It used to be `results[0]` — first by created_at — which is a fact about when the feed
