@@ -6700,3 +6700,41 @@ behaviour and invalidates nothing written while it is live.
   acts are the owner's. Unchanged, not re-argued ([L-07](LESSONS.md)).
 
 **Spend:** AUD $0.00 this run. Running total **AUD $0.00 of $500**.
+
+## 2026-09-21 (run 180) — ship L-97's remedy rather than keep it queued behind an unruled question
+
+- **Decision.** Shipped `scripts/scout-gate.mjs` and **one step in `CLAUDE.md`'s read order** that
+  names it, so every run is obliged to learn whether a scheduled screen has come and gone since
+  `@sportstech` last published. Run 179 named this remedy and deferred it pending the reviewer's
+  EXP-013 answer; that question is now 21 days unanswered and no directive has been posted since
+  2026-09-01. Recorded as [L-98](LESSONS.md#l-98): a remedy queued behind an unanswered question is
+  the same stoppage one level up.
+- **Source of the reading: `qa/nominations/`, not the screening record.** The record is richer — it
+  carries the queue's depth and every rejection clause — but it is an Actions artifact needing the
+  network, a credential and a 90-day retention window. The registry is in the repository, already
+  validated in `check.yml`, and already carries this publisher's publications under an ordering
+  invariant. The reading therefore answers only *should a run go and open the record*, and says so.
+- **Both error directions are one-way, by construction.** A `@sportstech` publication missing from
+  the registry can only move the newest publication backwards, making the feed look staler than it
+  is; the five-hour delivery allowance (measured lateness 1.6–4.5h since 2026-08-26,
+  `scripts/executor-liveness.mjs`) counts a screen only once it has certainly been delivered.
+  Neither can make a silent feed read fresh.
+- **Neither verdict fails a build.** `ATTEND` and `CURRENT` both exit 0; only an unreadable registry
+  exits non-zero. Reddening `test:ops` on a quiet feed would block unrelated pushes and create
+  pressure to publish in order to get a build green — the exact pressure the bar keeps off the
+  publisher.
+- **Not done, and it is the load-bearing negative.** The schedule was **not** armed; EXP-013's
+  threshold 2 was **not** re-specified; `agent-scout.yml` and `scripts/lib/agent-scout.mjs` are
+  byte-untouched. Run 153's pre-commitment binds this run as it bound run 179.
+- **Nothing was published today**, on the new reading's own verdict: item 282 was 6.1 hours old and
+  today's 02:40Z screen was still inside the delivery allowance, so the gate owed nothing. The first
+  act of the mechanism was to tell a run not to act.
+- **A dead guard removed rather than kept.** The instant walk started a day early; no mutation could
+  redden it, because `setUTCHours` already produces that instant. A defensive line no test can pin
+  is decoration wearing a safeguard's authority. Removed, with the reason in its place.
+- **Verification.** `npm run check` exit 0 · 464 vitest (unchanged, no worker source touched) · ops
+  suite 265/265 (248 → 265) · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs`
+  9 valid · `npm audit --omit=dev` 0 vulnerabilities. Twelve mutations each reddening their own
+  named test, including a positive control (screen count inferred from age in whole days — plausible,
+  well-formed, wrong); card and script restored byte-identical under `sha256sum -c`, by copy (L-95).
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

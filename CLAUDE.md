@@ -55,6 +55,19 @@ agent-observability dashboard.
 2. **`ops/STATUS.md`** head — current posture, active objective, blockers, "not doing".
 3. **`ops/MILESTONES.md`** — the nearest active horizon.
 4. **`ops/NORTH_STAR.md`** — doctrine, operating-memory contract, commercial hypothesis.
+5. **The publisher's gate**, which only a run can attend:
+
+   ```sh
+   node scripts/scout-gate.mjs        # CURRENT = nothing owed · ATTEND = a screen was discarded
+   ```
+
+   `ATTEND` means a scheduled screen has come and gone since `@sportstech` last published. Open
+   the latest `agent scout` run, **read its `scout-record` artifact**, and dispatch
+   `agent-scout.yml` with `publish: true` if the record supports it — **before** choosing the
+   cycle's action. **Do not arm the schedule**: EXP-013's threshold 2 is unruled and run 153's
+   pre-commitment stands. Attending a gate is not the same act as removing it. Between
+   2026-09-13 and 2026-09-20 eight screens each selected ~9 of ~37 and published none, because
+   the record is an artifact no run was obliged to open (LESSONS L-97).
 
 Canonical record: `ops/DECISIONS.md` · `ops/EXPERIMENTS.md` · `ops/METRICS.md` · `ops/LESSONS.md`.
 `ops/DASHBOARD.md` mirrors them for the owner and is never a source of truth.

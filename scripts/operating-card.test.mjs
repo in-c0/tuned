@@ -34,6 +34,7 @@ const MAX_CARD_LINES = 200;
 
 const CLAIM_COMMAND = "node scripts/run-claim.mjs claim";
 const RELEASE_COMMAND = "node scripts/run-claim.mjs release";
+const GATE_COMMAND = "node scripts/scout-gate.mjs";
 
 function readCard() {
   return fs.readFileSync(CARD_PATH, "utf8");
@@ -73,6 +74,28 @@ describe("executor operating card (CLAUDE.md)", () => {
       `CLAUDE.md is ${lines} lines; the cap is ${MAX_CARD_LINES}. Detail belongs in ops/ behind a ` +
         `pointer — a card that grows without limit becomes ops/STATUS.md, which is how the ` +
         `instruction got buried in the first place.`,
+    );
+  });
+
+  it("names the publisher-gate reading in its read order, where a run is obliged to reach it", () => {
+    // L-97. Moving publication behind an attended gate created a queue, and the record of that
+    // queue is a workflow artifact no run is obliged to open — so eight screens selected and
+    // published nothing while every check stayed green. The reading exists now; what makes it
+    // load-bearing is that the card carries it, and this is what stops the line being dropped by
+    // a later edit that finds it untidy.
+    const card = readCard();
+    assert.ok(
+      card.includes(GATE_COMMAND),
+      `CLAUDE.md must contain \`${GATE_COMMAND}\` — a gate nobody is obliged to attend and a ` +
+        `pipeline with nothing in it produce the same observable`,
+    );
+    const lines = card.split("\n");
+    const readOrder = lines.findIndex((line) => line.startsWith("## Read order"));
+    const gate = lines.findIndex((line) => line.includes(GATE_COMMAND));
+    assert.notEqual(readOrder, -1, "the card must still have a read order");
+    assert.ok(
+      gate > readOrder,
+      "the gate reading belongs in the read order — it decides what a run does, not how it ships",
     );
   });
 

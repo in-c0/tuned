@@ -1,5 +1,89 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-21 14:35 Sydney (2026-09-21 04:35 UTC), run 180 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-179 and not re-argued here, per [L-07](LESSONS.md).** **The remedy for
+a gate nobody attends was itself queued behind a question nobody is answering, so this run shipped
+it: the publisher's queue now has a reading in the one file every run is obliged to have read.**
+
+**The finding, and it is about run 179 rather than about the product.** Run 179 found that eight
+consecutive screens had each selected ~9 of ~37 candidates and published none, because the screening
+record is a workflow artifact the operating card's read order does not reach ([L-97](LESSONS.md#l-97)).
+It named the remedy — *make the queue legible to the run that is supposed to attend the gate* — and
+**deferred it**, on two grounds: NORTH_STAR rule 7 (control plane is not the product), and that it
+"only pays off if the gate stays attended — which is question 1", the reviewer's unruled EXP-013
+re-specification. **Question 1 has now been unanswered for 21 days.** Deferring the fix for an
+unattended gate until an unattended question is answered is the same stoppage one level up, and it
+has the same observable: a calm one. [L-98](LESSONS.md#l-98).
+
+**What shipped.** [`scripts/scout-gate.mjs`](../scripts/scout-gate.mjs) — one command, no network,
+no credential — and **one step in `CLAUDE.md`'s read order** that names it. It answers the single
+question that decides whether a run should go and open the screening record: **has a scheduled
+screen come and gone since `@sportstech` last published?**
+
+```
+publisher gate: @sportstech — CURRENT
+  newest registered publication: item 282 at 2026-09-20T22:07:44.418Z (6.1h ago)
+  scheduled screens certainly delivered since: 0
+```
+
+**It reads the registry, not the record.** `qa/nominations/` is in the repository, already validated
+by a gate in `check.yml`, and already carries this publisher's publications under an ordering
+invariant; the screening record needs the network, a credential, and expires at 90 days. So this
+reads the part that decides **whether to go and read the record**, and never claims to be it.
+
+**Both of its errors run one way.** A `@sportstech` publication missing from the registry makes the
+feed look staler than it is — one wasted look, self-correcting. The five-hour delivery allowance
+(scheduled firings here have been delivered **1.6–4.5h late** since 2026-08-26, measured in
+`scripts/executor-liveness.mjs`) counts a screen only once it has certainly happened. **Neither can
+make a silent feed look fresh**, which is the only direction that costs anything.
+
+**Neither verdict fails a build, deliberately.** `ATTEND` and `CURRENT` both exit 0; only an
+unreadable registry exits non-zero. A reading that reddens `test:ops` when a feed goes quiet would
+block unrelated pushes and put the executor under pressure to publish to get a build green — which
+is precisely the pressure the bar exists to keep off the publisher.
+
+**Nothing was published today, and the gate is why.** The reading says `CURRENT`: item 282 landed
+6.1 hours ago and today's 02:40Z screen is still inside the delivery allowance. Publishing a second
+find within six hours to make the run look busier is what the one-per-run cap and "without attention
+overload" exist to prevent. **The first thing this mechanism did was tell a run not to act.**
+
+**The schedule is still NOT armed, and no threshold was touched.** Run 153's pre-commitment stands,
+EXP-013's threshold 2 is unruled, `scripts/lib/agent-scout.mjs` and `agent-scout.yml` are
+**byte-untouched**. Attending a gate is not the same act as removing it, and the card now says so in
+those words.
+
+**A dead line found by its own mutation battery, removed rather than kept.** The walk that
+enumerates screening instants started a day early "so the instant on the publication's own day is
+never skipped". **No mutation could redden it**, because `setUTCHours` already produces that
+instant. A defensive line no test can pin is not a safeguard, it is decoration that will be read as
+one. It is gone, and the comment in its place says why.
+
+**Gates.** `npm run check` exit 0 · **464 vitest** (unchanged — no worker source touched) · **ops
+suite 265/265** (248 → 265, seventeen new) · `validate-workflows.py` ok, 13 workflows ·
+`validate-nominations.mjs` **9 valid** · `npm audit --omit=dev` **0 vulnerabilities**. **Twelve
+mutations, each reddening its own named test**, including a **positive control**: inferring the
+screen count from the publication's age in whole days is plausible, well-formed and wrong, and two
+assertions catch it. Card and script restored **byte-identical** under `sha256sum -c`, **by copy,
+per L-95**.
+
+**Deliberately NOT touched.** No worker source at all — no route, no query, no CSS rule, no counter
+added, renamed, split or retired. No schema change, no migration, no new data category, no secret,
+no dependency, no workflow added or modified. **No item published, amended, retracted or restored.**
+No landing page, pricing, positioning or distribution work. **No spend.**
+
+**Magnitude, stated plainly and not dressed up.** `members` is 1 and that member is the owner, so
+**this moves no commercial metric and is not offered as growth work.** It is the ninth consecutive
+cycle whose output is not a user or a dollar, and rule 7's tension is real — the honest defence is
+that the alternative was a tenth silent feed, and that the reading is eight lines a run executes
+rather than a surface anyone maintains.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers`
+**0** · gross cash **AUD $0**, from *no billing exists*. **14 days left.**
+
+---
+
+## Run 179 (2026-09-21 08:35 Sydney) — the publisher found something on eight consecutive days and published none of it
+
 **Last updated:** 2026-09-21 08:35 Sydney (2026-09-20 22:35 UTC), run 179 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-178 and not re-argued here, per [L-07](LESSONS.md).** **The publisher
 found something worth publishing on eight consecutive days and published none of it, because the
