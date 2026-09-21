@@ -1133,6 +1133,83 @@ export function idempotencyKeyFor(handle, url) {
 }
 
 // ---------------------------------------------------------------------------
+// The publication's own registry entry, composed by the thing that published it
+// ---------------------------------------------------------------------------
+//
+// WHY THIS EXISTS, AND IT IS NOT TIDINESS. `scripts/scout-gate.mjs` decides whether a run
+// should go and open a screening record by reading `qa/nominations/` — the newest registered
+// publication, against the screening schedule. So a publication that is never registered is a
+// publication the gate cannot see, and the gate's reading is only as true as a step nothing
+// enforces: a run publishes, then writes the entry by hand from the log.
+//
+// THE DIRECTION THAT ERROR ACTUALLY RUNS. `scout-gate.mjs` said an unregistered publication
+// "costs a run one look at a screening record and corrects itself", on the reasoning that a
+// missing entry can only move the newest publication *backwards* and so can never make a
+// silent feed read fresh. The reading is under-stated in the safe direction, which is right —
+// but the reading is not the end of it. `ATTEND` is the verdict that sends the next run to the
+// record **to publish**, so an unregistered publication does not cost a look, it buys a second
+// publication; and the run after that a third, because nothing in the sequence registers
+// anything. Three runs a day against a one-per-run cap is how "recurring agent value *without
+// attention overload*" stops holding. The fix is not a louder instruction — run 179 and run 180
+// both read that gate and neither had one — it is that the publisher writes the entry itself.
+//
+// THE SECOND REASON, FOUND IN THE FIRST HAND-WRITTEN ENTRY. Item 282's entry names `af26cc3`
+// as its bar and its note calls that "the last change to scripts/lib/agent-scout.mjs before
+// this publication". It is not: `88fe7d5` is, six days later. The entry still *validates* —
+// af26cc3 does precede the publication, which is all the ordering invariant asks — so no gate
+// could catch it, and what a reader audits is the wrong commit. A transcription step nobody
+// checks is a transcription step that drifts (L-31, L-95).
+//
+// WHAT THIS DOES NOT DO. It composes; it does not commit. A run still chooses to add the file,
+// because adding it is a claim that the publication happened and that claim belongs to a run
+// that looked. What it removes is the retyping, which is where both defects above came from.
+
+/** The `preregistration.commit` an `autonomous-bar` entry must name: the commit that shipped
+ *  the bar which composed this line. Passed in rather than read here so this stays pure —
+ *  `scripts/agent-scout.mjs` asks git, which is the only thing that knows. */
+export function nominationEntry({ handle, find, publication, bar, recordRun, notes = "" }) {
+  if (!publication || publication.published !== true) return null;
+  if (typeof publication.itemId !== "number" || !Number.isInteger(publication.itemId)) return null;
+  // The plane's own `created_at`, never a clock this process reads a second time. Without it
+  // there is no entry to write: `publishedAt` is the registry's ordering invariant, not a
+  // field, and inventing it would defeat the one thing the registry proves.
+  if (typeof publication.createdAt !== "string" || publication.createdAt === "") return null;
+  if (!bar || typeof bar.commit !== "string" || typeof bar.committedAt !== "string") return null;
+
+  return {
+    itemId: publication.itemId,
+    handle,
+    url: find.url,
+    title: find.title,
+    // The one literal the publisher does not derive: `publishOne` sends this category and the
+    // registry records what was sent, so the two cannot drift apart silently.
+    category: "Research",
+    why: find.why,
+    preregistration: {
+      commit: bar.commit,
+      committedAt: bar.committedAt,
+      form: "autonomous-bar",
+      recordRun,
+      verifyWith: `git show ${bar.commit.slice(0, 7)} -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line`,
+    },
+    publishedAt: publication.createdAt,
+    notes,
+  };
+}
+
+/** `qa/nominations/<id>-<slug>.json`, matching the names already in that directory. */
+export function nominationFilename(entry) {
+  const slug = entry.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .split("-")
+    .slice(0, 5)
+    .join("-");
+  return `${entry.itemId}-${slug || "find"}.json`;
+}
+
+// ---------------------------------------------------------------------------
 // Correction: a line already in front of readers, replaced with a quotation
 // ---------------------------------------------------------------------------
 //

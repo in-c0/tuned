@@ -31,9 +31,11 @@
 // page a human would otherwise be served — `fullTextXML` is the archive's own machine
 // endpoint. Nothing here retries a refusal or varies its identity to get a different answer.
 
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateNomination } from "../qa/nominations/index.mjs";
 import {
   AMEND_WHY_MAX,
   DEFAULT_WINDOW_DAYS,
@@ -48,6 +50,8 @@ import {
   grade,
   gradeMetadata,
   idempotencyKeyFor,
+  nominationEntry,
+  nominationFilename,
   parseSearchResults,
   rankSelected,
   searchUrl,
@@ -394,6 +398,75 @@ function renderTable(report) {
   return ["| Verdict | Id | Title | Why |", "| --- | --- | --- | --- |", ...rows].join("\n");
 }
 
+/** The commit that last changed the bar, which is what an `autonomous-bar` entry must name.
+ *  Returns null on a shallow clone or a missing git — a publication still succeeds; what is
+ *  lost is the emitted entry, and saying so beats guessing a sha. */
+function barCommit() {
+  try {
+    const out = execFileSync("git", ["log", "-1", "--format=%H %cI", "--", "scripts/lib/agent-scout.mjs"], {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+    }).trim();
+    const [commit, committedAt] = out.split(" ");
+    if (!/^[0-9a-f]{40}$/.test(commit ?? "") || !committedAt) return null;
+    return { commit, committedAt };
+  } catch {
+    return null;
+  }
+}
+
+/** The Actions run whose log shows this selection being made. `autonomous-bar` entries are
+ *  refused without it, because the strings live in that log rather than in the commit. */
+function recordRunUrl() {
+  const server = process.env.GITHUB_SERVER_URL ?? "";
+  const repo = process.env.GITHUB_REPOSITORY ?? "";
+  const id = process.env.GITHUB_RUN_ID ?? "";
+  if (!server || !repo || !id) return "";
+  return `${server}/${repo}/actions/runs/${id}`;
+}
+
+/** Compose this publication's registry entry and leave it on disk for a run to commit.
+ *
+ *  Not committed here and not uploaded as an artifact: the file lands in the working tree next
+ *  to the nine already there, and the log prints its path and its contents so a run that can
+ *  read a job log — which is how this loop reads a screening record at all — can reproduce it
+ *  exactly. Writing nothing is a normal outcome and never fails the publication. */
+export function writeNomination({
+  handle,
+  find,
+  publication,
+  dir = path.join(REPO_ROOT, "qa", "nominations"),
+  bar = barCommit(),
+  recordRun = recordRunUrl(),
+  log = console.log,
+}) {
+  const entry = nominationEntry({
+    handle,
+    find,
+    publication,
+    bar,
+    recordRun,
+    notes:
+      "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun.",
+  });
+  if (entry === null) {
+    log("  nomination: not composed — a publication needs an item id, the plane's created_at and a bar commit before it can be registered");
+    return null;
+  }
+  const problems = validateNomination(entry, `item ${entry.itemId}`);
+  if (problems.length > 0) {
+    // Printed, not thrown. The publication has already happened; a registry rule this entry
+    // cannot satisfy is a thing a run must see, not a reason to exit non-zero after the fact.
+    log(`::warning::the composed nomination does not validate and was not written: ${problems.join("; ")}`);
+    return null;
+  }
+  const file = path.join(dir, nominationFilename(entry));
+  fs.writeFileSync(file, `${JSON.stringify(entry, null, 2)}\n`);
+  log(`  nomination: qa/nominations/${path.basename(file)} — COMMIT THIS, or scout-gate.mjs cannot see this publication`);
+  log(JSON.stringify(entry, null, 2));
+  return file;
+}
+
 async function main() {
   const flags = parseArgs(process.argv.slice(2));
   const handle = typeof flags.handle === "string" ? flags.handle : "sportstech";
@@ -505,6 +578,7 @@ async function main() {
     } else {
       publication = await publishOne({ handle, base, key, find });
       if (publication.status !== 201 && publication.status !== 200) process.exitCode = 1;
+      writeNomination({ handle, find, publication });
     }
   } else if (wantPublish) {
     console.log("publish requested, but there is nothing to publish. Exit 0 — an empty cycle is not a failure.");
