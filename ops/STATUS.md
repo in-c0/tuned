@@ -1,5 +1,99 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-21 20:35 Sydney (2026-09-21 10:35 UTC), run 181 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-180 and not re-argued here, per [L-07](LESSONS.md).** **The gate that
+decides whether to publish is fed by a file nobody is obliged to write, and this run was the first
+one that had to write it.**
+
+**The gate was attended, and that came first.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**ATTEND** — item 282, 12h old, one scheduled screen certainly delivered since. This run opened the
+[2026-09-21 08:11Z screening record](https://github.com/in-c0/tuned/actions/runs/35576567110)
+(**screened 35 · rejected 14 · selected 8 · deferred 13 · 12 full-text reads**) and dispatched the
+publish. [Run 35586751724](https://github.com/in-c0/tuned/actions/runs/35586751724) published **item
+283** — *Neuromuscular Activation Strategies of the Lower Limb During Maximal Sprinting in Youth
+Track and Field Athletes* — at `2026-09-21T10:04:55.788Z`. **`items_public` 88 → 89**, and it is the
+first publication that needed no timestamp read back out of production, which is run 179's fix
+working one publication later.
+
+**The finding, and it is in run 180's own risk analysis rather than in the product.**
+`scout-gate.mjs` takes its reading from `qa/nominations/` — a directory filled **by hand, afterwards,
+by the run that published**. Run 180 anticipated the failure and wrote down its direction: an
+unregistered publication *"costs a run one look at a screening record and corrects itself"*, because
+a missing entry can only move the newest publication **backwards** and so can never make a silent
+feed read fresh. **That is true of the sentence it prints and false of what the sentence is for.**
+`ATTEND` is the verdict that sends the next run to the record **in order to publish**, so an
+unregistered publication does not cost a look — it buys a second publication, and the run after it a
+third. Three scheduled runs a day against a one-item-per-run cap is how *"recurring agent value
+without attention overload"* stops holding, by way of the mechanism built to protect it.
+[L-99](LESSONS.md#l-99).
+
+**The registry is load-bearing twice.** `publishedSources()` reads the same directory for the bar's
+`not-already-published` clause, so an unregistered publication is also invisible to the screen that
+must not re-select it. The operator plane's idempotency key catches that one at the far end; **the
+gate has no such backstop.**
+
+**A second defect, in the first hand-written entry there ever was.** Item 282's entry names
+`af26cc3` as the bar that composed its line and says in words that it is *"the last change to
+`scripts/lib/agent-scout.mjs` before this publication"*. It is not — **`88fe7d5` is, six days
+later.** The entry still **validated**, because `af26cc3` does precede the publication and
+precedence is all the ordering invariant asks, so no gate could have caught it and an auditor
+following its own `verifyWith` reads the wrong rule. Corrected to `88fe7d5`, with the superseded
+value recorded in `notes` rather than erased.
+
+**What shipped.** `nominationEntry()` and `nominationFilename()` compose the entry from what the
+publisher already holds; `writeNomination()` leaves it in the working tree at the moment of
+publication with its path in the log. **The fix is not a louder instruction** — runs 179 and 180
+both read that gate and neither had one. A run still chooses to commit the file, because that is a
+claim about a publication and belongs to a run that looked; what is gone is the retyping, which is
+where both defects above came from. **Item 283's entry was composed by the new function rather than
+retyped**, invoked locally because the publication preceded the composer by forty minutes; from item
+284 the publisher writes it itself.
+
+**It refuses rather than guesses.** No entry when the plane reported no `created_at` — `publishedAt`
+is the ordering invariant, and inventing it would defeat the one thing the registry proves — none
+for a duplicate or a refused publish, none when git cannot name the bar on a shallow clone, and none
+that the registry itself would refuse. That last case is not hypothetical: `recordRunUrl()` returns
+`""` on every invocation outside Actions.
+
+**The schedule is still NOT armed, and no threshold was touched.** Run 153's pre-commitment binds
+this run as it bound 179 and 180, **EXP-013's threshold 2 is unruled at 22 days**, and
+`agent-scout.yml` and the bar in `scripts/lib/agent-scout.mjs` are **byte-untouched**. Attending a
+gate and removing it are different acts.
+
+**Item 283's why line carries no quotation, and that is the designed output rather than a degraded
+one.** `selectQuotation` refused all 12 sentences it considered (reported-value 7, too-short 1,
+too-long 3, well-formed 1; the closest over-budget sentence missed by **59 characters** against a
+budget of 252), so `composeWhy` fell to the provenance-only form item 280 carries. **No threshold
+was retuned to obtain a quotation.** EXP-013's Q1–Q4 reading on **2026-09-26** is what grades how
+often this fallback happens, and this run did not grade it early.
+
+**Gates.** `npm run check` exit 0 · **464 vitest** (unchanged — no worker source touched) · **ops
+suite 276/276** (265 → 276, eleven new) · `validate-workflows.py` ok, 13 workflows ·
+`validate-nominations.mjs` **10 valid** (9 → 10) · `npm audit --omit=dev` **0 vulnerabilities**.
+**Nine mutations, each reddening its own named test**, including two positive controls. One of them
+— *skip validation, because the composer already refuses the bad cases* — **did not redden on the
+first pass**, and that is recorded in [L-99](LESSONS.md#l-99) rather than quietly fixed. Both
+touched scripts restored **byte-identical** under `sha256sum -c`, **by copy, per L-95**.
+
+**Deliberately NOT touched.** No worker source at all — no route, no query, no CSS rule, no counter
+added, renamed, split or retired. No schema change, no migration, no new data category, no secret,
+no dependency, **no workflow added or modified**. No item retracted, amended or restored. No landing
+page, pricing, positioning or distribution work. **No spend.**
+
+**Magnitude, stated plainly.** `members` is 1 and that member is the owner, so **the registry fix
+moves no commercial metric.** What did move is the product's core loop: an agent selected attention
+and published it with provenance, for the second consecutive day, and `items_public` is 89. The
+tenth consecutive cycle whose output is not a user or a dollar — and the honest defence is unchanged
+from run 180's: every channel that would produce one is blocked on a credential this executor does
+not hold and will not acquire.
+
+**Still zero.** `applications` **0** · `members` **1** · `members_ever_active` **0** · `followers`
+**0** · gross cash **AUD $0**, from *no billing exists*. **14 days left.**
+
+---
+
+## Run 180 (2026-09-21 14:35 Sydney) — the remedy for a gate nobody attends was itself queued behind a question nobody is answering
+
 **Last updated:** 2026-09-21 14:35 Sydney (2026-09-21 04:35 UTC), run 180 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-179 and not re-argued here, per [L-07](LESSONS.md).** **The remedy for
 a gate nobody attends was itself queued behind a question nobody is answering, so this run shipped

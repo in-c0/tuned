@@ -4180,3 +4180,56 @@ drops it when it precedes the publication. A defensive line that no test can pin
 safeguard; it is decoration read with a safeguard's authority, and the next reader budgets for a
 risk that was never there. It was removed rather than kept. Ask of any guard: *which mutation of
 the code around it does it survive?*
+
+---
+
+## L-99 — a reading is only as true as the step that feeds it, and "self-correcting" is a claim to test (2026-09-21, run 181)
+
+**What happened.** Run 180 shipped [`scripts/scout-gate.mjs`](../scripts/scout-gate.mjs) — the
+remedy for [L-97](#l-97) — and put it in `CLAUDE.md`'s read order so a run is obliged to take the
+reading. Run 181 took it, attended the gate, published item 283, and then found the hole by being
+the first run that had to write the file the reading depends on.
+
+**The gate reads `qa/nominations/`, and `qa/nominations/` is filled by hand, afterwards, by the run
+that published.** Nothing enforces it. Run 180 had anticipated the failure and written its direction
+down: an unregistered publication *"costs a run one look at a screening record and corrects
+itself"*, because a missing entry can only move the newest publication **backwards** and so can
+never make a silent feed read fresh.
+
+**That analysis is correct about the reading and wrong about the act.** `ATTEND` is not a report,
+it is the verdict that sends the next run to the screening record **in order to publish**. So an
+unregistered publication does not cost a look — it buys a second publication, and the run after it
+a third, because nothing in that sequence registers anything either. Three scheduled runs a day
+against a one-item-per-run cap is how *"recurring agent value without attention overload"*, third in
+issue #1's commercial hierarchy, stops holding — by way of the mechanism built to protect it.
+
+**Lesson:** when you reason about which direction an instrument can be wrong in, carry the reasoning
+one step past the number, into **what the number causes**. An error that is conservative in a
+reading can be the opposite in the action the reading triggers, and the safe-direction argument is
+the one most likely to be waved through — it is the shape of a proof. Ask not *"can this read
+fresher than the truth?"* but *"what does a run do when it reads this, and what does the error do to
+that?"*
+
+**The corroborating defect, in the same file.** Item 282's registry entry — the first
+`autonomous-bar` entry ever written by hand — names `af26cc3` as the bar that composed its line and
+says so in words: *"the last change to `scripts/lib/agent-scout.mjs` before this publication"*. It
+is not; `88fe7d5` is, six days later. **The entry validated**, because `af26cc3` does precede the
+publication and precedence is all the ordering invariant asks — so no gate could have caught it, and
+an auditor following its own `verifyWith` reads the wrong rule. One hand-written entry, one wrong
+provenance pointer. [L-31](#l-31) and [L-95](#l-95) again: the transcription step is where the drift
+lives.
+
+**More elegant next attempt:** when a reading depends on a file, make the thing that *causes* the
+file's subject write the file. `nominationEntry()` now composes the entry inside the publisher, from
+what it already holds, at the moment it publishes. A run still chooses to commit it — that is a
+claim about a publication and belongs to a run that looked — but nobody retypes it out of a log.
+**The fix for a step nobody is obliged to take is rarely a louder instruction:** runs 179 and 180
+both read that gate, and neither had one.
+
+**A third finding, from the mutation battery, recorded rather than quietly fixed.** The mutation
+*"write the entry without validating it, because the composer already refuses the bad cases"* **did
+not redden on the first pass.** It is the tempting mutation precisely because the sentence
+justifying it is true of every case the tests then held. The case that pins it is not hypothetical:
+`recordRunUrl()` returns `""` on every invocation outside Actions, the composer has no opinion on
+that string, and the registry refuses it. **A guard over a second component is unpinned until a test
+supplies an input the first component accepts and the second does not.**

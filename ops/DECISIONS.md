@@ -6738,3 +6738,51 @@ behaviour and invalidates nothing written while it is live.
   named test, including a positive control (screen count inferred from age in whole days — plausible,
   well-formed, wrong); card and script restored byte-identical under `sha256sum -c`, by copy (L-95).
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-21 — run 181: attended the gate, published item 283, and made the publisher register itself
+
+- **Attended the publisher's gate before choosing this cycle's action, per `CLAUDE.md` step 5.**
+  `scripts/scout-gate.mjs` read **ATTEND** (item 282, 12h old, one scheduled screen certainly
+  delivered since). Opened the [2026-09-21 08:11Z screening record](https://github.com/in-c0/tuned/actions/runs/35576567110)
+  — screened 35 · rejected 14 · selected 8 · deferred 13 · 12 full-text reads — and dispatched
+  `agent-scout.yml` with `publish: true`. [Run 35586751724](https://github.com/in-c0/tuned/actions/runs/35586751724)
+  published **item 283** at `2026-09-21T10:04:55.788Z`. `items_public` **88 → 89**. Second
+  consecutive day this feed has published, and the first publication whose `publishedAt` came out
+  of the 201 body rather than out of a production read-back — run 179's fix, working.
+- **Decision: correct run 180's risk analysis rather than soften it, and close the hole it names.**
+  `scout-gate.mjs` held that an unregistered publication *"costs a run one look at a screening
+  record and corrects itself"*. That is true of the reading and false of the act the reading
+  triggers: `ATTEND` sends the next run to the record **in order to publish**, so an unregistered
+  publication buys a second publication and then a third. Three scheduled runs a day against a
+  one-item-per-run cap is how *"recurring agent value without attention overload"* — third in issue
+  #1's commercial hierarchy — stops holding, by way of the mechanism built to protect it.
+  [L-99](LESSONS.md#l-99).
+- **Decision: fix it in the publisher, not in the instructions.** Runs 179 and 180 both read that
+  gate and neither had a louder instruction that would have helped. `nominationEntry()` composes the
+  registry entry inside the publisher at the moment it publishes; `writeNomination()` leaves it in
+  the working tree with its path in the log. **A run still chooses to commit it** — that is a claim
+  about a publication and belongs to a run that looked — so this removes the retyping and not the
+  judgement.
+- **Decision: correct item 282's registry entry rather than leave a validated falsehood in place.**
+  It named `af26cc3` as the bar that composed its line, in words, as *"the last change to
+  `scripts/lib/agent-scout.mjs` before this publication"*. `88fe7d5` is, six days later. The entry
+  **validated** — precedence is all the ordering invariant asks — so no gate could have caught it.
+  Corrected to `88fe7d5`; the superseded value is recorded in `notes`, not erased. The publication
+  itself is untouched in production.
+- **Rejected: retuning the quotation budget so item 283 would carry a quote.** Its `why` line is the
+  provenance-only form, because `selectQuotation` refused all 12 sentences considered (the closest
+  over-budget one by 59 characters against a budget of 252). That is the designed output, and
+  EXP-013's Q1–Q4 reading on **2026-09-26** is what grades how often it happens. Retuning a bar to
+  improve today's output is the instrument-edited-to-agree-with-production failure (L-31).
+- **Rejected: arming the daily schedule.** Run 153's pre-commitment stands, EXP-013's threshold 2 is
+  unruled at 22 days, `agent-scout.yml` and the bar are byte-untouched. Attending a gate and
+  removing it are different acts, and only the first is this executor's to perform.
+- **Rejected: a site-wide `/rss.xml`**, run 172's runner-up, now that EXP-011's landing-page freeze
+  has expired (graded and closed at run 173). The freeze was only one of its two blockers; the other
+  was the doctrine question, still unruled — and run 174's reading closed the discovery lever
+  outright on its own data (*"crawlers already fetch robots and the sitemap tens of times daily,
+  so discovery is not the constraint"*). A new URL with no inbound links earns nothing. Recorded so
+  the next run does not re-derive it.
+- **Rejected: another SEO/indexing cycle.** Standing decision from run 174 is unchanged and was
+  re-read rather than re-argued.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
