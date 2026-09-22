@@ -412,6 +412,45 @@ export function parseSearchResults(body) {
   }));
 }
 
+/** Why this search response cannot be screened, or "" if it can.
+ *
+ *  WHY THIS IS A SEPARATE JUDGEMENT FROM THE STATUS LINE. `screen()` already treats a non-2xx
+ *  search as an error — "the loop's instrument failing and not a thin week" — but it had no way
+ *  to say the same about a 200 whose body is not a search result at all. That case fell through
+ *  `parseSearchResults` as zero candidates and came out the far end as a clean empty cycle.
+ *
+ *  It is not hypothetical. On 2026-09-22 the 02:40Z screen printed `search returned 0 candidates
+ *  (hitCount ?)` and then `no candidate passed the bar this cycle. Publishing nothing is the
+ *  expected outcome.` — green run, uploaded record, no annotation. The identical query dispatched
+ *  2h19m later screened 35, selected 8 and had a quotable top selection. Nothing was thin about
+ *  that week; the instrument had failed and said so in the vocabulary of success. The record is
+ *  the one thing a run at the gate is sent to read, so it must not be able to say "nothing
+ *  qualified" when what happened is "nothing was asked".
+ *
+ *  THE TWO SHAPES. Europe PMC always carries `hitCount` for `format=json`; its absence means the
+ *  body is not a search result whatever the status line claimed. A `hitCount` above zero with an
+ *  empty page is the same failure wearing the right shape — the index says there are hits and we
+ *  were handed none of them.
+ *
+ *  WHAT IS DELIBERATELY NOT A DEFECT. `hitCount: 0` with no records is a real and expected
+ *  outcome and stays one: the bar's job is to be quiet, and a publisher that errored on a
+ *  genuinely empty window would cry wolf on exactly the cycles it was built to sit out. */
+export function searchResponseDefect(body, results = parseSearchResults(body)) {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return "the response is not a JSON object";
+  }
+  const raw = body.hitCount;
+  const hitCount =
+    typeof raw === "number" ? raw : typeof raw === "string" && raw.trim() !== "" ? Number(raw) : Number.NaN;
+  if (!Number.isFinite(hitCount)) {
+    return "the response carries no hitCount, so it is not a Europe PMC search result";
+  }
+  if (hitCount > 0 && results.length === 0) {
+    return `the response reports ${hitCount} hit${hitCount === 1 ? "" : "s"} and returned no records`;
+  }
+  return "";
+}
+
 /** JATS full text into the plain prose the bar is applied to.
  *
  *  `<ref-list>` goes first and deliberately: a reference list is the densest source of

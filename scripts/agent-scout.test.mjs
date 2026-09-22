@@ -47,6 +47,7 @@ import {
   rankSelected,
   readerUrl,
   sameSource,
+  searchResponseDefect,
   searchUrl,
 } from "./lib/agent-scout.mjs";
 import fs from "node:fs";
@@ -478,6 +479,45 @@ test("an empty result set is a clean empty cycle", async () => {
   assert.equal(report.returned, 0);
   assert.equal(report.selected.length, 0);
   assert.equal(report.full_text_reads, 0);
+});
+
+// --- the 2026-09-22 02:40Z shape: a 200 that is not an answer --------------
+//
+// The scheduled screen printed `search returned 0 candidates (hitCount ?)` and then
+// `no candidate passed the bar this cycle. Publishing nothing is the expected outcome.`
+// The run was green and the record said nothing was owed. The identical query dispatched
+// 2h19m later screened 35 and selected 8. See `searchResponseDefect`.
+
+test("a 200 carrying no hitCount is an instrument failure, not a quiet cycle", async () => {
+  const f = fakeFetch([["/search", () => ({ ok: true, status: 200, async json() { return { version: "6.9", request: {} }; } })]]);
+  await assert.rejects(
+    () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
+    /unusable Europe PMC search response.*no hitCount/
+  );
+});
+
+test("hits the index reports but does not hand over are an instrument failure too", async () => {
+  const f = fakeFetch([
+    ["/search", () => ({ ok: true, status: 200, async json() { return { hitCount: 35, resultList: { result: [] } }; } })],
+  ]);
+  await assert.rejects(
+    () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
+    /unusable Europe PMC search response.*reports 35 hits and returned no records/
+  );
+});
+
+test("searchResponseDefect refuses only what it should, and a genuinely empty window is not a defect", () => {
+  assert.equal(searchResponseDefect({ hitCount: 0, resultList: { result: [] } }), "", "the bar's job is to be quiet");
+  assert.equal(searchResponseDefect({ hitCount: "0", resultList: { result: [] } }), "", "a numeric string is still a count");
+  assert.equal(searchResponseDefect({ hitCount: 2, resultList: { result: [{ id: "1" }, { id: "2" }] } }), "");
+
+  assert.match(searchResponseDefect({ version: "6.9" }), /no hitCount/);
+  assert.match(searchResponseDefect({ hitCount: null }), /no hitCount/);
+  assert.match(searchResponseDefect({ hitCount: "many" }), /no hitCount/);
+  assert.match(searchResponseDefect(null), /not a JSON object/);
+  assert.match(searchResponseDefect([]), /not a JSON object/);
+  assert.match(searchResponseDefect("<html>503</html>"), /not a JSON object/);
+  assert.match(searchResponseDefect({ hitCount: 1, resultList: { result: [] } }), /reports 1 hit and returned no records/);
 });
 
 test("the dedupe list is read from the live nomination registry and contains the published DOIs", () => {
