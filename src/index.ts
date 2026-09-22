@@ -855,9 +855,18 @@ app.post("/read/:id", async (c) => {
   // Two labels, doing different jobs. `_bot` is the user-agent split every other counter
   // here carries, and this route not carrying it is why that claim was not true.
   // `_owner` is an **axis, not a bucket**: it counts the subset of attention events taken
-  // by the owner's own member, regardless of user-agent, and is never summed with the
-  // names above, whose totals are unchanged. `attention_star` moving while
-  // `attention_star_owner` does not is the first non-owner star.
+  // by the owner's own member, and is never summed with the names above, whose totals are
+  // unchanged. `attention_star` moving while `attention_star_owner` does not is the first
+  // non-owner star.
+  //
+  // That comparison is why the axis carries the `_bot` split too, added run 185. It read
+  // "regardless of user-agent" until then, which made the axis merged and the comparison
+  // unsound in the one direction that matters: an owner star from a bot-flagged agent wrote
+  // `attention_star_bot` and the merged `attention_star_owner`, so a stranger's star on the
+  // same day left `attention_star` at 1 and `_owner` at 1 — and the rule above reads that as
+  // "no non-owner star". The first real activation this loop is waiting for would have been
+  // MASKED by the owner's own traffic. Now each bucket has its own owner axis and the
+  // comparison is made within a bucket. Same defect as `item_view_onsite`; see L-103.
   //
   // It fails safe in one direction only, so read it with `totals.owner_resolved`: if the
   // owner handle resolves to no human feed the axis never fires, and the owner's own
@@ -868,7 +877,7 @@ app.post("/read/:id", async (c) => {
     count(c.env.DB, `${attention}${botSuffix(c)}`),
     memberActive(c.env.DB, member.id, "action"),
     ownerMemberId(c.env.DB, ownerHandle(c.env.AGENT_OPERATOR_OWNER)).then((ownerId) =>
-      ownerId === member.id ? count(c.env.DB, `${attention}_owner`) : undefined
+      ownerId === member.id ? count(c.env.DB, `${attention}_owner${botSuffix(c)}`) : undefined
     ),
   ]));
 
@@ -1398,8 +1407,10 @@ app.get("/:handle/rss.xml", async (c) => {
 //                                and EXP-012 are pre-registered over `arrival:<tag>` as *feed*
 //                                views; writing item views into that name would change what a
 //                                running experiment's counter means mid-window.
-//   item_view_onsite             axis: the subset whose `Referer` is this site. NOT a bucket,
+//   item_view_onsite[_bot]       axis: the subset whose `Referer` is this site. NOT a bucket,
 //                                never summed with the names above, whose totals are unchanged.
+//                                It carries the `_bot` split because a reading SUBTRACTS it —
+//                                see below.
 //
 // `item_view_onsite` exists because run 165 gave every feed-page card a permalink into this
 // surface, and that link would otherwise have quietly broken the reading run 164 registered over
@@ -1408,6 +1419,21 @@ app.get("/:handle/rss.xml", async (c) => {
 // off-site. It stops being true the moment somebody can arrive here by clicking around inside
 // Tuned, and the owner is the one member who does that. Splitting the referrer keeps the
 // off-site reading computable as `item_view - item_view_onsite` instead of losing it.
+//
+// THE `_bot` SPLIT ON THE AXIS IS WHAT MAKES THAT SUBTRACTION LEGAL, and it was missing from
+// run 165 until run 185. An axis may be merged across the `_bot` buckets for as long as it is
+// only ever read as "the subset"; the moment a published reading subtracts it from ONE side of
+// that split, a merged axis subtracts bot traffic from the human count. `item_view` is the
+// non-bot bucket alone, so a crawler following a permalink off our own feed page used to
+// decrement it. It did, heavily: on 2026-09-19 `item_view` was 0, `item_view_bot` 121 and the
+// merged `item_view_onsite` 47, so the published rule returned an off-site reading of MINUS 47.
+// Five of the seven days the name existed were negative. See L-103 and ops/METRICS.md.
+//
+// The same one-line defect was live on three other axes that a reading subtracts or compares —
+// `follow_duplicate`, `desk_follow_duplicate` and `attention_star_owner` — and all four were
+// fixed together. `_offpage`, `_unattended`, `_find` and `_feed` are deliberately LEFT merged:
+// no published reading subtracts them, so merging costs nothing and splitting them would be
+// churn. The test is not "is it an axis", it is "does a reading subtract it from a split name".
 //
 // Evidence, not proof, in both directions, on the same terms as `_offpage` and `_unattended`: a
 // browser may send no `Referer` at all (`rel=noreferrer`, a privacy setting, a downgrade from
@@ -1446,7 +1472,7 @@ app.get("/:handle/:id", async (c) => {
       `item_view${suffix}`,
       `item_view${suffix}:${creator.handle}`,
       ARRIVAL_TAGS.has(src) ? `arrival_item${suffix}:${src}` : "",
-      onsite(c) ? "item_view_onsite" : "",
+      onsite(c) ? `item_view_onsite${suffix}` : "",
     ])
   );
   // The inbound links that stop eighty-seven sitemap entries from being eighty-seven orphans.
@@ -1543,6 +1569,12 @@ app.post("/:handle/follow", async (c) => {
   // the (creator_id, email) row already existed. `wroteNewRow` carries the asymmetric default
   // and the reason for it — an unknown result must never be reported as a repeat, because that
   // is the direction in which a real first follower disappears.
+  //
+  // `follow_duplicate` carries the `_bot` split (run 185) because the whole point of the name
+  // is to be SUBTRACTED: new followers on a day are `follow_submit - follow_duplicate`. While
+  // it was merged, a crawler re-POSTing a known address decremented the human count, which is
+  // the same direction of error `wroteNewRow` exists to prevent — a real first follower
+  // disappearing. Same defect as `item_view_onsite`; see L-103.
   const written = await c.env.DB.prepare("INSERT OR IGNORE INTO followers (creator_id, email) VALUES (?, ?)")
     .bind(creator.id, email.toLowerCase())
     .run();
@@ -1554,7 +1586,7 @@ app.post("/:handle/follow", async (c) => {
       `follow_submit${suffix}:${creator.handle}`,
       offpage ? "follow_submit_offpage" : "",
       fromFind ? "follow_submit_find" : "",
-      duplicate ? "follow_duplicate" : "",
+      duplicate ? `follow_duplicate${suffix}` : "",
     ])
   );
   return c.json({ ok: true });
@@ -1604,6 +1636,11 @@ app.post("/:handle/desk", async (c) => {
   // reading that matters: which of them a member actually uses. A single `desk_follow` cannot
   // separate "the desk's list works" from "people follow feeds where they read them", and those
   // two answers point at different next changes.
+  //
+  // `desk_follow_duplicate` carries the `_bot` split (run 185) for the reason `follow_duplicate`
+  // does: it is a name that exists to be subtracted, and a merged duplicate axis subtracts bot
+  // repeats from the human count. `desk_follow_feed` / `desk_follow_find` stay merged on
+  // purpose — nothing subtracts them, they are only ever read as "which surface". See L-103.
   const from = form.get("from");
   const origin = from === "feed" || from === "find" ? `desk_follow_${from}` : "";
 
@@ -1622,7 +1659,7 @@ app.post("/:handle/desk", async (c) => {
     c,
     countEach(c.env.DB, [
       `desk_follow${suffix}`,
-      wroteNewRow(written.meta) ? "" : "desk_follow_duplicate",
+      wroteNewRow(written.meta) ? "" : `desk_follow_duplicate${suffix}`,
       origin,
     ])
   );

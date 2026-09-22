@@ -359,8 +359,16 @@ describe("putting a feed on a desk", () => {
     const byName = Object.fromEntries(results.map((r) => [r.name, r.count]));
     expect(byName["desk_follow"] ?? 0).toBe(2);
     expect(byName["desk_follow_bot"] ?? 0).toBe(1);
-    // An axis, not a bucket: the two repeats are counted here *and* remain inside the totals above.
-    expect(byName["desk_follow_duplicate"] ?? 0).toBe(2);
+    // An axis, not a bucket: a repeat is counted here *and* remains inside the total above.
+    //
+    // Run 185 split this axis, and THIS ASSERTION IS WHERE THE DEFECT WAS VISIBLE. It used to
+    // read 2 — the human repeat plus the bot repeat, merged — against a `desk_follow` of 2 that
+    // holds only the non-bot requests. So the reading this name exists for, new desk follows =
+    // `desk_follow - desk_follow_duplicate`, returned 0 for a day on which one new follow was
+    // genuinely made. The test asserted the arithmetic that made it wrong. See L-103.
+    expect(byName["desk_follow_duplicate"] ?? 0).toBe(1);
+    expect(byName["desk_follow_duplicate_bot"] ?? 0).toBe(1);
+    expect((byName["desk_follow"] ?? 0) - (byName["desk_follow_duplicate"] ?? 0)).toBe(1);
   });
 
   // The owner is the only member who owns feeds, so a desk that offered every public feed would

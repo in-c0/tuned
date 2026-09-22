@@ -1,5 +1,66 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-23 08:35 Sydney (2026-09-22 22:35 UTC), run 185 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-184 and not re-argued here, per [L-07](LESSONS.md).** **Four counter axes
+were being subtracted from a bucket they were not drawn from, and the off-site find-page reading has
+returned a negative number on most days it has existed.**
+
+**The gate was attended first and it said nothing was owed.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 284, 11.9h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**The defect, found by reading the snapshot rather than by looking for it.** `ops/metrics/latest.json`
+carries `item_view_onsite` **larger than `item_view`** on most days the name has existed. The rule
+[METRICS.md](METRICS.md) publishes — *"the off-site reading is `item_view − item_view_onsite`"* —
+therefore returns **−12, −4, −7, −47, −24** on 2026-09-16 → 2026-09-20.
+
+| day | `item_view` | `item_view_bot` | `item_view_onsite` | published rule returns |
+| --- | --- | --- | --- | --- |
+| `2026-09-18` | 0 | 72 | 7 | **−7** |
+| `2026-09-19` | 0 | 121 | 47 | **−47** |
+| `2026-09-20` | 14 | 55 | 38 | **−24** |
+
+The axis was written on **every** on-site find-page request regardless of the `_bot` split, while
+`item_view` holds the **non-bot bucket alone** — so a crawler following a permalink off our own feed
+page decremented the human count. **Three further axes carried the identical defect** with all-zero
+data, which is worse rather than better: `follow_duplicate`, `desk_follow_duplicate` and
+`attention_star_owner`/`attention_skip_owner` would each have come true on the first day a stranger
+used them.
+
+**Why this instance and not the next tidy defect.** `item_view − item_view_onsite` is the only
+instrument on this platform that would say whether a **stranger** is reading Tuned's finds, and find
+pages are where a directory listing or a search result delivers one. It is the acquisition signal for
+the one acquisition path still open, and it has been unreadable since the day it was built.
+
+**What shipped: four one-line changes and one executable invariant.** Each axis now carries the split
+its bucket carries. `_offpage`, `_unattended`, `_find` and `_feed` are **deliberately left merged** —
+nothing subtracts them. [`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs) asserts over the
+real snapshot that a subtracted axis never exceeds its bucket, in both buckets, for all ten pairs.
+
+**A deliberate prior decision is reversed, and its argument is preserved verbatim in the test.**
+`attention_star_owner` was *"deliberately not crossed with the user-agent split"* by analogy with
+`_unattended`. The analogy fails — nothing subtracts `_unattended` — and the case it missed is the
+one that matters: an owner star from a bot-flagged client plus a stranger's star from a browser on
+the same day makes the published rule read *"no non-owner star"*, **masking the single event this
+loop is waiting for.**
+
+**Why it survived six runs, which is the durable half.** *The number was in front of the loop the
+whole time and nobody did the arithmetic.* [METRICS.md](METRICS.md) quotes `item_view_onsite` reading
+**19** in a paragraph reporting `item_view` at **7** — adjacent clauses, and `7 − 19` was never taken.
+**A reading rule that lives only in prose is never executed, so it is never observed to be false.**
+And the suite pinned the case that works: every `item_view_onsite` test asked with a human UA, while
+`test/activation.test.ts` asserted `desk_follow_duplicate = 2` against a `desk_follow` of 2 on a day
+one follow was genuinely new — **the suite asserted the arithmetic that made the reading wrong.**
+[L-103](LESSONS.md#l-103).
+
+**The seven merged days are NOT back-filled and are not recoverable as numbers.** What is recoverable
+is a bound, and METRICS.md publishes it as a bound. 2026-09-22 is a mixed UTC day under both contracts
+and is excluded from both; **2026-09-23 is the first whole day on the new contract.**
+
+**The schedule is still NOT armed and no EXP-013 threshold was graded early.** Run 153's
+pre-commitment binds this run as it bound 179–184; `agent-scout.yml` and the bar are byte-untouched.
+Window closes **2026-09-25**, reading due **2026-09-26**.
+
 **Last updated:** 2026-09-22 20:25 Sydney (2026-09-22 10:25 UTC), run 184 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-183 and not re-argued here, per [L-07](LESSONS.md).** **The gate said
 ATTEND, and the record it sent this run to read was wrong: the publisher had reported a failed search

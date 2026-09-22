@@ -137,19 +137,48 @@ describe("the owner axis on attention events", () => {
     expect(await counter("attention_star_owner")).toBe(null);
   });
 
-  // The axis is deliberately *not* crossed with the user-agent split — it counts owner
-  // events whatever the client claims to be, exactly as `_unattended` does on /enter.
-  // A `_bot` variant of it would be a fourth name that nobody reads and that silently
-  // drains the one that is read.
-  it("carries the user-agent split, with the owner axis firing regardless of it", async () => {
+  // REVERSED AT RUN 185, and the argument it reverses is kept here because it was a real one.
+  // This axis used to fire "regardless of the user-agent", by analogy with `_unattended` on
+  // /enter, on the ground that a `_bot` variant would be "a fourth name that nobody reads and
+  // that silently drains the one that is read".
+  //
+  // The analogy does not hold, and the case it missed is the next test. Nothing subtracts or
+  // compares `_unattended`; it is only ever read as "the subset". This axis IS compared, against
+  // ONE side of the `_bot` split — "`attention_star` moving while `attention_star_owner` does
+  // not is the first non-owner star" — and a merged axis compared that way lets the owner's own
+  // bot-flagged traffic answer for a stranger's browser traffic. Nothing is drained: the owner's
+  // daily total is `_owner` + `_owner_bot`, and `totals.stars_owner` is computed from `reads`
+  // (which carries `member_id`) and stays exact either way. See L-103.
+  it("crosses the owner axis with the user-agent split, so each bucket has its own", async () => {
     const owner = await member("owner@justtuned.com");
     const feed = await humanFeed(DEFAULT_OWNER_HANDLE, owner.id);
     await read(await item(feed), owner.token, "star", "curl/8.4.0");
 
     expect(await counter("attention_star_bot")).toBe(1);
     expect(await counter("attention_star")).toBe(null);
-    expect(await counter("attention_star_owner")).toBe(1);
-    expect(await counter("attention_star_owner_bot")).toBe(null);
+    expect(await counter("attention_star_owner_bot")).toBe(1);
+    expect(await counter("attention_star_owner")).toBe(null);
+  });
+
+  // The defect the split exists to remove, written as the reading rather than as the counters:
+  // the owner stars from a bot-flagged client and a stranger stars from a browser on the same
+  // day. Merged, both `attention_star` and `attention_star_owner` read 1, and the published rule
+  // — star moving while owner does not — reads that as NO non-owner star. The single event this
+  // loop is waiting for, masked by the owner's own traffic.
+  it("still shows a stranger's star when the owner's own star that day was bot-flagged", async () => {
+    const owner = await member("owner@justtuned.com");
+    const feed = await humanFeed(DEFAULT_OWNER_HANDLE, owner.id);
+    const stranger = await member("stranger@example.com");
+
+    await read(await item(feed), owner.token, "star", "curl/8.4.0");
+    await read(await item(feed), stranger.token, "star");
+
+    expect(await counter("attention_star")).toBe(1);
+    expect(await counter("attention_star_owner")).toBe(null);
+    // Which is what makes the rule readable: within the non-bot bucket, a star moved and the
+    // owner axis did not. Nothing about the owner's event was lost — it is on its own pair.
+    expect(await counter("attention_star_bot")).toBe(1);
+    expect(await counter("attention_star_owner_bot")).toBe(1);
   });
 
   // The failure mode that would make this instrument lie in the dangerous direction: with
