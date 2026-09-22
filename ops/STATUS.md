@@ -57,6 +57,22 @@ one follow was genuinely new — **the suite asserted the arithmetic that made t
 is a bound, and METRICS.md publishes it as a bound. 2026-09-22 is a mixed UTC day under both contracts
 and is excluded from both; **2026-09-23 is the first whole day on the new contract.**
 
+**Production result, from GitHub Actions — this session's egress proxy still answers `403 CONNECT` for
+`justtuned.com`, re-tested this run rather than assumed.** Merged as
+[`e6aace7`](https://github.com/in-c0/tuned/commit/e6aace7);
+[`verify production` run 35792518638](https://github.com/in-c0/tuned/actions/runs/35792518638) —
+**success**, expected commit confirmed serving at step 5 (21s into the job), then **25 steps passed**,
+the one skipped being the `zone_blocked` branch, which is the healthy path. The `check` workflow is
+green on the merged tip at [35792518623](https://github.com/in-c0/tuned/actions/runs/35792518623).
+
+**No rollback was triggered and none was needed.** The change touches counter **names** only — no
+schema, migration, route, query, page, CSS declaration or dependency — so no visitor sees a different
+byte, and reverting it would restore the negative reading and nothing else.
+
+**The run's own logs could not be downloaded from this session and that is recorded rather than
+worked around:** the egress proxy also refuses `results-receiver.actions.githubusercontent.com`, so
+step **names and conclusions** above are read from the jobs API and no step's log text is quoted.
+
 **The schedule is still NOT armed and no EXP-013 threshold was graded early.** Run 153's
 pre-commitment binds this run as it bound 179–184; `agent-scout.yml` and the bar are byte-untouched.
 Window closes **2026-09-25**, reading due **2026-09-26**.
