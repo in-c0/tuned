@@ -6888,3 +6888,4 @@ nonce `af1fb27c-1f3f-4ddd-b8e0-38a90151ffff`, attempt 1, won clean.
   leaned against and this run agrees with: it is supply for a funnel whose `followers` is 0, and it
   would land inside EXP-013's window. Re-read rather than re-argued.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+- **Production result.** Merged as [`e90a2c0`](https://github.com/in-c0/tuned/commit/e90a2c0); [`verify production` run 35687337094](https://github.com/in-c0/tuned/actions/runs/35687337094) **success** — expected commit serving at step 5, 25 steps passed, one skipped (`zone_blocked`, the healthy path), including the new step 17 across every handle the live landing page lists. Direct egress re-tested and still `403 CONNECT`. **No rollback triggered and none needed.**

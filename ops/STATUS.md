@@ -42,6 +42,23 @@ copies it**, where *"last published 52 days ago"* freezes into the hardcoded cla
 `<pubDate>`s. It now checks every document it holds, at **no extra request**, and names the surface.
 [L-101](LESSONS.md#l-101).
 
+**Production result, from GitHub Actions — this session's egress proxy still answers `403 CONNECT`
+for `justtuned.com`, re-tested this run rather than assumed.** Merged as
+[`e90a2c0`](https://github.com/in-c0/tuned/commit/e90a2c0);
+[`verify production` run 35687337094](https://github.com/in-c0/tuned/actions/runs/35687337094) —
+**success**, expected commit confirmed serving at step 5, then **25 steps passed**, the one skipped
+being the `zone_blocked` branch, which is the healthy path. That includes the new **step 17**, *"No
+feed claims a currency it cannot keep, on either surface that leaves this site"*: for **every handle
+the live landing page lists**, the RSS channel description states no currency and carries a
+`<lastBuildDate>` wherever the feed has items, the feed page's meta description does not call it
+live, and `robots.txt` asserts no currency. The same run reports `/sitemap.xml` **97 URLs**, **89
+find pages**, and `/sportstech` carrying **21 permalinks** — unchanged, as a change that removes two
+words should leave them.
+
+**Run red first, and the matchers were proven against the pre-change documents** before the step was
+trusted: all four caught it (the RSS description, the missing `lastBuildDate`, the meta description,
+`robots.txt`). **No rollback was triggered and none was needed.**
+
 **Last updated:** 2026-09-22 08:35 Sydney (2026-09-21 22:35 UTC), run 182 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-181 and not re-argued here, per [L-07](LESSONS.md).** **The page that
 picks a feed for a visitor was the one surface on this site that never said how old any of them
