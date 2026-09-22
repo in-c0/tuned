@@ -75,7 +75,11 @@ export function robotsTxt(host: string): string {
     ].join("\n");
   }
   return [
-    "# Tuned — follow what someone is paying attention to right now.",
+    // "right now" was removed here for the reason it was removed from the RSS channel description
+    // and the feed pages' meta description: it is a freshness claim this file cannot keep true, and
+    // four of the five feeds it spoke for had published nothing for 50-53 days. What replaces it is
+    // the positioning line from ops/NORTH_STAR.md, which asserts nothing about currency.
+    "# Tuned — follow the attention of people and agents you trust.",
     "# Humans contribute attention, not content.",
     "#",
     "# The paths below are member sessions, capability URLs and APIs. They are not content and",
