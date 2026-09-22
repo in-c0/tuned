@@ -4398,3 +4398,72 @@ supplies an input the first component accepts and the second does not.**
   well-formed response listing **three** candidates on a day the index holds thirty-five would still
   read as a thin week. That is a harder judgement than a contract violation and is not smuggled into
   this change.
+
+## L-103 — four axes were subtracted from a bucket they were not drawn from, and one of them had been returning a negative number in production for a week (2026-09-23, run 185)
+
+- **Known problem:** none. This was not a known defect, a reviewer directive or the next tidy item
+  on a list. It was found by reading `ops/metrics/latest.json` at the start of the run and noticing
+  that `item_view_onsite` was **larger than `item_view`** on most days it existed.
+- **The defect.** Several counters here are **axes**: a subset of a bucket, never summed into a
+  total. Most are only ever read as "the subset" and nothing follows. Four exist to be
+  **subtracted** from, or **compared** against, a `_bot`-split bucket — new followers are
+  `follow_submit − follow_duplicate`; new desk follows are `desk_follow − desk_follow_duplicate`;
+  the off-site find-page reading is `item_view − item_view_onsite`; the first non-owner star is
+  *"`attention_star` moving while `attention_star_owner` does not"*. All four were written
+  **merged across the `_bot` split**, while the names they are subtracted from hold the non-bot
+  bucket alone. A subtraction across two different populations.
+- **Evidence, and it is not hypothetical on the one with traffic.** `item_view − item_view_onsite`
+  returned a **negative number on five of the seven days the name existed**: **−12, −4, −7, −47,
+  −24** on 2026-09-16 → 2026-09-20 ([latest.json](metrics/latest.json)). A crawler following a
+  permalink off our own feed page wrote the merged axis while landing in `item_view_bot`, so it
+  decremented the human count. On 2026-09-19 `item_view` was **0**, `item_view_bot` **121** and
+  `item_view_onsite` **47**.
+- **Why it survived, and this is the part worth keeping.** *The number was in front of the loop the
+  whole time and nobody did the arithmetic.* [`ops/METRICS.md`](METRICS.md) quotes
+  `item_view_onsite` reading **19** in a sentence whose own paragraph reports `item_view` at **7**,
+  three runs ago — the two numbers are in adjacent clauses and `7 − 19` was never taken. A reading
+  rule is published prose; it is not executed by anything, so it is never wrong *out loud*. The
+  three all-zero axes are worse rather than better: they were correct only because nobody had used
+  them yet, and would have come true on the first day a stranger did.
+- **The test suite pinned the case that works.** `item_view_onsite` had three tests, all asking
+  with a `HUMAN_UA`, so the axis was only ever exercised **inside the bucket it is subtracted
+  from** — the one arrangement in which merging is invisible. Meanwhile
+  `test/activation.test.ts` asserted `desk_follow_duplicate = 2` against a `desk_follow` of 2 on a
+  day one follow was genuinely new: **the suite asserted the arithmetic that made the reading
+  wrong.**
+- **A deliberate prior decision is reversed here, and the argument for it was real.**
+  `attention_star_owner` carried a comment saying the axis was *"deliberately not crossed with the
+  user-agent split … a `_bot` variant would be a fourth name that nobody reads and that silently
+  drains the one that is read"*, by analogy with `_unattended`. **The analogy does not hold**:
+  nothing subtracts or compares `_unattended`. And the case it missed is the one that matters — the
+  owner stars from a bot-flagged client and a stranger stars from a browser on the same day, and
+  the merged axis makes the published rule read *"no non-owner star"*. **The single event this loop
+  is waiting for, masked by the owner's own traffic.** Nothing is drained: the owner's daily total
+  is `_owner` + `_owner_bot`, and `totals.stars_owner` is computed from `reads`, which carries
+  `member_id`, and stays exact either way.
+- **Lesson:** *an axis may be merged across a split for exactly as long as no reading subtracts it
+  from one side of that split.* The question to ask of a new axis is not "is it a bucket?" — every
+  one of these correctly said it was not — but **"does anything subtract me from a name I am not
+  drawn from?"** And the general form, which is the durable half: **a reading rule that lives only
+  in prose is never executed, so it is never observed to be false.** Publish the rule, then make
+  something run it.
+- **More elegant next attempt:** four one-line changes, each appending the split the bucket already
+  carries. `_offpage`, `_unattended`, `_find` and `_feed` are **deliberately left merged** — nothing
+  subtracts them, so splitting them would be churn, and the boundary is written at each site.
+- **Prevention check, and it is the prose rule made executable.**
+  [`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs) asserts that a subtracted axis never
+  exceeds its bucket, over the real snapshot, in both buckets, for every pair. **The positive
+  control is mutation 6** — deleting the merged-day date exclusion — and it reddens **the real
+  snapshot test**, printing the five negative days above. That is what says the check is live
+  against production data rather than passing vacuously. Mutation 5 widens `>` to `>=` and reddens
+  *`admits an axis equal to its bucket and refuses one above it`*, because a day on which every
+  visitor was the owner is ordinary and must not alarm.
+- **Cost to users is plausibly zero and is stated that way rather than dramatised.** `followers` is
+  **0**, `members_ever_active` **0**, and no counter here is user-facing. The cost is to the loop's
+  own eyesight: the off-site find-page reading is the only instrument that would say whether a
+  stranger is reading Tuned's finds, and find pages are where a directory listing would deliver one.
+- **What is NOT fixed, stated rather than deferred quietly.** The seven merged days are **not
+  recoverable as numbers and are not back-filled.** What is recoverable is a bound, and
+  [METRICS.md](METRICS.md) states it. Nothing generalises the check beyond the ten pairs named in
+  the list: a future run that adds a subtracted axis and forgets to register it there gets no
+  warning, because no mechanism derives "is subtracted" from the prose that does the subtracting.

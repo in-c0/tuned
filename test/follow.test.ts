@@ -193,6 +193,27 @@ describe("follow_duplicate is what makes totals.followers readable", () => {
     expect(await followerCount()).toBe(2);
     expect((await countersToday()).follow_duplicate, "a second feed is a new follow, not a repeat").toBeUndefined();
   });
+
+  // Added run 185. `follow_duplicate` exists to be SUBTRACTED — new followers on a day are
+  // `follow_submit - follow_duplicate` — and until this run it was written merged across the
+  // `_bot` split while `follow_submit` is the non-bot bucket alone. A crawler re-POSTing a
+  // known address therefore decremented the human count, which is precisely the direction
+  // `wroteNewRow`'s asymmetric default exists to prevent: a real first follower disappearing.
+  // Same defect as `item_view_onsite`, where it was live in production data. See L-103.
+  it("puts a crawler's repeat on its own name, so it cannot decrement the human count", async () => {
+    await seedFeed("sportstech");
+
+    await follow("sportstech", "reader@example.com", { ua: BOT_UA });
+    await follow("sportstech", "reader@example.com", { ua: BOT_UA });
+    await follow("sportstech", "person@example.com");
+
+    const today = await countersToday();
+    expect(today.follow_duplicate_bot).toBe(1);
+    expect(today.follow_duplicate, "the name a reading subtracts must not carry bot repeats").toBeUndefined();
+    // The human reading is intact: one submit, no repeats, one new follower.
+    expect(today.follow_submit).toBe(1);
+    expect((today.follow_submit ?? 0) - (today.follow_duplicate ?? 0)).toBe(1);
+  });
 });
 
 describe("a rejected follow is visible, because a broken form and an empty funnel look identical", () => {

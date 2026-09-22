@@ -2879,3 +2879,72 @@ and that member is the owner, so the first value either name ever holds will be 
 click unless it arrives alongside a member the owner did not create. Read them against `members`
 before reading them as demand — the same discipline `attention_star_owner` exists to enforce one
 surface along.
+
+## 2026-09-23 (run 185) — four axes were being subtracted from a bucket they were not drawn from, and the off-site find-page reading has been negative since the day it was born
+
+**This section corrects a published reading rule rather than adding a counter.** The rule it
+corrects is the one written under
+[`item_view_onsite`](#item_view_onsite--the-axis-that-keeps-yesterdays-reading-readable-added-2026-09-16-run-165):
+*"The off-site reading is `item_view − item_view_onsite`, on any day from 2026-09-16 onward."*
+**On five of the seven days that name has existed, that subtraction returns a negative number.**
+
+### What was wrong
+
+`item_view_onsite` was written on every on-site find-page request **regardless of the `_bot` split**,
+while `item_view` holds the **non-bot bucket alone**. A crawler following a permalink from our own
+feed page therefore landed in `item_view_bot` *and* wrote the axis — decrementing a count it was
+never part of. Three further axes carried the identical defect: `follow_duplicate`,
+`desk_follow_duplicate` and `attention_star_owner` / `attention_skip_owner`, each of which a
+published reading also subtracts or compares against one side of the split.
+
+### The seven merged days, and the bound that is recoverable from them
+
+**No reading on these days is recoverable as a number and none is back-filled.** What is recoverable
+is a bound: the non-bot part of a merged axis lies between `max(0, onsite − item_view_bot)` and
+`min(item_view, onsite)`, which puts the off-site non-bot reading in
+`[max(0, item_view − onsite), min(item_view, item_view − onsite + item_view_bot)]`.
+
+| day | `item_view` | `item_view_bot` | `item_view_onsite` (merged) | published rule returns | off-site non-bot actually in |
+| --- | --- | --- | --- | --- | --- |
+| `2026-09-16` | 7 | 150 | 19 | **−12** | 0 – 7 |
+| `2026-09-17` | 3 | 101 | 7 | **−4** | 0 – 3 |
+| `2026-09-18` | 0 | 72 | 7 | **−7** | 0 – 0 |
+| `2026-09-19` | 0 | 121 | 47 | **−47** | 0 – 0 |
+| `2026-09-20` | 14 | 55 | 38 | **−24** | 0 – 14 |
+| `2026-09-21` | 20 | 48 | 3 | **17** | 17 – 20 |
+| `2026-09-22` | 6 | 22 | 1 | **5** | 5 – 6 |
+
+Source: [`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-22T04:57:37.499Z`, plus
+the 2026-09-22 rows from the same file. **The two positive days are not thereby sound** — they are
+the same unsound subtraction landing above zero, which is exactly why a negative was needed before
+anyone looked. **2026-09-22 is a mixed UTC day**, merged before this run's deploy and split after
+it, so it is readable under neither contract; **2026-09-23 is the first whole day on the new one.**
+
+### What changed
+
+Each of the four axes now carries the `_bot` split its bucket carries, so each subtraction happens
+inside one population: `item_view_onsite[_bot]`, `follow_duplicate[_bot]`,
+`desk_follow_duplicate[_bot]`, `attention_star_owner[_bot]` / `attention_skip_owner[_bot]`. Every
+total above is **unchanged** — these are still axes and none is summed into anything.
+
+**`_offpage`, `_unattended`, `_find` and `_feed` are deliberately left merged.** Nothing subtracts
+or compares them; they are only ever read as "the subset", and splitting them would be churn on four
+more names nobody reads. **The question that decides it is not "is this an axis" — all eight
+correctly said they were — but "does a published reading subtract me from a name I am not drawn
+from".**
+
+### What now executes the rule
+
+[`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs) asserts, over this snapshot, that a
+subtracted axis never exceeds its bucket, in both buckets, for all ten pairs. Days before
+2026-09-23 are excluded by date because they are merged by construction. **The positive control is
+deleting that exclusion, which reddens the real-snapshot test and prints the five negative days
+above** — which is what says the check reads production data rather than passing vacuously.
+
+**The reading this restores is not a housekeeping one.** `item_view − item_view_onsite` is the only
+instrument on this platform that would say whether anyone **off-site** is reading Tuned's finds, and
+find pages are where a directory listing or a search result delivers a stranger. It has been
+unreadable for the whole period in which that was the only acquisition path open.
+
+**No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.

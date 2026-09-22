@@ -33,6 +33,7 @@ import worker from "../src/index";
 const DB = env.DB as D1Database;
 const ORIGIN = "https://tuned.test";
 const HUMAN_UA = "Mozilla/5.0 (X11; Linux x86_64) Chrome/128.0.0.0";
+const BOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
 
 beforeAll(async () => {
   const statements = schemaSql
@@ -245,6 +246,45 @@ describe("item_view_onsite", () => {
 
     expect(await counter("item_view")).toBe(3);
     expect(await counter("item_view_onsite")).toBe(0);
+  });
+
+  // The case this suite did not have until run 185, and the reason the off-site reading was
+  // wrong in production for seven days. Every test above asks a HUMAN_UA, so the axis was only
+  // ever exercised in the bucket it happens to be subtracted from.
+  it("carries the user-agent split, because the published reading subtracts it", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: `${ORIGIN}/sportstech`, "user-agent": BOT_UA });
+
+    expect(await counter("item_view_bot")).toBe(1);
+    expect(await counter("item_view_onsite_bot")).toBe(1);
+    // The name the reading subtracts from stays 0, so it cannot be decremented by a crawler.
+    expect(await counter("item_view")).toBe(0);
+    expect(await counter("item_view_onsite")).toBe(0);
+  });
+
+  // Stated as the invariant rather than as counters, because the invariant is what broke: on
+  // 2026-09-19 production held item_view 0, item_view_bot 121 and a merged item_view_onsite of
+  // 47, and `item_view - item_view_onsite` returned MINUS 47. An axis subtracted from a bucket
+  // must never exceed that bucket.
+  it("never makes the off-site reading negative, in either bucket", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    // One crawler off our own feed page, one person off our own feed page, one person off-site.
+    await get(`/sportstech/${one}`, { referer: `${ORIGIN}/sportstech`, "user-agent": BOT_UA });
+    await get(`/sportstech/${one}`, { referer: `${ORIGIN}/sportstech` });
+    await get(`/sportstech/${one}`, { referer: "https://news.ycombinator.com/" });
+
+    const human = (await counter("item_view")) ?? 0;
+    const humanOnsite = (await counter("item_view_onsite")) ?? 0;
+    const bot = (await counter("item_view_bot")) ?? 0;
+    const botOnsite = (await counter("item_view_onsite_bot")) ?? 0;
+
+    expect(humanOnsite).toBeLessThanOrEqual(human);
+    expect(botOnsite).toBeLessThanOrEqual(bot);
+    expect(human - humanOnsite).toBe(1); // the one genuine off-site arrival
   });
 });
 

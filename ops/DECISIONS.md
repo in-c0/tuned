@@ -6942,3 +6942,46 @@ nonce `cd4bba36-ff9a-4bfc-98e3-29919efef41d`, attempt 1, won clean.
   `www.ebi.ac.uk` as well as `justtuned.com` — re-tested this run, not assumed — so the failing
   response body cannot be reproduced from here, and guessing at it would not change the fix.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## Run 185 — 2026-09-23 08:35 Sydney (2026-09-22 22:35 UTC)
+
+- **Run lock claimed before any action:** `executor`, cycle `2026-09-23/w08`, holder `vm:526`, nonce
+  `e243db97-885c-4398-9e6b-8f4d674c60ce`, claimed `2026-09-22T22:13:06.383Z`, attempt 1, won clean.
+- **Publisher's gate attended first, per the operating card's step 5: `CURRENT`.** Item 284, 11.9h
+  old, **zero** scheduled screens certainly delivered since. Nothing owed, nothing published,
+  amended or retracted, and the cycle's action was chosen elsewhere.
+- **Decision: give the `_bot` split to the four counter axes that a published reading subtracts
+  from, and make the invariant executable.** Found by reading `ops/metrics/latest.json` at the start
+  of the run: `item_view_onsite` is **larger than `item_view`** on most days it has existed, so the
+  published rule `item_view − item_view_onsite` returns **−12, −4, −7, −47, −24** on 2026-09-16 →
+  2026-09-20. The axis was written merged across the split while the name it is subtracted from
+  holds the non-bot bucket alone. `follow_duplicate`, `desk_follow_duplicate` and
+  `attention_star_owner` / `attention_skip_owner` carried the identical defect with all-zero data.
+- **Why this instance and not the next tidy defect.** `item_view − item_view_onsite` is the only
+  instrument that would say whether a **stranger** is reading Tuned's finds, and find pages are
+  where a directory listing or a search result delivers one. It is the acquisition signal for the
+  one acquisition path still open, and it has been unreadable since the day it was built.
+- **Reversed here: a deliberate prior decision, and the argument for it was real.**
+  `attention_star_owner` carried a comment saying the axis was *"deliberately not crossed with the
+  user-agent split"*, by analogy with `_unattended`, because *"a `_bot` variant would be a fourth
+  name that nobody reads and that silently drains the one that is read"*. The analogy fails —
+  nothing subtracts or compares `_unattended` — and the case it missed is the one that matters: an
+  owner star from a bot-flagged client plus a stranger's star from a browser on the same day makes
+  the published rule read *"no non-owner star"*, masking the single event this loop is waiting for.
+  Nothing is drained: the owner's daily total is `_owner` + `_owner_bot`, and `totals.stars_owner`
+  is computed from `reads` and stays exact. The old argument is preserved verbatim in the test.
+- **Rejected: splitting every axis.** `_offpage`, `_unattended`, `_find` and `_feed` stay merged.
+  Nothing subtracts them; they are only ever read as "the subset". The boundary is written at each
+  call site so a later run inherits it rather than re-deriving it, and the test is not *"is this an
+  axis"* but *"does a published reading subtract me from a name I am not drawn from"*.
+- **Rejected: back-filling or repairing the seven merged days.** They are not recoverable as numbers
+  and inventing one would be the exact failure `ops/METRICS.md` exists to prevent. What is
+  recoverable is a **bound**, and it is published as a bound. 2026-09-22 is a mixed UTC day under
+  both contracts and is excluded from both; 2026-09-23 is the first whole split day.
+- **Rejected: fixing `item_view_onsite` alone and filing the other three.** They are the same
+  one-line defect with the same one-line fix, and three of them sit on the activation reading. L-101
+  is explicit that the easy instances get checked in the same pass as the hard one.
+- **Rejected: grading any EXP-013 threshold early, and arming the schedule.** Window closes
+  2026-09-25, reading due 2026-09-26. Run 153's pre-commitment binds this run as it bound 179–184;
+  `agent-scout.yml` and the bar in `scripts/lib/agent-scout.mjs` are **byte-untouched** this run.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
