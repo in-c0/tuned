@@ -53,6 +53,7 @@ import {
   nominationEntry,
   nominationFilename,
   parseSearchResults,
+  searchResponseDefect,
   rankSelected,
   searchUrl,
 } from "./lib/agent-scout.mjs";
@@ -161,6 +162,12 @@ export async function screen({
   log(`query: ${query}`);
   const body = await getJson(searchUrl(query, { pageSize }), fetchImpl);
   const candidates = parseSearchResults(body);
+
+  // A 200 is not the same as an answer. Refusing here, rather than screening zero candidates
+  // and reporting a quiet cycle, is the whole point — see `searchResponseDefect`.
+  const defect = searchResponseDefect(body, candidates);
+  if (defect !== "") throw new Error(`unusable Europe PMC search response: ${defect}`);
+
   log(`search returned ${candidates.length} candidate${candidates.length === 1 ? "" : "s"} (hitCount ${body?.hitCount ?? "?"})`);
 
   const observations = [];
