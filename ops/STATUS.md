@@ -1,5 +1,47 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-22 14:35 Sydney (2026-09-22 04:35 UTC), run 183 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-182 and not re-argued here, per [L-07](LESSONS.md).** **The two
+documents that carry a feed off this site were both still calling it current, and one of them is the
+only subscription this funnel can complete.**
+
+**The gate was attended first, and it said do nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 283, 18.1h old, **zero** scheduled screens certainly delivered since. Nothing
+was owed, so **nothing was published, amended or retracted this run**, and the cycle's action was
+chosen elsewhere. That is the third time the mechanism's first act has been to tell a run not to act.
+
+**The finding, and it is [L-100](LESSONS.md#l-100)'s own set being the wrong set.** Run 182 enumerated
+the surfaces that **offer** a feed and fixed the last of them. A feed is also carried **off** this
+site by two documents that offer nothing, and both asserted currency as a constant:
+
+| document | what it said | who reads it |
+| --- | --- | --- |
+| `rssFeed`'s `<channel><description>` | *"What X is paying attention to **right now**."* | a reader's sidebar; a directory listing reproduces it |
+| `publicPage`'s `<meta name="description">` / `og:description` | *"a **live** feed of what X is watching…"* | a search result; every unfurled card |
+| `robots.txt` header comment | *"follow what someone is paying attention to **right now**."* | crawlers |
+
+**Four of the five feeds serving all three strings had published nothing for 50–53 days** — run 182's
+own post-deploy reading, which is what makes this a false sentence rather than a stale one. The RSS
+document is also the artifact [DISTRIBUTION.md](DISTRIBUTION.md)'s submissions ask the owner to point
+a **durable listing** at, so the claim sat on the one conversion a stranger can complete here.
+
+**What shipped.** [`src/pages.ts`](../src/pages.ts) — *"right now"* out of the channel description,
+*"live"* out of the feed page's meta/OG description. [`src/crawl.ts`](../src/crawl.ts) — the robots
+header carries NORTH_STAR's positioning line instead. **No claim replaces them and none is
+conditional:** the age is stated only where it is derived — `lastBuildDate` in the RSS document,
+`lastPublishedClause` on the page.
+
+**The relative age was deliberately NOT put into either description, and that is the positive
+control.** It is the tempting fix and it is wrong: a reader re-fetches the string, but a **directory
+copies it**, where *"last published 52 days ago"* freezes into the hardcoded claim being removed.
+`lastBuildDate` is an absolute instant and stays true wherever it is copied. Two assertions pin it.
+
+**The instrument had the right idea and one document of scope.** `RETIRED_CLAIMS` in
+[`qa/freshness.spec.mjs`](../qa/freshness.spec.mjs) has existed since run 139 and was checked against
+**only the landing page** — while the same spec was already fetching every feed's RSS body for its
+`<pubDate>`s. It now checks every document it holds, at **no extra request**, and names the surface.
+[L-101](LESSONS.md#l-101).
+
 **Last updated:** 2026-09-22 08:35 Sydney (2026-09-21 22:35 UTC), run 182 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-181 and not re-argued here, per [L-07](LESSONS.md).** **The page that
 picks a feed for a visitor was the one surface on this site that never said how old any of them
