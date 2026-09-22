@@ -38,7 +38,22 @@ const RIGHT_NOW_HOURS = 48;
 // 2026-08-13 and the fix was to stop asserting freshness in prose at all (L-18). This is the part
 // of the instrument that keeps working after the feeds go stale again: staleness is a fact about
 // the world and not a defect, but a page claiming otherwise is.
-const RETIRED_CLAIMS = ["a real feed, right now", '"active 2h ago"'];
+//
+// Extended at run 183, and the extension is the point of keeping a registry rather than a grep:
+// the first two entries are landing-page sentences, and the two added below were never on the
+// landing page at all. They were on the two documents that carry ONE feed off this site — the RSS
+// channel description a reader and a directory reproduce, and the feed page's meta/Open Graph
+// description a search result shows. Run 182 derived the age on every card of `/` and did not
+// reach either, because the rule was being applied to "the surfaces a run was already looking at"
+// (L-100). So this list is now checked against every document this spec fetches, not just `/`.
+const RETIRED_CLAIMS = [
+  "a real feed, right now",
+  '"active 2h ago"',
+  // rssFeed's <channel><description>, on all five feeds, while four had been silent 50-53 days.
+  "is paying attention to right now",
+  // publicPage's <meta name="description"> and og:description, on the same feeds.
+  "a live feed of what",
+];
 
 const hoursSince = (iso, now) => (now - new Date(iso).getTime()) / 3_600_000;
 
@@ -77,10 +92,17 @@ test.describe("EXP-005 — how old is the attention Tuned is publishing?", () =>
       ? new Date(Math.max(...demoStamps.map((s) => new Date(s).getTime()))).toISOString()
       : null;
 
+    // Every document this spec reads, kept so the retired claims can be checked against all of
+    // them rather than against the landing page alone. The RSS bodies are already being fetched
+    // for their <pubDate>s, so this costs no extra request in production's own counters — which
+    // is the objection the skip above records, and it does not apply here.
+    const documents = [{ surface: "/", text: html }];
+
     const feeds = [];
     for (const handle of handles) {
       const res = await request.get(`${baseURL}/${handle}/rss.xml`);
       const body = await res.text();
+      documents.push({ surface: `/${handle}/rss.xml`, text: body });
       const newest = res.status() === 200 ? newestPubDate(body) : null;
       feeds.push({
         handle,
@@ -114,7 +136,11 @@ test.describe("EXP-005 — how old is the attention Tuned is publishing?", () =>
       demoIsFreshest: freshest ? freshest.handle === demoHandle : null,
       // Does the page's prose still make a freshness claim, and does it hand the browser the real
       // timestamp to render instead? These two are what survive the feeds going stale.
-      retiredClaimsStillPresent: RETIRED_CLAIMS.filter((c) => html.includes(c)),
+      // Named by surface, so a red reading says which document went back to asserting freshness
+      // rather than only that one of them did.
+      retiredClaimsStillPresent: documents.flatMap(({ surface, text }) =>
+        RETIRED_CLAIMS.filter((c) => text.includes(c)).map((c) => `${surface}: ${c}`),
+      ),
       pulseServesNewestItem: demoNewest !== null && html.includes(`class="presence" data-latest="${demoNewest}"`),
     };
 
@@ -130,7 +156,7 @@ test.describe("EXP-005 — how old is the attention Tuned is publishing?", () =>
     // decline to claim they are, and it can hand the browser the real date to display.
     expect(
       summary.retiredClaimsStillPresent,
-      "the landing page is asserting freshness in prose again — production falsified these sentences on 2026-08-13",
+      "a public document is asserting freshness in prose again — production falsified these sentences on 2026-08-13 and on run 182's per-feed reading",
     ).toEqual([]);
     expect(
       summary.pulseServesNewestItem,

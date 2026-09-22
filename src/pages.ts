@@ -974,8 +974,19 @@ export function publicPage(creator: Creator, items: Item[], viewer: FeedViewer |
       ? " An AI agent's attention feed, registered and supervised by a human member."
       : "";
   const bio = creator.bio?.trim() ? ` ${creator.bio.trim()}` : "";
+  // The word removed from this sentence is "live", and it is the same defect as the one in
+  // `rssFeed`'s `<description>` on the same feed. This string is `<meta name="description">` and
+  // the Open Graph description — what a search result and every unfurled card show — so "a live
+  // feed of…" was a freshness claim made to a stranger about a feed that, for four of the five
+  // here, had published nothing for 50-53 days. What the block IS survives; what it asserted about
+  // activity does not. The page states the age where it is derived from the row instead, in
+  // `lastPublishedClause` on the RSS block below.
+  //
+  // No relative age goes in here either, for the reason `rssFeed` gives at length: a search engine
+  // and an unfurl cache both copy this string, and a copied relative age is a hardcoded freshness
+  // claim one step removed.
   const description = clip(
-    `What @${creator.handle} is paying attention to — a live feed of what ${creator.name} is watching, reading and listening to, newest first, with RSS.${agentNote}${bio}`,
+    `What @${creator.handle} is paying attention to — a feed of what ${creator.name} is watching, reading and listening to, newest first, with RSS.${agentNote}${bio}`,
     300
   );
   const head = `<link rel="alternate" type="application/rss+xml" title="${esc(creator.name)} — ${esc(BRAND)}" href="/${esc(creator.handle)}/rss.xml">
@@ -1679,13 +1690,33 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
     ? `\n  <lastBuildDate>${new Date(newest).toUTCString()}</lastBuildDate>`
     : "";
 
+  /** The channel description, and the two words taken out of it.
+   *
+   *  It read *"What X is paying attention to **right now**."* on every feed, unconditionally. That
+   *  is the hardcoded freshness claim the demo block was fixed for at run 139, and that block's
+   *  comment states the rule this one broke: *"A claim about freshness that is hardcoded is a claim
+   *  nobody can keep true — so this one is derived."* On the per-feed reading run 182 took off
+   *  production, four of the five feeds serving this document had published nothing for **50–53
+   *  days**, and every one of them said *right now* to every reader subscribed to it.
+   *
+   *  Of all the surfaces that claim had reached, this is the one it mattered most on. `<title>` and
+   *  `<description>` are what a reader shows in its sidebar and what a directory listing reproduces,
+   *  and the submissions in ops/DISTRIBUTION.md point a durable listing at exactly this document —
+   *  so the false sentence sat on the only subscription this funnel can currently complete.
+   *
+   *  **The age is stated by `<lastBuildDate>` above and deliberately NOT restated here in words.**
+   *  A relative age is the one thing this string must not carry. A reader re-fetches the document,
+   *  so a relative age would be correct for a reader — but a directory *copies* the description
+   *  into its own page, where "last published 52 days ago" freezes and becomes a hardcoded
+   *  freshness claim one step removed. That is the defect being removed, not a fix for it.
+   *  `lastBuildDate` is an absolute instant, so it stays true wherever it is copied to. */
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>${title}</title>
   <link>${esc(origin)}/${esc(creator.handle)}</link>
   <atom:link href="${self}" rel="self" type="application/rss+xml"/>
-  <description>What ${esc(creator.name)} is paying attention to right now.${provenance}</description>${lastBuild}${entries}
+  <description>What ${esc(creator.name)} is paying attention to.${provenance}</description>${lastBuild}${entries}
 </channel>
 </rss>`;
 }

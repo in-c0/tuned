@@ -448,6 +448,75 @@ jobs:
           grep -o '<div class="fine">[^<]*</div>' /tmp/landing.html \
             | sed -e 's|<div class="fine">|  |' -e 's|</div>||'
 
+      # The step above grades the surfaces that OFFER a feed. This one grades the two that carry a
+      # feed off this site, which is where the same claim survived run 182's pass:
+      #
+      #   * the RSS channel description — what a reader shows in its sidebar and what a directory
+      #     listing reproduces. It said "What X is paying attention to right now" on every feed,
+      #     unconditionally, while four of the five had published nothing for 50-53 days. It is also
+      #     the document ops/DISTRIBUTION.md's submissions point at, so the false sentence sat on
+      #     the only subscription this funnel can complete.
+      #   * the feed page's meta/Open Graph description — what a search result and every unfurl show
+      #     — which called each of those feeds "a live feed of what X is watching".
+      #
+      # test/freshness-claims.test.ts asserts both against a real Worker in workerd. This asserts
+      # them against the thing actually serving justtuned.com, which is a different claim for run
+      # 172's reason: a unit test cannot see a bad deploy, a reverted commit or an edge rewrite.
+      #
+      # Graded in both directions on the RSS document, per L-93: the claim must be ABSENT and the
+      # derived freshness must be PRESENT. A feed that silently dropped <lastBuildDate> would pass a
+      # one-directional check while telling a reader nothing about its age at all.
+      - name: No feed claims a currency it cannot keep, on either surface that leaves this site
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh get "${BASE}/" /tmp/claims-landing.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/ returned HTTP $code"; exit 1; }
+
+          # `|| true` on each of these three: with `set -o pipefail` a grep that matches nothing
+          # aborts the step with no message, which would report "no feed handles" and "no description"
+          # as an opaque exit rather than as the named error below.
+          handles=$(grep -o 'class="card-link" href="/[A-Za-z0-9_.-]*"' /tmp/claims-landing.html \
+            | sed -e 's|.*href="/||' -e 's|"$||' | sort -u || true)
+          [ -n "$handles" ] || { echo "::error::no feed handles on / to grade"; exit 1; }
+
+          for h in $handles; do
+            code=$(scripts/prod-http.sh get "${BASE}/${h}/rss.xml" /tmp/claims-feed.xml 'application/rss+xml')
+            [ "$code" = "200" ] || { echo "::error::/${h}/rss.xml returned HTTP $code"; exit 1; }
+
+            desc=$(grep -o '<description>[^<]*</description>' /tmp/claims-feed.xml | head -1 || true)
+            [ -n "$desc" ] || { echo "::error::/${h}/rss.xml serves no channel description"; exit 1; }
+            case "$desc" in
+              *"right now"*) echo "::error::/${h}/rss.xml claims currency in its channel description: ${desc}"; exit 1 ;;
+            esac
+
+            # An empty feed has no build date to state, and stamping "now" on one would be the
+            # fabricated freshness `rssFeed` refuses. So this is required only where items exist.
+            if grep -q '<item>' /tmp/claims-feed.xml; then
+              grep -q '<lastBuildDate>' /tmp/claims-feed.xml \
+                || { echo "::error::/${h}/rss.xml serves items but no <lastBuildDate>"; exit 1; }
+            fi
+
+            code=$(scripts/prod-http.sh get "${BASE}/${h}" /tmp/claims-feed.html 'text/html')
+            [ "$code" = "200" ] || { echo "::error::/${h} returned HTTP $code"; exit 1; }
+            meta=$(grep -o '<meta name="description" content="[^"]*"' /tmp/claims-feed.html | head -1 || true)
+            [ -n "$meta" ] || { echo "::error::/${h} serves no meta description"; exit 1; }
+            case "$meta" in
+              *"live feed of"*) echo "::error::/${h} unfurls as a live feed: ${meta}"; exit 1 ;;
+            esac
+
+            build=$(grep -o '<lastBuildDate>[^<]*</lastBuildDate>' /tmp/claims-feed.xml | head -1 || true)
+            echo "  @${h} — description states no currency; ${build:-no items, no build date}"
+          done
+
+          code=$(scripts/prod-http.sh get "${BASE}/robots.txt" /tmp/claims-robots.txt 'text/plain')
+          [ "$code" = "200" ] || { echo "::error::/robots.txt returned HTTP $code"; exit 1; }
+          if grep -q 'right now' /tmp/claims-robots.txt; then
+            echo "::error::/robots.txt has gone back to claiming a currency"
+            exit 1
+          fi
+
       # Run 172 learned to grade a disclosure on the deployed page and not only in workerd
       # (445f980). This is that lesson applied to the one this service is least able to keep.
       #

@@ -4279,3 +4279,62 @@ supplies an input the first component accepts and the second does not.**
   could observe, because SQLite already orders `NULL` below every value, so `DESC` puts a
   never-published feed last on its own. **Both were removed. A check no input can distinguish is not
   weaker prevention than none — it is worse, because the next run reads it and stops looking.**
+
+---
+
+## L-101 — the run that writes the lesson generalises along the axis it just worked on, and walks past the literal string (2026-09-22, run 183)
+
+- **Known problem:** [L-100](#l-100), written the run before this one, set the rule — *a rule applied
+  to "the surfaces that do X" is not applied until the set of surfaces is written down somewhere a
+  run cannot walk past* — and enumerated the set as **the surfaces that OFFER a feed**: the landing
+  cards, the follow block, both follow dialogs, the desk's suggestion row.
+- **Attempted approach:** run 182 fixed the landing list, declined an enumerated sweep over those
+  four as decoration (correctly — all four were pinned individually), and recorded the remaining gap
+  as a check deriving the offer surfaces from delivered HTML.
+- **Mistake:** the set was the wrong set. A feed is also carried **off** this site by two documents
+  that offer nothing, and both were still asserting currency as a constant:
+  `rssFeed`'s `<channel><description>` — *"What X is paying attention to **right now**"* — and
+  `publicPage`'s `<meta name="description">`/`og:description` — *"a **live** feed of what X is
+  watching"*. A third sat in `robots.txt`. On the per-feed reading run 182 itself took off
+  production, **four of the five feeds serving all three strings had published nothing for 50–53
+  days.**
+- **Why it happened, and this is the part worth keeping.** L-100 concluded that *"the hardest
+  instance of the rule to find is the surface that makes the claim by omission, because the audit
+  everyone reaches for is a search for the wrong sentence."* That is true, and it is also the
+  generalisation of the defect the run had just fixed. **The instances it walked past were the easy
+  kind** — literal wrong sentences, findable by exactly the grep L-100 said would not work, one of
+  them **700 lines below the edit in the same file run 182 was editing**. A run that has just fixed
+  an omission writes a lesson about omissions; the axis of the last defect becomes the axis of the
+  audit.
+- **Second mistake, in the instrument rather than the product.** A registry of retired freshness
+  claims **already existed** — `RETIRED_CLAIMS` in `qa/freshness.spec.mjs`, created at run 139 for
+  exactly this family — and it was checked against **only the landing page**, the document it was
+  born on, although the same spec was already fetching every feed's RSS body for its `<pubDate>`s.
+  The registry was right and its scope was one document wide.
+- **Evidence and cost:** the RSS string shipped with the feed and was byte-untouched through every
+  disclosure pass (runs 172, 177, 182). Cost to users is **plausibly zero and is stated that way
+  rather than dramatised** — `followers` is **0** and `landing_render` reads six rendering browsers
+  in forty-seven days ([EXP-011](EXPERIMENTS.md)). The cost is that the false sentence sat on the
+  **only subscription this funnel can complete**, and on the exact document the submissions in
+  [DISTRIBUTION.md](DISTRIBUTION.md) ask the owner to point a durable listing at.
+- **Lesson:** enumerate the surfaces a claim reaches by **what carries it**, not by what the
+  surfaces do for the visitor. *Offers* a feed and *delivers* a feed are different sets, and the
+  second is the one that leaves the site. And when a lesson names the hard case, check the easy case
+  in the same pass — the generalisation is not the audit.
+- **More elegant next attempt:** a retired-claim registry is worth more than a sweep precisely
+  because it is a list of *claims* rather than a list of *surfaces* — a claim is finite and a
+  surface set is not. So it must be checked against **every document the checker already holds**.
+  That is now what `qa/freshness.spec.mjs` does, at no extra request, and it names the surface in
+  its reading rather than only the claim.
+- **Prevention check, and its honest limit.** `test/freshness-claims.test.ts` pins both documents
+  against a real Worker in workerd with a **52-day-stale fixture** — the staleness is the fixture,
+  because a currency claim is only wrong when the feed is old, so a fixture written at `now` cannot
+  fail ([L-96](#l-96)). `verify-production.yml` asserts the same on the deployed artifact for every
+  handle the live landing page lists, in **both directions** per [L-93](#l-93): the claim absent
+  **and** `<lastBuildDate>` present. The positive control is the one that matters and it is
+  recorded because it is the tempting fix: **putting the relative age into the channel description**
+  is plausible, well-formed and wrong — a reader re-fetches it, but a directory *copies* it, where
+  "last published 52 days ago" freezes into the hardcoded claim being removed. Two assertions catch
+  it. **What is still not enforced is L-100's own remedy** — nothing derives the surface set from
+  delivered bytes, so a *sixth* document could carry a new claim tomorrow; the registry reddens only
+  where a checker already fetches.

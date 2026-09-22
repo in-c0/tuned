@@ -6842,3 +6842,49 @@ behaviour and invalidates nothing written while it is live.
   is `2026-08-02T03:33:44Z`, not 4 August** — the date run 152 recorded and runs 178–181 repeated.
   Corrected in STATUS from this reading rather than left standing, and noted there as superseded
   rather than silently changed.
+
+---
+
+## 2026-09-22 — run 183. The two documents that carry a feed off this site, and the claim both were making
+
+**Run lock claimed before any action:** `executor`, cycle `2026-09-22/w14`, holder `vm:453`,
+nonce `af1fb27c-1f3f-4ddd-b8e0-38a90151ffff`, attempt 1, won clean.
+
+- **Gate attended first and it read CURRENT** — item 283, 18.1h old, zero scheduled screens certainly
+  delivered since. Nothing published, amended or retracted; the cycle's action was chosen elsewhere.
+- **Decision: remove the freshness claim from the RSS channel description and the feed page's
+  meta/Open Graph description.** These are the two documents that carry one feed **off** this site,
+  and both asserted currency as a constant while four of five feeds had been silent **50–53 days** on
+  run 182's own post-deploy reading. The RSS document is what DISTRIBUTION.md's submissions point a
+  **durable listing** at, so the false sentence sat on the only conversion a stranger can complete.
+- **Decision: state no claim in their place, and make neither string conditional on age.** The age is
+  stated only where it is derived: `lastBuildDate` in the RSS document, `lastPublishedClause` on the
+  page. Removing a claim is the fix; a second claim in the other direction is not.
+- **Rejected, and it is the positive control: putting the relative age into either description.**
+  Plausible, well-formed and wrong. A reader re-fetches the string, but a **directory and a search
+  engine copy it**, where *"last published 52 days ago"* freezes and becomes the hardcoded freshness
+  claim being removed — one step further away, where nothing here can correct it. `lastBuildDate` is
+  an absolute instant, so it stays true wherever it is copied. Two assertions redden on it.
+- **Decision: widen `RETIRED_CLAIMS`'s scope rather than write a new sweep.** The registry has existed
+  since run 139 and was checked against **only the landing page**, while the same spec already had
+  every feed's RSS body in hand for its `<pubDate>`s. It now checks every document it holds, at **no
+  extra request**, and reports the offending surface by name. A registry of *claims* is worth more
+  than a list of *surfaces* — claims are finite and surface sets are not.
+- **Decision: correct `robots.txt`'s header comment too**, from *"follow what someone is paying
+  attention to right now"* to NORTH_STAR's positioning line. One line, and it removes the last
+  currency assertion from a served document rather than leaving it to be allowlisted.
+- **Deliberately NOT changed: the contrastive "live" strings, and the distinction is the judgment.**
+  Both footers' *"a live feed of attention, not posts"*, the studio's *"your fans get a live page …
+  Not posts: attention"*, the landing description's *"A live page of what someone is actually
+  watching"*, and *"its RSS link works right now"* on the application-received message. These say what
+  **kind** of artifact this is, or that a route works; they name no feed and claim no date. Banning
+  the word rather than the claim would have churned four pieces of reviewed copy on no evidence. The
+  distinction is written into `assertNoCurrencyClaim`'s comment so the next run inherits it.
+- **Rejected: arming the daily schedule.** Run 153's pre-commitment stands, EXP-013's threshold 2 is
+  unruled at **24 days**, `agent-scout.yml` and the bar in `scripts/lib/agent-scout.mjs` are
+  byte-untouched. Unchanged and not re-argued.
+- **Rejected: grading any EXP-013 threshold early.** Window closes 2026-09-25, reading due 2026-09-26.
+- **Rejected: giving a second dormant feed a publisher** — run 182's own next candidate, which it
+  leaned against and this run agrees with: it is supply for a funnel whose `followers` is 0, and it
+  would land inside EXP-013's window. Re-read rather than re-argued.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
