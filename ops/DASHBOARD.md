@@ -18,6 +18,49 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Nothing for you to do. Your one working agent published find 284 this morning — and the reason it nearly didn't is that it had told me, in the calmest possible words, that there was nothing worth publishing.**
+>
+> **What happened, in one sentence.** At 02:40 this morning `@sportstech` ran its daily screen of the
+> sports-science literature, found **nothing**, and wrote down: *"no candidate passed the bar this
+> cycle. Publishing nothing is the expected outcome."* That sentence is what it says on a genuinely
+> quiet day, so the run finished green and nothing anywhere flagged a problem.
+>
+> **It was not a quiet day.** I ran the **identical search** two hours later. It came back with
+> **35 papers**, of which the agent judged **8** worth publishing. The morning's search had not come
+> back empty — **it had not worked at all**, and the agent had no way to tell the difference.
+>
+> **Why it could not tell.** The agent already knows that failing to read the source is serious; it
+> treats a refused connection as an error and stops loudly. But the literature service did not refuse
+> — it answered *"OK"* and then handed over a reply that wasn't a set of search results. *"OK"* is a
+> statement about the **request**, never about the **answer**, and nothing was checking the answer. So
+> zero papers arrived, zero papers passed, and the report that came out the far end was the one it
+> writes on a slow week.
+>
+> **Why this one mattered more than a normal bug.** That report is not a log nobody reads. It is the
+> file I am **required** to open before deciding what to do each day — it is how last week's problem
+> (the agent finding good papers for eight days running and publishing none) is meant to never happen
+> again. A report that cannot tell *"nothing qualified"* from *"nothing was asked"* sends me away
+> satisfied. Today it nearly did.
+>
+> **What I did.** Published the find the working search turned up — **item 284**, a study checking a
+> portable force plate against a laboratory one, carrying the researchers' own sentence about how
+> closely the two agreed. Then I made the agent **stop and go red** when the reply it gets isn't a set
+> of search results, instead of quietly reporting a quiet day.
+>
+> **The part I deliberately did not do.** A genuinely empty day still has to be allowed to be empty.
+> This agent is supposed to publish **nothing** most days — that is the whole point of having a bar —
+> so an agent that panicked every time it found nothing would be worse than the bug. The check fires
+> only when the reply **breaks the service's own contract**, never when the answer is honestly zero,
+> and there is a test whose only job is to fail if I ever blur that line.
+>
+> **One thing worth your attention, and it is not a task.** You have an open question from me about
+> whether this agent may publish on its own, unattended, now **25 days** old. **Today is evidence on
+> that question in the cautious direction:** an unattended schedule would have swallowed this silently.
+> The only reason it surfaced is that a person-driven run was obliged to read the report. I am not
+> using that to decide the question for you — just recording that today spoke to it.
+>
+> **No user and no dollar, thirteen runs running.** [L-102](LESSONS.md#l-102).
+
 > # **Nothing for you to do. Four of your five feeds have been quiet for about seven weeks, and until today the feed itself was still telling subscribers it was current.**
 >
 > **What was wrong, in one sentence.** When somebody subscribes to a Tuned feed in their reader — or
@@ -1786,9 +1829,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-102** | **The publisher had a word for its instrument failing and used the word for a quiet week instead.** The 02:40Z screen reported `search returned 0 candidates (hitCount ?)` and *"no candidate passed the bar this cycle. Publishing nothing is the expected outcome."* The identical query 2h19m later screened **35** and selected **8**. Nothing had passed the bar because **nothing had been screened** — and the run was green, with a 1-second screening step against the usual 20-22s. | The concept was already in the code, written down **and tested**: `screen()` errors on a non-2xx search, under a test named *"the loop's instrument failing and not a thin week"*. It was **one response shape short**. The existing guard keyed on the **transport** (`res.ok`); the missing one keys on the **payload**, and an HTTP 200 is a statement about a request, never about an answer. When a system has a word for its instrument failing, check that **every** way it can fail reaches that word — and a record a process is *obliged* to trust carries a higher bar than a log. **The load-bearing half is the negative:** `hitCount: 0` with no records stays a clean empty cycle, because a publisher that errored on a genuinely empty window would cry wolf on exactly the cycles it exists to sit out. The positive control is mutation 4 and it reddens a test that was **already there**. |
 | **L-101** | **The run that writes the lesson generalises along the axis it just worked on.** [L-100](LESSONS.md#l-100), written the run before, enumerated the surfaces that **offer** a feed and fixed the last of them. A feed is also carried **off** this site by two documents that offer nothing — the RSS channel description a reader and a directory reproduce, and the page description a search result and every link preview show — and both still said the feed was current while **four of five had been silent 50-53 days**. | L-100 concluded that the hardest instance is the claim made by **omission**, because the audit everyone reaches for is a search for a wrong sentence. True — and it is the generalisation of the defect that run had just fixed. **The instances it walked past were the easy kind**: literal wrong sentences, findable by exactly that grep, one of them **700 lines below the edit in the same file**. Enumerate the surfaces a claim reaches by **what carries it**, not by what they do for the visitor; *offers a feed* and *delivers a feed* are different sets. A registry of retired claims already existed and was checked against **only the document it was born on** — it now checks every document the spec already holds, at no extra request. **Six mutations, named tests red on each**, including the positive control: putting the relative age into the description is the tempting fix and is wrong, because a directory **copies** it and "52 days ago" freezes. |
 | **L-100** | **A disclosure rule applied surface by surface gets finished three times, and the funnel's first screen was last.** Run 172 put the staleness disclosure on the follow block and both follow dialogs; run 177 on the desk's suggestion row; run 182 found the **landing page's feed list** still without it, 10 days on, built from a query that **read no item at all** under a heading saying **"Live feeds"**. | Each run swept the surfaces it was *already looking at*, so the rule spread by **adjacency rather than enumeration**. The instance hid because it **had no wrong string to find** — the page said nothing, and nothing is what a grep for a false claim returns. **A rule applied to "the surfaces that do X" is not applied until the set is written down somewhere a run cannot walk past.** An enumerated sweep was written and **discarded as decoration**: all four surfaces were pinned individually, so it could not redden on the realistic recurrence — a fifth surface it does not know about. |
-| **L-99** | **Carry a risk analysis one step past the number, into what the number causes.** Run 180 reasoned that an unregistered publication could only make a feed read **staler** than it is, so the error direction was safe. True of the sentence the gate prints — and false of what the sentence is *for*. | `ATTEND` is the verdict that sends the next run to the screening record **in order to publish**, so an unregistered publication does not cost one wasted look: it **buys a second publication**, and the run after it a third. Three scheduled runs a day against a one-per-run cap is how *"recurring agent value without attention overload"* stops holding, by way of the mechanism built to protect it. **The safe-direction argument is the one most likely to be waved through, because it has the shape of a proof.** The publisher now writes its own registry entry. |
 
 
 
@@ -1802,7 +1845,8 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-22 14:35 Sydney (2026-09-22 04:35 UTC), run 183. |
+| **Last materially updated** | 2026-09-22 20:25 Sydney (2026-09-22 10:25 UTC), run 184. |
+| **Run** | 184 — **your one working agent published find 284 this morning, and the reason it nearly did not is that it reported a broken search in the words it uses for a quiet week.** At 02:40 `@sportstech` screened the literature, found nothing, and wrote *"no candidate passed the bar this cycle. Publishing nothing is the expected outcome."* The **identical search** two hours later returned **35 papers** and judged **8** worth publishing. The morning search had not come back empty — **it had not worked**, and the agent could not tell the difference: the service answered *"OK"* and handed over a reply that was not a set of results, and *"OK"* is a statement about the request, never about the answer. **This mattered more than a normal bug because that report is the file I am required to read before deciding anything** — it is the safeguard against last week's failure, and a report that cannot tell *"nothing qualified"* from *"nothing was asked"* sends me away satisfied. Published **item 284**, a study checking a portable force plate against a laboratory one, in the researchers' own words; then made the agent **go red** on a reply that breaks the service's contract. **A genuinely empty day is still allowed to be empty** — this agent is meant to publish nothing most days, so the check never fires on an honest zero, and a test exists whose only job is to fail if I blur that line. **Your 25-day-old open question about unattended publishing got evidence today, in the cautious direction:** an unattended schedule would have swallowed this silently. **No user and no dollar, thirteen runs running.** [L-102](LESSONS.md#l-102). |
 | **Run** | 183 — **four of your five feeds have been quiet for about seven weeks, and the feed itself was still telling subscribers it was current.** Subscribe to a Tuned feed in a reader, or list it in a feed directory, and the description shown was *"What @wearables is paying attention to **right now**."* `@wearables` last published **30 July**; so did `@wellbeing` and `@graphics`, and `@ava` on 2 August. Only `@sportstech` publishes. The same claim was in the description Google and every link preview show. **That RSS document is the one I keep asking you to submit to a directory, and the only subscription anyone can complete here without an account** — so the one page a stranger could act on was making a claim the product could not keep. *"Right now"* is gone from the feed description, *"live"* from the page description, and the same phrase from `robots.txt`. **Nothing replaces them:** the feed already carries its real last-published date in a field every reader shows, and the page already spells the age out in words. **The near-miss is the interesting part** — writing *"last published 52 days ago"* into the description is right for a reader, which re-fetches it, and wrong for a directory, which **copies** it once, where a countdown freezes and slowly becomes a lie nobody here can correct. A date cannot rot. **No user and no dollar, twelve runs running.** [L-101](LESSONS.md#l-101). |
 | **Run** | 182 — **the page that picks a feed for you never said how old any of them are, and called all five of them live.** `GET /` listed feeds ordered by **registration date**, reading no item at all, under the heading *"Live feeds"* — while four of the five had published nothing for 50-53 days and the **stalest came first**. Each card now states its own age, the list is ordered freshest first, and the heading says *"All feeds"* — what the block is, with no claim about activity. [L-100](LESSONS.md#l-100). |
 | **Run** | 181 — **the gate that decides whether to publish is fed by a file nobody was obliged to write.** Item **283** published (`items_public` 88 → 89, second consecutive day). The publisher now writes its own registry entry at the moment of publication instead of a run retyping it afterwards — because a *missing* entry does not cost one wasted look, it buys a second publication and then a third. [L-99](LESSONS.md#l-99). |

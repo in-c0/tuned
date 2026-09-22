@@ -6889,3 +6889,56 @@ nonce `af1fb27c-1f3f-4ddd-b8e0-38a90151ffff`, attempt 1, won clean.
   would land inside EXP-013's window. Re-read rather than re-argued.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
 - **Production result.** Merged as [`e90a2c0`](https://github.com/in-c0/tuned/commit/e90a2c0); [`verify production` run 35687337094](https://github.com/in-c0/tuned/actions/runs/35687337094) **success** — expected commit serving at step 5, 25 steps passed, one skipped (`zone_blocked`, the healthy path), including the new step 17 across every handle the live landing page lists. Direct egress re-tested and still `403 CONNECT`. **No rollback triggered and none needed.**
+
+---
+
+## 2026-09-22 — run 184. The gate was attended, and the record it sent this run to read was wrong
+
+**Run lock claimed before any action:** `executor`, cycle `2026-09-22/w20`, holder `vm:452`,
+nonce `cd4bba36-ff9a-4bfc-98e3-29919efef41d`, attempt 1, won clean.
+
+- **Gate attended first and it read ATTEND** — item 283, 24.1h old, **one** scheduled screen
+  certainly delivered since (02:40Z). This is the first `ATTEND` since run 181 built the gate, and
+  the first time attending it produced both a publication **and** a defect.
+- **The record did not support publishing, and the reason it gave was false.** The 02:40Z screen
+  ([run 35702095397](https://github.com/in-c0/tuned/actions/runs/35702095397)) reported
+  `search returned 0 candidates (hitCount ?)` and `no candidate passed the bar this cycle.
+  Publishing nothing is the expected outcome.` Its screening step took **1 second**, against the
+  20–22s every working screen takes.
+- **Decision: dispatch a dry screen to establish whether the zero was transient before treating it
+  as either a fact or a defect.** [Run 35714984572](https://github.com/in-c0/tuned/actions/runs/35714984572),
+  the identical query 2h19m later: **screened 35, rejected 15, selected 8, deferred 12**, with a
+  quotable top selection. The zero was an upstream failure reported as a healthy negative.
+- **Decision: attend the gate on the fresh record, since it supports publishing.** Dispatched
+  `agent-scout.yml` with `publish: true` — [run 35715072000](https://github.com/in-c0/tuned/actions/runs/35715072000),
+  **HTTP 201 · published=true · duplicate=false · item_id=284 · created_at=2026-09-22T10:17:01.006Z**.
+  `qa/nominations/284-concurrent-validity-of-a-dual.json` committed in the same PR, because the gate
+  cannot see a publication that is not in the registry (run 181's mechanism, L-97's remedy). The
+  gate reads **CURRENT** with it.
+- **Decision: make an unusable search response an error rather than an empty screen — this cycle's
+  action.** `searchResponseDefect()` refuses two shapes against the upstream contract: a body with no
+  `hitCount` (Europe PMC always carries it for `format=json`, so absence means the body is not a
+  search result), and `hitCount > 0` with an empty page (the index reported hits it did not hand
+  over). It throws into the top-level handler that **already existed**, so the failure lands as a red
+  run with `::error::` rather than a green run with a believed artifact.
+- **Rejected: building a new reporting path, a retry, or a health counter for this.** The concept was
+  already in the code — `screen()` errors on a non-2xx search, and a test already named it *"the
+  loop's instrument failing and not a thin week"*. The gap was one response shape, so the fix is one
+  predicate routed into the existing error path. A retry would have hidden exactly the signal being
+  recovered, and a counter would be the control plane over-built again (NORTH_STAR rule 7, L-08).
+- **Rejected, and it is the positive control: treating any empty page as a defect.** `hitCount: 0`
+  with no records is a real and expected outcome and stays one — the bar's job is to be quiet, and a
+  publisher that errored on a genuinely empty window would cry wolf on precisely the cycles it exists
+  to sit out. Mutation 4 widens the guard that way and reddens **`an empty result set is a clean
+  empty cycle`**, a test that was already there.
+- **Rejected: grading any EXP-013 threshold early, and arming the schedule.** Window closes
+  2026-09-25, reading due 2026-09-26. Run 153's pre-commitment binds this run as it bound 179–183;
+  `agent-scout.yml` and the bar in `scripts/lib/agent-scout.mjs` are byte-untouched by this change
+  apart from the added predicate, which is not the bar. **Note for the reviewer:** this defect is
+  evidence bearing on threshold 2 — an unattended schedule would have absorbed this silently, and
+  the only reason it was caught is that a run was obliged to read the record. It is recorded as
+  evidence, not used to grade the threshold early.
+- **Rejected: diagnosing the upstream cause.** This session's egress proxy answers `403 CONNECT` for
+  `www.ebi.ac.uk` as well as `justtuned.com` — re-tested this run, not assumed — so the failing
+  response body cannot be reproduced from here, and guessing at it would not change the fix.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

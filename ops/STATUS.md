@@ -1,5 +1,81 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-22 20:25 Sydney (2026-09-22 10:25 UTC), run 184 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-183 and not re-argued here, per [L-07](LESSONS.md).** **The gate said
+ATTEND, and the record it sent this run to read was wrong: the publisher had reported a failed search
+in the words it uses for a quiet week.**
+
+**The gate was attended first and this time it said act.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 283, 24.1h old, **one** scheduled screen certainly delivered since (02:40Z).
+That is the first `ATTEND` since run 181 built the gate, and the first time attending it produced
+both a publication **and** a defect.
+
+**What the record said, and why none of it was true.** The 02:40Z screen
+([run 35702095397](https://github.com/in-c0/tuned/actions/runs/35702095397)):
+
+```
+search returned 0 candidates (hitCount ?)
+screened 0 · nothing · full-text reads 0
+no candidate passed the bar this cycle. Publishing nothing is the expected outcome.
+```
+
+Green run, uploaded record, no annotation, and a screening step that took **1 second** against the
+20–22s every working screen takes. The **identical query** dispatched 2h19m later
+([run 35714984572](https://github.com/in-c0/tuned/actions/runs/35714984572)) screened **35**,
+rejected 15, selected **8**, and had a quotable top selection. **Nothing had passed the bar because
+nothing had been screened.**
+
+**The gate was then discharged on the fresh record.** `agent-scout.yml` dispatched with
+`publish: true` — [run 35715072000](https://github.com/in-c0/tuned/actions/runs/35715072000),
+**HTTP 201 · published=true · duplicate=false · item_id=284**, a Frontiers force-plate concurrent
+validity paper carrying a 244-character verbatim quotation from its own abstract. The nomination file
+is committed in the same PR, because the gate cannot see a publication that is not in the registry.
+**The gate reads `CURRENT` with it.**
+
+**What shipped, and it is one predicate rather than a new mechanism.**
+[`searchResponseDefect()`](../scripts/lib/agent-scout.mjs) refuses two shapes against the upstream
+contract: a body with **no `hitCount`** (Europe PMC always carries it for `format=json`, so absence
+means the body is not a search result at all), and **`hitCount > 0` with an empty page** (the index
+reported hits it did not hand over). It throws into the top-level handler that **already existed**,
+so this failure now lands as a **red run with `::error::`** instead of a green one with a believed
+artifact.
+
+**The concept was already in the code, written down, and tested — and was one response shape short.**
+`scripts/agent-scout.mjs`'s header calls a failure to read the source *"the one signal that is NOT
+green … the loop's instruments lying rather than the literature being thin"*, and a test already
+named it. That guard keyed on the **transport** (`res.ok`); the missing one keys on the **payload**.
+An HTTP 200 is a statement about a request, never about an answer. [L-102](LESSONS.md#l-102).
+
+**`hitCount: 0` with no records stays a clean empty cycle, and that negative is the load-bearing
+half.** The bar's job is to be quiet; a publisher that errored on a genuinely empty window would cry
+wolf on exactly the cycles it exists to sit out. The positive control is mutation 4 — widening the
+guard to any empty page — and it reddens **`an empty result set is a clean empty cycle`**, a test
+that was already there. Mutation 1, the pre-change behaviour, reddens both pipeline tests and leaves
+the unit test green, which is what says the defect was at the call site and not in the predicate.
+
+**Not done, and stated rather than deferred quietly.** Nothing grades a screen's **duration** or
+compares a cycle's candidate count against recent cycles, so a well-formed response listing *three*
+candidates on a day the index holds thirty-five would still read as a thin week. That is a harder
+judgement than a contract violation and was not smuggled into this change.
+
+**Production result, from GitHub Actions — this session's egress proxy still answers `403 CONNECT`
+for `justtuned.com`, and for `www.ebi.ac.uk` too, both re-tested this run rather than assumed.**
+Merged as [`a6cbb77`](https://github.com/in-c0/tuned/commit/a6cbb77);
+[`verify production` run 35715649150](https://github.com/in-c0/tuned/actions/runs/35715649150) —
+**success**, expected commit confirmed serving at step 5 (41s after push), then **25 steps passed**,
+the one skipped being the `zone_blocked` branch, which is the healthy path.
+
+**Item 284 is independently confirmed live on production by that run, not only by the 201.**
+`/sportstech` carries **22 permalinks** into find pages, up from **21** on run 183's reading, and the
+run's own line reads *"Cadence disclosed: the last was today on /sportstech/13."* **No rollback was
+triggered and none was needed** — the shipped change touches no `src/`, so the deployed Worker's
+behaviour is unchanged by it.
+
+**The schedule is still NOT armed and no EXP-013 threshold was graded early.** Run 153's
+pre-commitment binds this run as it bound 179–183. **Recorded as evidence bearing on threshold 2
+rather than used to grade it:** an unattended schedule would have absorbed this defect silently, and
+the only reason it was caught is that a run was obliged to read the record.
+
 **Last updated:** 2026-09-22 14:35 Sydney (2026-09-22 04:35 UTC), run 183 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-182 and not re-argued here, per [L-07](LESSONS.md).** **The two
 documents that carry a feed off this site were both still calling it current, and one of them is the

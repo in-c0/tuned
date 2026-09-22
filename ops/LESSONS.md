@@ -4338,3 +4338,63 @@ supplies an input the first component accepts and the second does not.**
   it. **What is still not enforced is L-100's own remedy** — nothing derives the surface set from
   delivered bytes, so a *sixth* document could carry a new claim tomorrow; the registry reddens only
   where a checker already fetches.
+
+---
+
+## L-102 — the publisher had a word for its instrument failing and used the word for a quiet week instead (2026-09-22, run 184)
+
+- **Known problem:** [L-97](#l-97) — eight scheduled screens between 2026-09-13 and 2026-09-20 each
+  selected ~9 of ~37 candidates and published none, because the screening record is a workflow
+  artifact no run was obliged to open. Run 181 shipped the remedy: `scripts/scout-gate.mjs`, which
+  reads `ATTEND` when a scheduled screen has come and gone since the feed last published, and
+  `CLAUDE.md`'s read order now obliges every run to attend it **before** choosing a cycle's action.
+- **Attempted approach:** this run attended the gate, which read `ATTEND`, and opened the record of
+  the 02:40Z scheduled screen as instructed.
+- **Mistake, and it was in the record rather than in the run:** that record said
+  `search returned 0 candidates (hitCount ?)` and then
+  `no candidate passed the bar this cycle. Publishing nothing is the expected outcome.` **Both
+  sentences are the vocabulary of a healthy negative, and neither was true.** The identical query,
+  dispatched 2h19m later, screened **35**, selected **8** and had a quotable top selection — which
+  became item 284. Nothing had passed the bar because **nothing had been screened**.
+- **Why it happened.** `scripts/agent-scout.mjs`'s own header already draws the distinction the
+  whole operating record keeps paying for: *"the one signal that is NOT green is a failure to read
+  the source at all, because that is the loop's instruments lying rather than the literature being
+  thin."* `screen()` enforced it for a **non-2xx** search — there is even a test named *"a failed
+  search is an error, because that is the loop's instrument failing and not a thin week"*. It had no
+  enforcement at all for a **200 whose body is not a search result**, which fell through
+  `parseSearchResults` as zero candidates and out the far end as a clean cycle. **The concept was
+  right, was written down, was tested, and was one response shape short.**
+- **The shape of the gap is worth naming separately from the bug.** The existing guard keyed on the
+  *transport* (`res.ok`) and the missing one keys on the *payload*. A check written at the transport
+  layer feels like it covers "the fetch failed", so nobody writes the second one; but an HTTP 200 is
+  a statement about a request, never about an answer.
+- **Evidence and cost:** the 02:40Z run's screening step took **1 second** against the 20–22 seconds
+  every working screen takes — the duration was a louder signal than anything the record said, and
+  nothing reads it. Cost to users is **plausibly zero and stated that way rather than dramatised**:
+  `followers` is **0**, and the one screen affected was recovered inside the same day by this run.
+  The cost that matters is structural — this is the **one mechanism on Tuned that publishes without
+  a person in it**, and it had a silent failure mode whose only witness was a record engineered to
+  be believed.
+- **Lesson:** when a system has a word for its instrument failing, check that **every** way the
+  instrument can fail reaches that word. A guard on the transport is not a guard on the payload. And
+  a record that a process is *obliged* to trust carries a higher bar than a log: it must not be able
+  to report "nothing qualified" when what happened is "nothing was asked".
+- **More elegant next attempt:** `searchResponseDefect()` refuses the two shapes by what the
+  upstream contract guarantees — Europe PMC always carries `hitCount` for `format=json`, so its
+  absence means the body is not a search result; and `hitCount > 0` with an empty page means the
+  index reported hits it did not hand over. It throws into the top-level handler that **already
+  existed**, so the failure lands as a red run with an `::error::` annotation rather than as a green
+  run with a misleading artifact. No new reporting path was built for it.
+- **Prevention check, and the negative is the load-bearing half.** Three tests pin the refusals; a
+  fourth pins what must **not** be refused. **`hitCount: 0` with no records stays a clean empty
+  cycle** — the bar's job is to be quiet, and a publisher that errored on a genuinely empty window
+  would cry wolf on exactly the cycles it exists to sit out. The positive control is mutation 4,
+  widening the guard to any empty page, and it reddens **`an empty result set is a clean empty
+  cycle`** — a test that was already there, written by the run that built the pipeline. The
+  pre-change behaviour is mutation 1 and reddens both pipeline tests while leaving the unit test
+  green, which is what tells you the defect was at the call site and not in the predicate.
+- **What is still not enforced, stated rather than deferred quietly.** Nothing grades a screen's
+  *duration* or compares a cycle's candidate count against recent cycles, so a search that returns a
+  well-formed response listing **three** candidates on a day the index holds thirty-five would still
+  read as a thin week. That is a harder judgement than a contract violation and is not smuggled into
+  this change.
