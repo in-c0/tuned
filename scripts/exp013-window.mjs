@@ -118,14 +118,23 @@ export function gradeScreen(record) {
       decidedRate: decided === 0 ? null : selected / decided,
       unclaused,
       fullTextReads: record.full_text_reads ?? 0,
-      // The identity of the top selection. Ten screens that all select the same paper are one
-      // observation repeated, not ten independent ones, and a reading that does not say so
-      // overstates its own evidence.
-      topKey: record.find?.key ?? null,
+      // The identity of the top selection. Screens that all select the same paper are one
+      // observation repeated, not several independent ones, and a reading that does not say so
+      // overstates its own evidence. The field is `idempotencyKey` — `agent-scout.mjs` logs it
+      // as `key:` but serialises it under its real name, and reading the log's label instead of
+      // the record's cost this file one wrong reading before anyone saw it.
+      topKey: record.find?.idempotencyKey ?? record.find?.url ?? null,
       topUrl: record.find?.url ?? null,
-      // Whether the agent could POINT rather than describe. EXP-013's own "known limitation"
-      // names quotation as the first thing to improve, so whether it fired is a reading.
-      quoted: typeof record.find?.quote === "string" && record.find.quote.trim() !== "",
+      // Whether the screen reached a publishable top selection at all. `find` is null when
+      // nothing passed the bar, and also when the `why` line could not be composed inside its
+      // budget — a screen that selected nine and could publish none.
+      top: record.find != null,
+      // NOT reported: whether the agent quoted its source. EXP-013's "known limitation" names
+      // quotation as the first thing to improve, so it is the column this reading most wants —
+      // and the record does not carry it. `selectQuotation()`'s result is logged and never
+      // serialised, so the only honest thing to print about it here is nothing. Recovering it
+      // means writing it into the record, which is a change to the publisher inside the
+      // experiment's own window and is therefore not made here.
     },
   };
 }
@@ -138,13 +147,13 @@ export function renderWindow(rows) {
   const live = graded.filter((g) => g.reading !== null);
 
   const lines = [];
-  lines.push(`| date | run | screened | selected | rate | decided | rate on decided | quoted | state |`);
+  lines.push(`| date | run | screened | selected | rate | decided | rate on decided | top selection | state |`);
   lines.push(`| --- | --- | --- | --- | --- | --- | --- | --- | --- |`);
   for (const g of graded) {
     const r = g.reading;
     lines.push(
       r
-        ? `| ${g.date} | [${g.runId}](https://github.com/in-c0/tuned/actions/runs/${g.runId}) | ${r.screened} | ${r.selected} | **${pct(r.rate)}** | ${r.decided} | ${pct(r.decidedRate)} | ${r.quoted ? "yes" : "no"} | ok |`
+        ? `| ${g.date} | [${g.runId}](https://github.com/in-c0/tuned/actions/runs/${g.runId}) | ${r.screened} | ${r.selected} | **${pct(r.rate)}** | ${r.decided} | ${pct(r.decidedRate)} | ${r.topKey ?? "none"} | ok |`
         : `| ${g.date} | [${g.runId}](https://github.com/in-c0/tuned/actions/runs/${g.runId}) | — | — | — | — | — | — | **${g.state}** — ${g.why} |`
     );
   }
@@ -172,11 +181,17 @@ export function renderWindow(rows) {
         : `**FAILS on ${overBar.length} of ${live.length}** — ${overBar.map((g) => `${g.date} ${pct(g.reading.rate)}`).join(", ")}.`)
   );
   lines.push("");
+  // Three cases, and the first is the one that matters: NO identity is not the same claim as ONE
+  // identity. An earlier version collapsed them under `<= 1` and printed "every screen chose the
+  // same candidate" over nine records that carried no key at all — a sentence about the evidence,
+  // generated from its absence. That is precisely the unsourced number CLAUDE.md forbids, and it
+  // is easiest to write about one's own instrument.
   lines.push(
-    `**Independence** — the ${live.length} live screen(s) carry **${keys.size}** distinct top selection(s). ` +
-      (keys.size <= 1
-        ? "Every screen chose the same candidate, so these are one observation repeated, not independent readings."
-        : "")
+    keys.size === 0
+      ? `**Independence** — cannot be read: none of the ${live.length} live screen(s) records a top-selection identity.`
+      : keys.size === 1
+        ? `**Independence** — the ${live.length} live screen(s) carry **1** distinct top selection. Every screen chose the same candidate, so these are one observation repeated, not independent readings.`
+        : `**Independence** — the ${live.length} live screen(s) carry **${keys.size}** distinct top selection(s).`
   );
 
   return lines.join("\n");
