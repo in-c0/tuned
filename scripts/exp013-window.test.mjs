@@ -96,8 +96,8 @@ describe("threshold 1's second clause — every rejection names exactly one", ()
 
 describe("the window table says how much evidence it actually has", () => {
   const rows = [
-    { date: "2026-09-13", runId: 1, record: record({ returned: 35, selected: 9, rejected: 12, deferred: 14, find: { key: "k1" } }) },
-    { date: "2026-09-14", runId: 2, record: record({ returned: 37, selected: 9, rejected: 12, deferred: 16, find: { key: "k1" } }) },
+    { date: "2026-09-13", runId: 1, record: record({ returned: 35, selected: 9, rejected: 12, deferred: 14, find: { idempotencyKey: "k1" } }) },
+    { date: "2026-09-14", runId: 2, record: record({ returned: 37, selected: 9, rejected: 12, deferred: 16, find: { idempotencyKey: "k1" } }) },
     { date: "2026-09-22", runId: 3, record: { returned: 35, observations: [], full_text_reads: 0 } },
   ];
 
@@ -120,10 +120,33 @@ describe("the window table says how much evidence it actually has", () => {
     assert.match(out, /one observation repeated, not independent readings/);
   });
 
+  it("reads the identity from `idempotencyKey`, the name the record serialises", () => {
+    // agent-scout.mjs LOGS it as `key:` and writes it as `idempotencyKey`. Reading the log's
+    // label produced nine screens with no identity, which the renderer then described.
+    const g = gradeScreen(
+      record({ returned: 35, selected: 9, rejected: 12, deferred: 14, find: { idempotencyKey: "scout-b2aee844368bb449" } })
+    );
+    assert.equal(g.reading.topKey, "scout-b2aee844368bb449");
+    assert.equal(g.reading.top, true);
+  });
+
+  it("refuses to describe what the screens chose when no record carries an identity", () => {
+    // The defect this replaced: `keys.size <= 1` collapsed "no identity" into "one identity" and
+    // printed a claim about the evidence generated from its absence.
+    const anonymous = [
+      { date: "2026-09-13", runId: 1, record: record({ returned: 35, selected: 9, rejected: 12, deferred: 14, find: null }) },
+      { date: "2026-09-14", runId: 2, record: record({ returned: 37, selected: 9, rejected: 12, deferred: 16, find: null }) },
+    ];
+    const out = renderWindow(anonymous);
+    assert.match(out, /Independence\*\* — cannot be read/);
+    assert.doesNotMatch(out, /chose the same candidate/);
+    assert.doesNotMatch(out, /one observation repeated/);
+  });
+
   it("does not make that claim when the screens genuinely differ", () => {
     const varied = [
-      { date: "2026-09-13", runId: 1, record: record({ returned: 35, selected: 4, rejected: 12, deferred: 19, find: { key: "k1" } }) },
-      { date: "2026-09-14", runId: 2, record: record({ returned: 37, selected: 5, rejected: 12, deferred: 20, find: { key: "k2" } }) },
+      { date: "2026-09-13", runId: 1, record: record({ returned: 35, selected: 4, rejected: 12, deferred: 19, find: { idempotencyKey: "k1" } }) },
+      { date: "2026-09-14", runId: 2, record: record({ returned: 37, selected: 5, rejected: 12, deferred: 20, find: { idempotencyKey: "k2" } }) },
     ];
     const out = renderWindow(varied);
     assert.match(out, /carry \*\*2\*\* distinct top selection/);
