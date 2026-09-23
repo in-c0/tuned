@@ -29,7 +29,12 @@
 // a pause between them, against Europe PMC's documented key-free REST API. It declares
 // itself honestly in its User-Agent with a contact address, follows no links, and fetches no
 // page a human would otherwise be served — `fullTextXML` is the archive's own machine
-// endpoint. Nothing here retries a refusal or varies its identity to get a different answer.
+// endpoint. Nothing here varies its identity to get a different answer, and NOTHING HERE
+// RETRIES A REFUSAL: a non-2xx is Europe PMC declining, and asking a service that said no to
+// say it again is exactly the behaviour that sentence was written to forbid. What run 187 does
+// retry, at most twice and five seconds apart, is a 200 whose body is NOT A SEARCH RESULT —
+// a non-answer rather than an answer of no. The distinction is load-bearing and the line
+// between them is `searchResponseDefect`; see `searchWithRetry` for why it had to exist.
 
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -43,6 +48,7 @@ import {
   composeAmendedWhy,
   composeWhy,
   describeRefusal,
+  describeResponseShape,
   recordQuery,
   selectQuotation,
   extractBodyText,
@@ -142,6 +148,57 @@ async function getFullText(url, fetchImpl) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** How many times the one search may be asked before the cycle is abandoned, and how long
+ *  to wait between. Three and five seconds: enough to cross a transient, small enough that a
+ *  genuinely broken endpoint costs the daily screen fifteen seconds rather than a retry storm. */
+const SEARCH_ATTEMPTS = 3;
+const SEARCH_RETRY_PAUSE_MS = 5_000;
+
+/** The one search, asked again when what comes back is not an answer.
+ *
+ *  WHAT WENT WRONG WITHOUT THIS. Run 184 established that Europe PMC intermittently answers
+ *  200 with a body carrying no `hitCount`, and built `searchResponseDefect` so the publisher
+ *  would stop reporting that as a quiet week. Correct, and it left the screen dying instead:
+ *  the 2026-09-23 02:40Z scheduled screen threw at eleven seconds, published nothing, and
+ *  uploaded NO record at all. The identical query dispatched twenty minutes later
+ *  (run 35847824491) screened 35, reached a verdict on every one and selected 7 — the same
+ *  recovery run 184 measured at 2h19m on 2026-09-22. Two of the last two days, the feed's only
+ *  content pipeline was killed by a hiccup that a second request clears.
+ *
+ *  WHY A RETRY AND NOT A LOUDER FAILURE. The bar's refusal is about HONESTY — never call a
+ *  failed search a quiet cycle — and that is fully preserved: the defect still decides, the
+ *  cycle still dies if the answer never arrives, and nothing unusable is ever screened. The
+ *  cadence is the thing EXP-013 is actually asking about, and a publisher that skips a day
+ *  whenever an upstream stutters answers that question with an artefact of someone else's
+ *  uptime. Refusing to screen a bad answer and refusing to ask again are separate decisions,
+ *  and only the first one was ever argued for.
+ *
+ *  A non-2xx is NOT retried here, deliberately — `getJson` throws and that throw is left
+ *  alone. That is Europe PMC declining, and the header's promise not to retry a refusal is
+ *  about exactly that case. */
+async function searchWithRetry({ query, pageSize, fetchImpl, pause, log }) {
+  const url = searchUrl(query, { pageSize });
+  let defect = "";
+  let shape = "";
+  for (let attempt = 1; attempt <= SEARCH_ATTEMPTS; attempt += 1) {
+    const body = await getJson(url, fetchImpl);
+    const candidates = parseSearchResults(body);
+    defect = searchResponseDefect(body, candidates);
+    if (defect === "") {
+      if (attempt > 1) log(`search answered on attempt ${attempt} of ${SEARCH_ATTEMPTS}`);
+      return { body, candidates };
+    }
+    // The run holding the unusable body is the only one that will ever see it. Say what it
+    // was, in key names and types, so the next diagnosis does not start from nothing.
+    shape = describeResponseShape(body);
+    log(`search attempt ${attempt} of ${SEARCH_ATTEMPTS} was not an answer: ${defect} — ${shape}`);
+    if (attempt < SEARCH_ATTEMPTS) await pause(SEARCH_RETRY_PAUSE_MS);
+  }
+  throw new Error(
+    `unusable Europe PMC search response after ${SEARCH_ATTEMPTS} attempts: ${defect} — ${shape}`
+  );
+}
+
 /** One screening cycle. Pure except for the injected `fetchImpl` and `pause`, so the whole
  *  pipeline — not merely the bar — is exercisable against recorded responses. */
 export async function screen({
@@ -160,13 +217,11 @@ export async function screen({
   const nowIso = now.toISOString();
 
   log(`query: ${query}`);
-  const body = await getJson(searchUrl(query, { pageSize }), fetchImpl);
-  const candidates = parseSearchResults(body);
 
-  // A 200 is not the same as an answer. Refusing here, rather than screening zero candidates
-  // and reporting a quiet cycle, is the whole point — see `searchResponseDefect`.
-  const defect = searchResponseDefect(body, candidates);
-  if (defect !== "") throw new Error(`unusable Europe PMC search response: ${defect}`);
+  // A 200 is not the same as an answer. Refusing to screen one, rather than counting zero
+  // candidates and reporting a quiet cycle, is `searchResponseDefect`'s whole point; asking
+  // again before giving up the day is `searchWithRetry`'s.
+  const { body, candidates } = await searchWithRetry({ query, pageSize, fetchImpl, pause, log });
 
   log(`search returned ${candidates.length} candidate${candidates.length === 1 ? "" : "s"} (hitCount ${body?.hitCount ?? "?"})`);
 
