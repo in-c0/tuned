@@ -451,6 +451,35 @@ export function searchResponseDefect(body, results = parseSearchResults(body)) {
   return "";
 }
 
+/** What an unusable search response actually was, in a form safe to print in a public log.
+ *
+ *  WHY THE REFUSAL WAS NOT ENOUGH ON ITS OWN. `searchResponseDefect` names the SHAPE that is
+ *  wrong — "carries no hitCount" — and the run that holds the body throws it away. So the only
+ *  session that ever had the evidence printed none of it, and every later run diagnosing the
+ *  failure has to re-derive from outside what was in memory at the time. That is the L-104
+ *  family: a statement about my own instrument, checked against nothing.
+ *
+ *  KEY NAMES AND TYPES, NEVER VALUES. This repository is public and so is every log it writes,
+ *  and the same rule `agent operator` states for response bodies applies here — parse named
+ *  fields, do not echo. Key names and value types separate the cases that matter (an error
+ *  envelope, a gateway's JSON, a truncated page, an empty object) without mirroring a third
+ *  party's content or risking anything a body might carry. Capped at twelve keys because a
+ *  diagnosis is not a dump. */
+export function describeResponseShape(body) {
+  if (body === null) return "the body was null";
+  if (typeof body !== "object") return `the body was a ${typeof body}, not an object`;
+  if (Array.isArray(body)) return `the body was an array of ${body.length}`;
+  const keys = Object.keys(body);
+  if (keys.length === 0) return "the body was an object with no keys";
+  const shown = keys.slice(0, 12).map((k) => {
+    const v = body[k];
+    const type = v === null ? "null" : Array.isArray(v) ? `array[${v.length}]` : typeof v;
+    return `${k}(${type})`;
+  });
+  const rest = keys.length > shown.length ? `, and ${keys.length - shown.length} more` : "";
+  return `the body carried ${shown.join(", ")}${rest}`;
+}
+
 /** JATS full text into the plain prose the bar is applied to.
  *
  *  `<ref-list>` goes first and deliberately: a reference list is the densest source of

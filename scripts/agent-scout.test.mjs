@@ -38,6 +38,7 @@ import {
   QUOTE_MIN_CHARS,
   QUOTE_CLAUSES,
   REPORTED_VALUE_SIGNATURES,
+  describeResponseShape,
   extractBodyText,
   fullTextUrl,
   grade,
@@ -494,6 +495,83 @@ test("a 200 carrying no hitCount is an instrument failure, not a quiet cycle", a
     () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
     /unusable Europe PMC search response.*no hitCount/
   );
+});
+
+// --- the 2026-09-23 02:40Z shape: the refusal killing the day it was built to describe ----
+//
+// The scheduled screen threw at eleven seconds, published nothing and uploaded NO record.
+// The identical query twenty minutes later (run 35847824491) screened 35 and selected 7,
+// the same recovery run 184 measured at 2h19m the day before. See `searchWithRetry`.
+
+test("a search that is not an answer is asked again, and a recovered cycle screens normally", async () => {
+  let attempts = 0;
+  const f = fakeFetch([
+    [
+      "/search",
+      () => {
+        attempts += 1;
+        // Two non-answers, then the answer. Fails if the retry is removed OR capped below three.
+        if (attempts < 3) return { ok: true, status: 200, async json() { return { version: "6.9", request: {} }; } };
+        return searchResponse([record()])();
+      },
+    ],
+    ["/fullTextXML", xmlResponse(goodFullText())],
+  ]);
+  const report = await screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} });
+  assert.equal(attempts, 3, "the search should have been asked three times");
+  assert.equal(report.returned, 1, "the recovered cycle screens the candidate it was finally handed");
+});
+
+test("the retry is bounded, and an endpoint that never answers still fails the cycle", async () => {
+  let attempts = 0;
+  const f = fakeFetch([
+    ["/search", () => { attempts += 1; return { ok: true, status: 200, async json() { return { version: "6.9", request: {} }; } }; }],
+  ]);
+  await assert.rejects(
+    () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
+    /after 3 attempts/
+  );
+  assert.equal(attempts, 3, "three attempts and no more — a retry must not become a storm");
+});
+
+test("a refusal is NOT retried: a non-2xx is Europe PMC declining, and asking again is the thing the header forbids", async () => {
+  let attempts = 0;
+  const f = fakeFetch([
+    ["/search", () => { attempts += 1; return { ok: false, status: 503, async json() { return {}; }, async text() { return ""; } }; }],
+  ]);
+  await assert.rejects(
+    () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
+    /HTTP 503 from Europe PMC search/
+  );
+  assert.equal(attempts, 1, "a service that said no is asked exactly once");
+});
+
+test("the run holding the unusable body says what it was, and never what it contained", async () => {
+  const lines = [];
+  const f = fakeFetch([
+    ["/search", () => ({ ok: true, status: 200, async json() { return { version: "6.9", errMsg: "a-secret-looking-value", request: {} }; } })],
+  ]);
+  await assert.rejects(
+    () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: (l) => lines.push(String(l)) }),
+    /errMsg\(string\)/
+  );
+  const printed = lines.join("\n");
+  assert.match(printed, /version\(string\), errMsg\(string\), request\(object\)/, "key names and types are the diagnosis");
+  assert.doesNotMatch(printed, /a-secret-looking-value/, "this repository's logs are public — names and types, never values");
+});
+
+test("describeResponseShape separates the cases a diagnosis has to tell apart", () => {
+  assert.match(describeResponseShape({ version: "6.9", request: {} }), /version\(string\), request\(object\)/);
+  assert.equal(describeResponseShape({}), "the body was an object with no keys");
+  assert.equal(describeResponseShape(null), "the body was null");
+  assert.match(describeResponseShape("<html>503</html>"), /was a string, not an object/);
+  assert.match(describeResponseShape([1, 2]), /an array of 2/);
+  assert.match(describeResponseShape({ a: null, b: [1, 2, 3] }), /a\(null\), b\(array\[3\]\)/);
+
+  const wide = Object.fromEntries(Array.from({ length: 15 }, (_, i) => [`k${i}`, i]));
+  const described = describeResponseShape(wide);
+  assert.match(described, /and 3 more$/, "a diagnosis is not a dump");
+  assert.doesNotMatch(described, /k12\(/, "the cap is twelve keys");
 });
 
 test("hits the index reports but does not hand over are an instrument failure too", async () => {
