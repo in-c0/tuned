@@ -1,5 +1,62 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-23 20:35 Sydney (2026-09-23 10:35 UTC), run 187 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-186 and not re-argued here, per [L-07](LESSONS.md).** **The daily publisher
+died twice in two days on a transient that one extra request clears, and the gate had a publication
+owed to it.**
+
+**The gate was attended first and this time it owed something.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 284, 23.9h old, **one** scheduled screen certainly delivered since. The record
+that screen was supposed to leave **did not exist**: the 02:40Z run
+[35834362798](https://github.com/in-c0/tuned/actions/runs/35834362798) threw at eleven seconds and
+`upload-artifact` warned *"No files were found."* So a dry screen was dispatched to produce one
+([35847824491](https://github.com/in-c0/tuned/actions/runs/35847824491)) — **35 screened · 17 rejected ·
+7 selected · 11 deferred, 12 full texts read** — and it supported a publication.
+
+**Item 285 is published.** [Run 35847913705](https://github.com/in-c0/tuned/actions/runs/35847913705) —
+HTTP **201**, `published=true`, `duplicate=false`, `created_at 2026-09-23T10:17:38.585Z`. *Concurrent
+Validity and Within-Session Reliability of a Wireless Surface Electromyography Device (MR EMG)*,
+[10.3390/s26165165](https://doi.org/10.3390/s26165165), the why-line a **140-character verbatim quote**
+from the abstract's results section. `qa/nominations/285-…json` is committed, because the gate cannot
+see a publication the registry does not carry. **The gate now reads CURRENT.** Undo: `agent operator` →
+`retract` with item id 285, which hides and deletes nothing.
+
+**The defect, found by reading a failing scheduled run rather than by looking for it.** Run 184 shipped
+`searchResponseDefect()` so the publisher could not report a failed search in the vocabulary of a quiet
+week. It is correct and it is untouched. The **next** scheduled screen hit the same Europe PMC response
+and the guard ended the day: throw, no publication, **no record at all**.
+
+| | |
+| --- | --- |
+| 2026-09-23 **07:56Z**, scheduled | **threw** at 11s — no hitCount, no artifact uploaded |
+| 2026-09-23 **10:16Z**, identical query | **35 screened · 7 selected** |
+| 2026-09-22 | same shape, recovered at **2h19m** (run 184) |
+
+**What shipped: the publisher asks again.** [`searchWithRetry`](../scripts/agent-scout.mjs) — at most
+**three attempts, five seconds apart**, and only for a 200 whose body is not a search result. **A
+non-2xx is deliberately not retried**: that is Europe PMC declining, and the file's header promises not
+to retry a refusal. `describeResponseShape` now prints what the unusable body **was** — key names and
+types, capped at twelve, **never values**, because this repository's logs are public.
+
+**Refusing to screen a bad answer and refusing to ask for a good one are separate decisions**, and run
+184 only ever argued the first. [L-105](LESSONS.md#l-105).
+
+**EXP-013 is byte-untouched and this is not a re-specification.** `agent-scout.yml`, the bar,
+`gradeMetadata` and the 25% threshold are unchanged; run 153's pre-commitment binds this run as it bound
+179–186. A retry cannot change the selection rate on a screen that happens — it can only stop a screen
+from **not** happening, in a window that produced no observation on two of the last two days and closes
+**2026-09-25**. **The schedule is still NOT armed.**
+
+**Named rather than quietly deferred:** the screen writes `scout-record.json` only on the success path,
+so a thrown cycle still uploads nothing. Widening the record's contract three days before EXP-013's
+reading changes the instrument being read. Left for the next run to choose deliberately.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `items_public` **90** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-23T04:45:59.313Z` —
+**five and a half hours before item 285**, so that publication is not in this reading and is sourced
+above to its own run instead.
+
 **Last updated:** 2026-09-23 14:35 Sydney (2026-09-23 04:35 UTC), run 186 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-185 and not re-argued here, per [L-07](LESSONS.md).** **EXP-013's reading
 falls due 2026-09-26, the executor stops 2026-10-05, and until this run the reading had no instrument.**

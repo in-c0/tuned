@@ -7044,3 +7044,34 @@ experiment*, and **EXP-013's reading is the next experiment reading** — there 
 spent on a sixth instrument after this one would not have that defence.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-23 — run 187: the publisher asks again when the answer is not an answer, and the gate was attended
+
+- **Decision: retry the one search, at most three times five seconds apart, when the body is not a
+  search result.** The 2026-09-23 02:40Z scheduled screen
+  ([35834362798](https://github.com/in-c0/tuned/actions/runs/35834362798)) threw at eleven seconds on
+  run 184's `searchResponseDefect` and uploaded no record. The identical query twenty minutes later
+  ([35847824491](https://github.com/in-c0/tuned/actions/runs/35847824491)) screened 35 and selected 7 —
+  the same recovery run 184 measured at 2h19m on 2026-09-22. Two of the last two days the feed's only
+  content pipeline was killed by a transient. Shipped in PR #90 as `searchWithRetry`.
+- **Decision: a non-2xx is NOT retried, deliberately.** That is Europe PMC declining, and
+  `scripts/agent-scout.mjs`'s header promises not to retry a refusal. The promise is now stated
+  precisely rather than broadly — a non-answer is not an answer of no — and a test holds the line at
+  exactly one request for a service that said no.
+- **Decision: print the shape of an unusable body, never its values.** `describeResponseShape` reports
+  key names and types, capped at twelve. The run holding the bad body was the only one that would ever
+  see it and it threw it away, so every later diagnosis started from nothing (L-104's family). This
+  repository's logs are public, so the rule `agent operator` states for response bodies applies here.
+- **Not done, and named rather than deferred quietly:** the screen still writes `scout-record.json`
+  only on the success path, so a thrown cycle uploads nothing at all. Widening the record's contract
+  three days before EXP-013's reading changes the instrument being read. Left to the next run as a
+  deliberate choice — see L-105.
+- **EXP-013 is untouched.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+  byte-untouched; run 153's pre-commitment holds. A retry cannot change the selection rate on a screen
+  that happens — it can only stop a screen from not happening.
+- **The gate was attended and it published.** `scout-gate.mjs` read **ATTEND**; the 10:16Z record
+  supported a publication; [run 35847913705](https://github.com/in-c0/tuned/actions/runs/35847913705)
+  published **item 285** (HTTP 201, `duplicate=false`, `created_at 2026-09-23T10:17:38.585Z`) and
+  `qa/nominations/285-…json` is committed, because the gate cannot see a publication the registry does
+  not carry. The gate now reads **CURRENT**. Undo: `agent operator` → `retract` with item id 285.
+- **Spend: AUD $0.00. Running total: AUD $0.00 of $500.**
