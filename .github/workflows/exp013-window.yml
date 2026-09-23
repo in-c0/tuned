@@ -1,0 +1,50 @@
+name: exp013 window
+
+# EXP-013's reading, run where the evidence is.
+#
+# The experiment's thresholds 1 and 2 are graded on what every live screen in the window did, and
+# the only record of that is the `scout-record` artifact each `agent scout` run uploads. The
+# executor session cannot fetch one: artifact download redirects to
+# `productionresultssa3.blob.core.windows.net`, which its egress proxy answers with `403 CONNECT`
+# (re-tested run 186, alongside `justtuned.com`). Listing artifacts works; the bytes do not. So the
+# reading runs here, on a runner that can reach them, and the executor reads the verdict out of
+# this job's log and summary — the same arrangement `verify production` already uses for the parts
+# of production the session cannot see.
+#
+# DISPATCH ONLY, DELIBERATELY. The reading falls due 2026-09-26 and happens once. A daily schedule
+# would be a standing job maintaining an answer nobody is asking for yet, and would put a fifth
+# recurring check on a control plane NORTH_STAR rule 7 already says to stop extending. Whoever
+# takes the reading dispatches this and commits its table into ops/EXPERIMENTS.md — one commit, by
+# a run that looked, which is the discipline `qa/nominations/` already follows for publications.
+#
+# READ-ONLY, AND NO SECRET. It needs `actions: read` to list runs and download artifacts and
+# nothing else. It cannot publish, cannot touch the operator plane, and holds none of the
+# credentials `agent scout` does — the reading must never be able to change what it is reading.
+#
+# WHY IT INSTALLS NOTHING. No `npm ci`, no setup-node. The script imports node builtins and shells
+# out to `unzip`, which the runner has. The same rule `executor liveness`, `deploy staleness` and
+# `agent scout` follow: an instrument that needs the npm registry has a second way to fail at the
+# moment it is supposed to be reporting.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: exp013-window
+  cancel-in-progress: false
+
+jobs:
+  reading:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grade the window from the screening records
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/exp013-window.mjs
