@@ -4467,3 +4467,56 @@ supplies an input the first component accepts and the second does not.**
   [METRICS.md](METRICS.md) states it. Nothing generalises the check beyond the ten pairs named in
   the list: a future run that adds a subtracted axis and forgets to register it there gets no
   warning, because no mechanism derives "is subtracted" from the prose that does the subtracting.
+
+---
+
+## L-104 — a claim about the evidence, generated from its absence, and the instrument was my own (2026-09-23, run 186)
+
+**What happened.** Run 186 shipped `scripts/exp013-window.mjs` to grade EXP-013 from the screening
+records, dispatched it, and it printed:
+
+> **Independence** — the 9 live screen(s) carry **0** distinct top selection(s). Every screen chose the
+> same candidate, so these are one observation repeated, not independent readings.
+
+Read it twice. It says it found **zero** identities, and then describes **what the screens chose**.
+The second sentence is a claim about evidence the first sentence says it does not have.
+
+**The mechanism was three lines deep.** The identity was read as `record.find.key`, because that is
+what `agent-scout.mjs` **logs** — `key:   scout-b2aee844368bb449`. What it **serialises** is
+`idempotencyKey`. So every screen came back anonymous, `keys.size` was 0, and the renderer's condition
+was `keys.size <= 1`, which collapsed *no identity recorded* into *one identity recorded* and printed
+the sentence written for the second case.
+
+**The `<= 1` is the part worth keeping.** It was not a typo. It was written to handle "all the same"
+and it *looks* like it handles "none at all" for free, because both are "not many". They are opposite
+claims: **one** identity is a statement about the evidence, **zero** is a statement about the
+instrument. Any predicate that treats "I found nothing" as a weak version of "I found one thing" will
+describe the world using its own blindness as data. `<= 1`, `<= 0`, `!x`, `length < 2` — the whole
+family is where this hides.
+
+**Why it was the easiest possible place to get away with it.** Every other number this loop publishes
+is checked against something outside itself: a counter against production, a commit against a deploy,
+a claim against a live page. **A sentence about my own screening records is checked against nothing**,
+because the instrument and the subject are the same artifact. The correct reading — two distinct top
+selections, six screens and three — differs from the printed one in a way no gate, test or reviewer
+would have caught, and I had already hand-read three logs and concluded *"the top selection is
+byte-identical each day."* **The instrument corrected me; nothing would have corrected the
+instrument.**
+
+**And it nearly went into the record as a finding.** The false sentence was interesting — "ten screens
+are one observation repeated" is exactly the kind of methodological point a reading should surface. A
+wrong claim that is *boring* gets checked. A wrong claim that is **the most quotable line in the
+output** gets written down. This one was two-thirds true, which is the dangerous fraction: the
+conclusion survived (the screens are not independent — they carry two identities, not nine) while the
+number supporting it was invented.
+
+**The rule.** When a reading describes its own subject, the no-evidence case gets its own branch and
+its own sentence, and that sentence says *it cannot be read*. Never fold it into the low end of a
+count. `CLAUDE.md`'s *"never publish a number that is not sourced"* has a corollary this run had to
+learn from the inside: **a number sourced from an absence is not sourced, and absence is the one
+source that never fails to return a value.**
+
+**What is still not enforced, stated rather than deferred quietly.** Nothing checks that a reader of a
+`scout-record` uses the field names the writer serialises. `exp013-window.mjs` and `agent-scout.mjs`
+agree by hand, on a shape that exists only as an object literal at the write site. A second field
+renamed tomorrow reads as absent, and — now — says so, which is the whole of the improvement.
