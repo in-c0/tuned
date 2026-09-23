@@ -33,11 +33,44 @@
 // one. L-102's shape, one layer further out.
 //
 // WHAT THIS DOES NOT GRADE, so that no later run mistakes its output for the whole reading.
-// Thresholds 3 (provenance on both public surfaces), 4 (freshness with zero hand publications)
-// and 5 (every published item on remit under a HUMAN reading) are not computable from a screening
-// record and are not attempted here. 3 is graded by qa/exp008-provenance.spec.mjs against the
-// registry, 4 against production, and 5 by a person. This grades 1 and 2, which are the two only
-// the records can answer.
+// Thresholds 3 (provenance on both public surfaces) and 5 (every published item on remit under a
+// HUMAN reading) are not computable from a screening record and are not attempted here. 3 is
+// graded by qa/exp008-provenance.spec.mjs against the registry, and 5 by a person.
+//
+// THRESHOLD 4 IS COMPUTABLE HERE, AND RUN 186 SAID IT WAS NOT. That claim — "4 against
+// production" — is true of the direction that PASSES and false of the direction that FAILS, and
+// the difference is the whole of this section. Threshold 4 is "`@sportstech`'s newest public item
+// is <= 72h old on every reading in the window, with zero hand publications in it". Confirming
+// that freshness HELD needs production, because only production knows what was actually serving.
+// Showing that it LAPSED needs nothing but arithmetic on `publishedAt` timestamps already
+// committed to `qa/nominations/`: if two consecutive publications are 203.8h apart, then at the
+// instant before the later one the newest item was 203.8h old, whatever production says. A bar
+// can be failed from the repository and can only be passed from the site. Deferring the whole
+// threshold to a source this session cannot reach left the loop's LAST experiment with its
+// premise-threshold ungraded while the failing evidence sat in git. L-92's shape — a precondition
+// graded in place of the outcome — one layer further out.
+//
+// AND IT CANNOT BE READ AS AN OBSERVATION, which is the finding rather than the arithmetic.
+// Threshold 4's second clause is "zero hand publications". `schedulePublishes()` below reads the
+// one word that arms the schedule off `agent-scout.yml` rather than asserting anything about it,
+// and on the current file a scheduled screen cannot publish at all: `PUBLISH: ${{ inputs.publish
+// }}`, and a schedule event carries no inputs. That is Fork B, actioned 2026-09-12 — the first
+// day of this window — because threshold 2 failed at 25.7%. So from day 1 the only path to a
+// publication was an explicit dispatch by a person who had read the record, which is precisely
+// what the clause forbids. Fork B's action and threshold 4 are MUTUALLY EXCLUSIVE: once the
+// schedule is disarmed, threshold 4 can only fail, and it fails whether the bar is good or bad.
+// A reading that reports "threshold 4 failed, so the cadence still depends on a person" would be
+// presenting a tautology as evidence about the agent. It is evidence about the experiment.
+//
+// NO FORK COVERS WHAT ACTUALLY HAPPENED, recorded here because the reading is due 2026-09-26 and
+// a fork invented on the day would be chosen knowing the numbers. Forks: A all hold, B threshold
+// 2, C threshold 5, D "starved" — which requires 2 to be "vacuous because nothing was ever
+// selected" — and E the source refusing. What happened is none of them: the bar selected ~9 of
+// ~37 on every live screen and published none of it, because Fork B had already turned the
+// publisher off (L-97). Plenty was selected, so it is not D; Europe PMC answered, so it is not E.
+// This file does not invent the missing fork and does not grade threshold 4 early — EXP-013 says
+// no threshold is graded before the window closes. It computes the interval, names what the
+// number can and cannot mean, and leaves the grade to the 2026-09-26 reading.
 //
 // It also does not rewrite the threshold it grades. EXP-013 already recorded threshold 2 as
 // FAILED at 25.7% and its denominator as mis-specified — "the denominator counts candidates the
@@ -51,11 +84,98 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { loadNominations } from "../qa/nominations/index.mjs";
+
 /** EXP-013's pre-registered window, from ops/EXPERIMENTS.md. Complete days, UTC. */
 export const WINDOW = Object.freeze({ from: "2026-09-12", to: "2026-09-25" });
 
 /** The pre-registered bar for threshold 2, as written. Not adjusted here. */
 export const SELECTION_RATE_BAR = 0.25;
+
+/** The pre-registered bar for threshold 4, as written. Not adjusted here. */
+export const FRESHNESS_BAR_HOURS = 72;
+
+const HOUR_MS = 3600000;
+
+/**
+ * Can a SCHEDULED screen publish? Read off the workflow, never asserted here.
+ *
+ * Threshold 4's "zero hand publications" clause is decided by one expression in
+ * `.github/workflows/agent-scout.yml`, and that file's own comment calls re-arming it "one word"
+ * — restoring `github.event_name == 'schedule' && 'true' ||` in front of `inputs.publish`. A
+ * reading that hard-coded "the schedule is disarmed" would be restating a belief this loop has
+ * carried for twelve days; this parses the line, so the reading cannot drift from the config it
+ * describes. `null` means the line was not found at all, which is a reading about this function
+ * and is never reported as "disarmed".
+ */
+export function schedulePublishes(workflowYaml) {
+  const m = String(workflowYaml ?? "").match(/^[ \t]*PUBLISH:[ \t]*(.+)$/m);
+  if (!m) return { armed: null, expr: null, why: "no `PUBLISH:` line found in agent-scout.yml" };
+  const expr = m[1].trim();
+  const armed = /event_name\s*==\s*'schedule'/.test(expr);
+  return {
+    armed,
+    expr,
+    why: armed
+      ? "a scheduled screen publishes: the event_name guard is present"
+      : "a scheduled screen cannot publish: PUBLISH comes only from `inputs`, and a schedule event carries none",
+  };
+}
+
+/**
+ * Threshold 4's registry-computable half: how long `@sportstech`'s newest item was ever allowed
+ * to get, from `publishedAt` timestamps alone.
+ *
+ * The leading edge is deliberately not the window boundary. Threshold 4 is about the age of the
+ * newest item, and at the instant the window opened that item was whatever had been published
+ * last — usually before the window. So the first interval runs from that publication to the first
+ * one inside, and dropping it would understate the very gap the threshold is about.
+ *
+ * The trailing interval is still running while the window is open, so it is reported separately
+ * and marked `open`. An open interval can only grow, which means it can establish a failure and
+ * can never establish a pass — the same asymmetry the header describes.
+ */
+export function publicationCadence(nominations, { window = WINDOW, handle = "sportstech", now = Date.now() } = {}) {
+  const at = (n) => Date.parse(n.publishedAt);
+  const opens = Date.parse(`${window.from}T00:00:00.000Z`);
+  const closes = Date.parse(`${window.to}T23:59:59.999Z`);
+
+  const mine = nominations
+    .filter((n) => n.handle === handle && Number.isFinite(at(n)))
+    .sort((a, b) => at(a) - at(b));
+
+  const inWindow = mine.filter((n) => at(n) >= opens && at(n) <= closes);
+  const newestAtOpen = mine.filter((n) => at(n) < opens).pop() ?? null;
+
+  const intervals = [];
+  let prev = newestAtOpen;
+  for (const n of inWindow) {
+    if (prev) intervals.push({ from: prev, to: n, hours: (at(n) - at(prev)) / HOUR_MS, open: false });
+    prev = n;
+  }
+
+  let trailing = null;
+  const end = Math.min(now, closes);
+  if (prev && end > at(prev)) {
+    trailing = { from: prev, to: null, hours: (end - at(prev)) / HOUR_MS, open: end < closes };
+  }
+
+  const all = trailing ? [...intervals, trailing] : intervals;
+  const widest = all.reduce((w, i) => (w === null || i.hours > w.hours ? i : w), null);
+
+  return {
+    handle,
+    window,
+    publications: inWindow,
+    count: inWindow.length,
+    newestAtOpen,
+    intervals,
+    trailing,
+    widest,
+    // A bar is exceeded the moment the interval is longer than it, open or closed.
+    exceedsBar: widest !== null && widest.hours > FRESHNESS_BAR_HOURS,
+  };
+}
 
 /**
  * What a record is, as evidence. Three states, because "the bar refused everything" and "the bar
@@ -197,6 +317,75 @@ export function renderWindow(rows) {
   return lines.join("\n");
 }
 
+const hrs = (h) => `${h.toFixed(1)}h`;
+const item = (n) => (n ? `item ${n.itemId} (${n.publishedAt})` : "none");
+
+/**
+ * Threshold 4's interim section. States the interval, and states what it cannot mean.
+ *
+ * Deliberately assigns no grade and no fork: EXP-013 says no threshold is graded before the
+ * window closes on 2026-09-25, and the reading falls due 2026-09-26. The word INTERIM is on the
+ * heading for the same reason run 186's table carried it.
+ */
+export function renderCadence(cadence, schedule) {
+  const lines = [];
+  const { widest, count, newestAtOpen, window } = cadence;
+
+  lines.push(`**Threshold 4 — INTERIM, not graded here.** \`@${cadence.handle}\`, ${window.from} → ${window.to}.`);
+  lines.push("");
+  lines.push(`| | |`);
+  lines.push(`| --- | --- |`);
+  lines.push(`| Publications inside the window | **${count}** |`);
+  lines.push(`| Newest item when the window opened | ${item(newestAtOpen)} |`);
+  lines.push(
+    `| Longest interval with no publication | ${
+      widest === null
+        ? "—"
+        : `**${widest.open ? "at least " : ""}${hrs(widest.hours)}** — ${item(widest.from)} → ${
+            widest.to ? item(widest.to) : "still open"
+          }`
+    } |`
+  );
+  lines.push(`| Pre-registered bar | ${FRESHNESS_BAR_HOURS}h |`);
+  lines.push(
+    `| Scheduled screen may publish? | ${
+      schedule.armed === null ? "**unreadable** — " : schedule.armed ? "**yes** — " : "**no** — "
+    }${schedule.why} |`
+  );
+  lines.push("");
+
+  if (widest !== null && cadence.exceedsBar) {
+    lines.push(
+      `The newest item reached ${widest.open ? "at least " : ""}**${hrs(widest.hours)}** old inside the window, ` +
+        `against a **${FRESHNESS_BAR_HOURS}h** bar — **${(widest.hours / FRESHNESS_BAR_HOURS).toFixed(1)}x**. ` +
+        `This is arithmetic on committed \`publishedAt\` timestamps and needs no production read: ` +
+        `a bar can be failed from the repository and can only be passed from the site.`
+    );
+  } else if (widest !== null) {
+    lines.push(
+      `No interval in the registry exceeds the ${FRESHNESS_BAR_HOURS}h bar. **That is not a pass.** ` +
+        `The registry can only show freshness lapsing; whether it HELD is a fact about what production ` +
+        `was serving, and this file does not read production.`
+    );
+  }
+
+  lines.push("");
+  if (schedule.armed === false) {
+    lines.push(
+      `**And the number is not an observation about the agent.** Threshold 4's second clause is *zero hand ` +
+        `publications*, and with the schedule disarmed there is no other kind: every one of the ${count} ` +
+        `publication(s) above required an explicit dispatch by someone who had read the screening record. ` +
+        `That disarming is Fork B, actioned on the window's first day because threshold 2 failed at 25.7%. ` +
+        `**Fork B's action and threshold 4 are mutually exclusive** — once the publisher is off, threshold 4 ` +
+        `can only fail, and it fails whether the bar is good or bad. What this measures is the experiment, ` +
+        `not the agent, and the 2026-09-26 reading should record it as such rather than as evidence that ` +
+        `"the cadence still depends on a person".`
+    );
+  }
+
+  return lines.join("\n");
+}
+
 // ---------------------------------------------------------------------------------------------
 // Everything below needs the network and a credential, and runs inside Actions. Nothing above
 // does, which is why the grading is what carries the tests.
@@ -271,10 +460,20 @@ async function main() {
   const table = renderWindow(rows);
   console.log(table);
 
+  // Threshold 4's half, from the repository rather than the network: the registry is committed
+  // and `agent-scout.yml` is checked out, so this section reads the same on a laptop with no
+  // token as it does in Actions.
+  const workflow = fs.readFileSync(
+    path.join(path.dirname(new URL(import.meta.url).pathname), "..", ".github", "workflows", "agent-scout.yml"),
+    "utf8"
+  );
+  const cadence = renderCadence(publicationCadence(loadNominations()), schedulePublishes(workflow));
+  console.log(`\n${cadence}`);
+
   if (process.env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,
-      `### EXP-013 — window reading (${WINDOW.from} → ${WINDOW.to})\n\n${table}\n`
+      `### EXP-013 — window reading (${WINDOW.from} → ${WINDOW.to})\n\n${table}\n\n${cadence}\n`
     );
   }
 }
