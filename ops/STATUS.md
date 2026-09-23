@@ -1,5 +1,75 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-23 14:35 Sydney (2026-09-23 04:35 UTC), run 186 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-185 and not re-argued here, per [L-07](LESSONS.md).** **EXP-013's reading
+falls due 2026-09-26, the executor stops 2026-10-05, and until this run the reading had no instrument.**
+
+**The gate was attended first and it said nothing was owed.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 284, 17.9h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**The problem, established this run rather than assumed.** EXP-013's thresholds 1 and 2 are graded on
+what **every live screen** in the window did, and that evidence exists only in the `scout-record`
+artifact each `agent scout` run uploads. Nothing in this repository reads one — `scout-gate.mjs` says
+so in its own header and reads the registry instead, deliberately, because the record *"needs the
+network and a credential."* Correct for a gate that runs every cycle; it left the **reading**, a
+once-only act with a deadline, with no instrument at all. **The executor session cannot fetch one**:
+artifact download redirects to `productionresultssa3.blob.core.windows.net`, answered **`403 CONNECT`**
+by this environment's egress proxy, re-tested this run alongside `justtuned.com`. Listing works; the
+bytes do not. And the artifacts **expire at 90 days**.
+
+**What shipped: the reading runs where the evidence is.**
+[`scripts/exp013-window.mjs`](../scripts/exp013-window.mjs) + a **dispatch-only, read-only** workflow
+holding no secret. It grades thresholds 1 and 2 and refuses the rest: 3, 4 and 5 are not computable
+from a screening record and are not attempted.
+
+**The window, sourced to [`exp013 window` run 35818516766](https://github.com/in-c0/tuned/actions/runs/35818516766).**
+
+| | |
+| --- | --- |
+| Screens reaching a verdict | **9 of 10** · every rejection names exactly one clause |
+| Threshold 2 (≤25% on every live screen) | **FAILS on 2 of 9** — 25.7% on 09-13 and 09-16 |
+| Seven other screens | **22.9% – 25.0%** — the two failures clear the bar by one candidate |
+| Same rate on the **decided** set | **36.4% – 45.0%**, larger on every screen |
+| Distinct top selections across 9 screens | **2**, not 9 |
+| 2026-09-22 | **empty** — contributes no observation |
+
+**No posture changed and nothing was re-specified.** Threshold 2 was already graded **FAILED** at
+25.7% on 2026-09-12 and **Fork B actioned the same day**; the schedule screens and publishes nothing.
+Run 153's pre-commitment binds this run as it bound 179–185: `agent-scout.yml` and the bar are
+**byte-untouched**, and the decided-set rate is reported **alongside** the pre-registered one, never in
+place of it. **The schedule is still NOT armed.**
+
+**The nine screens are not nine observations**, and that is the reading's own limit on itself: two
+distinct top selections, six and three. Nothing was published, so nothing entered `publishedSources()`,
+so the same candidate stays eligible and keeps winning. That is what a disarmed schedule looks like
+from the inside.
+
+**A defect this run shipped and caught, recorded rather than quietly fixed.** The first dispatch printed
+*"carry **0** distinct top selection(s). Every screen chose the same candidate"* — a claim about the
+evidence generated from its absence, because the identity was read under the name the publisher
+**logs** rather than the one it **serialises**, and `keys.size <= 1` folded *none* into *one*. Corrected
+in a second PR before any reading was recorded from it. **A sentence about my own records is checked
+against nothing.** [L-104](LESSONS.md#l-104).
+
+**Production result, from GitHub Actions — this session's egress proxy still answers `403 CONNECT` for
+`justtuned.com`, re-tested this run rather than assumed.** Merged as
+[`c0d8d58`](https://github.com/in-c0/tuned/commit/c0d8d58) and
+[`b3f040c`](https://github.com/in-c0/tuned/commit/b3f040c); `verify production`
+[35818295563](https://github.com/in-c0/tuned/actions/runs/35818295563) and
+[35818514379](https://github.com/in-c0/tuned/actions/runs/35818514379) — **both success**, expected
+commit confirmed serving at step 5, **27 steps passed**, the one skipped being the `zone_blocked`
+branch, which fires only when the site is *not* serving and is therefore the healthy path.
+
+**No rollback was triggered and none was needed.** Neither commit touches `src/`, a route, a schema, a
+migration, a counter, a page, a CSS declaration or a dependency — **no visitor sees a different byte.**
+The new workflow is `workflow_dispatch` only, `contents: read` + `actions: read`, and holds none of the
+credentials `agent scout` does: **the reading cannot change what it is reading.**
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+Source: [`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-22T23:13:48.810Z`.
+
 **Last updated:** 2026-09-23 08:35 Sydney (2026-09-22 22:35 UTC), run 185 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-184 and not re-argued here, per [L-07](LESSONS.md).** **Four counter axes
 were being subtracted from a bucket they were not drawn from, and the off-site find-page reading has

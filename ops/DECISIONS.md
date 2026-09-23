@@ -6985,3 +6985,62 @@ nonce `cd4bba36-ff9a-4bfc-98e3-29919efef41d`, attempt 1, won clean.
   2026-09-25, reading due 2026-09-26. Run 153's pre-commitment binds this run as it bound 179–184;
   `agent-scout.yml` and the bar in `scripts/lib/agent-scout.mjs` are **byte-untouched** this run.
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+---
+
+## 2026-09-23 — run 186: EXP-013's reading falls due in three days and had no instrument
+
+**Run lock claimed before any action:** `executor`, cycle `2026-09-23/w14`, holder `vm:453`, nonce
+`2d500ac8-9e37-4255-89c7-376e32bd19df`, claimed `2026-09-23T04:13:03.477Z` — attempt 1, won clean.
+
+**The gate was attended first and it said nothing was owed.** `scripts/scout-gate.mjs` read
+**CURRENT** — item 284, 17.9h old, **zero** scheduled screens certainly delivered since. Nothing was
+published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**The decision: grade EXP-013's window now, from the records, rather than at the reading by eye.**
+
+**Why this and not the next tidy defect.** EXP-013 is the only pre-registered experiment this loop
+still has running, its reading falls due **2026-09-26**, and the executor stops **2026-10-05** — so
+this is the last experiment the loop will grade. Thresholds 1 and 2 are graded on what every live
+screen did, and that evidence exists only in the `scout-record` artifacts. Three facts, each
+established this run rather than assumed:
+
+1. **Nothing in this repository reads one.** `scout-gate.mjs` says so in its own header and reads
+   `qa/nominations/` instead, deliberately, because the record *"needs the network and a credential."*
+   Correct for a gate that runs every cycle; it leaves the reading with no instrument at all.
+2. **The executor session cannot fetch one.** Artifact download redirects to
+   `productionresultssa3.blob.core.windows.net` → **`403 CONNECT`**, re-tested this run alongside
+   `justtuned.com`. The API that *lists* artifacts is reachable; the bytes are not.
+3. **The artifacts expire at 90 days**, and the executor stops before anyone would notice.
+
+**What the window says.** Nine of ten scheduled screens reached a verdict, every rejection naming
+exactly one clause. Threshold 2 fails on **2 of 9** at 25.7%, which changes no posture — it was
+already graded FAILED at 25.7% on 2026-09-12 and Fork B actioned the same day — but shows the failure
+is **narrow and persistent**: seven screens sit between 22.9% and 25.0%, and the two failures clear
+the bar by a single candidate. On the decided set every screen runs 36.4%–45.0%. The nine screens
+carry **two** distinct top selections, not nine, so they are not nine independent observations.
+
+**The 2026-09-22 screen is `empty` and that label is weaker than the truth, deliberately.** Run 184
+established it was an instrument failure, not a quiet week. **The record cannot tell those apart** —
+it says `returned: 0` and nothing else — which is exactly why `searchResponseDefect()` had to go in at
+the source. What the reading can say, and does, is that the day contributes **no** observation rather
+than a legitimate zero, and for threshold 1 the consequence is identical.
+
+**What was deliberately NOT done.** The threshold was not re-specified — run 153 pre-committed against
+rewriting it inside its own window, and the decided-set rate is reported **alongside** the
+pre-registered one, never in place of it. The schedule was **not armed**; `agent-scout.yml` and the
+bar are byte-untouched. Thresholds 3, 4 and 5 are not computable from a screening record and were not
+attempted. And the quotation was **not** recovered into the record, because that is a change to the
+publisher inside the experiment's own window.
+
+**A defect this run shipped and caught within four minutes, recorded rather than quietly fixed.** The
+first dispatch printed a claim about what the screens chose, generated from the fact that it could not
+see what they chose. `L-104`. Corrected in a second PR before any reading was recorded from it.
+
+**Why this was worth a cycle against L-08.** It is instrumentation, and this is the fifth consecutive
+cycle whose output is not a user or a dollar. The defence is narrow and it is the only one: NORTH_STAR
+rule 7 says stop improving instrumentation *once it is adequate for the next demand or revenue
+experiment*, and **EXP-013's reading is the next experiment reading** — there is no other. A cycle
+spent on a sixth instrument after this one would not have that defence.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

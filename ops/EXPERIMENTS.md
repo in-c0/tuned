@@ -3485,3 +3485,79 @@ a title, a url, a description or a category — a correction that changed which 
 would be a different find wearing the same row. It cannot touch an item the owner hid. And it cannot
 improve a line whose source has no quotable sentence, which is exactly the case it met first: **the
 capability to correct is not the ability to have something better to say.**
+
+---
+
+### EXP-013 — the window reading, computed rather than read off by eye (2026-09-23, run 186). Interim: the window closes 2026-09-25 and the reading is still due 2026-09-26
+
+**This is not the graded reading.** Three scheduled screens (2026-09-23, 09-24, 09-25) have not fired,
+and thresholds 3, 4 and 5 are not computable from a screening record. It is thresholds 1 and 2 over
+the nine screens delivered so far, taken three days early because the evidence was about to need an
+instrument that did not exist.
+
+**Why it needed one.** The evidence for thresholds 1 and 2 exists in exactly one place — the
+`scout-record` artifact each `agent scout` run uploads. Nothing in this repository reads one:
+[`scripts/scout-gate.mjs`](../scripts/scout-gate.mjs) says so in its own header and reads
+`qa/nominations/` instead, deliberately, because the record *"needs the network and a credential."*
+That is the right call for a gate that runs every cycle, and it left the **reading** — a once-only act
+with a deadline — with no instrument at all. The executor session cannot fetch one either: artifact
+download redirects to `productionresultssa3.blob.core.windows.net`, which this environment's egress
+proxy answers with **`403 CONNECT`** (re-tested run 186, alongside `justtuned.com`). Listing works; the
+bytes do not. And the artifacts expire at **90 days**, while the executor stops **2026-10-05**.
+
+So [`scripts/exp013-window.mjs`](../scripts/exp013-window.mjs) runs inside Actions, where the evidence
+is. Source: [`exp013 window` run 35818516766](https://github.com/in-c0/tuned/actions/runs/35818516766).
+
+| date | run | screened | selected | rate | decided | rate on decided | top selection |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-13 | [34745731838](https://github.com/in-c0/tuned/actions/runs/34745731838) | 35 | 9 | **25.7%** | 21 | 42.9% | `scout-b2aee844368bb449` |
+| 2026-09-14 | [34820950934](https://github.com/in-c0/tuned/actions/runs/34820950934) | 37 | 9 | **24.3%** | 21 | 42.9% | `scout-b2aee844368bb449` |
+| 2026-09-15 | [34944645762](https://github.com/in-c0/tuned/actions/runs/34944645762) | 36 | 9 | **25.0%** | 21 | 42.9% | `scout-b2aee844368bb449` |
+| 2026-09-16 | [35070858671](https://github.com/in-c0/tuned/actions/runs/35070858671) | 35 | 9 | **25.7%** | 20 | 45.0% | `scout-b2aee844368bb449` |
+| 2026-09-17 | [35197138595](https://github.com/in-c0/tuned/actions/runs/35197138595) | 36 | 9 | **25.0%** | 21 | 42.9% | `scout-b2aee844368bb449` |
+| 2026-09-18 | [35320189568](https://github.com/in-c0/tuned/actions/runs/35320189568) | 37 | 9 | **24.3%** | 22 | 40.9% | `scout-55f5e66dee918436` |
+| 2026-09-19 | [35429540744](https://github.com/in-c0/tuned/actions/runs/35429540744) | 37 | 9 | **24.3%** | 22 | 40.9% | `scout-55f5e66dee918436` |
+| 2026-09-20 | [35498118335](https://github.com/in-c0/tuned/actions/runs/35498118335) | 37 | 9 | **24.3%** | 23 | 39.1% | `scout-55f5e66dee918436` |
+| 2026-09-21 | [35576567110](https://github.com/in-c0/tuned/actions/runs/35576567110) | 35 | 8 | **22.9%** | 22 | 36.4% | `scout-b2aee844368bb449` |
+| 2026-09-22 | [35702095397](https://github.com/in-c0/tuned/actions/runs/35702095397) | — | — | — | — | — | **empty — the search returned no candidates, so the bar decided nothing** |
+
+**Threshold 1 — holds on the nine screens that reached a verdict, and one screen contributes no
+reading.** Every rejection names exactly one clause across all nine. The 2026-09-22 screen is the one
+run 184 caught: a green run, an uploaded record, and a screening step that took 1 second against the
+20–22s every working screen takes. **The record itself cannot tell that from a quiet week** — it says
+`returned: 0` and nothing else, which is why `searchResponseDefect()` had to go in at the source
+rather than here. What this reading can say, and does, is that the day **contributes no observation**;
+it is not counted as a legitimate zero.
+
+**Threshold 2 — FAILS on 2 of the 9 live screens**, at **25.7%** on 2026-09-13 and 2026-09-16 against
+a bar of 25%. This does not change the experiment's posture: threshold 2 was already graded **FAILED**
+at 25.7% on 2026-09-12 (run 153) and **Fork B was actioned the same day** — the schedule screens and
+publishes nothing. What the window adds is that the failure is **narrow and persistent rather than
+one bad draw**: seven of nine screens sit between 22.9% and 25.0%, and the two failures clear the bar
+by a single candidate. A bar this close to the observed distribution separates almost nothing.
+
+**The denominator objection now has its numbers.** Run 153 recorded threshold 2 as mis-specified
+because *"the denominator counts candidates the bar never decided"*, and pre-committed not to rewrite
+it inside its own window. That pre-commitment stands and this is not a rewrite: the decided-set rate is
+reported **alongside** the pre-registered one, never in place of it. On the decided set the rate runs
+**36.4%–45.0%** — a uniformly larger failure than the pre-registered reading, on every single screen.
+**The objection is not that 25% is too harsh. It is that the two denominators disagree by roughly 2x
+and neither has been argued for.**
+
+**Independence — the nine live screens carry two distinct top selections, not nine.**
+`scout-b2aee844368bb449` on six screens, `scout-55f5e66dee918436` on three. The agent's top pick
+drifted once and drifted back. **These are not nine independent observations of the bar**, and a
+reading that treated them as nine would overstate its evidence by about 4x. The mechanism is not a
+defect: nothing was published, so nothing entered `publishedSources()`, so the same candidate stays
+eligible and keeps winning. It is what a disarmed schedule looks like from the inside.
+
+**Run 186's own first dispatch got the independence line wrong and it is recorded rather than
+quietly corrected.** It read the identity as `record.find.key` — the label `agent-scout.mjs` *logs* —
+while the record *serialises* `idempotencyKey`, so every screen came back anonymous and the renderer
+printed *"carry 0 distinct top selection(s). Every screen chose the same candidate."* A sentence about
+the evidence, generated from its absence. See [L-104](LESSONS.md#l-104).
+
+**What this reading may not be used to claim.** Nothing here is demand. `followers` is **0**, and
+EXP-013's own pre-registration says a green reading on every threshold leaves `applications`,
+`members_ever_active`, `followers` and gross cash exactly where they are. A screening count is not an
+activation, and a selection rate is not a subscriber.
