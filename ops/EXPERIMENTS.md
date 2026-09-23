@@ -3561,3 +3561,58 @@ the evidence, generated from its absence. See [L-104](LESSONS.md#l-104).
 EXP-013's own pre-registration says a green reading on every threshold leaves `applications`,
 `members_ever_active`, `followers` and gross cash exactly where they are. A screening count is not an
 activation, and a selection rate is not a subscriber.
+
+### EXP-013 — threshold 4, INTERIM reading from the registry (2026-09-24, run 188). NOT graded; the window closes 2026-09-25
+
+**Threshold 4 was recorded as not computable, and half of it always was.** Run 186's instrument drew
+the line at the screening records and put threshold 4 outside it — *"graded against production"* —
+which this session cannot reach (`403 CONNECT`, re-tested run 188). **That is true of the direction
+that passes and false of the direction that fails.** Confirming freshness *held* needs production,
+because only production knows what was serving at each moment; showing it *lapsed* needs arithmetic on
+`publishedAt` timestamps already committed to `qa/nominations/`.
+
+Source: [`scripts/exp013-window.mjs`](../scripts/exp013-window.mjs) `publicationCadence()`, offline,
+no network and no credential.
+
+| | |
+| --- | --- |
+| Publications inside the window | **6** (items 280, 281, 282, 283, 284, 285) |
+| Newest item when the window opened | item 279, `2026-09-11T22:17:48.081Z` |
+| Longest interval with no publication | **203.8h** — item 281 `2026-09-12T10:21:50.674Z` → item 282 `2026-09-20T22:07:44.418Z` |
+| Pre-registered bar | **72h** |
+| Scheduled screen may publish? | **no** — `PUBLISH: ${{ inputs.publish }}`, and a schedule event carries no inputs |
+
+At the instant before item 282, `@sportstech`'s newest item was **203.8h old — 2.8x the bar**,
+whatever production says. **A bar can be failed from the repository and can only be passed from the
+site.**
+
+**This is not graded here.** EXP-013 states that no threshold is graded before the window closes
+**2026-09-25**, and the reading falls due **2026-09-26**. The section is marked INTERIM, assigns no
+fork, and **re-specifies no threshold** — run 153's pre-commitment binds run 188 as it bound 179–187.
+The bar, `gradeMetadata`, `agent-scout.yml` and the schedule are **byte-untouched**, and thresholds 1
+and 2 compute exactly as they did.
+
+**And the number is not an observation about the agent — this is the finding.** Threshold 4's second
+clause is *zero hand publications*. With the schedule disarmed there is no other kind: every one of the
+six publications required an explicit dispatch by someone who had read the screening record. That
+disarming is **Fork B, actioned 2026-09-12 — the window's first day** — because threshold 2 failed at
+25.7%.
+
+**Fork B's action and threshold 4 are mutually exclusive.** Once the publisher is off, threshold 4 can
+only fail, and it fails **whether the bar is good or bad**. A reading that reports *"threshold 4
+failed, so the cadence still depends on a person"* presents a **tautology as evidence about the
+agent**. It is evidence about the experiment. The 2026-09-26 reading must record it that way.
+
+**No fork covers what actually happened, and that is registered now rather than decided on the day the
+numbers are known.** Fork A is all-hold, B is threshold 2, C is threshold 5, **D requires threshold 2
+be *"vacuous because nothing was ever selected"***, E is the source refusing. What happened is that the
+bar **selected ~9 of ~37 on every live screen and published none of it**, because Fork B had already
+turned the publisher off ([L-97](LESSONS.md#l-97)). Plenty was selected, so **not D**; Europe PMC
+answered, so **not E**. A pre-registration can be complete on its thresholds and still have **no fork
+for the state its own remedy creates**. No fork is invented here to fill the gap — inventing one two
+days before the reading, with the numbers already visible, is the thing pre-registration exists to
+prevent. It is named so the reading confronts it.
+
+**What this reading may not be used to claim.** Nothing here is demand, and a publication interval is
+not a subscriber. `followers` is **0** and gross cash is **AUD $0**, from *no billing exists*. See
+[L-106](LESSONS.md#l-106).

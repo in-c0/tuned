@@ -4564,3 +4564,57 @@ layer out — **not describing it at all is not the fix.**
 change that: the retry removes the common cause rather than the silence that follows it, and widening
 the record's contract mid-window, three days before EXP-013's reading, is a change to the instrument
 being read. It is named here so the next run chooses it deliberately instead of rediscovering it.
+
+---
+
+## L-106 — a threshold that can only be failed from one source and only passed from another, and the fork that made it unfailable-in-the-useful-sense (2026-09-24, run 188)
+
+**What happened.** Run 186 built EXP-013's reading instrument and drew a line through the thresholds:
+1 and 2 are computable from the screening records, and *"3 (provenance on both public surfaces), 4
+(freshness with zero hand publications) and 5 (every published item on remit under a HUMAN reading) are
+not computable from a screening record"* — 4 being *"graded against production"*, which this session
+cannot reach (`403 CONNECT`, re-tested run 188). So threshold 4 went unread, and EXP-013 is **the last
+experiment this loop will grade**.
+
+**The line was drawn in the wrong place, and the asymmetry is general.** Threshold 4 is *"`@sportstech`'s
+newest public item is ≤ 72h old on every reading in the window"*. Confirming that freshness **held**
+does need production — only production knows what was actually serving at each moment. Showing that it
+**lapsed** needs nothing but arithmetic on `publishedAt` timestamps already committed to
+`qa/nominations/`: between item 281 (`2026-09-12T10:21:50.674Z`) and item 282
+(`2026-09-20T22:07:44.418Z`) there are **203.8 hours**, so at the instant before 282 the newest item was
+203.8h old, whatever production says. **2.8x a 72h bar, from a file in git.**
+
+**The rule.** *"I cannot read the source that grades this"* is one claim; *"this cannot be graded"* is a
+different and stronger one. Before deferring a threshold to a source you lack, ask which **direction**
+that source is needed for. A bar is often **failable from the cheap source and passable only from the
+expensive one** — a lower bound establishes a failure and can never establish a pass. Deferring the
+whole threshold throws away the half you could have read, and it is easiest to do when the expensive
+source is genuinely unreachable, because the unreachability feels like the whole answer. It is
+[L-92](#l-92)'s shape — a precondition graded in place of the outcome — one layer further out.
+
+**The second half, which is the larger finding.** Threshold 4's other clause is *zero hand
+publications*, and `agent-scout.yml` settles it: `PUBLISH: ${{ inputs.publish }}`, and a schedule event
+carries no inputs, so a scheduled screen **cannot publish at all**. That disarming is **Fork B, actioned
+2026-09-12 — the window's first day** — because threshold 2 failed at 25.7%. From day 1 the only path to
+a publication was an explicit dispatch by a person who had read the record, which is exactly what the
+clause forbids.
+
+**So Fork B's action and threshold 4 are mutually exclusive.** Once the publisher is off, threshold 4
+can only fail, and it fails **whether the bar is good or bad**. A reading that reported *"threshold 4
+failed, so the cadence still depends on a person"* would present a **tautology as evidence about the
+agent**. It is evidence about the experiment. **When an experiment's fork carries an action, check
+whether that action makes any of its own thresholds unachievable — a threshold whose outcome your own
+fork determined measures your design, not your subject.**
+
+**And no fork covers what actually happened**, which is recorded now rather than invented on the day the
+numbers are known. A is all-hold, B is threshold 2, C is threshold 5, D requires threshold 2 be
+*"vacuous because nothing was ever selected"*, E is the source refusing. What happened is that the bar
+**selected ~9 of ~37 on every live screen and published none of it**, because Fork B had already turned
+the publisher off ([L-97](#l-97)). Plenty was selected, so not D; Europe PMC answered, so not E. A
+pre-registration can be complete on its thresholds and still have **no fork for the state its own
+remedy creates.**
+
+**What this run did not do.** It graded nothing early — EXP-013 says no threshold is graded before the
+window closes 2026-09-25, so the section is marked INTERIM and assigns no fork — and it re-specified no
+threshold: run 153's pre-commitment binds this run as it bound 179–187. The bar, `gradeMetadata`,
+`agent-scout.yml` and the schedule are byte-untouched.
