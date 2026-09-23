@@ -1,5 +1,73 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-24 08:35 Sydney (2026-09-23 22:35 UTC), run 188 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-187 and not re-argued here, per [L-07](LESSONS.md).** **EXP-013's
+threshold 4 was recorded as needing production, and half of it was failable from a file in git all
+along — by 2.8x.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 285, 11.9h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**The problem, established this run rather than assumed.** EXP-013's reading falls due **2026-09-26**
+and it is **the last experiment this loop will grade**. Run 186 built its instrument and put threshold
+4 — *"`@sportstech`'s newest public item is ≤ 72h old on every reading in the window, with zero hand
+publications in it"* — outside it, as *"graded against production"*, which this session cannot reach
+(`403 CONNECT`, re-tested this run alongside `justtuned.com`). **That claim is true of the direction
+that passes and false of the direction that fails.**
+
+| | |
+| --- | --- |
+| Publications inside the window | **6** (items 280–285) |
+| Newest item when the window opened | item 279, `2026-09-11T22:17:48.081Z` |
+| Longest interval with no publication | **203.8h** — item 281 → item 282 |
+| Pre-registered bar | **72h** |
+| Scheduled screen may publish? | **no** — `PUBLISH: ${{ inputs.publish }}`, and a schedule event carries no inputs |
+
+At the instant before item 282, the newest item was **203.8h old — 2.8x the bar**, whatever production
+says. **A bar can be failed from the repository and can only be passed from the site.** Deferring the
+whole threshold to a source this session lacks left the loop's last experiment with its
+premise-threshold unread while the failing evidence sat in git. [L-92](LESSONS.md#l-92)'s shape, one
+layer out.
+
+**The finding is not the arithmetic.** Threshold 4's second clause is *zero hand publications*, and
+`schedulePublishes()` reads the one word that arms the schedule **off `agent-scout.yml`** rather than
+asserting anything about it. With the schedule disarmed there is no other kind of publication: all six
+required an explicit dispatch by someone who had read the record. That disarming is **Fork B, actioned
+2026-09-12 — the window's first day** — because threshold 2 failed at 25.7%. **Fork B's action and
+threshold 4 are mutually exclusive:** once the publisher is off, threshold 4 can only fail, and it
+fails **whether the bar is good or bad**. A reading that reports *"the cadence still depends on a
+person"* presents a **tautology as evidence about the agent**. It is evidence about the experiment.
+
+**No fork covers what actually happened**, and it is registered now rather than decided on the day the
+numbers are known: the bar **selected ~9 of ~37 on every live screen and published none of it**
+([L-97](LESSONS.md#l-97)). Plenty was selected, so **not D**; Europe PMC answered, so **not E**. **No
+fork is invented here to fill the gap.**
+
+**Nothing was graded early and no threshold was re-specified.** EXP-013 grades nothing before the
+window closes **2026-09-25**; the section is marked **INTERIM** and assigns no fork. Run 153's
+pre-commitment binds this run as it bound 179–187. **`agent-scout.yml`, the bar, `gradeMetadata` and
+the 25% threshold are byte-untouched. The schedule is still NOT armed.**
+
+**Shipped:** PR [#92](https://github.com/in-c0/tuned/pull/92) — `publicationCadence`,
+`schedulePublishes`, `renderCadence` in [`exp013-window.mjs`](../scripts/exp013-window.mjs). **Five
+mutations, each reddening its own named test**, source restored byte-identical under `sha256sum -c`
+after every one. `npm run check` 0 · **482 vitest** (unchanged — no `src/` change) · **ops suite
+319/319** (308 → 319) · 14 workflows · 12 nominations · **0 vulnerabilities**. **No `src/` change: no
+visitor sees a different byte.**
+
+**Named rather than quietly deferred:** run 187's candidate — the screen writes `scout-record.json`
+only on the success path — is **deliberately still not taken**, and this run sharpened the reason
+rather than inheriting it. A crashed screen that uploaded a record would need a **fourth state** in
+`screenState()`, because "claims candidates, records no verdict" (`malformed`, the 09-22 defect) is
+not "claimed nothing, died" — so it is unavoidably a change to the instrument being read, **28 hours
+before the window closes**. It is the first thing after the 2026-09-26 reading.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `items_public` **90** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-23T04:45:59.313Z` —
+**before item 285**, which is sourced to its own run instead. **11 days left.**
+
 **Last updated:** 2026-09-23 20:35 Sydney (2026-09-23 10:35 UTC), run 187 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-186 and not re-argued here, per [L-07](LESSONS.md).** **The daily publisher
 died twice in two days on a transient that one extra request clears, and the gate had a publication

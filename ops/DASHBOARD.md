@@ -18,221 +18,40 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
-> # **Your one working agent published find 285 today. It had already failed to publish twice this week — killed by the very check I added on Monday to stop it lying to you.**
+> # **I found a number in our own files that says the feed went eight and a half days without publishing — against a bar of three. It had been sitting there, readable, the whole time.**
 >
-> **What happened, in one sentence.** On Monday the agent told me, in the calm words of a quiet week,
-> that it had found nothing — when in truth the research archive it searches had answered with
-> gibberish. I fixed it so it could never say that again. **This morning it hit the same gibberish,
-> and the fix killed the whole day's run instead.**
+> **What happened, in one sentence.** The experiment I have been running on your one working agent
+> has a rule — *"the newest find must never be more than 72 hours old"* — and the instrument I built
+> for it said that rule could only be checked against the live site, which this session is blocked
+> from reaching. **So it went unchecked.** Today I noticed that was only half true.
 >
-> **Why that is a different mistake, not the same one.** Monday's problem was *dishonesty*: a failure
-> wearing the words of a success. That is fixed and stays fixed. What I did not think about was what
-> the agent should do **next**, once it knows the answer is junk. It gave up — silently, leaving not
-> even a note that it had tried. Two days running, the only thing on Tuned that produces anything
-> new produced nothing, for a reason that had nothing to do with the research.
+> **The half that was wrong.** To prove the feed *stayed* fresh, yes, you need the live site. But to
+> prove it *went stale*, you need nothing but the publication dates already saved in our own
+> repository. Between find 281 and find 282 there are **203.8 hours** — eight and a half days —
+> against a 72-hour bar. **2.8 times over.** No live site required; it is subtraction.
 >
-> **The part that makes it small.** The archive's hiccup clears on its own in seconds. I asked the
-> identical question again twenty minutes later and it came back with **35 papers**, of which the
-> agent judged **7** worth reading properly. The fix is that the agent now simply **asks again** —
-> up to three times, five seconds apart — before giving up on the day.
+> **The lesson, which is the part worth your time.** *"I cannot reach the thing that checks this"* is
+> not the same as *"this cannot be checked."* A rule can often be **broken** using cheap evidence and
+> only **confirmed** using expensive evidence. I deferred the whole question to the evidence I lacked
+> and threw away the half I had.
 >
-> **What I was careful not to do.** If the archive actually says *no* — turns the request down
-> outright — the agent still asks exactly once and accepts the answer. Retrying a service that has
-> declined is rude and I will not build it. The retry is only for a reply that isn't an answer at all.
+> **Now the uncomfortable part, and it is about my own experiment rather than your agent.** That
+> 72-hour rule also says the finds must publish *without a person pressing anything*. But on the very
+> first day of this experiment, a different rule failed and my own pre-written response was to **turn
+> the automatic publisher off**. Every find since has needed me to press the button.
 >
-> **What got published.** Find **285**: a study checking whether a wireless muscle-activity sensor
-> agrees with the lab equipment it is meant to replace. The reason line is a sentence lifted word for
-> word from the paper's own results — the agent does not paraphrase, and it read all 45,000 characters
-> of the full text before choosing. You can hide it at any time; nothing is deleted when you do.
+> **So the rule was unpassable from day one — by my own hand.** Once the publisher is off, "publishes
+> without a person" can only fail, and it fails whether your agent is good or bad. **It measures my
+> experiment's design, not your agent.** Had I read it the obvious way on Friday I would have told you
+> "the agent still needs a person", which is true and would have been **evidence for nothing**. I have
+> written that into the record so Friday's reading cannot quietly claim it.
 >
-> **Still true, and not hidden in this good news:** nobody is paying for any of this, and no one has
-> applied. What moved today is that the agent works on the days the archive stutters.
+> **Nothing published, nothing changed on the site.** No visitor sees a different byte today — this
+> touched only the measuring tools. Find 285 from yesterday is still the newest.
 >
-> ---
-
-> # **Nothing for you to do. One of my own measurements has been reporting a negative number of readers since the day I built it, and I only found it because I read the file instead of the summary.**
->
-> **What happened, in one sentence.** Tuned counts how many people reach one of its published finds
-> from **outside** the site — a search result, a shared link — and the way that number is worked out
-> has been returning answers like **minus 47**.
->
-> **How a count goes negative.** The sum is *"everyone who arrived, minus the ones who came from
-> elsewhere on Tuned"*. The trouble is what each half counts. The first half deliberately excludes
-> robots. The second half did **not** exclude them. So every time a search-engine crawler followed a
-> link from one Tuned page to another, it was subtracted from a total it was never part of. On the
-> 19th: **nobody** human arrived, **121** robots did, and the sum came out at **−47**.
->
-> **Three more of my measurements had exactly the same flaw**, and had simply not been used yet —
-> including, and this is the one that bothers me, the measurement that is supposed to tell us **the
-> first time a stranger stars something**. That is the single event this whole project is waiting for.
-> If you had starred something from an unusual client on the same day a real visitor starred
-> something, the measurement would have reported **no stranger at all**. It would have hidden the news
-> we most want.
->
-> **Why it survived six runs.** The number was on the screen the whole time. My own notes from three
-> days ago quote one half as **19** in a paragraph that reports the other half as **7**, in adjacent
-> sentences — and nobody ever did `7 − 19`. **A rule written in prose is never actually run, so it is
-> never caught being false.** My tests had the same blind spot: every one of them tested the case
-> where the flaw is invisible, and one test was actually *asserting* the broken arithmetic.
->
-> **What I did.** Fixed all four, and then — the part that matters more — wrote something that
-> **performs the subtraction every day** and fails loudly if it ever goes below zero. The proof that
-> it works: switch it back on over the old data and it prints all five bad days by name.
->
-> **What I would not do.** I did not invent replacement numbers for the seven broken days. They are
-> not recoverable and a plausible guess would be worse than a gap, so the record says what range the
-> true answer lies in and stops there.
->
-> **Why this measurement and not another.** It is the only thing Tuned has that would tell us whether
-> a **stranger** is reading what the agent publishes — and those find pages are exactly where a
-> directory listing would send one. It is the scoreboard for the only door into Tuned that is still
-> open, and it has not worked since it was built.
->
-> **No user and no dollar, fourteen runs running.** [L-103](LESSONS.md#l-103).
-
-> # **Nothing for you to do. Your one working agent published find 284 this morning — and the reason it nearly didn't is that it had told me, in the calmest possible words, that there was nothing worth publishing.**
->
-> **What happened, in one sentence.** At 02:40 this morning `@sportstech` ran its daily screen of the
-> sports-science literature, found **nothing**, and wrote down: *"no candidate passed the bar this
-> cycle. Publishing nothing is the expected outcome."* That sentence is what it says on a genuinely
-> quiet day, so the run finished green and nothing anywhere flagged a problem.
->
-> **It was not a quiet day.** I ran the **identical search** two hours later. It came back with
-> **35 papers**, of which the agent judged **8** worth publishing. The morning's search had not come
-> back empty — **it had not worked at all**, and the agent had no way to tell the difference.
->
-> **Why it could not tell.** The agent already knows that failing to read the source is serious; it
-> treats a refused connection as an error and stops loudly. But the literature service did not refuse
-> — it answered *"OK"* and then handed over a reply that wasn't a set of search results. *"OK"* is a
-> statement about the **request**, never about the **answer**, and nothing was checking the answer. So
-> zero papers arrived, zero papers passed, and the report that came out the far end was the one it
-> writes on a slow week.
->
-> **Why this one mattered more than a normal bug.** That report is not a log nobody reads. It is the
-> file I am **required** to open before deciding what to do each day — it is how last week's problem
-> (the agent finding good papers for eight days running and publishing none) is meant to never happen
-> again. A report that cannot tell *"nothing qualified"* from *"nothing was asked"* sends me away
-> satisfied. Today it nearly did.
->
-> **What I did.** Published the find the working search turned up — **item 284**, a study checking a
-> portable force plate against a laboratory one, carrying the researchers' own sentence about how
-> closely the two agreed. Then I made the agent **stop and go red** when the reply it gets isn't a set
-> of search results, instead of quietly reporting a quiet day.
->
-> **The part I deliberately did not do.** A genuinely empty day still has to be allowed to be empty.
-> This agent is supposed to publish **nothing** most days — that is the whole point of having a bar —
-> so an agent that panicked every time it found nothing would be worse than the bug. The check fires
-> only when the reply **breaks the service's own contract**, never when the answer is honestly zero,
-> and there is a test whose only job is to fail if I ever blur that line.
->
-> **One thing worth your attention, and it is not a task.** You have an open question from me about
-> whether this agent may publish on its own, unattended, now **25 days** old. **Today is evidence on
-> that question in the cautious direction:** an unattended schedule would have swallowed this silently.
-> The only reason it surfaced is that a person-driven run was obliged to read the report. I am not
-> using that to decide the question for you — just recording that today spoke to it.
->
-> **No user and no dollar, thirteen runs running.** [L-102](LESSONS.md#l-102).
-
-> # **Nothing for you to do. Four of your five feeds have been quiet for about seven weeks, and until today the feed itself was still telling subscribers it was current.**
->
-> **What was wrong, in one sentence.** When somebody subscribes to a Tuned feed in their reader — or
-> when a feed directory lists it — the description they see was *"What @wearables is paying attention
-> to **right now**."* `@wearables` last published on **30 July**. So did `@wellbeing` and `@graphics`;
-> `@ava` on 2 August. Only `@sportstech` is actually publishing. **Four of five feeds were saying
-> "right now" about content seven weeks old**, and the same claim was in the description Google and
-> every link preview show for those pages.
->
-> **Why this one matters more than it sounds.** That RSS description is on the single document I have
-> been asking you to submit to a feed directory. It is also the only subscription anyone can complete
-> on this site without an account. So the one page a stranger could act on was the one making a claim
-> the product could not keep.
->
-> **What I changed.** Three words, essentially: *"right now"* is gone from the feed description,
-> *"live"* is gone from the page description, and the same phrase is gone from `robots.txt`. **I did
-> not replace them with anything.** The feed already carries its real last-published date in a field
-> every reader displays, and the page already spells the age out in words. What was removed was the
-> sentence that could never be kept true; nothing that was true was removed.
->
-> **The mistake I nearly made, since it is more interesting than the fix.** The obvious move was to
-> write *"last published 52 days ago"* into the description. That is right for a reader, which
-> re-fetches it — and wrong for a directory, which **copies** the text into its own page once, where
-> "52 days ago" freezes and slowly becomes a lie nobody here can correct. A date cannot rot; a
-> countdown can.
->
-> **Said plainly: no user and no dollar today either, and that is twelve runs in a row.** This is not
-> growth work. It is the front of the funnel not lying to whoever eventually arrives.
-
-> # **Nothing for you to do, and nothing published today. Yesterday I fixed the silent feed by hand; today I made sure the next run finds out by itself.**
->
-> **The short version.** Yesterday's run found that `@sportstech`'s publisher had been picking out
-> about nine good papers every morning for eight days and throwing all of them away, because
-> publishing needs someone to press go and the list of what's waiting lives in a file only the build
-> system holds. I pressed go yesterday. **That fixes one day.** What it does not fix is the next run,
-> or the one after that — they would each have to stumble on the same thing again.
->
-> **So today there is one command, and it is in the one file every run of this loop is guaranteed to
-> read before it does anything.** It answers one question: *has a screening run come and gone since
-> this feed last published?* If yes, the run is told to open the day's results, read them, and press
-> go if they warrant it. Eight lines. No network, no password, nothing to maintain.
->
-> **The first thing it did was tell me not to act.** It says `CURRENT` right now: yesterday's find
-> is six hours old and today's screening run is still inside the window where it might not have
-> happened yet. Publishing a second find six hours after the first, to make this run look busier,
-> is exactly what the "at most one a day" rule exists to stop.
->
-> **I did not turn the daily schedule back on.** That is still one word in one file, and it is still
-> not mine to change: the run that switched it off wrote down that no later run should switch it back
-> on by its own reading of a quality bar it proposed itself. **That question is now 21 days
-> unanswered.** What I did take back was the *other* thing that was waiting on it — yesterday's run
-> also put off building today's command until that question was answered. Waiting for an answer that
-> isn't coming is the same stoppage one level up, and it looks just as calm. [L-98](LESSONS.md#l-98).
->
-> **Said plainly: no user and no dollar today either, and this is the ninth run in a row I can say
-> that about.** This one is not growth work and I am not offering it as any. The honest defence is
-> that the alternative was a tenth silent day on the only feed with anything behind it.
-
-> # **Your one working agent found something worth publishing on eight days running, and published none of it. It is publishing again.**
->
-> **What was broken.** `@sportstech` is the one feed on Tuned with a real publisher behind it — an
-> agent that reads sports-science papers every morning, grades them against a written bar, and puts
-> at most one a day in front of a reader. It has been running the whole time. **Every morning since
-> 13 September it screened about thirty-seven papers, picked out about nine worth publishing, and
-> then threw all nine away.** The feed went **nine days** without publishing.
->
-> **Why.** Back on 12 September a run decided the agent was selecting too freely to be trusted to
-> publish unattended, so it moved publishing behind a manual step: the schedule still screens every
-> day, but actually publishing needs someone to look at the day's results and press go. That was a
-> reasonable call. **Nobody ever pressed go** — and nothing told anyone there was anything waiting,
-> because the results are written to a file that only exists inside the build system and nothing
-> reads it.
->
-> **The trap, in one line.** *A queue nobody is watching looks exactly like an empty one.* A feed
-> that isn't publishing because the gate is shut looks identical to a feed that isn't publishing
-> because there's nothing to say. The last three runs all went hunting for why the Morning Desk was
-> empty and each found something genuinely broken in the plumbing — **none of us asked whether
-> anything was coming down the pipe.**
->
-> **What I did.** I read the day's screening results, as that manual step requires, and pressed go.
-> `@sportstech` published **item 282** — an IMU study of rowing — with the paper's own sentence as
-> its public line. **It is now the freshest feed on the site for the first time since 12 September**,
-> and the site is at 88 published finds instead of 87.
->
-> **What I deliberately did not do: turn the daily schedule back on.** That is one word in one file
-> and I left it alone. The run that switched it off wrote down that no later run should switch it
-> back on based on the executor's own reading of a quality threshold the executor itself proposed —
-> and that threshold is still sitting unanswered, now 20 days. **That is a decision for you and the
-> reviewer, not for me**, and the real fix is not more authority for me anyway: it is that a backlog
-> nobody can see should be visible to whoever is meant to be watching it.
->
-> **One bug found by doing it.** When the agent publishes, the server told it *what* it created but
-> not *when* — and the record we keep of every publication can't be written without the timestamp.
-> So every automatic publication could only be filed by going and reading the time back off the live
-> site afterwards. Item 282 was the last one that needed that. Fixed.
->
-> **Being straight about the size of this: nobody was denied anything.** There is still one member
-> and it is you, so no number moves today. What changed is that Tuned's core loop — an agent picks
-> something and publishes it with its reasoning attached — **ran end to end for the first time in
-> nine days.**
+> **Being straight about the size of this: no number moves.** There is still one member and it is
+> you. `applications` 0 · `followers` 0 · cash AUD $0. What today bought is that **Friday's reading —
+> the last experiment this loop will grade — will not report a tautology as a finding.**
 >
 > **Nothing here needs you.** [§1](#1-owner-action-required) is unchanged: ONE, undeadlined, not
 > re-argued.
@@ -1931,7 +1750,8 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-23 20:35 Sydney (2026-09-23 10:35 UTC), run 187. |
+| **Last materially updated** | 2026-09-24 08:35 Sydney (2026-09-23 22:35 UTC), run 188. |
+| **Run** | 188 — **a rule I was enforcing said the feed must never go more than 72 hours without publishing, and our own files show it went 203.8 hours — but I had filed that rule as "can't be checked from here".** The instrument I built on Friday for the one experiment still running said this particular rule could only be graded against the live site, which this session is blocked from reaching. **That was half right.** To prove the feed *stayed* fresh you do need the live site. To prove it *went stale* you need nothing but the publication dates already saved in our repository: between find 281 and find 282 there are **eight and a half days**, against a three-day bar — **2.8 times over**, by subtraction. *"I cannot reach the thing that checks this"* is not the same claim as *"this cannot be checked"*, and a rule can often be **broken** with cheap evidence and only **confirmed** with expensive evidence. I had deferred the whole question to the evidence I lacked and thrown away the half I had. **The larger half is about my own experiment, not your agent.** That same rule also requires the finds to publish *without a person pressing anything* — but on the experiment's **first day** a different rule failed and my own pre-written response was to **switch the automatic publisher off**. Every find since has needed me to press the button. **So the rule was unpassable from day one, by my own hand:** once the publisher is off it can only fail, and it fails whether your agent is good or bad. Read the obvious way it says *"the agent still needs a person"* — true, and **evidence for nothing**. That is now written into the record so Friday's reading, the last one this loop will grade, cannot quietly report it as a finding. **I graded nothing early and changed no rule** — the bar, the schedule and the agent are untouched, and the schedule is **still not armed**. **No `src/` change, so no visitor sees a different byte**, and find 285 is still the newest. **No user and no dollar, the sixteenth run running.** [L-106](LESSONS.md#l-106). |
 | **Run** | 187 — **your one working agent published find 285 today, and it had already failed to publish twice this week — killed by the very check I added on Monday to stop it lying to you.** On Monday the agent reported a quiet week when the research archive it searches had in fact answered with gibberish; I made it refuse that reply so it could never say so again. **This morning it hit the same gibberish and the fix ended the whole run instead** — no publication, and not even a note that it had tried. Monday's problem was *dishonesty*, and that stays fixed. What I never separately decided is what the agent should do **next** once it knows the answer is junk: it gave up, because giving up is what the code happened to do there. **The archive's hiccup clears in seconds** — I asked the identical question twenty minutes later and got **35 papers**, of which the agent judged **7** worth reading in full. So it now simply **asks again**, up to three times, five seconds apart, before losing the day. **If the archive actually declines the request, it still asks exactly once and accepts that** — retrying a service that said no is rude and I will not build it; the retry is only for a reply that is not an answer at all. Published **find 285**, a study checking whether a wireless muscle-activity sensor agrees with the lab equipment it replaces, its reason line lifted word for word from the paper's own results after reading all 45,000 characters of the full text. Hideable at any time, deleted never. **Nobody is paying and nobody has applied**; what moved is that the agent now works on the days the archive stutters. [L-105](LESSONS.md#l-105). |
 | **Run** | 186 — **the one experiment still running is graded in three days, and nothing could read the evidence.** `@sportstech` screens the sports-science literature every morning and writes down what it saw and why it refused each paper. That daily record is the **only** evidence for the two questions the experiment is graded on, and it lives in a file that (a) nothing in the project reads, (b) **my own session cannot download** — the network blocks the storage host — and (c) **is deleted after 90 days**, which is after I stop. So the grading was going to be me opening fourteen files by hand on the 26th, and last week proved exactly how that fails: one of those files was **wrong**, and the only reason anyone noticed is that a run happened to look. **I built the reading instead, and ran it.** Nine of the ten mornings so far produced a proper verdict, each refusal naming exactly one reason. The quality bar is missed on **two** of the nine, by **one paper** each — the other seven sit just under it. That changes nothing about how the agent behaves (it was already graded as missing the bar on 12 September, and already stopped from publishing on its own that same day), but it does say the bar is drawn so close to normal behaviour that it is barely separating anything. **The tenth morning is the broken one from last week**, and it contributes nothing rather than counting as a quiet day. **The nine mornings are also not nine independent results** — the agent picked the same paper on six of them and another on three, because nothing gets published so the same candidate keeps winning. **My own first version of this reading got that last point wrong and I am telling you rather than quietly fixing it:** it printed *"every screen chose the same paper"* while simultaneously reporting it had found **zero** paper names — a confident sentence about evidence it did not have, because it was looking up the wrong field name. Corrected in a second change four minutes later, before any of it was written down as fact. A claim about my own records is the one kind nothing outside me checks. **Nothing published, nothing changed for any visitor, no user and no dollar, fifteen runs running.** [L-104](LESSONS.md#l-104). |
 | **Run** | 185 — **one of my own measurements has been reporting a negative number of readers since the day I built it.** Tuned counts how many people reach a published find from **outside** the site. The sum is *"everyone who arrived, minus the ones who came from elsewhere on Tuned"* — and the first half deliberately excludes robots while the second half did **not**. So every search-engine crawler that followed a link from one Tuned page to another was subtracted from a total it was never part of. On the 19th: **nobody** human arrived, **121** robots did, and the sum came out at **-47**. Five of the seven days it has existed were negative. **Three more measurements had the identical flaw and had simply not been used yet** — including the one meant to tell us **the first time a stranger stars something**, the single event this project is waiting for: had you starred from an unusual client on a day a real visitor also starred, it would have reported **no stranger at all**. **Why it survived six runs:** the number was on the screen the whole time — my own notes quote one half as **19** in a paragraph reporting the other half as **7**, adjacent sentences, and nobody ever did `7 - 19`. **A rule written in prose is never run, so it is never caught being false.** My tests had the same blind spot, and one was *asserting* the broken arithmetic. Fixed all four, and wrote something that **performs the subtraction daily and fails loudly below zero** — switch it back on over the old data and it prints all five bad days by name. **I did not invent replacement numbers** for the seven broken days; the record states the range the true answer lies in and stops. **This is the only measurement that would tell us whether a stranger is reading what the agent publishes**, and those find pages are exactly where a directory listing would send one. **No user and no dollar, fourteen runs running.** [L-103](LESSONS.md#l-103). |

@@ -7075,3 +7075,35 @@ spent on a sixth instrument after this one would not have that defence.
   `qa/nominations/285-…json` is committed, because the gate cannot see a publication the registry does
   not carry. The gate now reads **CURRENT**. Undo: `agent operator` → `retract` with item id 285.
 - **Spend: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-24 — run 188: threshold 4 is read from the registry, and its failure is recorded as a fact about the experiment
+
+**Decision: compute EXP-013's threshold 4 from `qa/nominations/` rather than leave it unread, and
+record that its outcome was determined by the experiment's own Fork B.**
+
+Run 186's instrument put threshold 4 outside its scope as *"graded against production"* — unreachable
+from this session (`403 CONNECT`, re-tested). **The scope was drawn one level too wide.** Confirming
+freshness *held* does need production; showing it *lapsed* needs only arithmetic on committed
+`publishedAt` timestamps. The registry shows **203.8h** between items 281 and 282 against a **72h**
+bar — **2.8x**, from a file in git. A bar can be failed from the repository and can only be passed from
+the site ([L-106](LESSONS.md#l-106)).
+
+**The consequential half is not the number.** Threshold 4 also requires *zero hand publications*, and
+`agent-scout.yml` cannot publish on a schedule — that is **Fork B, actioned 2026-09-12, the window's
+first day**, because threshold 2 failed at 25.7%. **Fork B's action and threshold 4 are mutually
+exclusive.** Threshold 4's failure therefore carries no information about whether an agent feed *can*
+publish on a cadence, and the 2026-09-26 reading is bound by this entry to record it as evidence about
+the experiment rather than about the agent.
+
+**Registered, not decided:** no fork covers the state that actually obtained — selected ~9 of ~37 on
+every live screen, published none. Not D (plenty was selected), not E (the source answered). **No fork
+is invented here**; doing so two days before the reading, with the numbers visible, is what
+pre-registration exists to prevent.
+
+**Reversal risk and what was deliberately not done.** Nothing graded early (EXP-013 grades nothing
+before 2026-09-25); no threshold re-specified (run 153's pre-commitment); the bar, `gradeMetadata`,
+`agent-scout.yml` and the schedule byte-untouched; **the schedule is still NOT armed**, which remains
+the reviewer's decision under Fork A and is not re-argued here per L-07. No `src/` change, so no
+visitor sees a different byte and the rollback is a revert.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
