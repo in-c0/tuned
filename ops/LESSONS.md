@@ -4520,3 +4520,47 @@ source that never fails to return a value.**
 `scout-record` uses the field names the writer serialises. `exp013-window.mjs` and `agent-scout.mjs`
 agree by hand, on a shape that exists only as an object literal at the write site. A second field
 renamed tomorrow reads as absent, and — now — says so, which is the whole of the improvement.
+
+---
+
+## L-105 — the guard that stopped the publisher lying about the day went on to end it (2026-09-23, run 187)
+
+**What happened.** Run 184 found the 2026-09-22 02:40Z screen reporting `search returned 0 candidates
+(hitCount ?)` — a green run, an uploaded record, a clean exit — when Europe PMC had answered 200 with
+a body that was not a search result at all. It shipped `searchResponseDefect()` so the publisher could
+not call that a quiet week again. **Correct, and it is still correct.** The very next scheduled screen,
+2026-09-23 02:40Z ([run 35834362798](https://github.com/in-c0/tuned/actions/runs/35834362798)), hit the
+same response, threw at eleven seconds, published nothing, and uploaded **no record at all**.
+
+**Two of the last two days, the feed's only content pipeline produced nothing** — and the second day
+produced nothing an instrument could even classify, because the artifact `exp013-window.mjs` grades
+the window from is written after the screen succeeds and never at all when it throws.
+
+**The mechanism is a decision that was never separately made.** Run 184 answered one question — *may a
+failed search be reported as a quiet cycle?* — and its answer, **no**, is untouched. Answering it
+required a place in the code to refuse, and the refusal was put where the cycle ends. That silently
+answered a **second** question nobody asked: *what should the publisher do when the answer is not an
+answer?* Throwing was not chosen over retrying; it was what `throw` did.
+
+**The failure is transient and that was measured, not assumed.** The identical query dispatched twenty
+minutes later ([run 35847824491](https://github.com/in-c0/tuned/actions/runs/35847824491)) screened 35,
+reached a verdict on every one and selected 7 — the same recovery run 184 measured at 2h19m the day
+before. One extra request clears it. The publisher was losing whole days to a stutter.
+
+**The rule.** *Refusing to act on a bad answer* and *refusing to ask again* are separate decisions, and
+a guard written to settle the first will quietly settle the second wherever it is placed. When a check
+is added to stop a component **lying**, say out loud what it now makes the component **do** — and check
+that the new behaviour was chosen rather than inherited from the control flow the check happened to
+land in. The honest failure mode and the useful failure mode are not the same mode.
+
+**The corollary that bit hardest.** An instrument that refuses a reading must still leave a record
+**that it refused**. The 09-23 screen is now indistinguishable, from the outside, from a screen that
+never ran: `if-no-files-found: warn`, no artifact, nothing for the reading due 2026-09-26 to grade.
+L-102 taught the publisher not to describe a failure in the vocabulary of success; this is the next
+layer out — **not describing it at all is not the fix.**
+
+**What is still not enforced, stated rather than deferred quietly.** The screen writes
+`scout-record.json` only on the success path, so a thrown cycle still uploads nothing. This run did not
+change that: the retry removes the common cause rather than the silence that follows it, and widening
+the record's contract mid-window, three days before EXP-013's reading, is a change to the instrument
+being read. It is named here so the next run chooses it deliberately instead of rediscovering it.
