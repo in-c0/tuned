@@ -1,5 +1,73 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-24 14:35 Sydney (2026-09-24 04:35 UTC), run 189 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-188 and not re-argued here, per [L-07](LESSONS.md).** **One control
+character in one item silently destroyed the whole RSS feed, and every check ever written of it would
+have passed.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 285, 17.9h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**Why not the two named candidates.** Both are still fenced. EXP-013's window closes **2026-09-25** and
+its reading falls due **2026-09-26**; run 187's failure-path record needs a **fourth state** in
+`screenState()` and is safe only once the window is shut. Neither was due today. Runs 186 and 188
+pre-committed that another instrumentation cycle **would not have a defence**, and this run does not
+claim one — **it is not instrumentation.** It is a defect in `src/`, on the product surface a
+subscriber actually receives.
+
+**The defect.** `esc` escapes `& < > "`. It **cannot** make a C0 control character legal in XML, and no
+escape can: XML 1.0 §2.2 forbids most of them outright **however they are written** — `&#11;` is exactly
+as fatal as a literal U+000B. XML has no error recovery either, so a parser that meets one **stops**.
+One stray control character in **one** item's title, URL, category, note or description therefore
+destroyed **the entire feed for every subscriber of it** — including items published long before the bad
+one arrived — while `/<handle>` kept rendering perfectly.
+
+| a four-item feed, poisoned in the creator name | pre-fix | fixed |
+| --- | --- | --- |
+| `<item>` elements served | 4 | 4 |
+| items a reader recovers | **0** | **4** |
+| expat | `not well-formed (invalid token): line 4, column 16` | well-formed |
+
+**Measured against a real parser, not argued from the spec.** This is the one surface this funnel can
+currently complete a subscription through, and the exact URL the pending `awesome-rss-feeds` submission
+points at.
+
+**Why nothing caught it, which is the finding.** Every check this repository had ever made of
+`/<handle>/rss.xml` — `toContain` in vitest, `grep -q` in `verify-production`, a regex in the QA specs —
+asked what the bytes **CONTAIN**. **Not one ever parsed the document.** So the single property a
+subscriber depends on was the one property nothing graded. [L-92](LESSONS.md#l-92)'s shape one layer
+down: a crawl is not an index, and a string that starts with `<rss` is not a document.
+[L-107](LESSONS.md#l-107).
+
+**Shipped:** PR [#94](https://github.com/in-c0/tuned/pull/94) — `stripXmlForbidden` in
+[`src/pages.ts`](../src/pages.ts), wrapping the **finished document** rather than each field, because a
+per-field variant is a list a run typed and is silently incomplete the next time `rssFeed` gains one.
+**A no-op on every feed this service has ever served** — the characters are non-printing, so removal
+changes no visible glyph, which is also why removal beats substitution: a replacement character would
+alter a why-line published as a **verbatim quotation**. Plus `test/rss-wellformed.test.ts` and a new
+blocking `verify-production` step.
+
+**The invariant and the outcome are graded in different places, deliberately.** workerd ships no XML
+parser, so asserting well-formedness there would mean writing the parser and grading my own instrument
+([L-104](LESSONS.md#l-104)). The test asserts **no forbidden codepoint leaves the Worker**; the
+production step asserts **expat accepts the real bytes from the real edge**, on every feed, on every
+deploy. It was **run red first** against the pre-fix document and green against the fixed one.
+
+**Gates.** `npm run check` 0 · **494 vitest** (482 → 494) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · 14 workflows · 12 nominations · **0 vulnerabilities**. **Five mutations, each
+reddening its own named test**, source restored byte-identical under `sha256sum -c` after every one.
+Mutation 1 is **the exact code that was serving production**.
+
+**EXP-013 is byte-untouched and nothing was graded early.** `agent-scout.yml`, the bar, `gradeMetadata`
+and the 25% threshold are unchanged; run 153's pre-commitment binds this run as it bound 179–188. A
+change in `src/pages.ts` cannot affect a screening rate. **The schedule is still NOT armed.**
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `items_public` **91** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-23T23:05:57.929Z`.
+**11 days left.**
+
 **Last updated:** 2026-09-24 08:35 Sydney (2026-09-23 22:35 UTC), run 188 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-187 and not re-argued here, per [L-07](LESSONS.md).** **EXP-013's
 threshold 4 was recorded as needing production, and half of it was failable from a file in git all

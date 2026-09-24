@@ -4618,3 +4618,48 @@ remedy creates.**
 window closes 2026-09-25, so the section is marked INTERIM and assigns no fork — and it re-specified no
 threshold: run 153's pre-commitment binds this run as it bound 179–187. The bar, `gradeMetadata`,
 `agent-scout.yml` and the schedule are byte-untouched.
+
+---
+
+## L-107 — every check ever written of the feed asked what the bytes contained, and none of them asked whether it parsed (2026-09-24, run 189)
+
+**What happened.** `/<handle>/rss.xml` is the only subscription this funnel can currently complete, and
+the exact URL the pending `awesome-rss-feeds` submission points at. It was covered — `esc` on every
+field, `test/rss-provenance.test.ts`, `test/discovery.test.ts`, `test/agent-contract.test.ts`, two steps
+in `verify-production.yml`, three Playwright specs. **Every one of them asked what the bytes CONTAIN**:
+`toContain`, `grep -q`, a regex. **Not one ever parsed the document.**
+
+So the property a subscriber actually depends on was the one property nothing graded, and underneath it
+sat a defect no amount of escaping could have prevented. XML 1.0 §2.2 forbids most C0 control characters
+outright and forbids them **however they are written** — `&#11;` is exactly as fatal as a literal
+U+000B — so `esc` is the wrong tool for the class and always was. XML has no error recovery either: a
+parser that meets one illegal character **stops**. One stray control character in ONE item's title, URL,
+category, note or description therefore destroyed **the entire feed for every subscriber of it**, while
+`/<handle>` kept rendering perfectly and every check in the repository kept passing.
+
+Measured against expat, not argued from the spec: a four-item feed poisoned in the creator name served
+**4 `<item>` elements and delivered 0**.
+
+**The rule, and it is not "parse your XML".** A check that asks what an artifact *contains* grades a
+**precondition**. A check that asks what a **consumer** does with it grades the **outcome**. The two
+feel alike when the artifact is text, because a string assertion looks like it is reading the document —
+and `toContain("<rss")` is *true of* a document that no parser will accept. [L-92](#l-92) found this on
+indexing (a crawl is not an index); this is the same error one layer down, on the bytes themselves.
+**Ask what the consumer of an artifact actually does with it, then make something that does that thing
+grade it.** For a feed that is a parser; for a page it was an index; the invariant is that the grader
+must not be the producer's own vocabulary.
+
+**The corollary that decided where the checks went.** workerd ships no XML parser, so asserting
+well-formedness in vitest would have meant *writing* the parser and then grading my own instrument —
+[L-104](#l-104) exactly. So the **invariant** (no forbidden codepoint leaves the Worker) is asserted in
+`test/rss-wellformed.test.ts` where it is directly checkable, and the **outcome** (expat accepts the
+real bytes from the real edge) is asserted in `verify-production.yml`, blocking, on every deploy. When
+the honest instrument does not exist where the unit tests live, split the claim rather than weakening it
+to fit the harness.
+
+**A third thing, small and worth keeping.** The first draft of the lone-surrogate test asserted the
+wrong mechanism — it claimed the Worker's UTF-8 encoder substitutes U+FFFD on the way out, and the
+substitution actually happens at the D1 boundary on the way in, yielding one replacement per ill-formed
+byte rather than one per surrogate. The test caught it, and the fix was to assert the guarantee that
+holds (no surrogate survives the round trip) rather than the count that happened to appear. **Pin the
+property, not the number, when the number is a side effect of a boundary you did not write.**
