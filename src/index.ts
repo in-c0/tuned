@@ -1368,7 +1368,7 @@ app.get("/:handle/rss.xml", async (c) => {
     ])
   );
   const items = await itemsFor(c.env.DB, creator.id, true);
-  return c.body(rssFeed(creator, items, new URL(c.req.url).origin), 200, { "content-type": "application/rss+xml; charset=utf-8" });
+  return c.body(rssFeed(creator, items), 200, { "content-type": "application/rss+xml; charset=utf-8" });
 });
 
 // ---------- one find, at an address of its own ----------

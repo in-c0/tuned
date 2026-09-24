@@ -537,7 +537,7 @@ jobs:
       # item's title, URL, category or note takes down every item in that feed for every
       # subscriber — while /<handle> keeps rendering perfectly and every other step here passes.
       # Measured, not argued: against the pre-fix code a four-item feed parsed to ZERO items.
-      - name: RSS is a parseable XML document, on every feed the site offers
+      - name: RSS is a parseable XML document that names the canonical site, on every feed
         env:
           BASE: ${{ steps.vantage.outputs.base }}
         run: |
@@ -575,7 +575,30 @@ jobs:
               print("::error::/%s/rss.xml parsed, but %d of %d items did not survive"
                     % (handle, served - recovered[0], served))
               sys.exit(1)
-          print("/%s/rss.xml: well-formed, %d item(s), all recoverable" % (handle, served))
+
+          # WHERE THE FEED SAYS THE SITE IS, read off the real edge and graded against the one
+          # canonical host rather than against whichever host this workflow fetched from.
+          #
+          # BASE is chosen by `prod-http.sh vantage` and is NOT always the canonical zone — it
+          # falls back to the workers.dev host when the zone is unreachable from the runner. That
+          # is what makes this an outcome check rather than a restatement: the assertion is that
+          # the document names justtuned.com no matter who asked, and it is at its strongest in
+          # exactly the run where the vantage fell back. A directory copies <channel><link> into
+          # its listing as the site's address, so a document that echoed the fetching host would
+          # publish a host every HTML page here disowns by canonical.
+          import re
+          m = re.search(rb"<channel>.*?<link>([^<]*)</link>", doc, re.S)
+          if not m:
+              print("::error::/%s/rss.xml has no channel <link> at all" % handle)
+              sys.exit(1)
+          site = m.group(1).decode("utf-8", "replace")
+          expected = "https://justtuned.com/%s" % handle
+          if site != expected:
+              print("::error::/%s/rss.xml names the site as %s, expected %s"
+                    % (handle, site, expected))
+              sys.exit(1)
+          print("/%s/rss.xml: well-formed, %d item(s), all recoverable, site %s"
+                % (handle, served, site))
           PY
           done
 
