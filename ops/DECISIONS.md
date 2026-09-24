@@ -7167,3 +7167,64 @@ armed**, which remains the reviewer's decision under Fork A and is not re-argued
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
 
+
+---
+
+## 2026-09-24 (run 190) — the feed's channel link is fixed on SITE_ORIGIN, and `rssFeed` stops receiving an origin
+
+**The gate was attended first and it owed a publication.** `scout-gate.mjs` read **ATTEND** — item 285,
+23.9h old, one scheduled screen certainly delivered since. That screen
+([35971539785](https://github.com/in-c0/tuned/actions/runs/35971539785)) had run clean and left a
+record supporting a publication: **34 screened · 17 rejected · 7 selected · 10 deferred, 12 full texts
+read.** **Item 286 is published** —
+[run 35986078049](https://github.com/in-c0/tuned/actions/runs/35986078049), HTTP **201**,
+`duplicate=false`, `created_at 2026-09-24T10:15:37.400Z`,
+[10.12659/MSM.953816](https://doi.org/10.12659/MSM.953816), why-line a **146-character verbatim quote**
+confirmed a substring of the abstract. `qa/nominations/286` is committed and the gate reads **CURRENT**.
+Undo: `agent operator` → `retract` with item id 286.
+
+**The decision.** `<channel><link>` in `rssFeed` is built from `SITE_ORIGIN` rather than the request
+origin, and **`rssFeed` no longer takes an origin parameter at all.**
+
+**What it was.** Run 182 pinned the feed's *own* address to `SITE_ORIGIN` via `<atom:link rel="self">`
+and left `<channel><link>` deriving from the request. The delivered document was therefore
+byte-identical on all three hosts this Worker answers on — **except in the one element that says where
+the site is.** RSS 2.0 defines it as *"the URL to the HTML website corresponding to the channel"*: what
+a reader renders as "visit site" and **what a directory copies into its own listing as the address.**
+Whichever host a directory fetched from became the address it published, `*.workers.dev` included — a
+host every HTML page here disowns by canonical, on the exact surface the pending `awesome-rss-feeds`
+submission points at.
+
+**Why it survived seven weeks, which is the part worth keeping.** `SITE_ORIGIN`'s own comment carved
+out the exception — *"`rssFeed` is passed the request origin, which is **right** for a feed a client
+already holds the URL of"* — **true of the argument and false of the element it reached.** Run 182 then
+fixed the half the carve-out was phrased about and left the carve-out standing over the other half; a
+test in `discovery.test.ts` had meanwhile restated it as a rule (*"`<link>` is allowed to be the request
+origin"*), so a note about work not yet done had acquired a guard. Both sentences are **corrected in
+place rather than deleted**, because a silently removed carve-out leaves the next run free to re-derive
+it. [L-108](LESSONS.md#l-108).
+
+**Two design decisions, both reversible and both stated so a later run can argue with them.** The
+`origin` parameter is **removed rather than left unused**: host-invariance that holds because nobody
+happened to use the argument is a coincidence, not a property, and an unused parameter is an invitation
+to derive the element from the request again. And the claim is graded as a **whole-document invariant**
+rather than per element — the new test serves the same feed to all three hosts and compares the
+**bytes**, then asserts the document they agree on is the canonical one, since three hosts agreeing on
+`workers.dev` would satisfy the comparison and **be** the defect.
+
+**The outcome is graded at the edge, and the vantage is what makes it an outcome.** `BASE` in
+`verify-production` is chosen by `prod-http.sh vantage` and **falls back to the workers.dev host when
+the zone is unreachable from the runner**, so asserting the served feed names `justtuned.com` is
+strongest precisely in the run where the vantage fell back. Run **red first** against a pre-fix document
+and green against the fixed one before it shipped. [L-107](LESSONS.md#l-107).
+
+**Reversal risk.** PR [#96](https://github.com/in-c0/tuned/pull/96) → `e3f64b6`. One element fixed to a
+constant, one parameter removed, one workflow assertion added; no route, schema, migration, counter,
+page, dependency or data category. Rollback is `git revert`, which restores the pre-change document and
+nothing else.
+
+**EXP-013 is byte-untouched.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+unchanged; a change in `rssFeed` cannot affect a screening rate. **The schedule is still NOT armed**,
+which remains the reviewer's decision under Fork A and is not re-argued here per [L-07](LESSONS.md).
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
