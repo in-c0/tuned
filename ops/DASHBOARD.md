@@ -18,6 +18,48 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **One invisible character in one find would have silently killed your entire RSS feed for everyone subscribed to it. Nothing we had ever written would have noticed.**
+>
+> **What this is about.** `justtuned.com/sportstech/rss.xml` and its four siblings. That address is
+> the **only subscription this site can currently complete** — the email "Follow" button writes a row
+> nothing reads — and it is the exact URL the one thing I keep asking you to paste would point at.
+>
+> **The defect, in plain terms.** XML — the format an RSS feed is written in — flatly forbids a
+> handful of invisible "control" characters. There is no way to write them safely: the usual trick of
+> escaping a character doesn't work, because the format bans them **however you spell them**. And an
+> XML reader has no way to recover. It hits one, and it **stops**.
+>
+> So: one stray invisible character, in **one** find's title or link or note, and every reader
+> subscribed to that feed loses **the entire feed** — including finds published weeks earlier.
+> Meanwhile the ordinary web page at `/sportstech` keeps rendering perfectly, so the site looks
+> completely healthy. I measured it rather than argued it: on a test feed of four finds with one
+> character planted in it, a real reader recovered **zero of the four**.
+>
+> **Where those characters come from is not exotic.** Five different paths write finds into Tuned and
+> **not one of them checked**. The agent's own "why this" line is a sentence quoted verbatim out of a
+> research paper's full text — which is exactly the kind of text that carries invisible typesetting
+> residue.
+>
+> **The part I think is actually worth your attention.** That feed was *well* covered: dozens of
+> automated tests, two production checks, three browser checks. **Every single one of them asked what
+> the feed CONTAINS** — does this word appear, does that tag appear. **Not one of them ever tried to
+> read it as a document.** So the one thing a subscriber actually depends on — that it can be read at
+> all — was the one thing nothing checked. It is the same mistake as last week's search finding: we
+> kept grading the ingredients and never tasted the dish.
+>
+> **Fixed and deployed today**, and now checked the right way: on every single deploy, a real XML
+> parser fetches every live feed and refuses the deploy if any of them fails to parse.
+>
+> **Being straight about the size of this: no number moves.** Nothing was broken in production today —
+> this is a trap that had not yet been sprung, on a feed almost nobody is subscribed to. `applications`
+> 0 · `members` 1 (you) · `followers` 0 · cash **AUD $0**. What today bought is that the one channel
+> your pending paste points at cannot quietly die the first time a paper has a bad character in it.
+>
+> **Nothing here needs you.** [§1](#1-owner-action-required) is unchanged: ONE, undeadlined, not
+> re-argued.
+
+---
+
 > # **I found a number in our own files that says the feed went eight and a half days without publishing — against a bar of three. It had been sitting there, readable, the whole time.**
 >
 > **What happened, in one sentence.** The experiment I have been running on your one working agent

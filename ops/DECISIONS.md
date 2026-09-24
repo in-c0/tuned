@@ -7107,3 +7107,63 @@ the reviewer's decision under Fork A and is not re-argued here per L-07. No `src
 visitor sees a different byte and the rollback is a revert.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+---
+
+## 2026-09-24 — run 189: the feed was a string that looked like a document, and the fix is in `src/`
+
+**Decision: fix the RSS feed's well-formedness in the product, and grade it with a real parser on the
+real edge — rather than take either of the two candidates already named, both of which are still
+fenced by EXP-013's window.**
+
+**Why neither named candidate.** EXP-013's window closes **2026-09-25** and its reading falls due
+**2026-09-26**; run 187's failure-path `scout-record` needs a **fourth state** in `screenState()` and is
+safe only once the window is shut. Neither was due today. Runs 186 and 188 pre-committed that a further
+instrumentation cycle **would not have a defence**, and this entry does not claim one — **this is not
+instrumentation.** It is a defect in `src/`, on the surface a subscriber receives.
+
+**The defect, and why escaping was never going to prevent it.** `esc` escapes `& < > "`. XML 1.0 §2.2
+forbids most C0 control characters outright and forbids them **however they are written** — `&#11;` is
+exactly as fatal as a literal U+000B — so no escape exists for the class. XML has no error recovery, so
+a parser that meets one **stops**. One stray control character in **one** item's title, URL, category,
+note or description destroyed **the entire feed for every subscriber of it**, while `/<handle>` rendered
+perfectly. Measured against expat: a four-item feed poisoned in the creator name served **4** `<item>`
+elements and delivered **0**.
+
+**This is not a hypothetical surface.** `/<handle>/rss.xml` is the only subscription this funnel can
+currently complete — the email Follow writes a row nothing reads — and it is the exact URL the pending
+`awesome-rss-feeds` submission points at. Five routes write `items` and none sanitises: the operator
+plane `agent scout` publishes through, the studio's two paste routes, `share-api`, and Spotify
+ingestion. The scout's why-line is lifted verbatim from publisher-supplied full text.
+
+**Why nothing caught it — the part worth carrying forward.** Every check ever made of that route asked
+what the bytes **CONTAIN**: `toContain` in vitest, `grep -q` in `verify-production`, a regex in the QA
+specs. **Not one parsed the document.** [L-107](LESSONS.md#l-107), which is [L-92](LESSONS.md#l-92)'s
+error one layer down — a crawl is not an index, and a string that starts with `<rss` is not a document.
+
+**Two design decisions, both reversible and both stated so a later run can argue with them.**
+`stripXmlForbidden` wraps the **finished document**, not each field: a per-field guard is a list a run
+typed and is silently incomplete the next time `rssFeed` gains a field. And it **removes** rather than
+substitutes, because the characters are non-printing — removal changes no visible glyph, whereas a
+replacement character would alter a why-line this feed publishes as a **verbatim quotation**. U+007F is
+left alone (XML 1.0 permits it) and lone surrogates are not handled (they are replaced at the D1
+boundary before reaching the document, pinned as an observation rather than a belief).
+
+**The invariant and the outcome are graded in different places, deliberately.** workerd ships no XML
+parser, so asserting well-formedness there would mean writing the parser and grading my own instrument
+([L-104](LESSONS.md#l-104)). `test/rss-wellformed.test.ts` asserts no forbidden codepoint leaves the
+Worker; the new `verify-production` step asserts **expat accepts the real bytes from the real edge**,
+on every feed, blocking, on every deploy — run **red first** against the pre-fix document and green
+against the fixed one before it shipped.
+
+**Reversal risk.** PR [#94](https://github.com/in-c0/tuned/pull/94) → `707d0c6`. A pure function plus
+one workflow step; no route, schema, migration, counter, page, dependency or data category. Rollback is
+`git revert`, which restores the pre-change document and nothing else.
+
+**EXP-013 is byte-untouched.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+unchanged; a change in `src/pages.ts` cannot affect a screening rate. **The schedule is still NOT
+armed**, which remains the reviewer's decision under Fork A and is not re-argued here per
+[L-07](LESSONS.md).
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
