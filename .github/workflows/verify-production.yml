@@ -448,6 +448,91 @@ jobs:
           grep -o '<div class="fine">[^<]*</div>' /tmp/landing.html \
             | sed -e 's|<div class="fine">|  |' -e 's|</div>||'
 
+      # The step above reads the landing page as a person does. This one reads it as a feed reader
+      # does, and until run 191 the two answers disagreed completely: five feeds in visible HTML,
+      # and no <link rel="alternate"> anywhere in the document.
+      #
+      # `/` is the address every canonical, every og:url, the sitemap and the README name as this
+      # site, so it is what a person pastes into a reader and what a directory resolves. Run 86 gave
+      # the alternate link to the pages that HAVE a feed; the page that LISTS them was not one of
+      # them, so the one URL this product asks the world to remember advertised nothing subscribable.
+      #
+      # Graded on the set, not on the presence of a link (L-107). One link satisfies "the page
+      # carries autodiscovery" and hides four feeds; the reader's question is which feeds it can
+      # offer, so the advertised handles are compared against the handles the page's own cards link
+      # to. Neither list is written in this file — a step naming the handles it expects grades
+      # today's database and stops grading the mapping the moment a feed is registered.
+      #
+      # test/discovery.test.ts makes the same claim against a real Worker in workerd, including
+      # following every advertised href. This one asserts it of the thing actually serving
+      # justtuned.com, and is this change's standing rollback signal.
+      #
+      # Reuses /tmp/landing.html from the step above rather than re-fetching: a second GET of / adds
+      # a landing_view_bot this job does not need. The dependency is asserted rather than assumed,
+      # so reordering the steps fails loudly instead of grading a document that is not there.
+      - name: The landing page announces the site's feeds to software
+        run: |
+          set -euo pipefail
+          [ -s /tmp/landing.html ] || {
+            echo "::error::/tmp/landing.html is missing — the step 'Every feed the landing page offers states how current it is' must run before this one"
+            exit 1
+          }
+
+          # Everything before </head>, which is the only region a reader parses. An alternate link
+          # that has drifted into the body is not discovered, so it must not be counted here.
+          #
+          # `q` is load-bearing and its absence was a real defect in this step. `s|</head>.*||`
+          # alone edits only the line </head> is on — this document spans many lines, so every line
+          # after it survived and the body was being read as the head. The check passed on a page
+          # whose alternate links had all moved into <body>, while this comment said it could not.
+          sed -e '/<\/head>/{s|</head>.*||;q;}' /tmp/landing.html > /tmp/landing.head
+
+          # Each <link rel=alternate> is matched as a whole element and then filtered on the media
+          # type, so both attributes have to be on the SAME element. The document is served as a
+          # single line, so grepping it for the two strings separately would pass on a page carrying
+          # rel="alternate" on the canonical and the RSS type nowhere near it.
+          grep -o '<link[^>]*rel="alternate"[^>]*>' /tmp/landing.head \
+            | grep -F 'type="application/rss+xml"' > /tmp/landing.links || true
+
+          advertised=$(sed -n 's|.*href="/\([^"]*\)/rss\.xml".*|\1|p' /tmp/landing.links | sort)
+          offered=$(grep -o 'class="card-link" href="/[^"]*"' /tmp/landing.html \
+            | sed -n 's|.*href="/\([^"]*\)"|\1|p' | sort)
+
+          [ -n "$offered" ] || { echo "::error::/ offers no feed at all"; exit 1; }
+          [ -n "$advertised" ] || {
+            echo "::error::/ carries no <link rel=alternate type=application/rss+xml> — a reader handed this site's address is told it has no feed. Roll back."
+            exit 1
+          }
+
+          if [ "$advertised" != "$offered" ]; then
+            echo "::error::/ advertises a different set of feeds than it offers"
+            echo "  offered on the page: $(printf '%s' "$offered" | tr '\n' ' ')"
+            echo "  advertised to readers: $(printf '%s' "$advertised" | tr '\n' ' ')"
+            exit 1
+          fi
+
+          # A reader showing two rows a person cannot tell apart has asked them to choose and given
+          # them nothing to choose by. `name` is not unique in the schema, which is why the title is
+          # keyed on the handle — this is the assertion that catches a future run keying it back.
+          titles=$(sed -n 's|.*title="\([^"]*\)".*|\1|p' /tmp/landing.links | sort)
+          if [ "$(printf '%s\n' "$titles" | wc -l)" != "$(printf '%s\n' "$titles" | uniq | wc -l)" ]; then
+            echo "::error::/ advertises two feeds under the same title: $(printf '%s' "$titles" | tr '\n' '|')"
+            exit 1
+          fi
+
+          # That an advertised href actually serves a feed is proved further down, by the step that
+          # fetches /ava/rss.xml from this same edge and requires RSS naming the canonical host. It
+          # is a claim about a URL this job already fetches, so it is chained rather than re-fetched
+          # — and this asserts the chain holds, i.e. that the URL proved there is one of the URLs
+          # advertised here.
+          printf '%s\n' "$advertised" | grep -qx 'ava' || {
+            echo "::error::/ no longer advertises /ava/rss.xml, which is the feed this job proves is served"
+            exit 1
+          }
+
+          echo "/ advertises $(printf '%s\n' "$advertised" | wc -l) feed(s) to readers, matching the $(printf '%s\n' "$offered" | wc -l) it offers on the page:"
+          sed -e 's|^|  |' /tmp/landing.links
+
       # The step above grades the surfaces that OFFER a feed. This one grades the two that carry a
       # feed off this site, which is where the same claim survived run 182's pass:
       #
