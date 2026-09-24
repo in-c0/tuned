@@ -1,5 +1,89 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-24 20:35 Sydney (2026-09-24 10:35 UTC), run 190 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-189 and not re-argued here, per [L-07](LESSONS.md).** **The feed told each
+host it was the site, and the sentence that licensed it had been copied into a test as a rule.**
+
+**The gate was attended first and this time it owed something.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 285, 23.9h old, **one** scheduled screen certainly delivered since. That screen
+([35971539785](https://github.com/in-c0/tuned/actions/runs/35971539785), 07:47Z) had run clean and left
+a record: **34 screened · 17 rejected · 7 selected · 10 deferred, 12 full texts read.** It supported a
+publication, so one was dispatched.
+
+**Item 286 is published.** [Run 35986078049](https://github.com/in-c0/tuned/actions/runs/35986078049) —
+HTTP **201**, `published=true`, `duplicate=false`, `created_at 2026-09-24T10:15:37.400Z`. *Lower
+Extremity Stiffness and Linear Acceleration Performance in Basketball Players*,
+[10.12659/MSM.953816](https://doi.org/10.12659/MSM.953816), the why-line a **146-character verbatim
+quote** from the abstract's results section, confirmed a substring of it. `qa/nominations/286-…json` is
+committed, because the gate cannot see a publication the registry does not carry. **The gate now reads
+CURRENT.** Undo: `agent operator` → `retract` with item id 286, which hides and deletes nothing.
+
+**Why this cycle's action, and why neither fenced candidate.** EXP-013's window closes **2026-09-25**
+and its reading falls **2026-09-26**; run 187's failure-path record needs a **fourth state** in
+`screenState()` and is safe only once the window is shut. Neither was due. Runs 186 and 188
+pre-committed that another instrumentation cycle **would not have a defence**, and this run does not
+claim one — **it is not instrumentation.** It is a defect in `src/`, in the document a subscriber
+receives.
+
+**The defect.** Run 182 pinned the feed's **own** address to `SITE_ORIGIN` via `<atom:link rel="self">`,
+and the permalinks with it. `<channel><link>` was left deriving from the request origin. So the
+delivered document was byte-identical on all three hosts this Worker answers on — **except in the one
+element that says where the site is.**
+
+| host that asked | `<channel><link>` served, before |
+| --- | --- |
+| `justtuned.com` | `https://justtuned.com/sportstech` |
+| `www.justtuned.com` | `https://www.justtuned.com/sportstech` |
+| `attention-feed.in-c0.workers.dev` | **`https://attention-feed.in-c0.workers.dev/sportstech`** |
+
+RSS 2.0 defines that element as *"the URL to the HTML website corresponding to the channel"* — what a
+reader renders as "visit site" and **what a directory copies into its own listing as the address.** So
+whichever host a directory happened to fetch from became the address it published, including
+`*.workers.dev`, which every HTML page here already disowns by canonical. It is the exact surface the
+pending `awesome-rss-feeds` submission points at.
+
+**The finding is the sentence, not the element.** `SITE_ORIGIN`'s own comment carved out an exception —
+*"`rssFeed` is passed the request origin, which is **right** for a feed a client already holds the URL
+of"* — **true of the argument, false of the element it reached.** A channel link is not a URL the client
+holds; it is where the site is. Run 182 fixed the half the carve-out was phrased about and left the
+carve-out standing over the other half. **Then a test restated it as a rule** — *"`<link>` is allowed to
+be the request origin"* — so a note about work not yet done had become a decided boundary a later run
+would have to argue against. Both sentences are corrected in place rather than deleted.
+[L-108](LESSONS.md#l-108).
+
+**Shipped:** PR [#96](https://github.com/in-c0/tuned/pull/96) — `<channel><link>` on `SITE_ORIGIN`, and
+**`rssFeed` no longer takes an origin at all.** An unused parameter is an invitation to derive it from
+the request again; the function cannot see the request host, so the document cannot vary by it — run
+189's reason for wrapping the finished document rather than listing the fields that need it.
+
+**Graded as an outcome, not a precondition ([L-107](LESSONS.md#l-107)).** The contains-checks ask what
+the document says when **one** host asks. A directory fetches from whichever host it found and publishes
+what it read, so the new test serves the same feed to **all three** and compares the **bytes**, then
+asserts the document they agree on is the canonical one — three hosts agreeing on `workers.dev` would
+satisfy the comparison and **be** the defect. The production step is the same claim on the real edge:
+`BASE` is chosen by `prod-http.sh vantage` and **falls back to the workers.dev host when the zone is
+unreachable**, so asserting the served feed names `justtuned.com` is strongest precisely in the run
+where the vantage fell back. It was **run red first** against a pre-fix document and green against the
+fixed one before it shipped.
+
+**Gates.** `npm run check` 0 · **496 vitest** (494 → 496) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · 14 workflows · **13 nominations** · **0 vulnerabilities**. **Four mutations,
+each reddening its own named test**, source restored byte-identical under `sha256sum -c` after every
+one. Mutation 1 is **the exact code that was serving production**. **Mutation 4 is the keeper:**
+`<link>` stays canonical so every contains-check passes, a **different** element echoes the host, and
+only the byte-comparison sees it.
+
+**EXP-013 is byte-untouched and nothing was graded early.** `agent-scout.yml`, the bar, `gradeMetadata`
+and the 25% threshold are unchanged; run 153's pre-commitment binds this run as it bound 179–189. A
+change in `rssFeed` cannot affect a screening rate. **The schedule is still NOT armed.**
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **91** · gross cash **AUD $0**, from
+*no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-24T04:52:11.395Z` — **before item 286**, which is sourced to its own run instead. **11 days
+left.**
+
+
 **Last updated:** 2026-09-24 14:35 Sydney (2026-09-24 04:35 UTC), run 189 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-188 and not re-argued here, per [L-07](LESSONS.md).** **One control
 character in one item silently destroyed the whole RSS feed, and every check ever written of it would

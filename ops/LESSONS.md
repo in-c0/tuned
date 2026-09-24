@@ -4663,3 +4663,58 @@ substitution actually happens at the D1 boundary on the way in, yielding one rep
 byte rather than one per surrogate. The test caught it, and the fix was to assert the guarantee that
 holds (no surrogate survives the round trip) rather than the count that happened to appear. **Pin the
 property, not the number, when the number is a side effect of a boundary you did not write.**
+
+---
+
+## L-108 — the reason recorded for the half that was not fixed hardened into a licence for it, and then a test guarded the licence (2026-09-24, run 190)
+
+**What happened.** `SITE_ORIGIN` was introduced (run 86) so that HTML pages could name one canonical
+host out of the three this Worker answers on. Its comment explained the choice and, in the same
+sentence, recorded why RSS was being left alone:
+
+> *"`rssFeed` is passed the **request** origin, which is right for a feed a client already holds the
+> URL of; it is wrong for a canonical, whose whole job is to say which of several equivalent URLs is
+> the page."*
+
+That sentence was **true of the argument** `rssFeed` receives and **false of the element it reached**.
+The request origin was spent on `<channel><link>` — which RSS 2.0 defines as *"the URL to the HTML
+website corresponding to the channel"*, the address a reader shows as "visit site" and a **directory
+copies into its own listing**. That is a canonical-class statement, not a URL the client already holds.
+
+Run 182 then fixed **half** of it: `<atom:link rel="self">` was pinned to `SITE_ORIGIN`, and the
+permalinks with it. The comment's carve-out was not revisited, because the fix it licensed had been
+about the *feed's own address*, and the carve-out was phrased about *the feed*. So the delivered
+document became byte-identical on all three hosts **except** in the one element that says where the
+site is — and `*.workers.dev`, a host every HTML page here disowns by canonical, could be published as
+Tuned's address by any directory that happened to fetch from it.
+
+**Then the licence acquired a guard.** A test in `discovery.test.ts` asserting the *self* link was
+canonical carried the explanatory line *"`<link>` is allowed to be the request origin — a client
+already holds that URL."* A carve-out written once as an explanation had been copied into the test
+suite as a **rule**, where it now read as a decided boundary that a later run would have to argue
+against rather than a note about work not yet done.
+
+**The lesson.** A comment that explains why part of a surface is *currently* different is read later as
+a statement that it *should* be different. **When you fix part of a surface, go back to the text that
+recorded the reason for the rest of it** — that text was written when the whole thing was unfixed, and
+it does not know it has been half-superseded. The failure is silent in the worst way: the comment is
+not wrong about anything it was written about, so nothing contradicts it, and re-reading the module
+confirms it every time.
+
+The tell is **scope drift between the reason and the thing it covers**: this reason was about *a feed
+a client already holds the URL of*, and it was sitting over an element about *where the site is*.
+Whenever a justification and the code it guards describe different nouns, the justification has
+outlived its scope. Both sentences are corrected in place here rather than deleted, because a carve-out
+that was silently removed leaves the next run free to re-derive it.
+
+**And the check it decided.** [L-107](#l-107) said to ask what a consumer does with the artifact. Here
+the consumer is a directory that fetches from whichever host it found and publishes what it read — so
+the property is not *"this element is right"* but *"there is no whichever-host to find."* The test
+serves the same feed to all three hosts and compares the **bytes**, then asserts the document they
+agree on is the canonical one, because three hosts agreeing on `workers.dev` satisfies the comparison
+and is exactly the defect. The mutation that proves it is worth naming: leave `<link>` canonical and
+make a **different** element echo the host — every contains-check passes, and only the byte-comparison
+sees it. **A per-element assertion grades the elements a run thought to name; a whole-document
+invariant grades the ones it did not.** The `origin` parameter was removed rather than left unused for
+the same reason: host-invariance that holds because nobody happened to use the argument is not a
+property, it is a coincidence with a future.
