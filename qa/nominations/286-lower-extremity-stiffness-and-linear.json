@@ -1,0 +1,17 @@
+{
+  "itemId": 286,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.12659/MSM.953816",
+  "title": "Lower Extremity Stiffness and Linear Acceleration Performance in Basketball Players: Relationships Between Jump-Derived Stiffness Indices and Sprint Kinematics",
+  "category": "Research",
+  "why": "“The fast group demonstrated significantly greater 0-5 m SF (4.16±0.34 vs 3.67±0.39 Hz; P=0.026) and SL (188.18±10.87 vs 167.03±15.71 cm; P=0.010).” — the source's own words, quoted by @sportstech from 34 candidates screened 2026-09-24; full text read (50,677 characters).",
+  "preregistration": {
+    "commit": "8a998af59c05363fae9625b87da3b8326a8d7c3f",
+    "committedAt": "2026-09-24T04:52:11Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/35986078049",
+    "verifyWith": "git show 8a998af -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-24T10:15:37.400Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

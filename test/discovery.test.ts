@@ -48,9 +48,9 @@ async function seed(handle: string, name: string, kind = "human"): Promise<void>
     .run();
 }
 
-async function get(path: string): Promise<Response> {
+async function get(path: string, origin = "https://tuned.test"): Promise<Response> {
   const ctx = createExecutionContext();
-  const res = await worker.fetch(new Request(`https://tuned.test${path}`), env as never, ctx);
+  const res = await worker.fetch(new Request(`${origin}${path}`), env as never, ctx);
   await waitOnExecutionContext(ctx);
   return res;
 }
@@ -138,6 +138,12 @@ async function seedFeed(handle: string, dates: string[]): Promise<void> {
 const selfHref = (xml: string): string | undefined =>
   xml.match(/<atom:link\b[^>]*rel="self"[^>]*>/i)?.[0].match(/href="([^"]+)"/)?.[1];
 
+/** The CHANNEL's `<link>`, which is the first one in the document — every later one belongs to an
+ *  `<item>` and is the source's URL. Anchored on `<channel>` rather than taken as "the first
+ *  `<link>`" so that a future element added above it cannot silently change what this reads. */
+const channelLink = (xml: string): string | undefined =>
+  xml.match(/<channel>[\s\S]*?<link>([^<]*)<\/link>/)?.[1];
+
 describe("the RSS document's own identity", () => {
   it("names itself with a canonical self link, on the canonical host", async () => {
     await seedFeed("sportstech", ["2026-09-12T10:21:50.674Z"]);
@@ -153,9 +159,40 @@ describe("the RSS document's own identity", () => {
   it("does not echo the host that asked for it", async () => {
     await seedFeed("sportstech", ["2026-09-12T10:21:50.674Z"]);
     const xml = await (await get("/sportstech/rss.xml")).text();
-    // `<link>` is allowed to be the request origin — a client already holds that URL. The
-    // canonical is not, and this is the whole point of the element.
+    // This assertion used to be accompanied by the sentence *"`<link>` is allowed to be the
+    // request origin — a client already holds that URL"*, and that sentence was the defect run
+    // 190 removed: `<channel><link>` is not a URL the client holds, it is where the site is.
+    // Nothing in this document echoes the host now, so the claim is made over the whole of it.
     expect(selfHref(xml)).not.toContain("tuned.test");
+    expect(xml).not.toContain("tuned.test");
+  });
+
+  it("says where the site is with the canonical host, not the host that asked", async () => {
+    await seedFeed("sportstech", ["2026-09-12T10:21:50.674Z"]);
+    const xml = await (await get("/sportstech/rss.xml")).text();
+    // RSS 2.0: `<channel><link>` is "the URL to the HTML website corresponding to the channel".
+    // A reader renders it as the feed's "visit site" and a directory copies it into its listing,
+    // so it is a canonical-class statement and the one element here that names the site at all.
+    expect(channelLink(xml)).toBe("https://justtuned.com/sportstech");
+  });
+
+  // THE OUTCOME, NOT THE PRECONDITION — L-107. The three assertions above each ask what the
+  // document CONTAINS when one host asks. What a directory actually does is fetch this feed from
+  // whichever host it found, and publish what it read; the property that makes that safe is that
+  // there is no "whichever host" to find. So this asks the consumer's question instead: serve the
+  // same feed to three hosts and compare the bytes. It is the assertion that fails if any future
+  // field is derived from the request, including one nothing above thought to name.
+  it("serves a byte-identical document to every host this Worker answers on", async () => {
+    await seedFeed("sportstech", ["2026-09-12T10:21:50.674Z", "2026-09-01T00:00:00.000Z"]);
+    const hosts = ["https://justtuned.com", "https://www.justtuned.com", "https://attention-feed.in-c0.workers.dev"];
+    const docs: string[] = [];
+    for (const host of hosts) docs.push(await (await get("/sportstech/rss.xml", host)).text());
+    for (let i = 1; i < docs.length; i++) {
+      expect(docs[i], `${hosts[i]} served a different document from ${hosts[0]}`).toBe(docs[0]);
+    }
+    // And the document they all agree on is the canonical one — three hosts agreeing on
+    // `workers.dev` would satisfy the loop above and be exactly the defect.
+    expect(channelLink(docs[0])).toBe("https://justtuned.com/sportstech");
   });
 
   it("does not adopt an arrival tag as part of its own identity", async () => {
@@ -205,11 +242,11 @@ describe("the RSS document's own identity", () => {
         note: "",
         description: "",
       }) as Item;
-    const xml = rssFeed(
-      { handle: "sportstech", name: "Sportstech" } as Creator,
-      [at("2026-08-20T00:00:00.000Z", 1), at("2026-09-12T10:21:50.674Z", 2), at("2026-09-01T00:00:00.000Z", 3)],
-      "https://tuned.test"
-    );
+    const xml = rssFeed({ handle: "sportstech", name: "Sportstech" } as Creator, [
+      at("2026-08-20T00:00:00.000Z", 1),
+      at("2026-09-12T10:21:50.674Z", 2),
+      at("2026-09-01T00:00:00.000Z", 3),
+    ]);
     expect(xml).toContain(`<lastBuildDate>${new Date("2026-09-12T10:21:50.674Z").toUTCString()}</lastBuildDate>`);
   });
 

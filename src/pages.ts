@@ -7,10 +7,17 @@ export const TAGLINE = "follow attention, not content";
 /** The one origin a crawler or an unfurler should name, out of the three that serve this Worker.
  *
  * `wrangler.jsonc` routes both `justtuned.com` and `www.justtuned.com` as custom domains and
- * leaves `workers_dev` on, so the identical document answers on three hosts. `rssFeed` is passed
- * the *request* origin, which is right for a feed a client already holds the URL of; it is wrong
- * for a canonical, whose whole job is to say which of several equivalent URLs is the page. Fixed
- * here rather than derived from the request for that reason. */
+ * leaves `workers_dev` on, so the identical document answers on three hosts. A canonical's whole
+ * job is to say which of several equivalent URLs is the page, so it is fixed here rather than
+ * derived from the request.
+ *
+ * This comment used to carve out an exception — *"`rssFeed` is passed the request origin, which is
+ * right for a feed a client already holds the URL of"* — and that exception was the defect run 190
+ * removed. It was true of the argument and false of the element it reached: `rssFeed` spent the
+ * request origin on `<channel><link>`, which RSS 2.0 defines as *"the URL to the HTML website
+ * corresponding to the channel"*. That is a canonical-class statement about where the site is, not
+ * a URL the client already holds, and a directory copies it as the site's address. `rssFeed` no
+ * longer takes an origin at all. */
 export const SITE_ORIGIN = "https://justtuned.com";
 
 export interface Creator {
@@ -1634,7 +1641,7 @@ function rfc822(iso: string): string {
   return Number.isFinite(t) ? new Date(t).toUTCString() : "";
 }
 
-export function rssFeed(creator: Creator, items: Item[], origin: string): string {
+export function rssFeed(creator: Creator, items: Item[]): string {
   const published = items.slice(0, 50);
   const entries = published
     .map((i) => {
@@ -1713,6 +1720,25 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
    *  the tag, which is Fork E's case (ungradeable by the tag), never Fork C's (a null). */
   const self = `${SITE_ORIGIN}/${esc(creator.handle)}/rss.xml`;
 
+  /** The channel's website, and why it stopped being the host that asked.
+   *
+   *  `<atom:link rel="self">` above fixed the feed's own address on SITE_ORIGIN and left this
+   *  element deriving from the request, so the delivered document was byte-identical on all three
+   *  hosts **except here** — and this is the one element in it that says where the site is. RSS
+   *  2.0 defines `<channel><link>` as *"the URL to the HTML website corresponding to the
+   *  channel"*; a reader renders it as the feed's "visit site" and a directory copies it into its
+   *  own listing, which is exactly the surface the pending submission in ops/DISTRIBUTION.md
+   *  points at. Whichever host a directory happened to fetch from became the address it published
+   *  — including `*.workers.dev`, which every HTML page on this service already disowns by
+   *  canonical.
+   *
+   *  The argument is now gone rather than ignored. An unused parameter is an invitation to derive
+   *  this from the request again, and leaving one would have made host-invariance a property that
+   *  holds by nobody's decision. `rssFeed` cannot see the request host, so the document cannot
+   *  vary by it — the same reason run 189's strip wraps the finished document instead of listing
+   *  the fields that need it. */
+  const site = `${SITE_ORIGIN}/${esc(creator.handle)}`;
+
   /** The freshness promise, made machine-readable on the surface that is actually subscribed to.
    *
    *  A4 in ops/DISTRIBUTION.md turns on whether the destination is current when a stranger
@@ -1756,7 +1782,7 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>${title}</title>
-  <link>${esc(origin)}/${esc(creator.handle)}</link>
+  <link>${site}</link>
   <atom:link href="${self}" rel="self" type="application/rss+xml"/>
   <description>What ${esc(creator.name)} is paying attention to.${provenance}</description>${lastBuild}${entries}
 </channel>
