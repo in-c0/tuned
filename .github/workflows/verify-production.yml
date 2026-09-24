@@ -517,6 +517,68 @@ jobs:
             exit 1
           fi
 
+      # Whether the feed is a DOCUMENT, asked of the live feed by a real parser.
+      #
+      # Every check this repository had ever made of /<handle>/rss.xml asked what the bytes
+      # CONTAIN — `toContain` in vitest, `grep -q` in the step above, a regex in the QA specs.
+      # Not one of them ever parsed it. So the single property a subscriber depends on, that a
+      # conforming XML parser accepts the document, was the one property nothing graded, on the
+      # one surface this funnel can currently complete a subscription through. L-92's shape: a
+      # crawl is not an index, and a string that starts with `<rss` is not a document.
+      #
+      # WHY THIS CANNOT BE A UNIT TEST. workerd ships no XML parser, so asserting it there would
+      # mean writing the parser and then grading my own instrument — L-104 exactly.
+      # test/rss-wellformed.test.ts grades the INVARIANT (no forbidden codepoint leaves the
+      # Worker); this step grades the OUTCOME (expat, from the C library every feed reader's
+      # parser family descends from, accepts the real bytes from the real edge).
+      #
+      # It is deliberately whole-document and deliberately blocking. XML has no error recovery:
+      # a parser that meets one illegal character stops, so a single control character in ONE
+      # item's title, URL, category or note takes down every item in that feed for every
+      # subscriber — while /<handle> keeps rendering perfectly and every other step here passes.
+      # Measured, not argued: against the pre-fix code a four-item feed parsed to ZERO items.
+      - name: RSS is a parseable XML document, on every feed the site offers
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          code=$(scripts/prod-http.sh get "${BASE}/" /tmp/wf-landing.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::/ returned HTTP $code"; exit 1; }
+
+          handles=$(grep -o 'class="card-link" href="/[A-Za-z0-9_.-]*"' /tmp/wf-landing.html \
+            | sed -e 's|.*href="/||' -e 's|"$||' | sort -u || true)
+          [ -n "$handles" ] || { echo "::error::no feed handles on / to parse"; exit 1; }
+
+          for h in $handles; do
+            code=$(scripts/prod-http.sh get "${BASE}/${h}/rss.xml" /tmp/wf-feed.xml 'application/rss+xml')
+            [ "$code" = "200" ] || { echo "::error::/${h}/rss.xml returned HTTP $code"; exit 1; }
+            python3 - "/tmp/wf-feed.xml" "${h}" <<'PY'
+          import sys, xml.parsers.expat
+          path, handle = sys.argv[1], sys.argv[2]
+          doc = open(path, "rb").read()
+          # Counted from the bytes before parsing, so the two numbers below are independent:
+          # one says what was served, the other says what a reader could actually recover.
+          served = doc.count(b"<item>")
+          recovered = [0]
+          p = xml.parsers.expat.ParserCreate()
+          p.StartElementHandler = lambda n, a: recovered.__setitem__(0, recovered[0] + (n == "item"))
+          try:
+              p.Parse(doc, True)
+          except xml.parsers.expat.ExpatError as e:
+              # Report WHERE, and never the character itself: this log is public and the byte
+              # came out of a publisher's text. `agent scout`'s rule for response bodies.
+              print("::error::/%s/rss.xml is not well-formed XML: %s "
+                    "— %d <item> element(s) served, %d recoverable by a reader"
+                    % (handle, e, served, recovered[0]))
+              sys.exit(1)
+          if served != recovered[0]:
+              print("::error::/%s/rss.xml parsed, but %d of %d items did not survive"
+                    % (handle, served - recovered[0], served))
+              sys.exit(1)
+          print("/%s/rss.xml: well-formed, %d item(s), all recoverable" % (handle, served))
+          PY
+          done
+
       # Run 172 learned to grade a disclosure on the deployed page and not only in workerd
       # (445f980). This is that lesson applied to the one this service is least able to keep.
       #
