@@ -7228,3 +7228,59 @@ unchanged; a change in `rssFeed` cannot affect a screening rate. **The schedule 
 which remains the reviewer's decision under Fork A and is not re-argued here per [L-07](LESSONS.md).
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-25 — run 191: the landing page advertises every feed it offers, to software
+
+**Decision: spend the cycle on `/`'s feed autodiscovery, and not on either fenced candidate.**
+EXP-013's window closes **today (2026-09-25)** and its reading falls **2026-09-26** — the window is
+open until the end of this day, so nothing in it was graded; run 187's failure-path `scout-record`
+needs a fourth state in `screenState()` and is safe only once the window is shut. The publisher's
+gate read **CURRENT** (item 286, 12h old, zero scheduled screens delivered since), so nothing was
+owed there either. Runs 186 and 188 pre-committed that another instrumentation cycle would have no
+defence; this is not instrumentation, it is a defect in `src/` on the page every other surface points
+at.
+
+**What was wrong.** `<link rel="alternate" type="application/rss+xml">` is the one element a feed
+reader, aggregator or directory uses to turn a pasted page URL into a subscribable feed. Run 86 gave
+it to the pages that **are** a feed and run 164's find pages inherited it; the landing page was never
+one of them. `/` is the address every canonical, every `og:url`, the sitemap and the README name as
+this site, so a reader handed this site's address was told the site has no feed — while the page
+displayed five live feeds to a human.
+
+**Decision: advertise every feed the page offers, in the order it offers them — not the demo alone.**
+A reader that discovers more than one shows a picker, and picking is the visitor's job. Stale feeds
+are advertised too: each card already states its age, and withholding one would be this function
+deciding for a subscriber what is worth following.
+
+**Decision: key the title on the handle, not the display name.** This is the one place the landing
+page diverges from `publicPage`, deliberately. A feed page carries a single alternate and the name
+identifies it; here there are as many as there are feeds, side by side in one menu, and `name` is not
+unique in the schema while `handle` is. Distinctness has to hold by construction, because two
+identical rows in that picker is the failure the element exists to prevent.
+
+**Decision: grade the set, not the presence of a link** ([L-107](LESSONS.md#l-107)). One link
+satisfies "the page carries autodiscovery" and hides four feeds. The tests read the document the way
+a reader does and compare the advertised set against the feeds the page's own cards link to — neither
+list typed in the test — then follow every advertised href and require a **distinct** working feed
+back for each. The production step makes the same claim at the real edge at **no extra request**: it
+reuses the landing HTML the preceding step already fetched and chains "an advertised href serves a
+feed" to the step that already proves it of `/ava/rss.xml`.
+
+**Two defects were found in the checks themselves and both are in the diff** ([L-109](LESSONS.md#l-109)).
+The outcome test's first version compared each fetched feed to the href that reached it — true by
+construction — so five titles pointing at one feed passed it. The production step's `<head>`
+extraction used `sed 's|</head>.*||'`, which edits only the line `</head>` is on, so the body was read
+as the head. **Both had comments claiming the property their code did not have**, and both were found
+by exercising every branch rather than asserting the happy path.
+
+**Reversal risk.** PR [#98](https://github.com/in-c0/tuned/pull/98) → `1d99222`. Elements added to one
+`<head>` and one workflow step; no route, schema, migration, counter, page, CSS declaration,
+dependency or data category. Rollback is `git revert`, which restores the pre-change document and
+nothing else. The new production step is the standing rollback signal.
+
+**EXP-013 is byte-untouched.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+unchanged; a change in `landingPage` cannot affect a screening rate. **The schedule is still NOT
+armed**, which remains the reviewer's decision under Fork A and is not re-argued here per
+[L-07](LESSONS.md).
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
