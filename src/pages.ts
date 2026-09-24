@@ -605,7 +605,12 @@ ${js ? `<script>${js}</script>` : ""}
 
 /** What a public page says about itself to everything that is not a browser.
  *
- * Run 86 gave these pages `<link rel="alternate">`, so a feed reader can now find the feed. It
+ * Run 86 gave these pages `<link rel="alternate">`, so a feed reader can now find the feed —
+ * **"these pages" meant the pages that ARE a feed, and this function is also called by the landing
+ * page, which is not one.** Read as a statement that autodiscovery was handled, that sentence was
+ * false for `/` for a month: run 191 found the one URL this product asks the world to remember
+ * advertising no feed at all. Corrected here rather than deleted, because the scope it was written
+ * under is the whole reason the gap was invisible (L-108). It
  * did not give them anything else: until this, a public feed page's whole `<head>` was a title,
  * an icon and that link. Pasted into Slack, Discord, Mastodon, X, LinkedIn or iMessage — which
  * is what a distribution link *is* — the URL unfurled as bare text, because every one of those
@@ -1537,7 +1542,43 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     description: `${BRAND} — ${TAGLINE}. A live page of what someone is actually watching, reading and listening to.`,
     ogDescription: "Follow what people pay attention to — not what they post.",
   });
-  return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body, js, head);
+  /** What this page tells a feed reader, which until now was nothing at all.
+   *
+   *  Run 86 gave `<link rel="alternate">` to the pages that HAVE a feed, and run 164's find pages
+   *  inherited it. Both were read as closing the gap — `test/discovery.test.ts` opens by saying the
+   *  element "was absent from every page this service serves", in a file that then grades one feed
+   *  page. **The page a reader is actually handed was never one of them.** `/` is the address every
+   *  canonical, every `og:url`, the sitemap and the README all name as the site; a person who wants
+   *  to follow this pastes *that* into their reader, and the reader parsed a document advertising
+   *  no feed and reported that this site has none. Five feeds were live the whole time and the one
+   *  page that lists all five was the only public page that named none of them to software.
+   *
+   *  The scope error is worth stating because it is not "a page was missed". Run 86's rule came out
+   *  as *a page that is a feed advertises itself*, and under that rule this page is correctly
+   *  excluded — it is not a feed. A reader's rule is *a page advertises the feeds it leads to*, and
+   *  the find pages already obey it: `itemPage` is not a feed either and advertises the one it
+   *  belongs to. So the element's own behaviour on this codebase already contradicted the narrower
+   *  rule, and nothing noticed, because the page that would have shown it up is the page that
+   *  renders a visible list of feeds a human reviewer can see and click (L-46 again — a human
+   *  checking this page finds the feeds either way).
+   *
+   *  **Every feed the page offers, in the order it offers them.** Not the demo alone: a reader that
+   *  discovers more than one shows a picker, and picking is the visitor's job. A stale feed is
+   *  advertised too — its card already states its age, and refusing to name it here would be this
+   *  function deciding for a subscriber what is worth following.
+   *
+   *  The title is keyed on the **handle**, not the name, and that is the one place this diverges
+   *  from `publicPage`. On a feed page there is a single alternate and the name identifies it; here
+   *  there are as many as there are feeds, side by side in one menu, and `name` is not unique in
+   *  the schema — `handle` is. Distinctness has to hold by construction, because two identical rows
+   *  in that menu is the failure this element exists to prevent. */
+  const feedLinks = creators
+    .map(
+      (c) =>
+        `\n<link rel="alternate" type="application/rss+xml" title="@${esc(c.handle)} — ${esc(BRAND)}" href="/${esc(c.handle)}/rss.xml">`
+    )
+    .join("");
+  return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body, js, head + feedLinks);
 }
 
 export type ShareState =

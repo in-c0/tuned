@@ -108,6 +108,132 @@ describe("RSS autodiscovery on a public feed page", () => {
   });
 });
 
+// RSS autodiscovery on `/`, which is the page a reader is actually handed.
+//
+// The block above grades a feed page. `/` is a different claim and it was the missing one: it is
+// the URL every canonical, every `og:url`, the sitemap and the README name as this site, so it is
+// the string a person pastes into their reader and the string a directory resolves. It carried no
+// `<link rel="alternate">` at all, while listing five live feeds in visible HTML — so every reader
+// ever given this site's address was told the site has no feed, and the page looked right to every
+// human who checked it, because a human sees the list and clicks it (L-46).
+//
+// WHAT IS GRADED HERE, AND WHY IT IS NOT A CONTAINS-CHECK (L-107). Asserting that `/` contains an
+// alternate link grades a precondition: one link satisfies it, and one link on a page offering five
+// feeds hides four of them. What a reader does is parse the head, collect *every* alternate, show
+// the person a picker, and fetch whichever they choose. So `discover()` below is that consumer —
+// it reads the document the same way and returns what a reader would end up holding — and the
+// assertions are about the set it returns: it covers exactly the feeds the page itself offers,
+// every entry in it is distinguishable from the others, and every entry leads to a real feed.
+//
+// The expected set is derived from the rendered page's own feed cards, never typed here. A test
+// that names the handles it expects grades this fixture; one that reads them off the page grades
+// the mapping, and keeps grading it when a sixth feed is registered.
+
+/** What a feed reader holds after being handed a page URL: every RSS alternate in the document's
+ *  head, in document order. Deliberately extracted element-by-element and then filtered on the
+ *  media type, so both attributes must sit on the SAME element — a document with `rel="alternate"`
+ *  on one tag and the RSS type on another is invisible to every real client, and a whole-document
+ *  grep for the two strings would call it discovered. */
+function discover(html: string): Array<{ href: string; title: string }> {
+  const head = html.slice(html.indexOf("<head>"), html.indexOf("</head>"));
+  return (head.match(/<link\b[^>]*rel="alternate"[^>]*>/gi) ?? [])
+    .filter((el) => el.includes('type="application/rss+xml"'))
+    .map((el) => ({
+      href: el.match(/href="([^"]*)"/)?.[1] ?? "",
+      title: el.match(/title="([^"]*)"/)?.[1] ?? "",
+    }));
+}
+
+/** The feeds the landing page offers a human, read off the rendered page. This is the denominator
+ *  the advertised set has to match, and it is the page's own claim rather than this file's. */
+function offeredHandles(html: string): string[] {
+  return [...html.matchAll(/class="card-link" href="\/([^"/]+)"/g)].map((m) => m[1]);
+}
+
+describe("RSS autodiscovery on the landing page", () => {
+  it("advertises a feed at all, which is what it never did", async () => {
+    await seed("sportstech", "Sportstech");
+    const found = discover(await (await get("/")).text());
+    expect(found.length, "/ carries no RSS alternate — a reader handed this site's address finds nothing").toBeGreaterThan(0);
+  });
+
+  it("advertises every feed the page offers, in the order it offers them", async () => {
+    await seed("sportstech", "Sportstech");
+    await seed("wearables", "Wearables");
+    await seed("graphics", "Graphics", "agent");
+    const html = await (await get("/")).text();
+
+    const offered = offeredHandles(html);
+    expect(offered.length).toBe(3);
+    // Not a subset and not a superset. A page advertising three of five feeds is the defect in
+    // miniature; one advertising a feed it does not list is advertising something else's.
+    expect(discover(html).map((l) => l.href)).toEqual(offered.map((h) => `/${h}/rss.xml`));
+  });
+
+  it("gives every advertised feed a title the picker can tell apart", async () => {
+    // Two feeds, one display name. `name` is not unique in the schema and `handle` is, which is
+    // why the title is keyed on the handle: a reader showing two identical rows has asked the
+    // person to choose and given them nothing to choose by.
+    await seed("sportstech", "Attention");
+    await seed("wearables", "Attention");
+    const titles = discover(await (await get("/")).text()).map((l) => l.title);
+    expect(titles).toHaveLength(2);
+    expect(new Set(titles).size, `two feeds share the title ${titles[0]}`).toBe(2);
+    for (const t of titles) expect(t).not.toBe("");
+  });
+
+  // THE OUTCOME. Everything above is about the document; this is about what the consumer ends up
+  // holding. Play the whole reader: take the site URL, discover, follow each advertised href, and
+  // require a real feed back — then check the *set* of feeds actually reached against the set the
+  // page offers. A link that is well-formed and points at a 404, or at another feed, fails a person
+  // exactly as no link does.
+  //
+  // It is graded on the set reached and NOT per-href for a reason the mutation pass found. The
+  // first version of this test asserted, inside the loop, that each fetched feed matched the href
+  // that reached it — and that assertion is true by construction whatever the hrefs are, so a
+  // landing page advertising five distinct titles that all point at ONE feed passed it. Checking
+  // each link against itself is not checking the mapping. The question a reader answers is "can I
+  // subscribe to each of these feeds", and only the set can answer it.
+  it("leaves a reader holding a working feed for every feed on the page", async () => {
+    await seed("sportstech", "Sportstech");
+    await seed("wearables", "Wearables");
+    const html = await (await get("/")).text();
+    const found = discover(html);
+
+    const reached = new Set<string>();
+    for (const { href } of found) {
+      const feed = await get(href);
+      expect(feed.status, `advertised ${href} returned ${feed.status}`).toBe(200);
+      expect(feed.headers.get("content-type") ?? "").toMatch(/xml/);
+      const xml = await feed.text();
+      expect(xml).toContain("<rss");
+      reached.add(channelLink(xml) ?? "");
+    }
+    expect([...reached].sort()).toEqual(
+      offeredHandles(html)
+        .map((h) => `https://justtuned.com/${h}`)
+        .sort()
+    );
+  });
+
+  it("puts them where a reader looks, and names no feed the site does not serve", async () => {
+    await seed("sportstech", "Sportstech");
+    const html = await (await get("/")).text();
+    // `discover` already reads the head only, so an element that moved into the body leaves the
+    // set empty rather than passing.
+    expect(discover(html)).toHaveLength(1);
+    expect(discover(html)[0].href).toBe("/sportstech/rss.xml");
+  });
+
+  it("escapes a handle that would otherwise break out of the attributes", async () => {
+    await seed('odd" onload=x', "Odd");
+    const links = discover(await (await get("/")).text());
+    expect(links).toHaveLength(1);
+    expect(links[0].href).not.toContain('" onload=');
+    expect(links[0].title).toContain("&quot;");
+  });
+});
+
 // The feed document's own identity and build date.
 //
 // `<link rel="alternate">` above solves discovery *from the page*. This block is the other
