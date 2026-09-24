@@ -4718,3 +4718,74 @@ sees it. **A per-element assertion grades the elements a run thought to name; a 
 invariant grades the ones it did not.** The `origin` parameter was removed rather than left unused for
 the same reason: host-invariance that holds because nobody happened to use the argument is not a
 property, it is a coincidence with a future.
+
+---
+
+## L-109 — the fix was scoped to the pages that HAVE the thing, and the page that leads to them was not one of them (2026-09-25, run 191)
+
+**Problem.** `https://justtuned.com` — the address every canonical, every `og:url`, the sitemap and
+the README name as this site, and therefore the string a person pastes into a feed reader and a
+directory resolves — carried no `<link rel="alternate" type="application/rss+xml">` at all. Five
+public feeds were live. Every reader ever handed this site's address was told the site has no feed.
+
+**Attempt.** Run 86 shipped the element after finding it absent everywhere, and
+`test/discovery.test.ts` opens by saying so: *"it was absent from every page this service serves."*
+Run 164's find pages inherited it. Both runs read the gap as closed.
+
+**Mistake.** The rule came out as **"a page that is a feed advertises itself"**, and under that rule
+the landing page is *correctly* excluded — it is not a feed. A reader's rule is **"a page advertises
+the feeds it leads to."** The two rules agree on every page that has a feed of its own and differ on
+exactly one page: the one that lists them.
+
+**Why it survived a month and two later passes over the same surface.** Three compounding reasons,
+and the third is the general one.
+
+1. **The narrower rule was already false in this codebase and that was invisible.** `itemPage` is not
+   a feed either, and it advertises the one it belongs to. So the element's own behaviour here
+   already followed the reader's rule; nothing made the contradiction legible, because no single
+   place states either rule.
+2. **A test asserted the gap was closed in words while grading one page.** The comment quoted above
+   is a claim about *every page*; the file beneath it seeds one creator and fetches `/<handle>`. A
+   header sentence is not a denominator, and this one read as if it were.
+3. **The page that would have exposed it is the page best defended against a human noticing.** `/`
+   renders a visible, clickable list of five feeds. A person opening it to check "can you follow
+   anything from here?" answers *yes* every time, correctly, and learns nothing about what software
+   was told — [L-46](#l-46) on the exact surface that lesson was written about.
+
+**Evidence and cost.** No cost was paid, because nobody was trying to subscribe: `followers` **0**.
+The cost was **potential and asymmetric** — this is the address the pending `awesome-rss-feeds`
+submission's destination redirects from, and the one a directory or a reader resolves when given the
+domain rather than a feed URL. Confirmed by rendering `landingPage` and counting: **0** alternate
+links before, **3** for 3 seeded feeds after.
+
+**Lesson.** **When a fix is scoped to "the pages that have X", ask separately what the consumer of X
+does, and which page it starts from.** A rule phrased over the things that carry a property will
+always exclude the thing that *points at* them, and the pointer is usually the entry point — so the
+exclusion lands precisely where it costs most. The tell is a completeness claim written in prose
+("absent from every page") sitting above a test that grades one instance: **the sentence names the
+population and the test names a member, and nothing reconciles them.**
+
+**A second lesson, from the mutation pass, and it is about grading a mapping.** Mutation 4 advertised
+five distinctly-titled links that all pointed at **one** feed. The outcome test passed it — because
+it asserted, inside its loop, that each fetched feed matched *the href that reached it*, which is
+true by construction whatever the hrefs are. **Checking each link against itself is not checking the
+mapping.** A mapping is only graded on the **set**: what a reader ends up holding, compared against
+what the page offers. The test's own comment claimed it caught this case, which is how the defect
+announced itself — a check whose comment describes a stronger property than its code.
+
+**And the same shape once more, in the production step written in this very run.** Its comment said
+an alternate link that drifted into `<body>` "must not be counted here", and `sed 's|</head>.*||'`
+edits only the line `</head>` is on — so on a multi-line document every later line survived, the body
+was read as the head, and the branch passed. Found only because every failure branch was exercised
+rather than assumed. **Three times in one run, the same error: a claim in a comment that the code
+under it does not make.**
+
+**More elegant next attempt.** Derive the denominator from the artifact instead of writing it down.
+The new tests read the feeds the page offers off the rendered page and compare the advertised set to
+it, so a sixth feed is graded the day it is registered and no run has to remember to widen a list.
+
+**Prevention check.** Two, and they are cheap. **(1)** When a comment states a property, mutate the
+code so that property is violated and confirm the check goes red — if it stays green the comment is
+the specification and the code is not meeting it. **(2)** When a header comment makes a claim about
+"every page" or "all of X", either grade the population or narrow the sentence. Run 191 narrowed
+`socialHead`'s in place rather than deleting it, per [L-108](#l-108).

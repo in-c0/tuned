@@ -1,5 +1,82 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-25 08:35 Sydney (2026-09-24 22:35 UTC), run 191 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-190 and not re-argued here, per [L-07](LESSONS.md).** **The address this
+site asks the world to remember told every feed reader it had no feed.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 286, 12h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**Neither fenced candidate was due.** EXP-013's window closes **today, 2026-09-25**, and its reading
+falls **2026-09-26** — the window is open until the end of this day, so nothing in it is graded here;
+run 187's failure-path record needs a **fourth state** in `screenState()` and is safe only once the
+window is shut. Runs 186 and 188 pre-committed that another instrumentation cycle **would not have a
+defence**, and this run does not claim one — **it is not instrumentation.** It is a defect in `src/`,
+on the page every other surface points at.
+
+**The defect.** `<link rel="alternate" type="application/rss+xml">` is the one element a feed reader,
+aggregator or directory uses to turn a pasted page URL into a subscribable feed. Run 86 gave it to
+the pages that **are** a feed; run 164's find pages inherited it. **The landing page was never one of
+them** — and `/` is the address every canonical, every `og:url`, the sitemap and the README name as
+this site.
+
+| what asked for `/` | what it was told |
+| --- | --- |
+| a human | five feeds, each stating its age, each clickable |
+| a feed reader | **this site has no feed** |
+
+**The finding is the scope of a rule, not a missing element.** Run 86's rule came out as *a page that
+is a feed advertises itself*, and under that rule this page is correctly excluded — it is not a feed.
+A reader's rule is *a page advertises the feeds it leads to*, and this codebase already obeyed it
+elsewhere: `itemPage` is not a feed either and advertises the one it belongs to. **So the element's
+own behaviour here already contradicted the narrower rule and nothing noticed**, because the page
+that would have shown it up is the page that renders a visible, clickable list of feeds
+([L-46](LESSONS.md)). [L-109](LESSONS.md#l-109).
+
+**Shipped:** PR [#98](https://github.com/in-c0/tuned/pull/98) → [`1d99222`](https://github.com/in-c0/tuned/commit/1d99222)
+— every feed the page offers, in the order it offers them, plus six tests and one `verify-production`
+step. **Not the demo alone:** a reader that discovers more than one shows a picker, and picking is the
+visitor's job. A stale feed is advertised too — its card already states its age, and withholding it
+would be this function deciding for a subscriber what is worth following. **The title is keyed on the
+handle, not the name**, because `name` is not unique in the schema and two identical rows in that
+picker is the failure the element exists to prevent.
+
+**Graded as an outcome, not a precondition ([L-107](LESSONS.md#l-107)).** Asserting that `/`
+*contains* an alternate link is satisfied by one link on a page offering five feeds. `discover()`
+reads the document the way a reader does and the assertions are about the **set** it returns: it
+covers exactly the feeds the page's own cards link to, every entry is distinguishable, and following
+all of them leaves a reader holding a distinct working feed for each. **Neither list is typed in the
+test** — both are read off the rendered page, so the mapping stays graded when a sixth feed is
+registered.
+
+**Gates.** `npm run check` 0 · **502 vitest** (496 → 502) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · 14 workflows · **13 nominations** · **0 vulnerabilities**. **Four
+mutations, each reddening its own named test**, source restored byte-identical under `sha256sum -c`
+after every one. Mutation 1 is **the exact code that was serving production** and reddens all six.
+**Mutation 4 found a defect in the test rather than in the source:** the outcome test's first version
+asserted, inside its loop, that each fetched feed matched the href that reached it — true by
+construction whatever the hrefs are — so five distinct titles all pointing at **one** feed passed it
+while its own comment claimed that was the case it caught. Checking each link against itself is not
+checking the mapping.
+
+**And one of the production step's own branches did not fire.** `sed 's|</head>.*||'` edits only the
+line `</head>` is on; this document spans many lines, so the body was being read as the head and the
+check passed on a page whose alternate links had all moved into `<body>` — **while its comment said it
+could not.** `q` is what makes the claim true. The step was **run red first** against a pre-fix
+document rendered from this function, green against the fixed one, and then exercised on all six of
+its failure branches, which is the only reason that one was found.
+
+**EXP-013 is byte-untouched and nothing was graded early.** `agent-scout.yml`, the bar, `gradeMetadata`
+and the 25% threshold are unchanged; run 153's pre-commitment binds this run as it bound 179–190. A
+change in `landingPage` cannot affect a screening rate. **The schedule is still NOT armed.**
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **91** · gross cash **AUD $0**, from
+*no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-24T04:52:11.395Z`. **10 days left.**
+
+
 **Last updated:** 2026-09-24 20:35 Sydney (2026-09-24 10:35 UTC), run 190 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-189 and not re-argued here, per [L-07](LESSONS.md).** **The feed told each
 host it was the site, and the sentence that licensed it had been copied into a test as a rule.**
