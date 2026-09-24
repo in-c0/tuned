@@ -68,6 +68,45 @@ export function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+/** Codepoints XML 1.0 forbids in a document, removed from the finished feed.
+ *
+ *  **`esc` cannot help here and no escape exists.** XML 1.0 §2.2 admits U+0009, U+000A, U+000D
+ *  and U+0020 upward, and a forbidden codepoint is illegal *however it is written* — raw or as
+ *  a numeric character reference. `&#11;` is exactly as fatal as a literal U+000B. Escaping is
+ *  the wrong tool for this class and always was; removal is the only one.
+ *
+ *  **The blast radius is the document, not the item.** XML has no error recovery: a conforming
+ *  parser that meets an illegal character stops, so one stray control character in one item's
+ *  title, URL, category, note or description takes down **every item in that feed for every
+ *  subscriber**. Confirmed against a real parser rather than argued from the spec — see
+ *  `test/rss-wellformed.test.ts`, which grades the property here, and the `RSS is a parseable
+ *  XML document` step in `verify-production.yml`, which grades the outcome on the live feed.
+ *
+ *  **Why the whole document, once, instead of per field.** Every field already runs through
+ *  `esc`, so a per-field variant would have been the natural shape — and it would have been a
+ *  list a run typed, silently incomplete the next time a field is added to `rssFeed`. This is
+ *  the surface that is actually delivered, so it cannot be partially applied. L-100's shape.
+ *
+ *  **It is a no-op on every document this service has ever served.** These characters are
+ *  non-printing; removing one changes no visible text and no rendered quotation, which is why
+ *  removal is preferred to substitution — a replacement character would alter a line this feed
+ *  publishes as verbatim.
+ *
+ *  **Where this can arrive from, none of it hypothetical.** Five routes write `items`, and not
+ *  one sanitises: the operator plane that `agent scout` publishes through, the studio's two
+ *  paste routes, `share-api`, and Spotify ingestion. The scout's own why-line is a verbatim
+ *  quotation lifted from publisher-supplied full text, which is exactly the provenance this
+ *  product is built on and exactly the kind of string that carries typesetting residue.
+ *
+ *  **Lone surrogates are deliberately not handled here**, and that is a measured decision, not
+ *  an oversight: the Worker encodes the body with UTF-8, which substitutes U+FFFD for an
+ *  unpaired surrogate before any byte reaches a reader, so the delivered document stays
+ *  well-formed. `test/rss-wellformed.test.ts` pins that as an observation rather than a belief.
+ *  U+FFFE and U+FFFF survive encoding and are forbidden, so those two are removed here. */
+export function stripXmlForbidden(s: string): string {
+  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "");
+}
+
 function catColor(category: string): string {
   return CATEGORY_COLORS[category] ?? CATEGORY_COLORS.Misc;
 }
@@ -1710,7 +1749,10 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
    *  into its own page, where "last published 52 days ago" freezes and becomes a hardcoded
    *  freshness claim one step removed. That is the defect being removed, not a fix for it.
    *  `lastBuildDate` is an absolute instant, so it stays true wherever it is copied to. */
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  /** `stripXmlForbidden` wraps the finished document, and that position is the point of it —
+   *  see its own note. Every field above is already `esc`aped; escaping is what makes a value
+   *  safe, and it is precisely what cannot make a control character legal. */
+  return stripXmlForbidden(`<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>${title}</title>
@@ -1718,5 +1760,5 @@ export function rssFeed(creator: Creator, items: Item[], origin: string): string
   <atom:link href="${self}" rel="self" type="application/rss+xml"/>
   <description>What ${esc(creator.name)} is paying attention to.${provenance}</description>${lastBuild}${entries}
 </channel>
-</rss>`;
+</rss>`);
 }
