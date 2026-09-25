@@ -7284,3 +7284,87 @@ armed**, which remains the reviewer's decision under Fork A and is not re-argued
 [L-07](LESSONS.md).
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-25 — run 192: the picker states the age, because the card it was made safe by is not in the picker
+
+**Context.** The gate ([`scout-gate.mjs`](../scripts/scout-gate.mjs)) read **CURRENT** — item 286,
+18h old, **zero** scheduled screens certainly delivered since — so nothing was owed and the cycle's
+action was chosen elsewhere. Neither fenced candidate was due: EXP-013's window is open until the end
+of **today**, and run 187's failure-path record needs a fourth state in `screenState()`, which is safe
+only once the window is shut.
+
+**The finding is run 191's own fix, one element deeper.** That run gave `/` a
+`<link rel="alternate">` per feed and argued — correctly — that a stale feed is advertised too,
+because *"its card already states its age, and withholding it would be this function deciding for a
+subscriber what is worth following."* The whole safety of advertising five feeds rested on that
+clause. **It rests on a part of the document the consumer of this element never reads.** A reader
+parses `<head>`, collects every alternate, and shows the person a list of **titles**; the card, the
+age line and the whole of `<body>` are not in that list.
+
+| what the surface said | current feed | silent 57 days | never published |
+| --- | --- | --- | --- |
+| the card, to a person | last published today | last published 57 days ago | nothing published yet |
+| the picker, to a reader — **before** | `@sportstech — Tuned` | `@wearables — Tuned` | `@wellbeing — Tuned` |
+
+Four of the five feeds this site serves had published nothing for eight weeks. Subscribing is the one
+conversion this funnel can complete with no account, no application and no owner act, and that menu is
+where it is chosen.
+
+**Decision: state the age in the title, and change nothing else about which feeds are advertised.**
+All five are still advertised, in the order the page offers them — run 191's decision is unchanged and
+is not re-argued. Nothing is withheld and nothing is ranked. What changes is that the fact the card
+already states is stated where the choice is actually made ([L-90](LESSONS.md#l-90): the page states
+the age rather than the instrument being widened).
+
+**Decision: one function, two surfaces.** `feedAgeWords` is split out of `feedAgeLine` rather than
+duplicated into the head, because the defect being fixed is precisely that one surface said this and
+the other did not. Two call sites deriving the same sentence from the same row can drift; one cannot.
+The card's rendered bytes are unchanged.
+
+**Decision: a relative age is admissible here, and this is not a reversal of run 182.** That run
+removed *"right now"* from the RSS `<description>` because a directory **copies** that string into its
+own page, where a relative age freezes into a hardcoded freshness claim one step removed. An
+autodiscovery title is not a field any directory format carries — a listing records the feed URL and
+the feed's own `<channel><title>` — and it is re-derived from the row on every fetch of `/`. Where it
+could be copied anyway, **the direction of the error is the safe one**: a stale copy overstates the
+age and never the freshness. The absolute instant a subscriber needs is `<lastBuildDate>` in the feed
+itself; this is the disclosure *before* subscribing.
+
+**Decision: the handle stays first in the string.** Run 191 keyed the title on the handle because
+`name` is not unique in the schema and `handle` is. Two feeds published on the same day are exactly
+the case in which an age-keyed title collapses back into two indistinguishable rows, so distinctness
+still holds by construction rather than by the ages happening to differ, and a test pins it.
+
+**Decision: grade the agreement between the two surfaces, not the presence of words**
+([L-107](LESSONS.md#l-107)). *"the title contains 'last published'"* is satisfied by a hardcoded
+string. The claim that matters is that whatever the page tells a **person** about a feed's currency,
+the element a **reader** parses says the same thing about the **same** feed — so both sides are read
+off the rendered page, neither is typed in the test, and a sixth feed stays graded.
+
+**Mutation 3 is the keeper and it is why the agreement test cannot stand alone.** With the card *and*
+the title both hardcoded the two surfaces agree perfectly, the agreement test passes, and only the
+guard that requires three seeded feeds to produce three different sentences catches it. Mutation 5 —
+the obvious *"state the age if there is one"* fix — reddens only the never-published test, which is
+why that case is graded separately: the emptiest destination in the menu is the one a conditional
+drops.
+
+**Reversal risk.** PR [#100](https://github.com/in-c0/tuned/pull/100) → `b33f597`. One `<head>`
+attribute and one workflow step; no route, schema, migration, counter, page, CSS declaration,
+dependency or data category, and the rendered `<body>` is byte-identical. Rollback is `git revert`,
+which restores the pre-change titles and nothing else. The new production step is the standing
+rollback signal.
+
+**EXP-013 is byte-untouched.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+unchanged; a change in `landingPage` cannot affect a screening rate. **The schedule is still NOT
+armed**, which remains the reviewer's decision under Fork A and is not re-argued here per
+[L-07](LESSONS.md).
+
+**The window's reading instrument was exercised rather than assumed.**
+[`exp013-window.yml` run 36093945337](https://github.com/in-c0/tuned/actions/runs/36093945337) was
+dispatched at 04:18Z and completed **success** on day 14 of 14. It is read-only, holds no credential
+the publisher holds, and its own design marks every pre-2026-09-26 output **INTERIM** and assigns no
+fork — so nothing was graded early. This was diligence on a one-shot reading due tomorrow, not the
+cycle's action, and it is recorded because a fourth dispatch is cheap and a failed instrument on the
+day is not recoverable.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

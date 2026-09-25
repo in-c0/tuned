@@ -4789,3 +4789,50 @@ code so that property is violated and confirm the check goes red — if it stays
 the specification and the code is not meeting it. **(2)** When a header comment makes a claim about
 "every page" or "all of X", either grade the population or narrow the sentence. Run 191 narrowed
 `socialHead`'s in place rather than deleting it, per [L-108](#l-108).
+
+## L-110 — the fix was made safe by a sentence on a surface the fix's own consumer does not read (2026-09-25, run 192)
+
+**Problem.** `/` advertised five feeds to a feed reader under five titles that differed only by handle
+— `@sportstech — Tuned`, `@wearables — Tuned`, and so on. Four of the five feeds this site serves had
+published nothing for eight weeks. A reader shows the person those titles and nothing else, so the one
+conversion this funnel can complete with no account and no owner act was being offered as five
+indistinguishable doors, four of them onto silence.
+
+**Attempt.** Run 191, one day earlier, shipped the element itself and asked exactly the right question
+about staleness. Its answer: advertise the stale feeds too, because *"its card already states its age,
+and withholding it would be this function deciding for a subscriber what is worth following."* That
+reasoning is correct and is **unchanged** by this fix — nothing is withheld here either.
+
+**Mistake.** The decision to advertise all five was **load-bearing on the card**, and the card is in
+`<body>`. The consumer of `<link rel="alternate">` reads `<head>` and nothing else. So the mitigation
+was cited from a surface that consumer never sees, in a commit whose entire subject was that this
+service had been telling a machine something different from what it told a person.
+
+**The general form, and it is the sharp half.** A fix that widens what a machine is told, and is made
+safe by an existing disclosure, must check **which surface that disclosure is on**. The two questions
+look like one and are not:
+
+1. *is the fact stated somewhere?* — what a reviewer checks, and the answer here was yes;
+2. *is it stated on the surface the thing I just changed is read from?* — the only question that
+   matters, and nothing asked it.
+
+**Why it was invisible for exactly the reason L-109 was.** [L-109](#l-109) is *"the fix was scoped to
+the pages that HAVE the thing, and the page that leads to them was not one of them"*, written in the
+same commit this defect shipped in. Both are one failure: **a claim satisfied on the surface a human
+reads and absent from the surface the machine reads.** Run 191 found that pattern, named it, wrote the
+lesson — and reproduced it inside its own fix, one element deeper, because the mitigation it reached
+for was a human-surface fact. Naming a pattern does not immunise the commit that names it, and the
+place to look for it first is the diff that closes it.
+
+**Prevention check, which is cheap and mechanical.** When a change tells software something new, and
+an argument for its safety cites a fact stated elsewhere, **delete the rest of the document and ask
+whether the argument survives.** Here `<head>` alone shows five feeds and no age, and the argument
+does not survive. The same check on run 191's own diff would have caught this before it shipped.
+
+**Corollary, from the mutation pass rather than from the defect.** Grading *agreement between two
+surfaces* is satisfiable by two constants: with the card and the title both hardcoded, the two agree
+perfectly and the agreement test passes. An agreement assertion therefore needs a companion that
+requires the value to vary with the row it is derived from — three seeded feeds, three different
+sentences — and a conditional fix (*"state the age if there is one"*) needs the empty case graded
+separately, because it is the case the condition drops and the emptiest destination is the one it
+drops.
