@@ -3616,3 +3616,163 @@ prevent. It is named so the reading confronts it.
 **What this reading may not be used to claim.** Nothing here is demand, and a publication interval is
 not a subscriber. `followers` is **0** and gross cash is **AUD $0**, from *no billing exists*. See
 [L-106](LESSONS.md#l-106).
+
+### EXP-013 — THE GRADED READING (2026-09-26, run 194). The window is closed. This is the reading it was pre-registered for, and it is final.
+
+**Window:** 2026-09-12 → 2026-09-25, complete, 14 days. **Nothing here is re-specified.** The bar,
+`gradeMetadata`, `agent-scout.yml` and the 25% threshold are byte-identical to the commit that
+pre-registered them; run 153's pre-commitment bound runs 179–193 and binds this one. Every threshold
+is graded **as written**, including the one whose denominator this experiment's own first day recorded
+as mis-specified.
+
+**Three sources, none of them this session's assertion:**
+
+| threshold | graded by | source |
+| --- | --- | --- |
+| 1, 2, 4 | `scripts/exp013-window.mjs`, over the `scout-record` artifact of every scheduled screen | [`exp013 window` 36195833509](https://github.com/in-c0/tuned/actions/runs/36195833509) |
+| 3 | [`qa/exp008-provenance.spec.mjs`](../qa/exp008-provenance.spec.mjs), a real browser and a real RSS fetch against production | [`qa-browser` 36195864192](https://github.com/in-c0/tuned/actions/runs/36195864192) |
+| 5 | a reading of all 8 window publications against the remit | this run, and see the caveat below |
+
+#### Every scheduled screen in the window
+
+| date | run | screened | selected | rate | decided | rate on decided | top selection | state |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-13 | [34745731838](https://github.com/in-c0/tuned/actions/runs/34745731838) | 35 | 9 | **25.7%** | 21 | 42.9% | `scout-b2aee844368bb449` | ok |
+| 2026-09-14 | [34820950934](https://github.com/in-c0/tuned/actions/runs/34820950934) | 37 | 9 | **24.3%** | 21 | 42.9% | `scout-b2aee844368bb449` | ok |
+| 2026-09-15 | [34944645762](https://github.com/in-c0/tuned/actions/runs/34944645762) | 36 | 9 | **25.0%** | 21 | 42.9% | `scout-b2aee844368bb449` | ok |
+| 2026-09-16 | [35070858671](https://github.com/in-c0/tuned/actions/runs/35070858671) | 35 | 9 | **25.7%** | 20 | 45.0% | `scout-b2aee844368bb449` | ok |
+| 2026-09-17 | [35197138595](https://github.com/in-c0/tuned/actions/runs/35197138595) | 36 | 9 | **25.0%** | 21 | 42.9% | `scout-b2aee844368bb449` | ok |
+| 2026-09-18 | [35320189568](https://github.com/in-c0/tuned/actions/runs/35320189568) | 37 | 9 | **24.3%** | 22 | 40.9% | `scout-55f5e66dee918436` | ok |
+| 2026-09-19 | [35429540744](https://github.com/in-c0/tuned/actions/runs/35429540744) | 37 | 9 | **24.3%** | 22 | 40.9% | `scout-55f5e66dee918436` | ok |
+| 2026-09-20 | [35498118335](https://github.com/in-c0/tuned/actions/runs/35498118335) | 37 | 9 | **24.3%** | 23 | 39.1% | `scout-55f5e66dee918436` | ok |
+| 2026-09-21 | [35576567110](https://github.com/in-c0/tuned/actions/runs/35576567110) | 35 | 8 | **22.9%** | 22 | 36.4% | `scout-b2aee844368bb449` | ok |
+| 2026-09-22 | [35702095397](https://github.com/in-c0/tuned/actions/runs/35702095397) | — | — | — | — | — | — | **empty** — the search returned no candidates, so the bar decided nothing |
+| 2026-09-23 | [35834362798](https://github.com/in-c0/tuned/actions/runs/35834362798) | — | — | — | — | — | — | **malformed** — record is not an object |
+| 2026-09-24 | [35971539785](https://github.com/in-c0/tuned/actions/runs/35971539785) | 34 | 7 | **20.6%** | 24 | 29.2% | `scout-2c103af9d5efaa1d` | ok |
+| 2026-09-25 | [36111382253](https://github.com/in-c0/tuned/actions/runs/36111382253) | 34 | 8 | **23.5%** | 27 | 29.6% | `scout-b2aee544368baf30` | ok |
+
+2026-09-12's own screens are not in this table and are not lost: the bar shipped that day, its three
+screens were dispatched rather than scheduled, and run 153 graded them — **25.7%**, the reading that
+fired Fork B.
+
+#### The grades
+
+| # | Threshold, as written | Grade |
+| --- | --- | --- |
+| **1** | a live screen completes and reports a per-candidate verdict for every record it read; *fails if no reading is available at all* | **HOLDS.** 11 of 13 scheduled screens reached a verdict and every rejection names exactly one clause. The threshold's own failure condition — *no reading at all* — did not occur. |
+| **2** | selection rate **≤ 25%** on every live screen | **FAILED.** 25.7% on 2026-09-13 and 2026-09-16, and 25.7% on 2026-09-12 (run 153). |
+| **3** | any published selection carries provenance on **both** public surfaces | **HOLDS.** All **14** registry entries graded against production 2026-09-25T22:16Z — 29 passed, 1 skipped (the RSS assertion runs once, in the desktop project, and passed there). |
+| **4** | newest public item **≤ 72h** on every reading, **with zero hand publications** | **FAILED**, and see below — this grade is not an observation about the agent. |
+| **5** | every published item on-remit under a human reading | **HOLDS** under this run's reading of all 8. The pre-registration names a *human* reader and this loop does not have one; see the caveat. |
+
+#### Fork: B, and it fired on the window's first day
+
+Fork A is all-hold, C is threshold 5, D requires threshold 2 be *"vacuous because nothing was ever
+selected"*, E is the source refusing. **Threshold 2 failed, so the fork is B**, and B was actioned
+**2026-09-12** — the window's first day — exactly as pre-registered: *"disable the schedule the same
+day, tighten, and do not publish under a bar that has been shown not to refuse."* The schedule has
+screened daily and published nothing ever since.
+
+**EXP-013 therefore closes FAILED on its bar, and unable to answer its own headline question.** The
+phrase Fork A reserves — *"passed on cadence only"* — **is not available to this reading and no later
+run may quote it.** Fork A did not fire.
+
+#### Why the headline question is unanswerable, which is the finding rather than the arithmetic
+
+EXP-013 asked: **can an agent feed publish on a cadence with no person selecting?** Threshold 4 is the
+threshold that would answer it. Threshold 4's second clause is *zero hand publications*. Fork B's
+action is *turn the publisher off*. **Those are the same mechanism, and the fork fired on day 1.**
+
+So from 2026-09-12 onward the only path to a publication was an explicit dispatch by a person who had
+read the screening record — precisely what threshold 4 forbids — and all **8** publications in the
+window took it. The newest item reached **203.8h** old (item 281 → item 282), **2.8×** a 72h bar.
+That number is arithmetic on committed `publishedAt` timestamps, and it is true whatever production
+was serving: **a bar can be failed from the repository and can only be passed from the site.**
+
+**Threshold 4 could not have passed under any behaviour of the agent.** Once the publisher is off it
+fails whether the bar is good or bad, so *"threshold 4 failed, therefore the cadence still depends on
+a person"* is a **tautology presented as evidence**. Run 188 registered this two days before the
+numbers were visible, which is the only reason it can be said now without it looking like an excuse.
+**It is evidence about the experiment's design, not about the agent** — and it is [L-112](LESSONS.md#l-112).
+
+#### What the bar did demonstrate, stated at its real strength and no higher
+
+Over 11 live screens the bar screened **34–37 candidates a day** and selected **7–9**, in a band of
+**20.6%–25.7%**, refusing the rest with exactly one named clause each. **It refuses.** That is the
+one thing Fork B's premise doubted — *"a bar that has been shown not to refuse"* — and the window
+answers it: this bar is not a pass-through. It is also **not the bar passing**, because the bar was
+written to hold at ≤25% and it did not.
+
+**The failure is narrow and persistent rather than one bad draw.** Nine of the eleven screens sit in
+22.9%–25.0%, and both failures clear the bar by **a single candidate**. A threshold set this close to
+the observed distribution separates almost nothing: at 34–37 screened, one candidate is ~2.8
+percentage points, so the bar and its own resolution are the same size.
+
+**And the denominator was never argued for.** Run 153 recorded threshold 2 as mis-specified on its
+first day — *"the denominator counts candidates the bar never decided"* — and pre-committed not to
+rewrite it inside the window. That pre-commitment held for fourteen days and holds here. What the
+completed window adds is the size of the disagreement: on the decided set the rate runs **29.2%–45.0%**,
+a **uniformly larger** failure on every single screen. **The objection is not that 25% is too harsh.
+It is that two defensible denominators disagree by roughly 2× and neither was ever argued for.** Any
+successor to this experiment must settle its denominator *before* it screens anything; a threshold
+whose numerator and denominator were chosen separately is not a threshold.
+
+**Independence — 11 live screens are not 11 observations.** They carry **4** distinct top selections.
+The mechanism is not a defect: nothing was published, so nothing entered `publishedSources()`, so the
+same candidate stays eligible and keeps winning. It is what a disarmed schedule looks like from the
+inside, and a reading that treated these as 11 independent draws would overstate its evidence.
+
+#### Two of thirteen screens contributed no reading, and both were the instrument, not the week
+
+**2026-09-22 — empty.** The search returned no candidates; the record says `returned: 0` and nothing
+else. Run 184 caught it by the clock: 1 second against the 20–22s every working screen takes.
+`searchResponseDefect()` now refuses that response shape at the source, so no future screen can write
+that record.
+
+**2026-09-23 — malformed.** Run [35834362798](https://github.com/in-c0/tuned/actions/runs/35834362798)
+**failed at its screening step** and `upload-artifact` warned *"No files were found"*. This is run
+187's crash ([L-105](LESSONS.md#l-105)): the record is written only on the success path, so a thrown
+cycle leaves nothing, and the day is indistinguishable from one that never ran.
+
+**Neither is counted as a quiet day, and that is deliberate.** `screenState()` reports both as
+contributing *no reading* rather than as a legitimate zero — the same judgement `searchResponseDefect()`
+applies at the source, applied after the fact. **15% of the window's scheduled screens produced no
+observation, and the reading says so rather than dividing by 13.**
+
+#### Threshold 5 — the eight publications, and the reader this loop does not have
+
+All 8 read on-remit: every one is a source-linked primary study reporting a concrete measured result,
+inside the remit's own scope list (athlete sensing, biomechanics, workload monitoring, training
+technology). None is generic fitness advice, a promotional claim or an unsourced number.
+
+| item | what it is | remit clause |
+| --- | --- | --- |
+| 280 | whole-body vibration protocols, neuromuscular performance, randomised repeated-measures | biomechanics / training technology |
+| 281 | seven-day test–retest reliability of wearable sEMG in rowing (ICC 0.943–0.995 … 0.077–0.814) | athlete sensing — a validation study |
+| 282 | IMU identification of rowing conditions, supervised ML, 7,545 windows | athlete sensing |
+| 283 | lower-limb activation in maximal sprinting, age-related differences | biomechanics |
+| 284 | concurrent validity of a portable force-plate system vs a laboratory platform (ICC 0.994–0.999) | athlete sensing — a validation study |
+| 285 | concurrent validity and within-session reliability of a wireless sEMG device | athlete sensing — a validation study |
+| 286 | jump-derived stiffness indices vs sprint kinematics in basketball | biomechanics |
+| 287 | reference values for single-leg CMJ relative to bilateral capacity | biomechanics |
+
+**The caveat is the threshold's own word.** It says *"under a **human** reading"*. The reading above
+is the executor's, and the executor is not a human. **This is the one threshold in EXP-013 that the
+loop cannot close by itself**, and the pre-registration did not notice it was specifying a grader the
+loop does not have. The grade is recorded as **holds, pending a human reading** — the eight rows above
+are the whole of what that costs, and no later run should report threshold 5 as independently
+confirmed until someone has read them.
+
+#### What this reading authorizes: nothing
+
+**It does not arm `agent-scout.yml`.** Fork A explicitly *"authorizes no arming"* and **Fork A did not
+fire** — the fork that fired disables the schedule. Whether the daily schedule may publish unattended
+remains the reviewer's open question, unruled since 2026-09-12, and **closing an experiment is not the
+same act as answering it** ([L-97](LESSONS.md#l-97)). The publisher's gate in `scout-gate.mjs` stands
+unchanged, and a run attends it exactly as before.
+
+**And nothing here is demand.** `followers` **0** · `applications` **0** · `members_ever_active` **0** ·
+gross cash **AUD $0**, from *no billing exists*. EXP-013's own pre-registration says a green reading on
+every threshold would leave all four where they are — and this is not a green reading. A screening
+count is not an activation, a selection rate is not a subscriber, and a publication interval is not a
+person. See [L-106](LESSONS.md#l-106).
