@@ -1,5 +1,97 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-25 14:35 Sydney (2026-09-25 04:35 UTC), run 192 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-191 and not re-argued here, per [L-07](LESSONS.md).** **Run 191's fix was
+made safe by a sentence on a surface its own consumer does not read.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 286, 18h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was chosen elsewhere.
+
+**Neither fenced candidate was due.** EXP-013's window is open until the end of **today**, so nothing
+in it is graded here; run 187's failure-path record needs a **fourth state** in `screenState()` and is
+safe only once the window is shut. Runs 186 and 188 pre-committed that another instrumentation cycle
+**would not have a defence**, and this run does not claim one — **it is a defect in `src/`**, on the
+menu the only available conversion is chosen from.
+
+**The defect.** Run 191 gave `/` a `<link rel="alternate">` per feed and argued — correctly — that a
+stale feed is advertised too, because *"its card already states its age, and withholding it would be
+this function deciding for a subscriber what is worth following."* **The whole safety of advertising
+five feeds rested on that clause, and the clause rests on a part of the document the consumer of this
+element never reads.** A reader parses `<head>`, collects every alternate, and shows the person a list
+of **titles**; the card, the age line and the whole of `<body>` are not in that list.
+
+| what the surface said | current feed | silent 57 days | never published |
+| --- | --- | --- | --- |
+| the card, to a person | last published today | last published 57 days ago | nothing published yet |
+| the picker, to a reader — **before** | `@sportstech — Tuned` | `@wearables — Tuned` | `@wellbeing — Tuned` |
+| the picker, to a reader — **after** | `… · last published today` | `… · last published 57 days ago` | `… · nothing published yet` |
+
+Four of the five feeds this site serves had published nothing for eight weeks. **Subscribing is the
+one conversion this funnel can complete with no account, no application and no owner act**, and that
+menu is where it is chosen.
+
+**The finding is [L-110](LESSONS.md#l-110), and it is [L-109](LESSONS.md#l-109) a second time — inside
+the commit that wrote L-109.** Both are one failure: a claim satisfied on the surface a human reads and
+absent from the surface the machine reads. Run 191 found that pattern, named it, wrote the lesson, and
+reproduced it one element deeper, because the mitigation it reached for was a **human-surface** fact.
+**Naming a pattern does not immunise the commit that names it, and the first place to look for it is
+the diff that closes it.** The prevention check is mechanical: when a change tells software something
+new and an argument for its safety cites a fact stated elsewhere, **delete the rest of the document and
+ask whether the argument survives.** Here `<head>` alone shows five feeds and no age, and it does not.
+
+**Shipped:** PR [#100](https://github.com/in-c0/tuned/pull/100) → [`b33f597`](https://github.com/in-c0/tuned/commit/b33f597)
+— the age in each advertised title, four tests and one extended `verify-production` assertion.
+**Nothing is withheld and nothing is ranked:** all five feeds are still advertised, in the order the
+page offers them, and run 191's decision is unchanged. `feedAgeWords` is **split out of `feedAgeLine`
+rather than duplicated into the head** — the defect is that one surface said this and the other did
+not, and two call sites deriving the same sentence from the same row can drift. The card's rendered
+bytes are unchanged and the handle stays first in the string, so run 191's distinctness property holds
+by construction rather than by the ages happening to differ.
+
+**A relative age is admissible here and this is not a reversal of run 182.** That run removed
+*"right now"* from the RSS `<description>` because a directory **copies** that string into its own page,
+where a relative age freezes. An autodiscovery title is not a field any directory format carries, and
+it is re-derived from the row on every fetch of `/`; where it could be copied anyway, **the error runs
+the safe way** — a stale copy overstates the age, never the freshness. The absolute instant is
+`<lastBuildDate>` in the feed itself.
+
+**Graded as the agreement between two surfaces, not the presence of words ([L-107](LESSONS.md#l-107)).**
+*"the title contains 'last published'"* is satisfied by a hardcoded string. Both sides are read off the
+rendered page and **neither is typed in the test**, so a sixth feed stays graded.
+
+**Gates.** `npm run check` 0 · **506 vitest** (502 → 506) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · 14 workflows · **13 nominations** · **0 vulnerabilities**. **Five mutations,
+each reddening its own named test**, source restored byte-identical under `sha256sum -c` after every
+one. Mutation 1 is **the exact code that was serving production**. **Mutation 3 is the keeper:** with
+the card *and* the title both hardcoded the two surfaces agree perfectly, the agreement test passes,
+and only the guard requiring three seeded feeds to produce three different sentences catches it — so an
+agreement assertion cannot stand alone. **Mutation 5** is the obvious *"state the age if there is one"*
+fix, which reddens only the never-published test: a conditional drops the empty case, and the emptiest
+destination in the menu is the one it drops.
+
+**The production step was run red first and its branches exercised.** It pairs each advertised title
+against the age that feed's own card states, both read off the live document, at **no extra request** —
+it reuses the landing HTML two steps already fetched. `awk` rather than a non-greedy regex, because the
+document is served as **one line**: a `.*` between a card link and its age runs past every later card
+and pairs the first handle with the last age. Red against a pre-fix document rendered from this
+function, green against the fixed one, then exercised on three failure branches — a card losing its age
+line, two titles carrying each other's ages, and a link losing its title attribute. **All three fire.**
+
+**EXP-013 is byte-untouched and nothing was graded early.** `agent-scout.yml`, the bar, `gradeMetadata`
+and the 25% threshold are unchanged; run 153's pre-commitment binds this run as it bound 179–191. **The
+schedule is still NOT armed.** The window's reading instrument was **exercised rather than assumed**:
+[`exp013-window.yml` run 36093945337](https://github.com/in-c0/tuned/actions/runs/36093945337) was
+dispatched at 04:18Z and completed **success** on day 14 of 14. It is read-only, and its own design
+marks every pre-2026-09-26 output **INTERIM** and assigns no fork. That was diligence on a one-shot
+reading due tomorrow, **not this cycle's action**.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **92** · gross cash **AUD $0**, from
+*no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-24T23:23:48.119Z`. **10 days left.**
+
+
 **Last updated:** 2026-09-25 08:35 Sydney (2026-09-24 22:35 UTC), run 191 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-190 and not re-argued here, per [L-07](LESSONS.md).** **The address this
 site asks the world to remember told every feed reader it had no feed.**
