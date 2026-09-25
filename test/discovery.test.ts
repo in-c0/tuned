@@ -234,6 +234,118 @@ describe("RSS autodiscovery on the landing page", () => {
   });
 });
 
+// What the picker is given to choose BY, which is the half run 191 left on the other surface.
+//
+// That run advertised all five feeds and made that safe with one clause: a stale feed is named
+// here too, because "its card already states its age". The card is in `<body>`. A reader parses
+// `<head>`, collects every alternate, and shows the person a list of TITLES — the card, the age
+// line and the rest of the document are not in that list. So the visitor chose between five names
+// with nothing to choose by, and four of the five feeds this site serves had published nothing for
+// eight weeks. L-109's own shape a second time, in the same element, from the same commit.
+//
+// WHAT IS GRADED HERE, AND WHY IT IS NOT A CONTAINS-CHECK (L-107). Asserting that a title contains
+// the words "last published" grades a precondition and a hardcoded string satisfies it. The claim
+// that matters is an AGREEMENT between two surfaces: whatever the page tells a person about how
+// current a feed is, the element a reader parses tells a reader the same thing about the same feed.
+// So both sides are read off the rendered document and neither is typed here — the ages come from
+// the page's own cards, the titles from the page's own head, and the assertion pairs them.
+//
+// Two vacuity guards, because agreement alone is satisfiable by two constants:
+//
+//   * the three seeded feeds must produce three DIFFERENT age sentences, which fails the moment
+//     the age stops being derived from the row on either surface;
+//   * a feed that has never published must say so rather than fall silent, which is the case a
+//     "show the age if there is one" fix drops — and it is the emptiest destination in the menu.
+
+/** The age each feed card states to a person, keyed by handle, read off the rendered page. This is
+ *  the page's own claim and the denominator the advertised titles have to match. */
+function offeredAges(html: string): Map<string, string> {
+  const pairs = html.matchAll(/class="card-link" href="\/([^"/]+)"[\s\S]*?<div class="fine">([^<]*)<\/div>/g);
+  return new Map([...pairs].map((m) => [m[1], m[2]]));
+}
+
+/** A feed whose newest public item is `daysAgo` old, or one that has never published at all. */
+async function seedAged(handle: string, name: string, daysAgo: number | null): Promise<void> {
+  const row = await DB.prepare(
+    "INSERT INTO creators (handle, name, token, kind, created_at) VALUES (?, ?, ?, 'agent', ?) RETURNING id"
+  )
+    .bind(handle, name, `tok-${handle}`, new Date().toISOString())
+    .first<{ id: number }>();
+  if (daysAgo === null) return;
+  await DB.prepare(
+    "INSERT INTO items (creator_id, url, title, domain, visibility, created_at) VALUES (?, ?, ?, 'example.com', 'public', ?)"
+  )
+    .bind(
+      row!.id,
+      `https://example.com/${handle}`,
+      "a find",
+      new Date(Date.now() - daysAgo * 86_400_000).toISOString()
+    )
+    .run();
+}
+
+describe("what a reader's picker is given to choose by", () => {
+  // The three destinations this site actually has: one current, one long silent, one that has
+  // never published. Before this, all three were one undifferentiated row in a reader's menu.
+  const seedThree = async () => {
+    await seedAged("sportstech", "Sportstech", 0);
+    await seedAged("wearables", "Wearables", 57);
+    await seedAged("wellbeing", "Wellbeing", null);
+  };
+
+  it("tells a reader what it tells a person, about the same feed", async () => {
+    await seedThree();
+    const html = await (await get("/")).text();
+    const cards = offeredAges(html);
+    const links = discover(html);
+
+    // Same feeds on both surfaces, before anything is said about what they state.
+    expect([...cards.keys()].sort()).toEqual(links.map((l) => l.href.split("/")[1]).sort());
+    expect(cards.size).toBe(3);
+
+    for (const { href, title } of links) {
+      const handle = href.split("/")[1];
+      const age = cards.get(handle)!;
+      expect(
+        title.endsWith(age),
+        `the picker shows "${title}" for @${handle}, the page shows "${age}" — a reader choosing between these feeds is told something the page is not`
+      ).toBe(true);
+    }
+  });
+
+  it("derives the age from the row rather than stating one sentence for every feed", async () => {
+    await seedThree();
+    const titles = discover(await (await get("/")).text()).map((l) => l.title);
+    expect(titles).toHaveLength(3);
+    // A current feed, a feed silent for eight weeks and a feed that has never published are three
+    // different answers to "will subscribing deliver anything?". One repeated string is agreement
+    // with a card that is equally wrong, which is why the test above cannot stand alone.
+    expect(new Set(titles.map((t) => t.replace(/^@\S+ /, ""))).size).toBe(3);
+  });
+
+  it("says so for a feed that has never published, instead of falling silent", async () => {
+    await seedThree();
+    const html = await (await get("/")).text();
+    const wellbeing = discover(html).find((l) => l.href === "/wellbeing/rss.xml")!;
+    expect(wellbeing, "the never-published feed is not advertised at all").toBeDefined();
+    // Not a string match on this file's wording: the claim is that the emptiest destination in the
+    // menu carries the same disclosure its card does, whatever that disclosure says.
+    expect(wellbeing.title.endsWith(offeredAges(html).get("wellbeing")!)).toBe(true);
+    expect(wellbeing.title).not.toBe(`@wellbeing — Tuned`);
+  });
+
+  it("still tells two feeds apart when they published on the same day", async () => {
+    // The age must not become the thing that distinguishes them. Run 191 keyed the title on the
+    // handle because `name` is not unique in the schema; two feeds published the same day are the
+    // case where an age-keyed title would collapse back into two identical rows.
+    await seedAged("sportstech", "Attention", 3);
+    await seedAged("wearables", "Attention", 3);
+    const titles = discover(await (await get("/")).text()).map((l) => l.title);
+    expect(titles).toHaveLength(2);
+    expect(new Set(titles).size, `two feeds share the title ${titles[0]}`).toBe(2);
+  });
+});
+
 // The feed document's own identity and build date.
 //
 // `<link rel="alternate">` above solves discovery *from the page*. This block is the other

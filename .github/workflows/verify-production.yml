@@ -520,6 +520,47 @@ jobs:
             exit 1
           fi
 
+          # And what the picker gives a person to choose BY, which is the half the set-equality
+          # above cannot see. A reader shows titles and nothing else — the card, its age line and
+          # the whole of <body> are not in that list — so advertising a feed silent for eight weeks
+          # beside a current one, under two names that differ only by handle, asks the visitor to
+          # choose with nothing to choose by. Subscribing is the one conversion this funnel can
+          # complete with no account and no owner act, and this menu is where it is chosen.
+          #
+          # Graded as the agreement between the two surfaces, not as the presence of words (L-107).
+          # "the title contains 'last published'" is satisfied by a hardcoded string; the claim that
+          # matters is that whatever the page tells a PERSON about a feed's currency, the element a
+          # READER parses says the same thing about the SAME feed. Both sides are read off the live
+          # document and neither is written here, so a sixth feed stays graded and this step never
+          # asserts today's database.
+          #
+          # awk rather than a non-greedy regex: the document is served as one line, so a `.*` between
+          # the card link and its age line runs past every card after it and pairs the first handle
+          # with the last age. Splitting on the card link makes each record exactly one card, and the
+          # first .fine inside a record is that card's own.
+          awk -v RS='class="card-link" href="/' 'NR>1 {
+                 h = substr($0, 1, index($0, "\"") - 1)
+                 s = index($0, "<div class=\"fine\">")
+                 if (s) { r = substr($0, s + 18); print h "\t" substr(r, 1, index(r, "</div>") - 1) }
+               }' /tmp/landing.html | sort > /tmp/landing.ages
+
+          [ "$(wc -l < /tmp/landing.ages)" = "$(printf '%s\n' "$offered" | wc -l)" ] || {
+            echo "::error::could not read an age for every feed card on / — $(wc -l < /tmp/landing.ages) of $(printf '%s\n' "$offered" | wc -l)"
+            exit 1
+          }
+
+          while IFS=$'\t' read -r handle age; do
+            title=$(grep -F "href=\"/${handle}/rss.xml\"" /tmp/landing.links \
+                    | sed -n 's|.*title="\([^"]*\)".*|\1|p')
+            case "$title" in
+              *"$age") ;;
+              *)
+                echo "::error::/ tells a reader \"${title}\" for @${handle} and tells a person \"${age}\" — the picker is choosing between feeds on information the page does not give it. Roll back."
+                exit 1
+                ;;
+            esac
+          done < /tmp/landing.ages
+
           # That an advertised href actually serves a feed is proved further down, by the step that
           # fetches /ava/rss.xml from this same edge and requires RSS naming the canonical host. It
           # is a claim about a URL this job already fetches, so it is chained rather than re-fetched

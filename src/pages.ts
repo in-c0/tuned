@@ -1403,8 +1403,56 @@ export interface LandingFeed extends Creator {
  *  that has never published, because this card carries no other number — no `0 finds` — so
  *  silence here would leave the emptiest case the only undisclosed one. */
 function feedAgeLine(latestIso: string | null | undefined, now = Date.now()): string {
+  return `<div class="fine">${esc(feedAgeWords(latestIso, now))}</div>`;
+}
+
+/** The words a card and an autodiscovery title both state, so the two surfaces cannot disagree.
+ *
+ *  Split out of `feedAgeLine` rather than duplicated into the head, because the defect being fixed
+ *  is precisely that one surface said this and the other did not. Two call sites deriving the same
+ *  sentence from the same row can drift; one function cannot. */
+export function feedAgeWords(latestIso: string | null | undefined, now = Date.now()): string {
   const words = lastPublished(latestIso, now);
-  return `<div class="fine">${words ? `last published ${esc(words)}` : "nothing published yet"}</div>`;
+  return words ? `last published ${words}` : "nothing published yet";
+}
+
+/** The one string a feed reader's picker shows for a feed discovered on this page.
+ *
+ *  **The defect this closes is the one run 191 closed one element earlier, reintroduced inside its
+ *  own fix.** That run gave `/` a `<link rel="alternate">` per feed so a reader handed this site's
+ *  address stops being told there is none, and argued — correctly — that a stale feed is advertised
+ *  too, because *"its card already states its age, and withholding it would be this function
+ *  deciding for a subscriber what is worth following."* The safety of advertising all five rested
+ *  entirely on that clause. **It rests on a part of the document the consumer of this element never
+ *  reads.** A reader parses `<head>`, collects every alternate, and shows the person a list of
+ *  titles; the card, the age line and the whole of `<body>` are not in that list. So the visitor
+ *  chooses between five names with nothing to choose by — and four of the five feeds this site
+ *  serves had published nothing for eight weeks when this was written.
+ *
+ *  That is [L-109](../ops/LESSONS.md#l-109)'s own shape a second time: a claim satisfied on the
+ *  surface a human reads and absent from the surface the machine reads, in the same element, in
+ *  the same commit that wrote the lesson. Subscribing is the one conversion this funnel can
+ *  complete with no account, no application and no owner act, and this menu is where it is chosen.
+ *
+ *  **It does not withhold a feed and does not rank them** — run 191's decision is unchanged and
+ *  all five are still advertised, in the order the page offers them. What changes is that the
+ *  fact the card already states is stated where the choice is actually made ([L-90](../ops/LESSONS.md):
+ *  the page states the age rather than the instrument being widened).
+ *
+ *  **Why a relative age is admissible here and was removed from the RSS `<description>` at run 182.**
+ *  That string is copied by a directory into its own page, where *"last published 52 days ago"*
+ *  freezes and becomes a hardcoded freshness claim one step removed. An autodiscovery title is not
+ *  a field any directory format carries — a listing records the feed URL and the feed's own
+ *  `<channel><title>` — and it is re-derived from the row on every fetch of `/`, so it cannot
+ *  freeze on this surface. Where it could be copied anyway, the direction of the error is the safe
+ *  one: a stale copy overstates the age and never the freshness. The absolute instant a subscriber
+ *  needs is `<lastBuildDate>` in the feed itself; this is the disclosure *before* subscribing.
+ *
+ *  The handle stays the first thing in the string. `name` is not unique in the schema and `handle`
+ *  is, so distinctness in the picker still holds by construction rather than by the age happening
+ *  to differ — two feeds published the same day must still be tellable apart. */
+export function feedLinkTitle(handle: string, latestIso: string | null | undefined, now = Date.now()): string {
+  return `@${handle} — ${BRAND} · ${feedAgeWords(latestIso, now)}`;
 }
 
 /** The heading over the feed list, and the reason it no longer says *"Live feeds"*.
@@ -1571,11 +1619,16 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
    *  from `publicPage`. On a feed page there is a single alternate and the name identifies it; here
    *  there are as many as there are feeds, side by side in one menu, and `name` is not unique in
    *  the schema — `handle` is. Distinctness has to hold by construction, because two identical rows
-   *  in that menu is the failure this element exists to prevent. */
+   *  in that menu is the failure this element exists to prevent.
+   *
+   *  **And the title carries the feed's age**, for the reason `feedLinkTitle` states: advertising a
+   *  stale feed is right, and it was made safe by a sentence on a card that no reader parsing this
+   *  element ever sees. The age comes from `feedAgeWords`, the same function the card calls on the
+   *  same row, so the two surfaces state one fact rather than two that can drift. */
   const feedLinks = creators
     .map(
       (c) =>
-        `\n<link rel="alternate" type="application/rss+xml" title="@${esc(c.handle)} — ${esc(BRAND)}" href="/${esc(c.handle)}/rss.xml">`
+        `\n<link rel="alternate" type="application/rss+xml" title="${esc(feedLinkTitle(c.handle, c.latest_item_at))}" href="/${esc(c.handle)}/rss.xml">`
     )
     .join("");
   return layout(`${BRAND} — ${TAGLINE}`, "#7c6cff", body, js, head + feedLinks);
