@@ -4836,3 +4836,57 @@ requires the value to vary with the row it is derived from — three seeded feed
 sentences — and a conditional fix (*"state the age if there is one"*) needs the empty case graded
 separately, because it is the case the condition drops and the emptiest destination is the one it
 drops.
+
+---
+
+## L-111 — the ban list was a transcription of the defects that had been fixed, so it graded those and nothing else (2026-09-25, run 193)
+
+**Problem.** `/`'s `<meta name="description">` — the search snippet for the one address every
+canonical, every `og:url`, the sitemap and the README name as this site — read *"Tuned — follow
+attention, not content. **A live page** of what someone is actually watching, reading and listening
+to."* Four of the five feeds it speaks for had published nothing for eight weeks. `socialHead`'s own
+docstring is the contract it breaks: *"No count, no claim about usage, and **no adjective the page
+cannot support**."* That function has three callers; two obeyed it and the front door did not.
+
+**Attempt.** Run 182 ruled on this exact element one page class over. It struck *"a **live** feed of
+what X is watching"* from `feedPage`'s `<meta name="description">`, wrote `test/freshness-claims.test.ts`
+to hold the ruling, and gave that file a guard: `assertNoCurrencyClaim`, banning `"right now"`,
+`"a live feed of"`, `"live feed of what"`, `"is live"`.
+
+**Mistake, and it is the sharp half.** **Every one of those four literals is a fragment of one of the
+two strings that run had just fixed.** The list is a record of two defects, not a statement of the
+rule they broke. The landing page makes the identical claim in the identical element and passes all
+four bans, because it says *"a live **page** of"* — one noun away from a filter written to catch
+exactly it. It is not that the rule was too weak; there was no rule, only a memory of two sentences.
+
+**The general form.** A guard written from the strings you just fixed grades those strings. It will
+pass the same claim in the next wording, and the next wording is what the next author writes, because
+they are not copying the sentence you deleted. **After fixing a defect, the guard has to be written
+from the CLASS the defect belongs to, and then run against a rewording of it** — the cheap check is to
+restate the claim in different words and confirm the guard still fires. Mutation 4 here was exactly
+that: *"a real-time page of"* passes all four old literals and is caught by the class.
+
+**The second half, which is [L-108](#l-108) again.** `test/sharing.test.ts` **required** the defective
+sentence: *"keeps the description and og:description it already had"*, pinning it verbatim. Run 108
+wrote that so a change about `<head>` tags could not edit reviewed copy as a side effect, which was
+right. Run 182 then struck the same adjective from the same element on another page and left this
+assertion demanding `/` keep its version. **A guard against silent edits had become a requirement that
+the defect stay** — so the codebase did not merely miss this claim, it defended it.
+
+**Why the surface decides, not the spelling ([L-110](#l-110) applied in the other direction).** Four
+other strings on this site carry the word *live* and all four are sanctioned and untouched: both
+footers' *"a live feed of attention, not posts"*, the studio's *"your fans get a live page"*, the
+landing block's *"Live demo — a real feed"*, and *"its RSS link works right now"*. They sit in
+`<body>`, where the page's derived ages travel with them, and the first three are contrastive — they
+name what KIND of artifact this is. `<meta name="description">` is the one that is **copied**: a search
+result and an unfurl cache reproduce it with none of the page's other content, so no disclosure can
+travel with it and none can be added. L-110's test is what separates them, and applying it honestly
+means it must be capable of clearing strings as well as condemning them.
+
+**Corollary on the fix's shape.** Removing a claim must not become asserting its opposite. A derived
+age cannot go into a copied string — it freezes in the copy and becomes the hardcoded freshness claim
+one step removed, which is run 182's own reason for keeping one out of the RSS `<description>`. And
+the companion assertions are not optional: mutation 2 spliced a derived age into the description and
+reddened **only** the invariance test, so the class filter alone would have passed the obvious wrong
+fix. The set graded must be derived too — mutation 5 planted the claim on a **find page**, a class no
+currency test names, and only the check that reads its paths off `/sitemap.xml` caught it.

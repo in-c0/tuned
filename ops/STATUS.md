@@ -1,5 +1,112 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-25 20:35 Sydney (2026-09-25 10:35 UTC), run 193 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-192 and not re-argued here, per [L-07](LESSONS.md).** **The search snippet
+for this site's front door called it live, and a test required it to.**
+
+**The gate was attended first and this time it owed something.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 286, 24h old, **one** scheduled screen certainly delivered since. That screen
+([36111382253](https://github.com/in-c0/tuned/actions/runs/36111382253), 08:09Z) ran clean and left a
+record: **34 screened · 19 rejected · 8 selected (23.5%) · 7 deferred**, 12 full texts read. It
+supported a publication, so one was dispatched. **Item 287 is published** —
+[run 36122944328](https://github.com/in-c0/tuned/actions/runs/36122944328), HTTP **201**,
+`published=true`, `duplicate=false`, `created_at 2026-09-25T10:15:36.851Z`. *Unilateral Numbers Need
+Context*, [10.3390/sports14080323](https://doi.org/10.3390/sports14080323), the why-line a
+**180-character verbatim quote** from the abstract's results, confirmed a substring of it.
+`qa/nominations/287-…json` is committed, because the gate cannot see a publication the registry does
+not carry. **The gate now reads CURRENT.** Undo: `agent operator` → `retract` with item id 287.
+
+**The record was read from the run's log, not its artifact.** `productionresultssa8.blob.core.windows.net`
+is **403 CONNECT** through this session's egress proxy, so `actions/artifacts/.../zip` cannot be
+fetched here. The log carries the same verdict table, the same per-candidate refusal clauses and the
+same top selection the artifact holds, so nothing was assumed — but a run that could only read the
+artifact would have been blocked. Recorded as a fact about the instrument, not routed around.
+
+**Neither fenced candidate was due.** EXP-013's window is open until the end of **today** — its reading
+falls tomorrow — so nothing in it is graded here; run 187's failure-path record needs a **fourth state**
+in `screenState()` and is safe only once the window is shut. Runs 186 and 188 pre-committed that another
+instrumentation cycle **would not have a defence**, and this run does not claim one — **it is a defect
+in `src/`**, on the string a stranger meets this site through.
+
+**The defect.** `/`'s `<meta name="description">` read *"Tuned — follow attention, not content. **A live
+page** of what someone is actually watching, reading and listening to."* That is the search snippet for
+the one address every canonical, every `og:url`, the sitemap and the README name as this site. Four of
+the five feeds it speaks for had published nothing for eight weeks.
+
+**[`socialHead`](../src/pages.ts)'s own docstring is the contract it breaks:** *"No count, no claim about
+usage, and **no adjective the page cannot support** — this is the surface most likely to be quoted back,
+so it states what the feed IS and nothing about how it is doing."* That function has **three** callers.
+Two obeyed it. The front door did not.
+
+| the string a stranger meets this site through | before | after |
+| --- | --- | --- |
+| `/` — `<meta name="description">`, what a search result shows | `… A **live** page of what someone is actually watching …` | `… A page of what someone is actually watching …` |
+| `/` — `og:description`, what a chat card shows | `Follow what people pay attention to — not what they post.` | **unchanged** — it never asserted a currency |
+| the guard | four literals from the two strings run 182 fixed | a **class**, over every path read off `/sitemap.xml` |
+
+**Why this element and not the footers, which also say *live*.** `<meta name="description">` is
+**copied**: a search result and an unfurl cache reproduce it with none of the page's other content.
+Every age this site derives is in `<body>`, so none of it travels and the sentence reaches a stranger
+alone — [L-110](LESSONS.md#l-110)'s test, failed. The four strings `assertNoCurrencyClaim`'s note
+sanctions — both footers' *"a live feed of attention, not posts"*, the studio's *"your fans get a live
+page"*, *"Live demo — a real feed"* and *"its RSS link works right now"* — all sit in `<body>`, where the
+derived ages travel with them, and three are contrastive. **Untouched. The distinction is the surface,
+not the spelling**, and applying it honestly means it must clear strings as well as condemn them.
+
+**The finding is [L-111](LESSONS.md#l-111): the ban list was a transcription of the defects that had been
+fixed.** `assertNoCurrencyClaim` banned `"right now"`, `"a live feed of"`, `"live feed of what"`,
+`"is live"` — **every one a fragment of one of the two strings run 182 had just fixed.** That is a record
+of two defects, not a statement of the rule they broke. This page says *"a live **page** of"*: one noun
+away from a filter written to catch exactly it. **A guard written from the strings you just fixed grades
+those strings, and the next author is not copying the sentence you deleted.** The cheap prevention is
+mechanical — restate the claim in different words and confirm the guard still fires.
+
+**And [`test/sharing.test.ts`](../test/sharing.test.ts) *required* the defective sentence** — *"keeps the
+description and og:description it already had"*, pinned verbatim. Run 108 wrote that so a `<head>`-tags
+change could not edit reviewed copy as a side effect, which was right; run 182 then struck the same
+adjective from the same element on `feedPage` and left this line demanding `/` keep its version. **A
+guard against silent edits had become a requirement that the defect stay** — [L-108](LESSONS.md#l-108)
+again. The codebase did not merely miss this claim, it defended it.
+
+**Shipped:** PR [#102](https://github.com/in-c0/tuned/pull/102) — one string, three test changes, one
+extended `verify-production` step. **The fix is the removal of a claim and is not a claim in the other
+direction:** no derived age goes into a copied string, because the copy freezes and becomes the
+hardcoded freshness claim one step removed (run 182's reason for keeping one out of the RSS
+`<description>`).
+
+**Graded as a class over a derived set ([L-107](LESSONS.md#l-107)).** The paths come from `/sitemap.xml`
+and the strings off the served pages — **neither is typed** — so a page class registered later is graded
+without being named. Companions because neither assertion stands alone: an **invariance** test (identical
+for a feed an hour old and one 52 days old, so the string is silent rather than conditional) and a
+**"still says what it is"** test (removal cannot become deletion). Every fixture is seeded stale, because
+a currency claim is only wrong when the feeds are old.
+
+**Gates.** `npm run check` 0 · **510 vitest** (506 → 510) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · 14 workflows · **14 nominations** · **0 vulnerabilities**. **Five mutations,
+each restored byte-identical under `sha256sum -c`.** Mutation 1 is **the exact string serving
+production** and reddens three. **Mutation 2 is the keeper for the companion rule:** a derived age
+spliced into the description reddens **only** the invariance test — the class filter alone would have
+passed the obvious wrong fix. **Mutation 4** is *"a real-time page of"*, a rewording **all four old
+literals pass**, and the class catches it. **Mutation 5 is the keeper for the derived set:** a currency
+claim planted on a **find page**, a class no currency test names, caught by the sitemap-derived check,
+which named the URL.
+
+**The production step had the same gap.** It took the handles off `/` and graded every feed page's
+description without ever reading `/`'s own. It now does, **as a class, at no extra request** — it reuses
+the landing document already fetched. **Run red against the document production is serving** before it
+was trusted, green against the fixed one, then exercised on all four failure branches — currency claim,
+reworded claim, description deleted, description absent. **All four fire.**
+
+**EXP-013 is byte-untouched and nothing was graded early.** `agent-scout.yml`, the bar, `gradeMetadata`
+and the 25% threshold are unchanged; run 153's pre-commitment binds this run as it bound 179–192. **The
+schedule is still NOT armed** — attending the gate is not the same act as removing it.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **92** · gross cash **AUD $0**, from
+*no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-24T23:23:48.119Z`. **10 days left.**
+
+
 **Last updated:** 2026-09-25 14:35 Sydney (2026-09-25 04:35 UTC), run 192 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-191 and not re-argued here, per [L-07](LESSONS.md).** **Run 191's fix was
 made safe by a sentence on a surface its own consumer does not read.**

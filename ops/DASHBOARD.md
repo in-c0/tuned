@@ -18,6 +18,65 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Google's one-line summary of Tuned called it "a live page". Four of our five feeds hadn't published in eight weeks — and a test we wrote was requiring that sentence to stay.**
+>
+> **What this is about.** The single sentence a search engine shows underneath `justtuned.com` in a
+> result. Every site supplies that sentence itself, in a hidden line; ours said *"Tuned — follow
+> attention, not content. **A live page** of what someone is actually watching, reading and listening
+> to."*
+>
+> **Why that one word is a problem and not a flourish.** It is the only sentence in this whole system
+> that gets **copied away from the page**. A search result and a link preview reproduce it on their
+> own, with none of our page around it. Everywhere else on the site we state how old each feed is, and
+> we derive it from the data so it can never be wrong — but none of that travels with the copied
+> sentence. So a stranger met the word *live* alone, about feeds that had been silent for eight weeks.
+>
+> **We had already decided this, twice, and it did not reach here.** Six weeks ago I removed the same
+> word from the same hidden line on the **feed** pages, for exactly this reason. Two days ago the
+> heading over the feed list stopped saying "Live feeds". The homepage's version survived both.
+>
+> **The part worth your attention is why it survived.** When I removed it the first time I also wrote
+> a guard meant to stop it coming back — but I built that guard out of the exact phrases I had just
+> deleted, including *"a live feed of"*. The homepage says *"a live **page** of"*. **One noun
+> different, and it walked straight through.** A guard built from the sentences you just fixed only
+> ever catches those sentences, and the next person writing copy is not copying the sentence you
+> deleted.
+>
+> **And a test was actively holding the bad sentence in place.** A check written back in August said
+> "keep the reviewed homepage copy exactly as it is" — sensible then, because that change was about
+> something else and had no business editing copy. But after the copy was ruled wrong elsewhere, that
+> check had quietly turned into *a requirement that the mistake stay*. So this wasn't a thing we
+> missed; it was a thing we were defending.
+>
+> **Fixed and deployed.** The sentence now says what the page **is** and claims nothing about how
+> current it is. I did **not** replace it with a date: that sentence gets copied, and a copied "last
+> published 52 days ago" freezes at whatever it said the day it was copied, which is the same mistake
+> one step along.
+>
+> **What did *not* change, deliberately.** Four other places on the site use the word "live" — the
+> footer, the demo heading, the studio, and "your RSS link works right now". All of them sit on the
+> page itself, beside the real dates, and they describe **what kind of thing this is** rather than how
+> fresh it is. Those are fine and I left them alone. The test is *where the sentence ends up*, not
+> which words it contains.
+>
+> **How it's checked now.** Not by banning phrases. The check reads our sitemap — our own list of
+> every page we ask Google to index — fetches each one, and refuses any freshness claim in the
+> copied sentence. Nothing is typed into the check, so a page type added next month is covered the
+> day it exists. I proved it by breaking it five ways, including planting the claim on a *find* page,
+> which nothing had ever checked: it caught that and named the URL.
+>
+> **No commercial number moves** — `applications` 0 · `members` 1 (you) · `followers` 0 · cash
+> **AUD $0**. What today buys is that the first sentence a stranger reads about Tuned is one we can
+> keep true.
+>
+> **Also today:** @sportstech published its daily find (item 287) — the scheduled screen read 34
+> papers, selected 8, and the top one went out with a quote from the paper's own results.
+>
+> **Nothing here needs you.** [§1](#1-owner-action-required) is unchanged: ONE, undeadlined, not
+> re-argued.
+
+---
+
 > # **Paste `justtuned.com` into any feed reader and it told you this site has no feed. All five of them were live.**
 >
 > **What this is about.** The homepage — `justtuned.com` itself. Not a feed this time, but the one
@@ -1875,10 +1934,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
-| **L-109** | **The fix was scoped to the pages that HAVE a feed, and the page that leads to them was not one of them.** `justtuned.com` — the address every canonical, the sitemap and the README name as this site, and therefore what a person pastes into a reader and what a directory resolves — carried no feed-discovery link at all, while displaying five live feeds to a human. Run 86 shipped that link after finding it absent everywhere and `discovery.test.ts` still opens by saying so; run 164's find pages inherited it. The rule came out as *a page that is a feed advertises itself*, under which the homepage is **correctly** excluded — a reader's rule is *a page advertises the feeds it leads to*, and the two differ on exactly one page: the one that lists them. | **When a fix is scoped to "the pages that have X", ask separately what the consumer of X does, and which page it starts from.** A rule phrased over the things that *carry* a property always excludes the thing that *points at* them, and the pointer is usually the entry point — so the exclusion lands where it costs most. **The tell is a completeness claim in prose sitting above a test that grades one instance:** the sentence names the population, the test names a member, and nothing reconciles them. Our own find pages already followed the broader rule, so the codebase contradicted the narrow one and nothing made that legible. **Second half, from the mutation pass:** five distinctly-titled links all pointing at **one** feed passed the outcome test, because it compared each fetched feed to *the href that reached it* — true by construction. **Checking each link against itself is not checking the mapping; only the set is.** The same shape appeared a third time in the production check written the same hour. **Prevention: when a comment states a property, break the code so that property fails and confirm the check goes red — if it stays green, the comment is the specification and the code is not meeting it.** |
-| **L-108** | **The reason I recorded for the half I did not fix hardened into a licence for it — and then a test guarded the licence.** `SITE_ORIGIN`'s comment explained why HTML pages name one canonical host and, in the same sentence, recorded why RSS was being left alone: *"`rssFeed` is passed the **request** origin, which is **right** for a feed a client already holds the URL of."* **True of the argument, false of the element it reached** — the request origin was spent on `<channel><link>`, which RSS 2.0 defines as *"the URL to the HTML website corresponding to the channel"*, the address a directory copies into its listing. Run 182 then fixed the half the carve-out was phrased about (`<atom:link rel="self">`) and left the carve-out standing over the other half; a test in `discovery.test.ts` had meanwhile restated it as a rule. | **A comment explaining why part of a surface is *currently* different is read later as a statement that it *should* be different.** When you fix part of a surface, go back to the text that recorded the reason for the rest — that text was written when the whole thing was unfixed and does not know it has been half-superseded. The failure is silent in the worst way: the comment is not wrong about anything it was written about, so nothing contradicts it and re-reading the module confirms it every time. **The tell is scope drift between the reason and the thing it covers** — this reason was about *a feed a client already holds the URL of* and was sitting over an element about *where the site is*. Both sentences are corrected in place rather than deleted, because a silently removed carve-out leaves the next run free to re-derive it. And the check it decided: **a per-element assertion grades the elements a run thought to name; a whole-document invariant grades the ones it did not.** The `origin` parameter is removed rather than left unused — host-invariance that holds because nobody happened to use the argument is a coincidence with a future, not a property. |
+| **L-111** | **The ban list was a transcription of the defects that had been fixed, so it graded those and nothing else.** `/`'s `<meta name="description">` — the search snippet for the one address every canonical, the sitemap and the README name as this site — read *"…A **live** page of what someone is actually watching…"* over feeds four of five of which had published nothing for eight weeks. [`socialHead`](../src/pages.ts)'s own docstring forbids exactly that (*"no adjective the page cannot support"*); two of its three callers obeyed and the front door did not. Run 182 had ruled on this element one page class over and written a guard — banning `"right now"`, `"a live feed of"`, `"live feed of what"`, `"is live"`, **every one a fragment of the two strings it had just fixed.** This page says *"a live **page** of"*: one noun away from a filter written to catch exactly it. And [`test/sharing.test.ts`](../test/sharing.test.ts) **required** the sentence verbatim — a run-108 guard against silent copy edits that, once the copy was ruled wrong elsewhere, had become a requirement that the defect stay ([L-108](LESSONS.md#l-108) again). | **A guard written from the strings you just fixed grades those strings, and the next author is not copying the sentence you deleted — so write it from the CLASS and then run it against a rewording.** The cheap check is mechanical: restate the claim in different words and confirm the guard still fires (mutation 4, *"a real-time page of"*, passes all four old literals). **Why the surface decides and not the spelling:** four other *live* strings on this site are sanctioned and untouched, because they sit in `<body>` where the derived ages travel with them and three are contrastive; `<meta name="description">` is the one that is **copied**, reaching a stranger with no disclosure able to follow it — [L-110](LESSONS.md#l-110)'s test, which must be able to clear strings as well as condemn them. **Removal must not become assertion:** no derived age goes in a copied string, because the copy freezes. **And both the rule and the set must be graded:** mutation 2 spliced a derived age in and reddened **only** the invariance companion, while mutation 5 planted the claim on a **find page** — a class no currency test names — and only the check reading its paths off `/sitemap.xml` caught it. |
 | **L-110** | **The fix was made safe by a sentence on a surface the fix's own consumer does not read.** Run 191 advertised all five feeds to software and justified including the four quiet ones with *"its card already states its age"* — but a feed reader parses `<head>` and shows a list of titles, and the card is in `<body>`. The mitigation was cited from a surface the consumer never sees. **This is [L-109](LESSONS.md#l-109) a second time, inside the commit that wrote L-109:** a claim satisfied where a human reads and absent where the machine reads. Naming a pattern does not immunise the commit that names it, and the first place to look for it is the diff that closes it. **The check is mechanical — delete the rest of the document and ask whether the safety argument survives.** Corollary from the mutation pass: grading *agreement between two surfaces* is satisfiable by two constants, so it needs a companion requiring the value to vary with the row, and a conditional fix needs its empty case graded separately. |
-| **L-107** | **Every check ever written of the feed asked what the bytes contained, and none of them asked whether it parsed.** `esc` escapes `& < > "` and cannot make a C0 control character legal in XML — XML 1.0 §2.2 forbids most of them **however they are written**, so `&#11;` is exactly as fatal as a literal U+000B, and XML has no error recovery. One stray control character in **one** item destroyed the entire feed for every subscriber of it. Measured against expat: a four-item feed served 4 `<item>` elements and delivered **0**. | **A check that asks what an artifact *contains* grades a precondition; a check that asks what a *consumer* does with it grades the outcome.** The two feel alike when the artifact is text, because a string assertion looks like it is reading the document — and `toContain("<rss")` is *true of* a document no parser will accept. [L-92](LESSONS.md#l-92) found this on indexing (a crawl is not an index); this is the same error one layer down, on the bytes themselves. **The corollary decided where the checks went:** workerd ships no XML parser, so asserting well-formedness there would mean writing the parser and grading my own instrument ([L-104](LESSONS.md#l-104)) — the **invariant** is asserted in vitest, the **outcome** by expat in `verify-production`, blocking, on every deploy. When the honest instrument does not exist where the unit tests live, **split the claim rather than weakening it to fit the harness.** |
+| **L-109** | **The fix was scoped to the pages that HAVE a feed, and the page that leads to them was not one of them.** `justtuned.com` — the address every canonical, the sitemap and the README name as this site, and therefore what a person pastes into a reader and what a directory resolves — carried no feed-discovery link at all, while displaying five live feeds to a human. Run 86 shipped that link after finding it absent everywhere and `discovery.test.ts` still opens by saying so; run 164's find pages inherited it. The rule came out as *a page that is a feed advertises itself*, under which the homepage is **correctly** excluded — a reader's rule is *a page advertises the feeds it leads to*, and the two differ on exactly one page: the one that lists them. | **When a fix is scoped to "the pages that have X", ask separately what the consumer of X does, and which page it starts from.** A rule phrased over the things that *carry* a property always excludes the thing that *points at* them, and the pointer is usually the entry point — so the exclusion lands where it costs most. **The tell is a completeness claim in prose sitting above a test that grades one instance:** the sentence names the population, the test names a member, and nothing reconciles them. Our own find pages already followed the broader rule, so the codebase contradicted the narrow one and nothing made that legible. **Second half, from the mutation pass:** five distinctly-titled links all pointing at **one** feed passed the outcome test, because it compared each fetched feed to *the href that reached it* — true by construction. **Checking each link against itself is not checking the mapping; only the set is.** The same shape appeared a third time in the production check written the same hour. **Prevention: when a comment states a property, break the code so that property fails and confirm the check goes red — if it stays green, the comment is the specification and the code is not meeting it.** |
 
 
 
