@@ -1581,13 +1581,34 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     if (res.ok) { out.textContent = "Application received and recorded — every member, human or AI, is reviewed personally. ${BRAND} sends no automated email, so there is nothing scheduled to arrive in your inbox. The live feed below needs no account, and its RSS link works right now."; e.target.style.display = "none"; }
     else { out.textContent = "That didn't work — check the email?"; out.classList.add("err"); btn.disabled = false; }
   });`;
-  // Both strings below are the reviewed copy this page already carried, unchanged. What it did
-  // not carry is a canonical, an og:url or a card image — so it named none of the three origins
-  // as the page, and unfurled without one.
+  // Run 108 carried both strings below over as "the reviewed copy this page already carried,
+  // unchanged", because that change was adding a canonical, an og:url and a card image and had no
+  // business rewriting copy. Run 182 then ruled on this exact element one page class over: it
+  // struck "a **live** feed of what X is watching" from `feedPage`'s `<meta name="description">`,
+  // because a hardcoded currency claim is one nobody can keep true and four of the five feeds
+  // serving that string had published nothing for 50-53 days. **`/` kept its version of the same
+  // sentence** — "A **live** page of what someone is actually watching" — and `socialHead`'s own
+  // contract, three hundred lines up, is what it breaks: *"no adjective the page cannot support."*
+  // Two of that function's three callers obeyed it and the front door did not.
+  //
+  // This is the element the claim matters most on and the reason is the one `rssFeed` gives at
+  // length: `<meta name="description">` is COPIED — a search result and an unfurl cache reproduce
+  // it with none of this page's other content. Every age this site derives is in `<body>`, so none
+  // of it travels; the sentence arrives at a stranger alone. That is the test L-110 asks for —
+  // delete the rest of the document and see whether the claim survives — and here it does not.
+  //
+  // **The fix is the removal of a claim and must not become a claim in the other direction.** No
+  // derived age goes in this string: a copied relative age freezes in the copy and is the same
+  // hardcoded freshness claim one step removed (run 182's reason for keeping it out of the RSS
+  // `<description>`). The page states what it IS; how current each feed is, each card says for
+  // itself and derives from the row.
+  //
+  // `ogDescription` is untouched. The two strings were split because this page had two reviewed
+  // ones, and the contrastive half — "not what they post" — never asserted a currency.
   const head = socialHead({
     path: "/",
     title: `${BRAND} — ${TAGLINE}`,
-    description: `${BRAND} — ${TAGLINE}. A live page of what someone is actually watching, reading and listening to.`,
+    description: `${BRAND} — ${TAGLINE}. A page of what someone is actually watching, reading and listening to.`,
     ogDescription: "Follow what people pay attention to — not what they post.",
   });
   /** What this page tells a feed reader, which until now was nothing at all.
