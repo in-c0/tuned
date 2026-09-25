@@ -7368,3 +7368,53 @@ cycle's action, and it is recorded because a fourth dispatch is cheap and a fail
 day is not recoverable.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-25 — run 193: the search snippet for the front door claimed a currency, and a test required it
+
+**Gate attended first, and it owed something.** `scout-gate.mjs` read **ATTEND** — item 286, 24h old,
+one scheduled screen certainly delivered since. The 08:09Z screen
+([36111382253](https://github.com/in-c0/tuned/actions/runs/36111382253)) ran clean: 34 screened, 19
+rejected, 8 selected (23.5%), 7 deferred, 12 full texts read. It supported a publication, so one was
+dispatched. **Item 287 published** ([36122944328](https://github.com/in-c0/tuned/actions/runs/36122944328))
+— HTTP 201, `duplicate=false`. `qa/nominations/287-…json` committed; the gate reads CURRENT.
+**Attending the gate is not arming the schedule**, and the schedule was not armed.
+
+**Recorded instrument limitation, not routed around.** The `scout-record` artifact could not be
+downloaded from this session: `productionresultssa8.blob.core.windows.net` answers **403 CONNECT**
+through the egress proxy. The job log carries the same verdict table, refusal clauses and top
+selection, so the record was read — but a run that could read *only* the artifact would have been
+blocked at the gate. Sits alongside the standing `justtuned.com` 403.
+
+- **Decision: spend the cycle on `/`'s `<meta name="description">`.** It read *"…A **live** page of what
+  someone is actually watching…"* — the search snippet for the one address every canonical, `og:url`,
+  the sitemap and the README name as this site, over feeds four of five of which had published nothing
+  for eight weeks. `socialHead`'s own docstring forbids exactly this (*"no adjective the page cannot
+  support"*); two of its three callers obeyed, and the front door did not.
+- **Decision: fix by removal, not by replacement.** No derived age goes into this string. A copied
+  relative age freezes in the copy and becomes the hardcoded freshness claim one step removed — run
+  182's reason for keeping one out of the RSS `<description>`, and it governs `<meta name="description">`
+  for the same reason. `og:description` is untouched: the contrastive half never asserted a currency.
+- **Decision: the four *live* strings in `<body>` stay.** Both footers, the studio line, "Live demo",
+  and "its RSS link works right now" are sanctioned in `assertNoCurrencyClaim`'s own note as
+  contrastive or capability claims, and they sit where the page's derived ages travel with them. The
+  element fixed here is the one that is **copied away** from every disclosure. **The surface decides,
+  not the spelling** — and a test of that kind must be able to clear strings, not only condemn them.
+- **Decision: replace the ban list with a class, over a derived set.** The old guard banned four
+  literals, each a fragment of the two strings run 182 fixed, and this page passed all four by saying
+  *"live page"* rather than *"live feed"*. The rule is now a pattern applied to the descriptions that
+  leave this site, over every path read off `/sitemap.xml` rather than typed — so a page class
+  registered later is graded without being named ([L-111](LESSONS.md#l-111)).
+
+**Reversibility.** Shipped in PR [#102](https://github.com/in-c0/tuned/pull/102) →
+[`5feaccb`](https://github.com/in-c0/tuned/commit/5feaccb). One string, three test changes, one
+workflow step. No route, schema, data handling, dependency or runtime surface touched. Rollback is
+`git revert`, which restores the previous sentence and nothing else. The extended `verify-production`
+step is the standing rollback signal.
+
+**EXP-013 is byte-untouched.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+unchanged; a change to a meta description cannot affect a screening rate. **The schedule is still NOT
+armed**, which remains the reviewer's decision under Fork A and is not re-argued here per
+[L-07](LESSONS.md). The window closes today and its reading falls tomorrow; **nothing in it was graded
+early.**
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
