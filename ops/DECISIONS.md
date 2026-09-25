@@ -7418,3 +7418,68 @@ armed**, which remains the reviewer's decision under Fork A and is not re-argued
 early.**
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-26 — run 194: EXP-013 graded and closed. Failed on its bar; its headline question is unanswerable from its own window
+
+**Decision: take the reading on the day it fell due, grade every threshold as written, and close the
+experiment — rather than spend the cycle anywhere else.** EXP-013's reading was a **one-shot, dated
+obligation** registered on 2026-09-12 and reaffirmed by runs 186, 188 and 193 as outranking every
+other candidate. The window closed at the end of 2026-09-25 and the reading fell due today. A dated
+obligation that is not met on its date is not deferred, it is lost: the `scout-record` artifacts it
+is computed from **expire at 90 days**, and this loop stops on 2026-10-05.
+
+**The grades.** Sources: [`exp013 window` 36195833509](https://github.com/in-c0/tuned/actions/runs/36195833509)
+(thresholds 1, 2, 4) and [`qa-browser` 36195864192](https://github.com/in-c0/tuned/actions/runs/36195864192)
+(threshold 3, a real browser and a real RSS fetch against production).
+
+| # | Grade |
+| --- | --- |
+| 1 — a verdict for every record read | **HOLDS.** 11 of 13 scheduled screens reached a verdict, every rejection naming exactly one clause. |
+| 2 — selection rate ≤ 25% on every live screen | **FAILED.** 25.7% on 2026-09-13 and 2026-09-16, plus 25.7% on day 1. |
+| 3 — provenance on both public surfaces | **HOLDS.** 14/14 registry entries, 29 assertions passed, 1 skipped by design. |
+| 4 — ≤ 72h, zero hand publications | **FAILED** at 203.8h, and the grade is not about the agent. |
+| 5 — every item on-remit | **HOLDS pending a human reading.** |
+
+**Fork B, and it fired on the window's first day.** Threshold 2 failed on 2026-09-12 and Fork B was
+actioned the same day as pre-registered. **EXP-013 closes FAILED on its bar.** Fork A's reserved
+phrase — *"passed on cadence only"* — **is not available to this reading and no later run may quote
+it.**
+
+**Decision: record the headline question as UNANSWERABLE from this window rather than as answered in
+the negative.** Threshold 4's second clause is *zero hand publications*; Fork B's action is *turn the
+publisher off*. They are the same mechanism, so once Fork B fired on day 1 threshold 4 could only
+fail — **whether the bar was good or bad**. Reporting *"threshold 4 failed, therefore the cadence
+still depends on a person"* would be a **tautology presented as evidence about the agent**. Run 188
+registered this two days before the numbers were visible, which is why it can be stated now without
+being an excuse. Recorded as [L-112](LESSONS.md#l-112).
+
+**Decision: do not re-specify threshold 2's denominator, and do bind any successor to settling one.**
+Run 153 recorded the denominator as mis-specified on day 1 and pre-committed not to rewrite it inside
+the window; that pre-commitment held for fourteen days and holds here. The decided-set rate
+(**29.2%–45.0%**, a uniformly *larger* failure) is reported **alongside** the pre-registered rate and
+never in place of it. **The binding conclusion is that two defensible denominators disagree by ~2× and
+neither was ever argued for** — a successor must settle that before it screens anything.
+
+**Decision: this closure arms nothing.** Fork A authorizes no arming and **Fork A did not fire**.
+`agent-scout.yml` is byte-untouched, the daily schedule remains **disarmed**, and the publisher's gate
+in `scout-gate.mjs` stands unchanged. Whether the schedule may publish unattended remains the
+reviewer's open question, unruled since 2026-09-12 and **not re-argued here** per
+[L-07](LESSONS.md). **Closing an experiment is not the same act as answering the question it left
+open** ([L-97](LESSONS.md#l-97)).
+
+**Threshold 5 is recorded as holding *pending a human reading*, not as closed.** The pre-registration
+names a *human* grader and this loop does not have one. All 8 window publications read on-remit under
+the executor's reading and are listed item by item in [EXPERIMENTS.md](EXPERIMENTS.md); that list is
+the whole of what a confirming reading costs. **This is the only thing this run asks of the owner and
+it is optional.**
+
+**No commercial claim follows.** `applications` **0** · `members` **1** · `members_ever_active` **0** ·
+`followers` **0** · `items_public` **92** · gross cash **AUD $0**, from *no billing exists*. EXP-013's
+own pre-registration says a green reading on every threshold would leave all four where they are, and
+this is not a green reading.
+
+**Reversibility.** This run changes `ops/` only — no `src/`, no route, no schema, no workflow, no
+dependency. No visitor sees a different byte. Rollback is `git revert`, which removes a record and
+changes no behaviour.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

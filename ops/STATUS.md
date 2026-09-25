@@ -1,5 +1,105 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-26 08:35 Sydney (2026-09-25 22:35 UTC), run 194 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-193 and not re-argued here, per [L-07](LESSONS.md).** **EXP-013 is graded
+and closed: it failed its bar, and its headline question cannot be answered from its own window.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 287, 12h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the cycle's action was the one the calendar chose.
+
+**This run's action was not chosen; it fell due.** EXP-013's reading is a **one-shot, dated
+obligation** — registered 2026-09-12, reaffirmed by runs 186, 188 and 193 as outranking every other
+candidate. The window closed at the end of **2026-09-25** and the reading fell **today**. A dated
+obligation missed is not deferred but lost: the `scout-record` artifacts it computes from **expire at
+90 days** and this loop stops **2026-10-05**.
+
+**Two instruments, neither of them this session's assertion.**
+[`exp013 window` 36195833509](https://github.com/in-c0/tuned/actions/runs/36195833509) graded
+thresholds 1, 2 and 4 over **every scheduled screen in the window**;
+[`qa-browser` 36195864192](https://github.com/in-c0/tuned/actions/runs/36195864192) graded threshold 3
+in a real browser and a real RSS fetch **against production**. Threshold 5 is a reading of all 8
+window publications against the remit.
+
+| # | Threshold, as written | Grade |
+| --- | --- | --- |
+| **1** | a per-candidate verdict for every record read | **HOLDS** — 11 of 13 screens reached a verdict, every rejection naming exactly one clause |
+| **2** | selection rate **≤ 25%** on every live screen | **FAILED** — 25.7% on 09-13 and 09-16, plus 25.7% on day 1 |
+| **3** | provenance on **both** public surfaces | **HOLDS** — 14/14 registry entries, 29 passed, 1 skipped by design |
+| **4** | ≤ **72h** old, **zero hand publications** | **FAILED** at **203.8h** — and the grade is not about the agent |
+| **5** | every item on-remit | **HOLDS pending a human reading** — the threshold names a grader this loop does not have |
+
+**Fork B, fired on the window's first day. EXP-013 closes FAILED on its bar** — and Fork A's reserved
+phrase, *"passed on cadence only"*, **is not available to this reading and no later run may quote it.**
+
+**The headline question has no answer, and the reason is the finding.** EXP-013 asked *can an agent
+feed publish on a cadence with no person selecting?* Threshold 4 is what would answer it. **Threshold
+4's second clause is *zero hand publications*; Fork B's action is *turn the publisher off*. They are
+the same mechanism**, and Fork B fired on day 1 because threshold 2 failed at 25.7%. From that moment
+the only path to the feed was the hand dispatch threshold 4 forbids, and all 8 window publications
+took it. Threshold 4 failed at **203.8h** against a **72h** bar — **and would have failed identically
+had the bar been perfect.** *"Threshold 4 failed, therefore the cadence still depends on a person"* is
+a **tautology presented as evidence about the agent**. It is evidence about the experiment's design.
+That is **[L-112](LESSONS.md#l-112)**, and run 188 registered it two days before the numbers were
+visible, which is the only reason it reads as a finding rather than an excuse.
+
+**The general form, which costs one pass down a table to prevent.** A pre-registration is checked
+threshold by threshold — is each falsifiable, is each fork actioned, is the baseline frozen. EXP-013
+passes every one of those checks. **The defect is between two clauses that are individually perfect: a
+fork's action is a change to the system, and the system is what the other thresholds measure.** For
+every fork ask *what does its action change*; for every threshold ask *what does it measure*; **any
+overlap is a threshold that becomes unmeasurable the moment that fork fires.** The tell was available
+from day 1 and read by nobody for thirteen days: **the fork that fired was *"stop publishing"* while a
+threshold about publication cadence went on collecting numbers** — nine paragraphs apart in one file.
+
+**What the bar did demonstrate, at its real strength and no higher.** Over 11 live screens it screened
+**34–37 a day** and selected **7–9**, a band of **20.6%–25.7%**, refusing the rest with exactly one
+named clause each. **It refuses** — which is precisely what Fork B's premise doubted (*"a bar that has
+been shown not to refuse"*). It is **not** the bar passing: it was written to hold at ≤25% and did not.
+**The failure is narrow and persistent rather than one bad draw** — nine of eleven screens sit at
+22.9%–25.0% and both failures clear the bar by **a single candidate**. At 34–37 screened, one candidate
+is ~2.8 points: **the threshold and its own resolution are the same size.**
+
+**And the denominator was never argued for.** Run 153 recorded threshold 2 as mis-specified on day 1 —
+*"the denominator counts candidates the bar never decided"* — and pre-committed not to rewrite it
+inside the window. **That pre-commitment held fourteen days and holds here.** On the decided set every
+screen runs **29.2%–45.0%**, a uniformly *larger* failure — reported **alongside** the pre-registered
+rate, never in place of it. **The objection is not that 25% is too harsh; it is that two defensible
+denominators disagree by ~2× and neither was ever argued for.** Any successor settles that **before**
+it screens anything.
+
+**Independence, and the two days that are not days.** The 11 live screens carry **4** distinct top
+selections, not 11 — nothing was published, so nothing entered `publishedSources()` and the same
+candidate kept winning. **2 of 13 scheduled screens contributed no reading** — 2026-09-22 **empty**
+(the search defect run 184 caught, now refused at source) and 2026-09-23 **malformed** (run 187's
+crash, [L-105](LESSONS.md#l-105): the record is written only on the success path, so a thrown cycle
+uploads nothing). **Both are counted as no observation rather than as quiet weeks**, and the reading
+says 15% of the window produced nothing rather than dividing by 13.
+
+**Threshold 5's caveat is the threshold's own word.** It says *"under a **human** reading"*. The
+reading is the executor's, and the executor is not a human — **the pre-registration specified a grader
+the loop does not have.** All 8 are squarely on remit (sensor-validation studies, biomechanics, sprint
+and jump measurement; every one source-linked with a concrete measured result) and are listed item by
+item in [EXPERIMENTS.md](EXPERIMENTS.md). **That list is the whole of what a confirming reading costs,
+and it is the only thing this run asks of the owner — optional.**
+
+**This closure arms nothing.** Fork A authorizes no arming and **Fork A did not fire**.
+`agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are **byte-untouched**, the daily
+schedule is **still NOT armed**, and the publisher's gate stands unchanged. Whether the schedule may
+publish unattended is the reviewer's question, unruled since 2026-09-12 and not re-argued here.
+**Closing an experiment is not the same act as answering the question it left open** ([L-97](LESSONS.md#l-97)).
+
+**Gates.** `npm run check` 0 · **510 vitest** · **ops suite 319/319** · 14 workflows · **14
+nominations** · **0 vulnerabilities**. **`ops/` only — no `src/`, no route, no schema, no workflow, no
+dependency. No visitor sees a different byte**, which is why this run's production check is a
+confirmation that nothing moved rather than a check on a change.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **92** · gross cash **AUD $0**, from
+*no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-25T04:58:40.520Z`. **A selection rate is not a subscriber and a publication interval is not a
+person** ([L-106](LESSONS.md#l-106)). **9 days left.**
+
 **Last updated:** 2026-09-25 20:35 Sydney (2026-09-25 10:35 UTC), run 193 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-192 and not re-argued here, per [L-07](LESSONS.md).** **The search snippet
 for this site's front door called it live, and a test required it to.**

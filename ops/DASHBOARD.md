@@ -18,6 +18,66 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **The 14-day test of our agent finished today. It failed its own bar — and the more useful finding is that it could never have passed the main question, because of a fix we made on day one.**
+>
+> **What was being tested.** Since 12 September, `@sportstech` — one of our five feeds — has had a
+> robot selector instead of me picking things by hand. Every morning it searches new sports-science
+> papers, downloads the full text of the promising ones, and applies a written standard: is there a
+> real measured result here, from a method someone else could repeat? The question the test asked was
+> simple: **can a feed like this keep itself worth following, with no person choosing?**
+>
+> **The bar we set it: select no more than 1 in 4 of what you look at.** The point of that number was
+> to catch the failure where a "selector" waves everything through and the feed becomes a search
+> alert. On 11 of the 14 days it looked at 34–37 papers and picked 7–9 — between **20.6% and 25.7%**.
+> **It went over 25% on two days, by exactly one paper each time.** So it fails the bar it was given.
+>
+> **But it does refuse things, and that was the real worry.** Nine of eleven days sat between 22.9%
+> and 25.0%, and every paper it rejected named the one rule it broke. This is not a rubber stamp. It
+> is a selector that is slightly looser than the line we drew — and the line was drawn so close to
+> where it actually operates that **one paper either way decides pass or fail**. That is a badly
+> chosen number as much as a failing robot, and I have written down that any future version has to
+> settle that arithmetic *before* it starts, not after.
+>
+> **Now the part that is actually worth your attention.** The main question — *can it keep the feed
+> current without a person?* — has **no answer**, and the reason is our own doing. The test said: if
+> it picks too many, switch the auto-publisher off immediately. It picked too many **on day one**, so
+> we switched the publisher off on day one, exactly as planned. **That was the right call, and it
+> destroyed the only way to measure the main question.** For the remaining thirteen days the only way
+> anything could reach the feed was me dispatching it by hand — which is precisely the thing the main
+> question was about. It duly "failed": the feed once went 8.5 days without an item, against a 3-day
+> target. **That number says nothing about the robot.** It would have come out the same if the robot
+> were perfect.
+>
+> **So the test was well designed and still had a hole in it,** and the hole was between two rules
+> that each looked fine on their own: one said *"stop publishing if X"*, another measured *"how often
+> does it publish"*. Nobody put those two sentences next to each other, and they were nine paragraphs
+> apart in the same document. That is the lesson recorded today, and the check that prevents it costs
+> one pass down a table.
+>
+> **What did pass.** Everything about honesty and labelling. All **14** published finds — including
+> all 8 from this window — carry the "AI agent" label and the agent's own reasoning on both the web
+> page and the RSS feed, verified in a real browser against the live site an hour ago. And every one
+> of the 8 is genuinely on-topic: sensor validation studies, biomechanics, sprint and jump
+> measurement. None of it is filler.
+>
+> **One thing I am not closing by myself.** The rule said those 8 items should be checked as on-topic
+> "under a human reading". I read them and they are fine, but I am not a human, and the test named
+> one. **The eight are listed in the record; reading the titles takes a minute if you want that box
+> properly ticked.**
+>
+> **What this does not change.** The auto-publisher stays **off**. Finishing a test is not the same as
+> answering the question it left open — whether the daily schedule may publish with nobody looking is
+> still yours to decide, and it has been open since 12 September.
+>
+> **No commercial number moves** — `applications` 0 · `members` 1 (you) · `followers` 0 · cash
+> **AUD $0**. A robot that publishes on schedule is not a subscriber, and this record says so in as
+> many words so that no later summary quietly upgrades it.
+>
+> **Nothing here needs you,** except the optional minute above. [§1](#1-owner-action-required) is
+> unchanged: ONE, undeadlined, not re-argued.
+
+---
+
 > # **Google's one-line summary of Tuned called it "a live page". Four of our five feeds hadn't published in eight weeks — and a test we wrote was requiring that sentence to stay.**
 >
 > **What this is about.** The single sentence a search engine shows underneath `justtuned.com` in a
@@ -1786,11 +1846,13 @@ Full reading and caveats in [METRICS.md](METRICS.md).
 
 ## 6. Current experiment
 
-**Two are open.**
+**One remains open.** EXP-013 was **graded and closed on 2026-09-26** (below); **EXP-012**
+(ooh.directory arrivals) is the only registered experiment still awaiting a reading.
 
-- **EXP-013 — can an agent feed publish on a cadence with no person selecting? OPEN. Reading due on
-  the complete 14 days 2026-09-12 … 2026-09-25** (run 153, pre-registered **in the same commit as the
-  bar, before it had screened a candidate**). Canonical: [EXPERIMENTS.md](EXPERIMENTS.md).
+- **EXP-013 — can an agent feed publish on a cadence with no person selecting? CLOSED, GRADED
+  2026-09-26 (run 194): FAILED on its bar, and the headline question is UNANSWERABLE from this
+  window.** Graded on the complete 14 days 2026-09-12 … 2026-09-25 (run 153, pre-registered **in the
+  same commit as the bar, before it had screened a candidate**). Canonical: [EXPERIMENTS.md](EXPERIMENTS.md).
   `@sportstech`'s publisher was a scheduled executor run doing a cycle whenever it chose to — six
   publications in 24 days. It now has a selector: a remit translated into an explicit public bar,
   applied to the **open-access full text the agent fetches for itself**, publishing at most **one**
@@ -1802,19 +1864,42 @@ Full reading and caveats in [METRICS.md](METRICS.md).
   the schedule is disarmed.** What is demonstrated is the capability, not yet the cadence. **None of
   it is demand:** `followers` is **0**, so no subscriber noticed.
 
-  **Window reading added 2026-09-23 (run 186), still interim — three screens have not fired and the
-  reading is still due 2026-09-26.** Computed rather than read off by eye, by
-  [`scripts/exp013-window.mjs`](../scripts/exp013-window.mjs) inside Actions, because the screening
-  records cannot be fetched from the executor session and expire at 90 days. Source:
-  [`exp013 window` run 35818516766](https://github.com/in-c0/tuned/actions/runs/35818516766).
-  **9 of 10 scheduled screens reached a verdict**, every rejection naming exactly one clause;
-  **threshold 2 fails on 2 of the 9** at 25.7%, with the other seven at **22.9%–25.0%** — the two
-  failures clear the bar by **one candidate**, so the bar separates almost nothing. On the **decided**
-  set every screen runs **36.4%–45.0%**, which is the numbers behind run 153's recorded objection that
-  the denominator is mis-specified; **the threshold was not re-specified and the schedule was not
-  armed.** The 2026-09-22 screen is the one run 184 caught and **contributes no observation** rather
-  than counting as a quiet day. And the nine screens carry **two** distinct top selections, not nine —
-  they are **not nine independent observations of the bar**.
+  **THE GRADED READING, 2026-09-26 (run 194).** Sources:
+  [`exp013 window` 36195833509](https://github.com/in-c0/tuned/actions/runs/36195833509) (thresholds
+  1, 2, 4, over every screen's record) and
+  [`qa-browser` 36195864192](https://github.com/in-c0/tuned/actions/runs/36195864192) (threshold 3,
+  a real browser and a real RSS fetch against production). Nothing was re-specified: the bar and the
+  25% threshold are byte-identical to the commit that registered them.
+
+  **1 HOLDS** — 11 of 13 scheduled screens reached a verdict, every rejection naming exactly one
+  clause; the threshold's own failure condition (*no reading at all*) did not occur. **2 FAILED** —
+  25.7% on 2026-09-13 and 2026-09-16, plus 25.7% on day 1. **3 HOLDS** — all **14** registry entries
+  carry provenance on feed page *and* RSS, 29 assertions passed, 1 skipped by design. **4 FAILED**,
+  and the grade is not about the agent. **5 HOLDS pending a human reading** — all 8 window
+  publications are on-remit under this run's reading, but the threshold names a *human* grader and
+  this loop does not have one.
+
+  **Fork B, fired on the window's first day.** Fork A's phrase *"passed on cadence only"* is **not
+  available to this reading** and no later run may quote it. **The headline question has no answer
+  and cannot get one from this window:** threshold 4's second clause is *zero hand publications*,
+  Fork B's action is *turn the publisher off*, and those are the same mechanism. Once the publisher
+  was off on day 1, threshold 4 could only fail — it failed at **203.8h** against a **72h** bar —
+  **whether the bar was good or bad**. That is [L-112](LESSONS.md#l-112), and run 188 registered it
+  two days before the numbers were visible.
+
+  **What the bar did show, at its real strength:** it screened 34–37 a day and selected 7–9, a band
+  of **20.6%–25.7%**, refusing the rest with one named clause each. **It refuses** — which is exactly
+  what Fork B's premise doubted. Nine of eleven screens sit at 22.9%–25.0% and both failures clear
+  the bar by **one candidate**, so the threshold and its own resolution are the same size. On the
+  **decided** set every screen runs **29.2%–45.0%**, the numbers behind run 153's recorded objection
+  that the denominator is mis-specified — **reported alongside the pre-registered rate, never in
+  place of it, and the threshold was not re-specified.** The 11 live screens carry **4** distinct top
+  selections, not 11. **2 of 13 screens contributed no reading** (2026-09-22 empty, 2026-09-23 the
+  crash of [L-105](LESSONS.md#l-105)) and are counted as no observation rather than as quiet days.
+
+  **It arms nothing.** Fork A authorizes no arming and Fork A did not fire; the schedule is still
+  **NOT** armed and the publisher's gate stands unchanged. **And none of it is demand** —
+  `followers` **0**, gross cash **AUD $0**.
 
 - **EXP-011 — is `landing_view` a browser at all? CLOSED, GRADED 2026-09-19 (run 173): R = 0.58%,
   Fork R-A — *mostly not a browser*.** Over the eleven complete UTC days **2026-09-05 … 2026-09-15**
@@ -1923,7 +2008,7 @@ Full reading and caveats in [METRICS.md](METRICS.md).
   application-gated landing page as the URL). **No t0, no window, no snapshot, no inference, no
   grade — and none will be created if the item is ever restored.** All bands unspent; the packet is
   fenced **WITHDRAWN** at [EXP-002-PACKET.md](EXP-002-PACKET.md).
-- **No experiment is currently running.** EXP-011 closed on 2026-09-19 with Fork R-A. **EXP-012** (ooh.directory arrivals) and **EXP-013** both remain registered with readings still ahead, and both are defined over complete UTC days — which is what `scripts/metrics-window.mjs` now guards. That is the honest state of §6.
+- **One experiment remains registered.** EXP-011 closed on 2026-09-19 with Fork R-A; **EXP-013 closed on 2026-09-26** (run 194) — FAILED on threshold 2, with its headline question unanswerable from its own window (L-112). **EXP-012** (ooh.directory arrivals) is the only reading still ahead, and it is defined over complete UTC days — which is what `scripts/metrics-window.mjs` guards. That is the honest state of §6.
 
 Details and grading rules: [EXPERIMENTS.md](EXPERIMENTS.md).
 
@@ -1934,9 +2019,9 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-112** | **The remedy a pre-registration names for one threshold destroyed another threshold's ability to be measured, and the same document held both.** EXP-013 asked *can an agent feed publish on a cadence with no person selecting?* and closed **unable to answer it** — not because the source refused or the agent was starved, but because the window ran exactly as designed. Two clauses were the same mechanism pointed opposite ways: **threshold 4** was *newest item ≤ 72h **with zero hand publications***, and **Fork B**, the remedy for a threshold-2 failure, was ***disable the schedule the same day***. Threshold 2 failed on **day 1** at 25.7%, Fork B fired as written, and from that moment the only path to a publication was the hand dispatch threshold 4 forbids. It failed at 203.8h and **would have failed identically had the bar been perfect.** The pre-registration was otherwise exemplary — five falsifiable thresholds, five actioned forks, a frozen baseline, and a paragraph on what it could not show. | **A fork's action is a change to the system, and the system is what the other thresholds are measuring — so check forks against thresholds, not just each in isolation.** The pass costs one trip down the table: for every fork ask *what does its action change*, for every threshold ask *what does it measure*, and **any overlap is a threshold that becomes unmeasurable the moment that fork fires.** Say in advance what the window then measures, because after the fork fires the same sentence is indistinguishable from an excuse — run 188 wrote it two days early, which is the only reason the reading can state it plainly. **The tell was available from day 1 and read by nobody for thirteen:** the fork that fired was *"stop publishing"* while a threshold about publication cadence was still collecting numbers, nine paragraphs apart in one file. **Second, smaller instance in the same document:** threshold 5 specifies *"a **human** reading"* — a grader an autonomous loop does not have, written into an experiment whose whole point was that no person is in the path. **A threshold names a grader as surely as it names a number, and the grader has to exist.** |
 | **L-111** | **The ban list was a transcription of the defects that had been fixed, so it graded those and nothing else.** `/`'s `<meta name="description">` — the search snippet for the one address every canonical, the sitemap and the README name as this site — read *"…A **live** page of what someone is actually watching…"* over feeds four of five of which had published nothing for eight weeks. [`socialHead`](../src/pages.ts)'s own docstring forbids exactly that (*"no adjective the page cannot support"*); two of its three callers obeyed and the front door did not. Run 182 had ruled on this element one page class over and written a guard — banning `"right now"`, `"a live feed of"`, `"live feed of what"`, `"is live"`, **every one a fragment of the two strings it had just fixed.** This page says *"a live **page** of"*: one noun away from a filter written to catch exactly it. And [`test/sharing.test.ts`](../test/sharing.test.ts) **required** the sentence verbatim — a run-108 guard against silent copy edits that, once the copy was ruled wrong elsewhere, had become a requirement that the defect stay ([L-108](LESSONS.md#l-108) again). | **A guard written from the strings you just fixed grades those strings, and the next author is not copying the sentence you deleted — so write it from the CLASS and then run it against a rewording.** The cheap check is mechanical: restate the claim in different words and confirm the guard still fires (mutation 4, *"a real-time page of"*, passes all four old literals). **Why the surface decides and not the spelling:** four other *live* strings on this site are sanctioned and untouched, because they sit in `<body>` where the derived ages travel with them and three are contrastive; `<meta name="description">` is the one that is **copied**, reaching a stranger with no disclosure able to follow it — [L-110](LESSONS.md#l-110)'s test, which must be able to clear strings as well as condemn them. **Removal must not become assertion:** no derived age goes in a copied string, because the copy freezes. **And both the rule and the set must be graded:** mutation 2 spliced a derived age in and reddened **only** the invariance companion, while mutation 5 planted the claim on a **find page** — a class no currency test names — and only the check reading its paths off `/sitemap.xml` caught it. |
 | **L-110** | **The fix was made safe by a sentence on a surface the fix's own consumer does not read.** Run 191 advertised all five feeds to software and justified including the four quiet ones with *"its card already states its age"* — but a feed reader parses `<head>` and shows a list of titles, and the card is in `<body>`. The mitigation was cited from a surface the consumer never sees. **This is [L-109](LESSONS.md#l-109) a second time, inside the commit that wrote L-109:** a claim satisfied where a human reads and absent where the machine reads. Naming a pattern does not immunise the commit that names it, and the first place to look for it is the diff that closes it. **The check is mechanical — delete the rest of the document and ask whether the safety argument survives.** Corollary from the mutation pass: grading *agreement between two surfaces* is satisfiable by two constants, so it needs a companion requiring the value to vary with the row, and a conditional fix needs its empty case graded separately. |
-| **L-109** | **The fix was scoped to the pages that HAVE a feed, and the page that leads to them was not one of them.** `justtuned.com` — the address every canonical, the sitemap and the README name as this site, and therefore what a person pastes into a reader and what a directory resolves — carried no feed-discovery link at all, while displaying five live feeds to a human. Run 86 shipped that link after finding it absent everywhere and `discovery.test.ts` still opens by saying so; run 164's find pages inherited it. The rule came out as *a page that is a feed advertises itself*, under which the homepage is **correctly** excluded — a reader's rule is *a page advertises the feeds it leads to*, and the two differ on exactly one page: the one that lists them. | **When a fix is scoped to "the pages that have X", ask separately what the consumer of X does, and which page it starts from.** A rule phrased over the things that *carry* a property always excludes the thing that *points at* them, and the pointer is usually the entry point — so the exclusion lands where it costs most. **The tell is a completeness claim in prose sitting above a test that grades one instance:** the sentence names the population, the test names a member, and nothing reconciles them. Our own find pages already followed the broader rule, so the codebase contradicted the narrow one and nothing made that legible. **Second half, from the mutation pass:** five distinctly-titled links all pointing at **one** feed passed the outcome test, because it compared each fetched feed to *the href that reached it* — true by construction. **Checking each link against itself is not checking the mapping; only the set is.** The same shape appeared a third time in the production check written the same hour. **Prevention: when a comment states a property, break the code so that property fails and confirm the check goes red — if it stays green, the comment is the specification and the code is not meeting it.** |
 
 
 
@@ -1982,4 +2067,4 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 | **Run 163** | **the funnel's second stage wrote to a table its third stage could not read.** `POST /waitlist` has saved every application since 2026-08-06 into a table read by exactly one thing, `SELECT COUNT(*)` in `src/metrics.ts`; no surface returned a row, while `POST /api/members` — the act that admits somebody — takes an **email**. An unreadable table and an empty one serialise identically, which is why forty days passed without it being felt. `GET /api/applications` closes the read half. [L-81](LESSONS.md#l-81). |
 | **Repository commit at time of writing** | run 183 — `src/pages.ts` (two claim removals, no new element and no CSS declaration), `src/crawl.ts` (one robots header line), `test/freshness-claims.test.ts` (new, 7 tests, 52-day-stale fixture), `qa/freshness.spec.mjs` (`RETIRED_CLAIMS` widened to every document the spec already fetches) and one `verify-production.yml` step grading both surfaces on the deployed artifact. **478 vitest** (471 → 478) · **ops suite 276/276** · `validate-workflows.py` ok, 13 workflows · `validate-nominations.mjs` 10 valid · `npm audit --omit=dev` 0 vulnerabilities. **Six mutations, named tests red on each**, including the positive control; both sources restored byte-identical under `sha256sum -c`. *Previously, run 180 — `scripts/scout-gate.mjs` (new), `scripts/scout-gate.test.mjs` (new), `scripts/operating-card.test.mjs` (one assertion: the card must name the reading, in its read order), `CLAUDE.md` (one step), and the ops record. **No worker source touched at all** — no route, no query, no CSS rule, no counter added, renamed, split or retired, so `464 vitest` is unchanged and the deployed Worker changes only by its build commit. **ops suite 265/265** (248 → 265, seventeen new) · `validate-nominations.mjs` **9 valid** · `npm audit --omit=dev` 0 vulnerabilities. **Twelve mutations, named tests red on each**, including a positive control — inferring the screen count from the publication's age in whole days is plausible, well-formed and wrong. Card and script restored byte-identical under `sha256sum -c`.* |
 | **Data commit** | [`cde43f4`](https://github.com/in-c0/tuned/commit/cde43f4) — [`metrics/latest.json`](metrics/latest.json), snapshot generated `2026-09-21T23:32:13.798Z`, complete through 2026-09-20. **No commercial metric moved this run and none is claimed:** `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 from *no billing exists*. `items_public` is **89** after run 181's item 283 and did not move this run. **No counter was added this run**, and nothing was published, amended, retracted or restored. |
-| **Freshness state** | **CURRENT for the header, §7 and §8; §1-§6 unchanged and not re-argued.** §1 is **ONE** and unchanged since run 137, per [L-07](LESSONS.md); this run adds none and **nothing in it needs the owner**. §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 — **no commercial metric moved this run and none is claimed.** `items_public` is **92** and did not move: the publisher's gate read **CURRENT**, so nothing was published, amended, retracted or restored. §6 still reads EXP-011 **CLOSED and graded**; **EXP-013 is byte-untouched — its window is open until the end of 2026-09-25 for a reading due 2026-09-26, no threshold was graded early, and the daily schedule is still NOT armed.** Its reading instrument was dispatched read-only on day 14 and completed green ([36093945337](https://github.com/in-c0/tuned/actions/runs/36093945337)), which grades nothing and marks its own output INTERIM. **No counter was added, renamed, split or retired.** |
+| **Freshness state** | **CURRENT for the header, §6, §7 and §8; §1–§5 unchanged and not re-argued.** §1 is **ONE** and unchanged since run 137, per [L-07](LESSONS.md); this run adds none, and the one thing it asks of the owner is **optional** — threshold 5's pre-registration names a *human* reader, so the 8 window publications are listed for a minute's reading before that box is called properly ticked. §4's funnel figures are unchanged: `applications` 0, `members` 1, `members_ever_active` 0, `followers` 0, gross cash AUD $0 — **no commercial metric moved this run and none is claimed.** `items_public` is **92** and did not move: the publisher's gate read **CURRENT**, so nothing was published, amended, retracted or restored. **§6 is the change: EXP-013 is CLOSED and GRADED as of 2026-09-26** — FAILED on threshold 2, thresholds 1 and 3 holding, threshold 5 holding pending a human reading, and threshold 4 failed in a way that grades the experiment rather than the agent ([L-112](LESSONS.md#l-112)). **Nothing was re-specified and no threshold was graded early**; the reading ran on day 15 over the complete window, from [36195833509](https://github.com/in-c0/tuned/actions/runs/36195833509) and [36195864192](https://github.com/in-c0/tuned/actions/runs/36195864192). **The daily schedule is still NOT armed — Fork A did not fire, and closing an experiment is not the same act as answering the question it left open.** **No counter was added, renamed, split or retired.** |

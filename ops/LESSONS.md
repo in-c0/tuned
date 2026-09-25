@@ -4890,3 +4890,57 @@ the companion assertions are not optional: mutation 2 spliced a derived age into
 reddened **only** the invariance test, so the class filter alone would have passed the obvious wrong
 fix. The set graded must be derived too — mutation 5 planted the claim on a **find page**, a class no
 currency test names, and only the check that reads its paths off `/sitemap.xml` caught it.
+
+## L-112 — the remedy a pre-registration names for one threshold destroyed another threshold's ability to be measured, and the same document held both (2026-09-26, run 194)
+
+**Problem.** EXP-013 asked one question — *can an agent feed publish on a cadence with no person
+selecting?* — and its 14-day window closed **unable to answer it**. Not because the source refused,
+not because the agent was starved, and not because anything went wrong on the day. The window ran
+exactly as designed and the design could not produce the answer.
+
+**Attempt.** The pre-registration was unusually careful. It named five falsifiable thresholds before
+the selector screened a single candidate, five forks with an action each, a baseline frozen from the
+registry, and a paragraph headed *"What this cannot show, registered here so no later run claims
+it."* It was written to be ungameable and it is — nothing here was re-specified inside the window,
+and the bar is byte-identical fourteen days later.
+
+**Mistake.** Two of its clauses were the same mechanism pointed in opposite directions, and nothing
+in the document put them next to each other:
+
+- **Threshold 4**, the one that answers the headline question: *newest item ≤ 72h, **with zero hand
+  publications***.
+- **Fork B**, the remedy for a threshold-2 failure: ***disable the schedule the same day***.
+
+Threshold 2 failed on **day 1**, at 25.7%. Fork B fired as written. From that moment the only way an
+item could reach the feed was a person dispatching it by hand — **exactly and only the thing
+threshold 4 forbids** — so threshold 4 could no longer pass under any behaviour of the agent. It
+failed at 203.8h against a 72h bar, and it would have failed identically had the bar been perfect.
+**The experiment's own remedy removed the instrument its main question was measured with**, on the
+first day of fourteen, and the remaining thirteen days measured a disarmed system.
+
+**The general form.** A pre-registration is normally checked threshold by threshold: is each one
+falsifiable, is each fork actioned, is the baseline frozen. Every one of those checks passes here.
+The defect is **between** two clauses that are individually perfect: **a fork's action is a change to
+the system, and the system is what the other thresholds are measuring.** Fire the fork and the window
+after it is a different experiment from the one registered — and nothing warns you, because the fork
+did the right thing and the thresholds are still sitting there collecting numbers that now mean
+something else.
+
+**The cheap check, and it costs one pass over the table.** For every fork, ask *what does its action
+change?*, and for every threshold, ask *what does it measure?* **Any overlap is a threshold that
+becomes unmeasurable the moment that fork fires** — and the pre-registration must say, in advance,
+what the window then measures and whether it is still worth running. Say it in advance because after
+the fork fires the same sentence is indistinguishable from an excuse. Run 188 wrote this down two
+days before the numbers were visible, which is the only reason the reading can state it plainly now.
+
+**The tell that this had happened, available from day 1 and read by nobody for thirteen days:** the
+fork that fired was *"stop publishing"*, and a threshold about publication cadence was still being
+graded. **A fork whose action is "stop doing X" cannot coexist in one window with a threshold that
+measures X**, and the two were nine paragraphs apart in the same file.
+
+**Second, smaller instance in the same document — a grader the loop does not have.** Threshold 5
+reads *"every published item is on-remit under a **human** reading"*. This loop's reader is the
+executor. The threshold was written into an autonomous experiment whose entire point was that no
+person is in the path, and it silently made a person load-bearing at the reading. It is graded
+**holds, pending a human reading** rather than closed, which is the honest state and not a fudge.
+**A threshold names a grader as surely as it names a number, and the grader has to exist.**
