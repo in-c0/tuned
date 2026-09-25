@@ -181,8 +181,18 @@ describe("the landing page is canonical about itself too", () => {
     const html = await (await get("/")).text();
     // These two strings are reviewed public copy and differ from each other on purpose.
     // This change adds tags; it must not quietly rewrite the ones that were there.
+    //
+    // **One word of the first string was rewritten later, deliberately, and this line is why it
+    // took six weeks.** Run 108 pinned the copy verbatim so that a change about `<head>` tags
+    // could not edit copy as a side effect, which was right. Run 182 then struck "a **live** feed
+    // of what X is watching" from the same element on `feedPage` — a hardcoded currency claim over
+    // feeds that had published nothing for 50-53 days — and this assertion went on requiring `/`
+    // to keep its version of that sentence. A guard against silent edits had become a requirement
+    // that the defect stay. The currency is now graded as a class in `test/freshness-claims.test.ts`
+    // rather than pinned as a constant here; what this assertion still does, and should, is stop
+    // the rest of the sentence drifting without a decision.
     expect(meta(html, "description")).toBe(
-      "Tuned — follow attention, not content. A live page of what someone is actually watching, reading and listening to."
+      "Tuned — follow attention, not content. A page of what someone is actually watching, reading and listening to."
     );
     expect(meta(html, "og:description")).toBe(
       "Follow what people pay attention to — not what they post."

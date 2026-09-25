@@ -607,6 +607,33 @@ jobs:
             | sed -e 's|.*href="/||' -e 's|"$||' | sort -u || true)
           [ -n "$handles" ] || { echo "::error::no feed handles on / to grade"; exit 1; }
 
+          # The landing page's OWN description, which this step fetched above and never read.
+          #
+          # It graded each feed page's `<meta name="description">` and robots.txt, and took the
+          # handles off `/` without ever asking what `/` says about itself — so the search snippet
+          # for the one address this site asks the world to remember was the one description no
+          # instrument looked at, and it claimed "A live page of what someone is actually
+          # watching" while four of five feeds had published nothing for eight weeks.
+          #
+          # Matched as a CLASS, not as the string that was there. The unit test's ban list was
+          # four literals transcribed from the two strings run 182 fixed, and this page's wording
+          # — "live page" rather than "live feed" — passed all four. A re-worded claim is the same
+          # claim, so the pattern is the adjective wherever it lands. No extra request: this reads
+          # the document already in /tmp.
+          landing_meta=$(grep -o '<meta name="description" content="[^"]*"' /tmp/claims-landing.html | head -1 || true)
+          [ -n "$landing_meta" ] || { echo "::error::/ serves no meta description — its search snippet is whatever a crawler scrapes"; exit 1; }
+          if printf '%s' "$landing_meta" | grep -Eiq '(^|[^a-z])(live|right now|currently|up[- ]to[- ]date|real[- ]time|fresh)([^a-z]|$)'; then
+            echo "::error::/ asserts a currency in the string a search result copies: ${landing_meta}"
+            exit 1
+          fi
+          # Removing a claim must not become removing the sentence: the snippet still has to say
+          # what this page is, or the front door unfurls as a brand name and nothing else.
+          case "$landing_meta" in
+            *"watching, reading and listening to"*) : ;;
+            *) echo "::error::/ no longer describes what the page is: ${landing_meta}"; exit 1 ;;
+          esac
+          echo "  / — search snippet states what the page is and asserts no currency"
+
           for h in $handles; do
             code=$(scripts/prod-http.sh get "${BASE}/${h}/rss.xml" /tmp/claims-feed.xml 'application/rss+xml')
             [ "$code" = "200" ] || { echo "::error::/${h}/rss.xml returned HTTP $code"; exit 1; }

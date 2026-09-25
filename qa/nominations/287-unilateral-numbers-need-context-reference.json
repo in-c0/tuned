@@ -1,0 +1,17 @@
+{
+  "itemId": 287,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3390/sports14080323",
+  "title": "Unilateral Numbers Need Context: Reference Values for Single-Leg CMJ Performance Relative to Bilateral CMJ Capacity",
+  "category": "Research",
+  "why": "“Median relative jump height and the mRSI were 44.8% and 39.4%, respectively, whereas median average relative braking and propulsive force values were 76.0% and 75.4%, respectively.” — the source's own words, quoted by @sportstech from 34 candidates screened 2026-09-25.",
+  "preregistration": {
+    "commit": "7b7ccaf8e0a2ad1ea2bcbe732b8b5c7bf03f6c2a",
+    "committedAt": "2026-09-25T04:58:41Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36122944328",
+    "verifyWith": "git show 7b7ccaf -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-25T10:15:36.851Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

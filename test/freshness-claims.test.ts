@@ -99,6 +99,48 @@ function assertNoCurrencyClaim(doc: string, surface: string): void {
   }
 }
 
+/** The same rule as `assertNoCurrencyClaim`, for the one class of string that is COPIED off this
+ *  site, and the reason it had to stop being a list of literals.
+ *
+ *  **The list above is a transcription of the two strings run 182 fixed, not a statement of the
+ *  rule they broke.** Every entry is a fragment of one of them — "a live feed of", "live feed of
+ *  what", "right now" — so it grades those two sentences and nothing else. The landing page's
+ *  `<meta name="description">` made the identical claim in the identical element and passed all
+ *  four bans, because it says *"A live **page** of what someone is actually watching"*: one noun
+ *  away from a filter written to catch exactly it. It is not that the rule was too weak. It is
+ *  that there was no rule — there was a record of two defects.
+ *
+ *  So this one is a class. A currency adjective is refused wherever it lands, and the four strings
+ *  `assertNoCurrencyClaim`'s note sanctions stay sanctioned by SCOPE rather than by exemption:
+ *  this applies only to the description strings a search engine and an unfurl cache copy, and all
+ *  four sanctioned strings live in `<body>`, where the page's derived ages travel with them. That
+ *  is the distinction L-110 turns on and it is doing the work here rather than a spelling.
+ *
+ *  A copied string cannot carry a derived age either (run 182: it freezes in the copy), so the
+ *  only admissible description is one that asserts no currency at all. */
+const CURRENCY_ADJECTIVE = /\blive\b|\bright now\b|\bcurrently\b|\bup[- ]to[- ]date\b|\bfresh\b|\breal[- ]time\b/i;
+
+function assertDescriptionAssertsNoCurrency(description: string, surface: string): void {
+  const hit = description.match(CURRENCY_ADJECTIVE);
+  expect(hit?.[0] ?? null, `${surface} is copied off this site and asserts a currency: "${description}"`).toBe(null);
+}
+
+/** Every path this site asks a search engine to index, read off the sitemap rather than typed.
+ *
+ *  The set is derived so a page class added later is graded without anyone remembering to add it —
+ *  which is the failure being closed, one level up: run 182 fixed the page classes it was looking
+ *  at, and the class it was not looking at kept the defect for six weeks. */
+async function indexedPaths(): Promise<string[]> {
+  const xml = await get("/sitemap.xml");
+  return [...xml.matchAll(/<loc>https:\/\/justtuned\.com([^<]*)<\/loc>/g)].map((m) => m[1] || "/");
+}
+
+function metaContent(html: string, key: string): string | null {
+  const byName = html.match(new RegExp(`<meta name="${key}" content="([^"]*)"`));
+  const byProperty = html.match(new RegExp(`<meta property="${key}" content="([^"]*)"`));
+  return (byName ?? byProperty)?.[1] ?? null;
+}
+
 describe("the RSS document does not claim a freshness the feed does not have", () => {
   it("states no currency in its channel description, on a feed 52 days stale", async () => {
     const id = await creator("wearables");
@@ -164,6 +206,78 @@ describe("the feed page's unfurl does not claim a freshness the feed does not ha
     await item(id, ago(STALE_HOURS));
     const html = await get("/wearables");
     expect(html).toContain("the last was 52 days ago.");
+  });
+});
+
+describe("the landing page's search snippet does not claim a freshness the site cannot keep", () => {
+  it("describes what the page is without calling it live, with every feed on it 52 days stale", async () => {
+    // The fixture is the point, as everywhere else in this file: a currency claim is only wrong
+    // when the feeds are old, so a landing page seeded at `now` cannot fail this.
+    const a = await creator("wearables");
+    await item(a, ago(STALE_HOURS));
+    const b = await creator("wellbeing");
+    await item(b, ago(STALE_HOURS));
+    const html = await get("/");
+
+    const description = metaContent(html, "description")!;
+    // Graded as what survives being copied: this is the whole string a search result shows.
+    assertDescriptionAssertsNoCurrency(description, "the landing page's meta description");
+    // And the removal must not have been a deletion — the page still says what it IS.
+    expect(description).toContain("what someone is actually watching, reading and listening to");
+  });
+
+  it("says the same thing when a feed published an hour ago — silent about currency, not conditional", async () => {
+    // A description that changed with age would be a relative age by another route, and run 182's
+    // reason for keeping one out of a copied string applies here unchanged: the copy freezes.
+    const stale = await creator("wearables");
+    await item(stale, ago(STALE_HOURS));
+    const staleHtml = await get("/");
+
+    await DB.batch([DB.prepare("DELETE FROM items"), DB.prepare("DELETE FROM creators")]);
+    const fresh = await creator("sportstech");
+    await item(fresh, ago(1));
+    const freshHtml = await get("/");
+
+    expect(metaContent(staleHtml, "description")).toBe(metaContent(freshHtml, "description"));
+  });
+
+  it("leaves the contrastive og:description alone — it never asserted a currency", async () => {
+    const id = await creator("wearables");
+    await item(id, ago(STALE_HOURS));
+    const html = await get("/");
+    expect(metaContent(html, "og:description")).toBe("Follow what people pay attention to — not what they post.");
+  });
+});
+
+describe("no page this site asks to be indexed asserts a currency where it will be copied", () => {
+  it("holds for every path in the sitemap, on a site whose every feed is 52 days stale", async () => {
+    // Neither the page list nor the descriptions are typed here. Both are read off the running
+    // service — the paths from the document this site hands a crawler, the strings from the pages
+    // it serves at them — so a page class registered later is graded by this without being named.
+    const a = await creator("wearables");
+    await item(a, ago(STALE_HOURS));
+    const b = await creator("wellbeing");
+    await item(b, ago(STALE_HOURS + 300));
+
+    const paths = await indexedPaths();
+    // Landing, two feeds, two finds, terms, privacy. If this collapses to a handful the test has
+    // stopped covering anything and should fail rather than pass quietly.
+    expect(paths.length).toBeGreaterThanOrEqual(6);
+    expect(paths).toContain("/");
+
+    let described = 0;
+    for (const path of paths) {
+      const html = await get(path);
+      for (const key of ["description", "og:description"]) {
+        const value = metaContent(html, key);
+        // /terms and /privacy carry no social head at all; absence is not a currency claim.
+        if (value === null) continue;
+        described += 1;
+        assertDescriptionAssertsNoCurrency(value, `${key} on ${path}`);
+      }
+    }
+    // Guards the loop itself: a regex that matched no page would make every assertion vacuous.
+    expect(described).toBeGreaterThanOrEqual(8);
   });
 });
 
