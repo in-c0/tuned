@@ -111,6 +111,30 @@ async function itemsFor(db: D1Database, creatorId: number, publicOnly: boolean):
 }
 
 // ---------- landing ----------
+/** The feed directory: every feed on this service with the date it last published, freshest
+ *  first. One query, three surfaces.
+ *
+ *  It is extracted rather than copied because the ordering and the `visibility = 'public'` filter
+ *  are both load-bearing and both easy to get subtly different at a second call site. The landing
+ *  page's own comment argues each of them at length — registration date says nothing about whether
+ *  there is anything current on a feed; a queued or hidden item must not date a public surface;
+ *  a never-published feed sorts last because SQLite orders NULL below every value. A second copy
+ *  that drifted from any of those would put two pages of this site in disagreement about how old
+ *  the same feed is, which is exactly the class of defect L-93 and L-109 are both about.
+ *
+ *  The SQL is moved verbatim, so `/` serves the byte-identical document it served before. */
+function feedDirectory(db: D1Database): Promise<D1Result<LandingFeed>> {
+  return db
+    .prepare(
+      `SELECT cr.id, cr.handle, cr.name, cr.bio, cr.avatar_url, cr.accent, cr.kind, cr.created_at,
+            (SELECT MAX(i.created_at) FROM items i
+              WHERE i.creator_id = cr.id AND i.visibility = 'public') AS latest_item_at
+     FROM creators cr
+     ORDER BY latest_item_at DESC, cr.created_at`
+    )
+    .all<LandingFeed>();
+}
+
 app.get("/", async (c) => {
   track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "landing_view_bot" : "landing_view"));
   // The feed list carries each feed's age, and is ordered by it — both for the reason the demo
@@ -139,13 +163,7 @@ app.get("/", async (c) => {
   // `visibility = 'public'` sits inside the subquery deliberately: a queued Spotify capture or a
   // hidden item must not date a feed on the most public page Tuned has, which is the rule the
   // demo block's own query already follows.
-  const { results } = await c.env.DB.prepare(
-    `SELECT cr.id, cr.handle, cr.name, cr.bio, cr.avatar_url, cr.accent, cr.kind, cr.created_at,
-            (SELECT MAX(i.created_at) FROM items i
-              WHERE i.creator_id = cr.id AND i.visibility = 'public') AS latest_item_at
-     FROM creators cr
-     ORDER BY latest_item_at DESC, cr.created_at`
-  ).all<LandingFeed>();
+  const { results } = await feedDirectory(c.env.DB);
   // The demo is the feed with the most recently published item, not the oldest creator.
   //
   // It used to be `results[0]` — first by created_at — which is a fact about when the feed
@@ -1283,7 +1301,12 @@ app.get("/:handle", async (c) => {
   );
   const items = await itemsFor(c.env.DB, creator.id, true);
   const viewer = await feedViewer(c, creator.id);
-  return viewer ? c.html(publicPage(creator, items, viewer), 200, PRIVATE_HTML) : c.html(publicPage(creator, items));
+  // Every other feed, so a visitor who arrived here from search or a shared link is not sealed
+  // inside whichever feed the crawler happened to index. See `otherFeedsBlock`.
+  const { results: directory } = await feedDirectory(c.env.DB);
+  return viewer
+    ? c.html(publicPage(creator, items, viewer, directory), 200, PRIVATE_HTML)
+    : c.html(publicPage(creator, items, null, directory));
 });
 
 app.get("/:handle/rss.xml", async (c) => {
@@ -1487,9 +1510,12 @@ app.get("/:handle/:id", async (c) => {
     .bind(creator.id, Number(id))
     .all<Item>();
   const viewer = await feedViewer(c, creator.id);
+  // As on the feed page, and more so here: a find page is what search indexes and what a shared
+  // link points at, so this is the surface most arrivals land on. See `otherFeedsBlock`.
+  const { results: directory } = await feedDirectory(c.env.DB);
   return viewer
-    ? c.html(itemPage(creator, item, more, viewer), 200, PRIVATE_HTML)
-    : c.html(itemPage(creator, item, more));
+    ? c.html(itemPage(creator, item, more, viewer, directory), 200, PRIVATE_HTML)
+    : c.html(itemPage(creator, item, more, null, directory));
 });
 
 // The one conversion action on a public feed page, and until now it wrote no counter at all.

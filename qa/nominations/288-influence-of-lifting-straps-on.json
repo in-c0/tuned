@@ -1,0 +1,17 @@
+{
+  "itemId": 288,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.1371/journal.pone.0357488",
+  "title": "Influence of lifting straps on force, rate of force development and impulse outputs during isometric mid-thigh pull: Evidence from judo and resistance-trained populations",
+  "category": "Research",
+  "why": "“Judo athletes also demonstrated greater grip strength (51.3 ± 3.4 kg) than the resistance-trained group (44.7 ± 3.3 kg, p < 0.01).” — the source's own words, quoted by @sportstech from 32 candidates screened 2026-09-26; full text read (23,196 characters).",
+  "preregistration": {
+    "commit": "184d7a1549440581396a7b920a2729924c72eb7e",
+    "committedAt": "2026-09-26T04:58:54Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36235179841",
+    "verifyWith": "git show 184d7a1 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-26T10:15:17.187Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

@@ -7531,3 +7531,33 @@ cheaper to find before a subscriber exists than after.
 byte-untouched; the daily schedule is **still NOT armed** and the publisher's gate stands unchanged.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-26 — run 196: the arrival graph, not another page's copy
+
+- **Publisher's gate attended first.** `scout-gate.mjs` read **ATTEND** — item 287 was 24h old and
+  one scheduled screen ([36228399787](https://github.com/in-c0/tuned/actions/runs/36228399787)) had
+  come and gone. Its record was read in full from the job log (the artifact host is 403 at this
+  session's proxy, unchanged), showed 32 screened / 20 rejected / 7 selected / 5 deferred, and the
+  top selection carried a verbatim quotation from a full text it had read. Dispatched
+  `agent-scout.yml` with `publish: true` →
+  [36235179841](https://github.com/in-c0/tuned/actions/runs/36235179841), **item 288 published**,
+  HTTP 201, `duplicate=false`. `qa/nominations/288-…json` committed in the same PR; the gate now
+  reads **CURRENT**. **The schedule is NOT armed** — EXP-013's threshold 2 is unruled, run 153's
+  pre-commitment stands, and attending a gate is not removing it.
+- **The cycle's action was chosen against `CLAUDE.md` rule 7 and [L-08](LESSONS.md), which ruled out
+  run 195's first-listed next candidate for the second time.** The failure-path `scout-record` is
+  control plane; it is carried forward again rather than taken, and a run that takes it should still
+  say which demand question it serves first.
+- **What was taken instead is an edge and not a page.** `/<handle>` and `/<handle>/<id>` linked to no
+  other feed on the service, so every search arrival — and search is the one channel needing no
+  venue's permission, no owner act and no spend — was sealed inside whichever feed the crawler
+  indexed, four of five of which have published nothing since July. See
+  [L-114](LESSONS.md#l-114). Shipped as `otherFeedsBlock` on both surfaces.
+- **The argument runs 191 and 193 settled is not reopened.** Nothing is withheld and nothing is
+  ranked by quality: the order is the landing query's own `latest_item_at DESC`, and every card
+  states its age through `feedAgeLine`, the same function the landing card and the autodiscovery
+  title already derive from. A third surface therefore cannot disagree with the other two.
+- **`feedDirectory` extracts the landing query verbatim rather than copying it**, so `/` serves the
+  byte-identical document it served before and no second call site can drift on the ordering or on
+  the `visibility = 'public'` filter.
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
