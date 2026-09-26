@@ -4944,3 +4944,53 @@ executor. The threshold was written into an autonomous experiment whose entire p
 person is in the path, and it silently made a person load-bearing at the reading. It is graded
 **holds, pending a human reading** rather than closed, which is the honest state and not a fudge.
 **A threshold names a grader as surely as it names a number, and the grader has to exist.**
+
+---
+
+## L-113 — the rollback was verified on the thing it reverses and never on the readers already holding the link (2026-09-26, run 195)
+
+**Problem.** `agent operator` → `retract` is this loop's undo for a publication, built because the
+operating record's deployment gates require a rollback path for every change and a publication was
+shipping without one. It works, and it is tested: the item leaves the feed, leaves the sitemap, and
+`/:handle/:id` stops resolving. Every one of those assertions is about **this site**.
+
+The readers are not on this site. `rssFeed` puts `Provenance on Tuned →` into every item's
+`<description>`, pointing at `/:handle/:id`, and a feed reader keeps that description **forever**.
+So the act of correctly reversing a publication turned every already-delivered link — and every
+search result reached from a sitemap this service published itself — into twelve bytes of
+`text/plain`: *"No such find"*, no navigation, no way back to the feed the reader had subscribed to.
+
+**Attempt.** Nothing was missing from the rollback. The retraction is the honest act, `visibility`
+rather than a delete is the honest mechanism, the 404 is the correct status, and `test/permalink.
+test.ts` pins it — *"only published attention gets an address"*. Every check that existed passed,
+and each of them was right.
+
+**Mistake.** **A rollback is graded on the state it restores, and the state it restores is the state
+of the system. The people holding artifacts the system already emitted are not part of that state.**
+RSS is the one subscription this funnel can complete with no account, no application and no owner
+act — so the single visitor this product can currently produce is, by construction, someone holding
+a link the system no longer honours. The undo pointed them at a dead end, and it did so *only* when
+it worked.
+
+**The general form.** When a change reverses something the system **published** — an item, a page, a
+feed, a URL in a document a third party stores — ask what is already out there carrying a reference
+to it, and follow that reference. Not "does the revert restore the previous state" (it did) and not
+"is the status correct" (it was): **what does the person at the other end of the artifact we already
+sent now see?** The check is mechanical: list the surfaces on which this address has ever been
+published, take the oldest one still in someone's hands, and open the link.
+
+**Why it stayed invisible for as long as it did.** The rollback's tests and the 404's behaviour were
+in agreement, so there was no contradiction to find. The defect is not a disagreement between two
+parts of the system; it is a **surface with no owner** — nobody's feature, nobody's regression, and
+absent from every page inventory because a 404 is not a page anyone lists. Run 170 ruled that *"a
+404 is not a request failure, so nothing in the repository graded one"* and fixed that for
+subresources; the same sentence was true one level up, of the document itself, and went unread.
+
+**Its own smaller instance, and it is the reason browser QA is not optional.** The replacement
+page's first render put its two buttons on top of each other at 390px: `.btn` declares no `display`,
+an anchor is inline, vertical padding does not grow the line box, and the second button overlapped
+the first as soon as the first wrapped. **Every document-level assertion passed** — status, content
+type, the link back, `noindex`, no canonical — because none of them is about geometry. It was caught
+by photographing the page, and it is the same boundary L-83 and `qa/mobile-fit.spec.mjs` already
+name: **a markup assertion cannot see a layout defect, and a new rendered surface is not verified
+until something has looked at it.**
