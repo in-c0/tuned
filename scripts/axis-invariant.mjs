@@ -37,6 +37,33 @@ export const SUBTRACTED_AXES = [
   { axis: "attention_star_owner_bot", of: "attention_star_bot" },
   { axis: "attention_skip_owner", of: "attention_skip" },
   { axis: "attention_skip_owner_bot", of: "attention_skip_bot" },
+  // The find page's referrer family, from 2026-09-27. `item_view_referred` is subtracted from the
+  // bucket by the same reading `item_view_onsite` is, and `item_view_search` is read against
+  // `item_view_referred` rather than against the bucket — it is a subset of a subset, so that is
+  // the name it may not exceed.
+  { axis: "item_view_referred", of: "item_view" },
+  { axis: "item_view_referred_bot", of: "item_view_bot" },
+  { axis: "item_view_search", of: "item_view_referred" },
+  { axis: "item_view_search_bot", of: "item_view_referred_bot" },
+];
+
+/** Axis groups whose members are disjoint, and the bucket their SUM may not exceed.
+ *
+ *  A second shape of impossible number, and the one this file did not cover. The pairs above catch
+ *  an axis larger than the thing it is subtracted from. They cannot catch two axes that are each
+ *  smaller than the bucket and together larger than it — and that is exactly the arithmetic the
+ *  find page's new remainder reading rests on: *"the views that arrived with no usable referrer at
+ *  all"* is `item_view - item_view_onsite - item_view_referred`, which goes negative the moment the
+ *  two axes overlap or a third referrer state starts writing both.
+ *
+ *  The two are disjoint at the source — `offsiteReferrerHost` returns `""` for a referrer on this
+ *  origin, which is the same test `onsite()` passes — so a violation here means that property has
+ *  been broken in code, not that the data is odd. It is the weakest check that would say so, in the
+ *  same spirit as the pairs above: L-103's lesson was that the number nobody computed was the one
+ *  that was wrong, so the arithmetic a reading actually performs is the arithmetic asserted. */
+export const DISJOINT_AXES = [
+  { axes: ["item_view_onsite", "item_view_referred"], of: "item_view" },
+  { axes: ["item_view_onsite_bot", "item_view_referred_bot"], of: "item_view_bot" },
 ];
 
 // The first WHOLE UTC day written under the split contract. The deploy landed during
@@ -76,6 +103,37 @@ export function violations(snapshot, options = {}) {
       const ofCount = days[day][of] ?? 0;
       if (axisCount > ofCount) {
         found.push({ day, axis, of, axisCount, ofCount, reading: ofCount - axisCount });
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * Every day on which a group of disjoint axes sums past the bucket it is subtracted from.
+ *
+ * Reported in the same shape as `violations`, with `axis` naming the group, so a caller can print
+ * both lists through `describeViolations` without knowing which check produced a row.
+ *
+ * @param {{ daily?: Array<{ day: string, name: string, count: number }> }} snapshot
+ * @param {{ from?: string, groups?: typeof DISJOINT_AXES }} [options]
+ * @returns {Array<{ day: string, axis: string, of: string, axisCount: number, ofCount: number, reading: number }>}
+ */
+export function sumViolations(snapshot, options = {}) {
+  const from = options.from ?? SPLIT_FROM;
+  const groups = options.groups ?? DISJOINT_AXES;
+  const found = [];
+  const days = byDay(snapshot?.daily);
+  for (const day of Object.keys(days).sort()) {
+    if (day < from) continue;
+    for (const { axes, of } of groups) {
+      // A group nothing wrote on this day is not a reading, exactly as an absent axis is not one
+      // above: absence means the names did not exist yet or nothing hit the surface.
+      if (!axes.some((name) => days[day][name] !== undefined)) continue;
+      const axisCount = axes.reduce((total, name) => total + (days[day][name] ?? 0), 0);
+      const ofCount = days[day][of] ?? 0;
+      if (axisCount > ofCount) {
+        found.push({ day, axis: axes.join(" + "), of, axisCount, ofCount, reading: ofCount - axisCount });
       }
     }
   }

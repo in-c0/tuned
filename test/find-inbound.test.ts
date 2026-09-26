@@ -288,6 +288,189 @@ describe("item_view_onsite", () => {
   });
 });
 
+// The axis `item_view_onsite` left undivided, and the reading it was hiding.
+//
+// `item_view - item_view_onsite` is published as "the off-site arrivals", and until this run that
+// number could not distinguish a crawler walking sitemap.xml from a person arriving on a search
+// result: the crawler sends no `Referer`, so it lands off the on-site axis exactly as the person
+// does. On 2026-09-26 the reading returned 517 in under five hours against 0 on each of the two
+// days before, with `item_view_bot` at 19 — so the loop's largest off-site reading ever had two
+// explanations and no way to choose between them. That is the whole point of these two axes.
+//
+// What is asserted here, and why each is separate:
+//
+//   1. THE PARTITION. Three referrer states, each writing exactly one of {onsite, referred,
+//      neither}. This is the property that makes the remainder ("no referrer at all") computable
+//      by subtraction, which is what actually answers the crawler question.
+//   2. THE SUBSET. `_search` never fires without `_referred`, and `_referred` fires without
+//      `_search` for any other site. An engine missing from the allowlist must still be visible.
+//   3. THE ALLOWLIST'S EDGES. A host boundary at both ends, because the obvious `includes` or
+//      `endsWith` implementations count `notgoogle.com` or `google.com.evil.test` as Google, and
+//      the header is caller-controlled.
+//   4. THE `_bot` SPLIT, on both axes, for the reason L-103 records: a reading that compares an
+//      axis against one side of the split needs the axis split too, or a crawler decrements the
+//      human count. Five of seven days were negative the last time this was got wrong.
+//   5. NO COUNTER NAME EVER CARRIES THE HOST. It comes from a header; a name interpolated from
+//      one would let any caller write arbitrary rows into metric_days.
+describe("item_view_referred and item_view_search", () => {
+  it("partitions a view into on-site, referred from elsewhere, or no referrer at all", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: `${ORIGIN}/sportstech` }); // ours
+    await get(`/sportstech/${one}`, { referer: "https://www.google.com/" }); // referred, search
+    await get(`/sportstech/${one}`, { referer: "https://news.ycombinator.com/" }); // referred, not search
+    await get(`/sportstech/${one}`); // no Referer — a crawler, a paste or a bookmark
+
+    expect(await counter("item_view")).toBe(4);
+    expect(await counter("item_view_onsite")).toBe(1);
+    expect(await counter("item_view_referred")).toBe(2);
+    expect(await counter("item_view_search")).toBe(1);
+
+    // The remainder is what the crawler question turns on, and it is a subtraction rather than a
+    // counter of its own: nothing should be written for "no referrer", or three names would have
+    // to agree instead of two.
+    const bucket = (await counter("item_view")) ?? 0;
+    const referrerless = bucket - ((await counter("item_view_onsite")) ?? 0) - ((await counter("item_view_referred")) ?? 0);
+    expect(referrerless).toBe(1);
+  });
+
+  it("keeps the two axes disjoint, so neither can exceed the bucket it is read against", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: `${ORIGIN}/` });
+    await get(`/sportstech/${one}`, { referer: "https://duckduckgo.com/" });
+
+    const bucket = (await counter("item_view")) ?? 0;
+    const on = (await counter("item_view_onsite")) ?? 0;
+    const ref = (await counter("item_view_referred")) ?? 0;
+    const search = (await counter("item_view_search")) ?? 0;
+
+    expect(on + ref).toBeLessThanOrEqual(bucket);
+    expect(search).toBeLessThanOrEqual(ref);
+    // An on-site click is never also a referred one, which is what makes the sum legal.
+    expect(on).toBe(1);
+    expect(ref).toBe(1);
+  });
+
+  it("counts an unlisted search engine as referred, so its arrivals are never invisible", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: "https://search.example-engine.test/?q=tuned" });
+
+    expect(await counter("item_view_referred")).toBe(1);
+    expect(await counter("item_view_search")).toBe(0);
+  });
+
+  it("recognises a search host on a subdomain and on a country domain", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    for (const referer of [
+      "https://www.google.com/",
+      "https://google.co.uk/",
+      "https://www.google.com.au/",
+      "https://search.brave.com/",
+      "https://lite.duckduckgo.com/",
+      "https://www.bing.com/search?q=tuned",
+      "https://search.yahoo.co.jp/",
+    ]) {
+      await get(`/sportstech/${one}`, { referer });
+    }
+
+    expect(await counter("item_view_search")).toBe(7);
+    expect(await counter("item_view_referred")).toBe(7);
+  });
+
+  it("is not fooled by a host that merely contains an allowlisted one", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    for (const referer of [
+      "https://notgoogle.com/",
+      "https://evil-google.com/",
+      "https://google.com.evil.test/",
+      "https://bing.com.attacker.test/",
+      "https://mygoogle.com.br.evil.test/",
+    ]) {
+      await get(`/sportstech/${one}`, { referer });
+    }
+
+    expect(await counter("item_view_referred")).toBe(5);
+    expect(await counter("item_view_search")).toBe(0);
+  });
+
+  it("treats a referrer that merely starts with our origin as off-site, not as ours", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: `${ORIGIN}.evil.test/sportstech` });
+
+    expect(await counter("item_view_onsite")).toBe(0);
+    expect(await counter("item_view_referred")).toBe(1);
+  });
+
+  it("writes nothing for an unparseable Referer, on either axis", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: "not a url" });
+
+    expect(await counter("item_view")).toBe(1);
+    expect(await counter("item_view_onsite")).toBe(0);
+    expect(await counter("item_view_referred")).toBe(0);
+    expect(await counter("item_view_search")).toBe(0);
+  });
+
+  it("carries the user-agent split on both axes, because both are read against one side of it", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: "https://www.google.com/", "user-agent": BOT_UA });
+
+    expect(await counter("item_view_referred_bot")).toBe(1);
+    expect(await counter("item_view_search_bot")).toBe(1);
+    // The names a human reading compares are untouched by a crawler.
+    expect(await counter("item_view_referred")).toBe(0);
+    expect(await counter("item_view_search")).toBe(0);
+  });
+
+  it("never writes a counter name carrying the referrer's host", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const one = await item(id);
+
+    await get(`/sportstech/${one}`, { referer: "https://attacker.test/" });
+
+    const { results } = await DB.prepare("SELECT DISTINCT name FROM metric_days").all<{ name: string }>();
+    const names = results.map((r) => r.name);
+    expect(names.some((n) => n.includes("attacker"))).toBe(false);
+    expect(names).toContain("item_view_referred");
+  });
+
+  // The counters this run did not touch, asserted rather than assumed. A discriminator added to one
+  // surface must not quietly appear on another: `feed_view` and `landing_view` have no referrer
+  // axis and no published reading that subtracts one, and they are deliberately left alone, so a
+  // later run reading `feed_view_referred` as zero must be able to tell "nobody" from "not built".
+  it("leaves the feed page and the landing page without a referrer axis", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    await item(id);
+
+    await get("/sportstech", { referer: "https://www.google.com/" });
+    await get("/", { referer: "https://www.google.com/" });
+
+    expect(await counter("feed_view_referred")).toBe(0);
+    expect(await counter("feed_view_search")).toBe(0);
+    expect(await counter("landing_view_referred")).toBe(0);
+    expect(await counter("landing_view_search")).toBe(0);
+    // The surfaces themselves still counted, so this is a statement about the axis and not about
+    // whether the request arrived.
+    expect(await counter("feed_view")).toBe(1);
+    expect(await counter("landing_view")).toBe(1);
+  });
+});
+
 describe("the permalink is reachable by something other than a mouse", () => {
   it("gives each permalink an accessible name that distinguishes it from the others", async () => {
     const id = await creator("sportstech", "Sports Tech");

@@ -92,6 +92,55 @@ function onsite(c: Context): boolean {
   }
 }
 
+/** The other half of the same header, which `onsite()` alone throws away.
+ *
+ *  `onsite()` answers one bit — *did this click come from us?* — and collapses everything else
+ *  into a single "not us", where a crawler that sends no `Referer` at all sits next to a person
+ *  who arrived from a search result. That is the whole population this loop is waiting for, and
+ *  on the surface it is waiting on it is currently one undivided number: the published reading
+ *  `item_view - item_view_onsite` is *"the off-site arrivals"*, and a sitemap crawl satisfies it
+ *  exactly as well as a search visitor does. On 2026-09-26 that reading returned **517** in under
+ *  five hours against 0 the day before, and nothing in the instrument can say which of the two it
+ *  was — see ops/METRICS.md and L-116.
+ *
+ *  Returns the lowercased host of a parseable `Referer` whose origin is not ours, and `""` for
+ *  every other case: no header, an unparseable one, or this site. So the three results partition
+ *  a view exactly once — on-site, referred from elsewhere, or arrived with no referrer at all —
+ *  and the axes built on them can never overlap or exceed their bucket.
+ *
+ *  Parsed, not prefix-matched, for the reason `onsite()` gives: `startsWith(origin)` counts
+ *  `https://justtuned.com.evil.test/` as this site. The comparison here is the same parsed-origin
+ *  test, so a host that merely begins with ours is off-site and is reported as such. */
+function offsiteReferrerHost(c: Context): string {
+  const ref = c.req.header("referer");
+  if (!ref) return "";
+  try {
+    const u = new URL(ref);
+    if (u.origin === new URL(c.req.url).origin) return "";
+    return u.hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+/** Which off-site referrers count as a search engine.
+ *
+ *  An ALLOWLIST, for the same reason `ARRIVAL_TAGS` is one: the host comes from a header a caller
+ *  controls, so it may never become part of a counter name. Nothing here is interpolated into a
+ *  metric name — the host is matched, and what gets written is one of two fixed strings.
+ *
+ *  Anchored on a host boundary at both ends. `(?:^|\.)` means `google.com` and `www.google.com`
+ *  match while `notgoogle.com` and `evil-google.com` do not, and the trailing `$` means
+ *  `google.com.evil.test` does not. Google's country domains are the one entry that needs a
+ *  pattern rather than a literal, because there are ~190 of them.
+ *
+ *  It is deliberately incomplete and that costs a reading nothing, because the wider axis sits
+ *  underneath it: an engine missing from this list still writes `item_view_referred`, so it shows
+ *  up as *somebody linked to us* and only its identity is lost. A name added here later changes
+ *  no earlier day's meaning, because `_referred` already counted it. */
+const SEARCH_REFERRERS =
+  /(?:^|\.)(?:google(?:\.[a-z]{2,3}){1,2}|bing\.com|duckduckgo\.com|ecosia\.org|startpage\.com|qwant\.com|mojeek\.com|marginalia\.nu|brave\.com|kagi\.com|yandex\.(?:com|ru)|baidu\.com|yahoo\.(?:com|co\.jp))$/;
+
 function newToken(): string {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
@@ -1492,6 +1541,32 @@ app.get("/:handle/:id", async (c) => {
   if (!item) return c.html(notFoundPage({ kind: "find", handle: creator.handle }), 404);
   const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
   const src = c.req.query("src") ?? "";
+  // The third and fourth results of the one header `item_view_onsite` reads, and the reason they
+  // are here rather than on any other surface: THIS is the only arrival counter in the product
+  // whose published reading SUBTRACTS a referrer axis. `item_view - item_view_onsite` has been
+  // published since run 165 as "the off-site arrivals", and it cannot tell a sitemap crawl from a
+  // search visitor, because a crawler sends no `Referer` and so lands off the axis exactly as a
+  // person arriving from Google does. On 2026-09-26 the reading returned 517 in under five hours
+  // against 0 on each of the two days before, and the loop had no way to say which. See L-116.
+  //
+  //   item_view_referred[_bot]   axis: the subset whose `Referer` parsed and named a host that is
+  //                              not ours. Disjoint from `item_view_onsite` by construction, so
+  //                              onsite + referred <= the bucket and the remainder is "arrived
+  //                              with no referrer at all" — a crawler, a paste, a bookmark, or a
+  //                              browser that stripped the header.
+  //   item_view_search[_bot]     axis: the subset of THAT whose host is an allowlisted search
+  //                              engine. A strict subset of `_referred`, never summed with it.
+  //
+  // Both carry the `_bot` split, because both are read by comparison against one side of it, and
+  // L-103 is the record of what a merged axis does to such a reading: five of seven days negative.
+  // Neither is a bucket and neither is summed into `item_view`, whose total is unchanged.
+  //
+  // Evidence and not proof, in the safe direction, on the same terms as `_onsite`: `Referer` is
+  // absent under `rel=noreferrer`, a privacy setting or an https-to-http downgrade, so a genuine
+  // search arrival can land off both axes and neither can invent one. And the header is
+  // caller-controlled, so it is also forgeable — which is why the host is matched against a fixed
+  // allowlist and never interpolated into a counter name.
+  const refHost = offsiteReferrerHost(c);
   track(
     c,
     countEach(c.env.DB, [
@@ -1499,6 +1574,8 @@ app.get("/:handle/:id", async (c) => {
       `item_view${suffix}:${creator.handle}`,
       ARRIVAL_TAGS.has(src) ? `arrival_item${suffix}:${src}` : "",
       onsite(c) ? `item_view_onsite${suffix}` : "",
+      refHost ? `item_view_referred${suffix}` : "",
+      refHost && SEARCH_REFERRERS.test(refHost) ? `item_view_search${suffix}` : "",
     ])
   );
   // The inbound links that stop eighty-seven sitemap entries from being eighty-seven orphans.

@@ -1421,6 +1421,75 @@ jobs:
           echo "${checked} page(s) graded across ${n_feeds} advertised feed(s); each offers every other feed with its age; ${first_feed}/rss.xml unchanged"
           echo "Feed-to-feed discovery: ${checked} page(s) each offer the other ${n_feeds} feed(s) with a stated age" >> "$GITHUB_STEP_SUMMARY"
 
+      # The referrer discriminator, graded on the one property production can break.
+      #
+      # `item_view_referred` and `item_view_search` label a find-page arrival from the `Referer`
+      # header, and the counters themselves are not readable here: this job deliberately holds no
+      # metrics key and asserts a few steps above that /api/metrics refuses it. What IS only
+      # checkable here is the half the unit suite cannot see — the suite builds the Request itself,
+      # so it can never discover that the edge stripped, rewrote or acted on the header, or that a
+      # classifier started varying the document it classifies.
+      #
+      # So the assertion is the property, not the count: a referred request must be answered
+      # **identically** to an unreferred one. `classify and never refuse` is stated on every other
+      # discriminator in src/index.ts and this is the one that reads a header a search engine sets —
+      # a find page that served a different document, or any non-200, to a visitor arriving from
+      # Google would be a rollback, and it is exactly the surface search indexes.
+      #
+      # Three fetches, not two, and the order is the point: unreferred, referred, unreferred. The
+      # page states a feed's age in whole days, so a run straddling a day boundary can legitimately
+      # change the body between the first and third fetch. Requiring the referred body to match
+      # EITHER unreferred sibling passes that case and still fails the only case under test, where
+      # the body varies by referrer and therefore matches neither. L-115: name the population, and
+      # do not let a check be exact only because of a fact nothing pins.
+      - name: A find page answers a visitor arriving from search exactly as it answers anyone else
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          find_url=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml \
+            | sed 's/<[^>]*>//g' \
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; } \
+            | sed -n '1p')
+          [ -n "$find_url" ] || { echo "::error::no find page in the sitemap to grade the referrer discriminator on"; exit 1; }
+          path="${find_url#https://justtuned.com}"
+
+          code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/ref-before.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code with no Referer"; exit 1; }
+
+          # The referred request. A real search host, so `item_view_search_bot` is the name it
+          # writes — the first-party user-agent keeps every increment out of the human series.
+          ctype=$(REFERER='https://www.google.com/' scripts/prod-http.sh headers "${BASE}${path}" /tmp/ref.head 'text/html')
+          code=$(REFERER='https://www.google.com/' scripts/prod-http.sh get "${BASE}${path}" /tmp/ref.html 'text/html')
+          [ "$code" = "200" ] || {
+            echo "::error::${path} returned HTTP $code to a request carrying Referer: https://www.google.com/ — the find page is refusing the arrivals search sends it. Roll back."
+            exit 1
+          }
+          [ "$ctype" = "200" ] || { echo "::error::${path} header request with a Referer returned HTTP $ctype"; exit 1; }
+          grep -qi '^content-type: *text/html' /tmp/ref.head \
+            || { echo "::error::${path} is not served as text/html to a referred visitor"; exit 1; }
+
+          code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/ref-after.html 'text/html')
+          [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code on the second unreferred read"; exit 1; }
+
+          ref=$(sha256sum < /tmp/ref.html | cut -d' ' -f1)
+          before=$(sha256sum < /tmp/ref-before.html | cut -d' ' -f1)
+          after=$(sha256sum < /tmp/ref-after.html | cut -d' ' -f1)
+          if [ "$ref" != "$before" ] && [ "$ref" != "$after" ]; then
+            echo "::error::${path} serves a DIFFERENT document to a visitor arriving from a search engine (referred ${ref:0:12}, unreferred ${before:0:12}/${after:0:12}). A discriminator must label and never change the page. Roll back."
+            exit 1
+          fi
+
+          # And the page is still the page: a document that became identical by becoming empty
+          # would satisfy the comparison above and nothing else.
+          grep -q 'rel="canonical"' /tmp/ref.html \
+            || { echo "::error::${path} served no canonical to a referred visitor"; exit 1; }
+          grep -q 'id="follow-btn"' /tmp/ref.html \
+            || { echo "::error::${path} served no follow affordance to a referred visitor"; exit 1; }
+
+          echo "${path}: HTTP 200 text/html to a Referer from www.google.com, byte-identical to the unreferred document (${ref:0:12})"
+          echo "Referrer discriminator: \`${path}\` answers a search arrival identically (\`${ref:0:12}\`)" >> "$GITHUB_STEP_SUMMARY"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's
