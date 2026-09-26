@@ -1430,18 +1430,38 @@ jobs:
       # so it can never discover that the edge stripped, rewrote or acted on the header, or that a
       # classifier started varying the document it classifies.
       #
-      # So the assertion is the property, not the count: a referred request must be answered
-      # **identically** to an unreferred one. `classify and never refuse` is stated on every other
-      # discriminator in src/index.ts and this is the one that reads a header a search engine sets —
-      # a find page that served a different document, or any non-200, to a visitor arriving from
+      # So the assertion is the property, not the count: a referred request must be answered the
+      # same way as an unreferred one. `classify and never refuse` is stated on every other
+      # discriminator in src/index.ts, and this is the one that reads a header a search engine sets
+      # — a find page that served a different document, or any non-200, to a visitor arriving from
       # Google would be a rollback, and it is exactly the surface search indexes.
+      #
+      # WHAT "THE SAME" MAY MEAN HERE, ESTABLISHED THE HARD WAY. The first version of this step
+      # compared whole-document sha256 and went red on its own deploy
+      # (36276980286): referred 4e63f912, unreferred fbb61497 **and** 8b995bd2 — the two
+      # UNREFERRED reads differed from each other, three seconds apart, on a commit whose entire
+      # runtime diff was a pure function and two counter-name strings. No code path can make two
+      # identical requests differ, so the claim was false rather than the deploy faulty: **an HTML
+      # body served from this zone is not byte-stable across requests.** L-115 again, and this time
+      # in a check written the same hour — a comparison can be exact locally because of a fact about
+      # the SERVER that production does not hold.
+      #
+      # The subject is therefore Tuned's own markup, taken as the document with every
+      # `<script>…</script>` removed. Cloudflare's per-response injections are script elements and
+      # this service's own inline script is byte-identical on every request, so stripping all of
+      # them removes the volatility and none of the content under test. The stripped comparison is
+      # run BOTH ways, which is what keeps it honest: unreferred-vs-unreferred must also match, so
+      # a page that became unstable for some reason other than a referrer is reported as exactly
+      # that and never as a referrer defect.
       #
       # Three fetches, not two, and the order is the point: unreferred, referred, unreferred. The
       # page states a feed's age in whole days, so a run straddling a day boundary can legitimately
       # change the body between the first and third fetch. Requiring the referred body to match
-      # EITHER unreferred sibling passes that case and still fails the only case under test, where
-      # the body varies by referrer and therefore matches neither. L-115: name the population, and
-      # do not let a check be exact only because of a fact nothing pins.
+      # EITHER unreferred sibling passes that case and still fails the only case under test.
+      #
+      # Sizes and script counts are reported on every run, and no response body is ever printed —
+      # scripts/prod-http.sh's contract. A difference is localised by the offset of the first
+      # differing byte, which says where to look without emitting what is there.
       - name: A find page answers a visitor arriving from search exactly as it answers anyone else
         env:
           BASE: ${{ steps.vantage.outputs.base }}
@@ -1472,23 +1492,60 @@ jobs:
           code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/ref-after.html 'text/html')
           [ "$code" = "200" ] || { echo "::error::${path} returned HTTP $code on the second unreferred read"; exit 1; }
 
-          ref=$(sha256sum < /tmp/ref.html | cut -d' ' -f1)
-          before=$(sha256sum < /tmp/ref-before.html | cut -d' ' -f1)
-          after=$(sha256sum < /tmp/ref-after.html | cut -d' ' -f1)
-          if [ "$ref" != "$before" ] && [ "$ref" != "$after" ]; then
-            echo "::error::${path} serves a DIFFERENT document to a visitor arriving from a search engine (referred ${ref:0:12}, unreferred ${before:0:12}/${after:0:12}). A discriminator must label and never change the page. Roll back."
+          # Tuned's own markup: the document minus every script element.
+          for f in ref-before ref ref-after; do
+            perl -0777 -pe 's{<script\b.*?</script>}{}gsi' "/tmp/${f}.html" > "/tmp/${f}.stripped"
+          done
+          sum () { sha256sum < "$1" | cut -d' ' -f1; }
+          ref=$(sum /tmp/ref.stripped); before=$(sum /tmp/ref-before.stripped); after=$(sum /tmp/ref-after.stripped)
+
+          # Reported every run, red or green: the raw sizes and script counts are the record of how
+          # volatile the delivered document is, and the only way a later run can see it move.
+          report=""
+          for f in ref-before ref ref-after; do
+            report="${report}${f}=$(wc -c < "/tmp/${f}.html")/$(wc -c < "/tmp/${f}.stripped")B,$({ grep -oi '<script' "/tmp/${f}.html" || true; } | wc -l | tr -d ' ')s "
+          done
+          echo "sizes raw/stripped and script counts: ${report}"
+
+          # GNU cmp says "char N" and BSD cmp says "byte N"; both are a 1-based byte offset, and
+          # matching only one of them is how the first draft of this printed an empty string where
+          # the diagnosis was supposed to be.
+          localise () {
+            cmp "$1" "$2" 2>&1 | sed -n '1s/.*\(char\|byte\) \([0-9]*\).*/first difference at byte \2/p' || true
+          }
+
+          if [ "$before" != "$after" ]; then
+            echo "::error::${path} served two DIFFERENT documents to two identical unreferred requests (${before:0:12} then ${after:0:12}), with scripts already stripped. This is not a referrer defect and this step cannot grade one until it is understood. $(localise /tmp/ref-before.stripped /tmp/ref-after.stripped)"
+            exit 1
+          fi
+          if [ "$ref" != "$before" ]; then
+            echo "::error::${path} serves a DIFFERENT document to a visitor arriving from a search engine (referred ${ref:0:12}, unreferred ${before:0:12}, scripts stripped, unreferred pair stable). A discriminator must label and never change the page. Roll back. $(localise /tmp/ref-before.stripped /tmp/ref.stripped)"
             exit 1
           fi
 
           # And the page is still the page: a document that became identical by becoming empty
           # would satisfy the comparison above and nothing else.
-          grep -q 'rel="canonical"' /tmp/ref.html \
+          grep -q 'rel="canonical"' /tmp/ref.stripped \
             || { echo "::error::${path} served no canonical to a referred visitor"; exit 1; }
-          grep -q 'id="follow-btn"' /tmp/ref.html \
+          grep -q 'id="follow-btn"' /tmp/ref.stripped \
             || { echo "::error::${path} served no follow affordance to a referred visitor"; exit 1; }
+          # `|| true` on every counting grep, and it is not cosmetic: with `set -o pipefail` a
+          # grep that matches nothing fails the whole assignment and kills the step before it can
+          # say what it found. The first draft of this step died exactly there, silently, with a
+          # bare exit 1 and no message — which is the one failure mode a rollback trigger may not
+          # have, because "the guard crashed" and "the site regressed" then look identical.
+          n_cards=$({ grep -o 'class="card-permalink"' /tmp/ref.stripped || true; } | wc -l | tr -d ' ')
+          # The other-feeds block, by the same site-relative-href test steps 28-29 use: an item card
+          # and a directory card share the `card-link` class and are told apart by where they point,
+          # which is L-115's rule about naming the population rather than the selector.
+          grep -q 'class="other-feeds"' /tmp/ref.stripped \
+            || { echo "::error::${path} served no other-feeds block to a referred visitor — the arrival search sends us would be sealed in one feed. Roll back."; exit 1; }
+          n_feeds=$({ grep -o 'class="card-link" href="/' /tmp/ref.stripped || true; } | wc -l | tr -d ' ')
+          [ "$n_feeds" -ge 1 ] \
+            || { echo "::error::${path} carries an other-feeds heading with no feed in it. Roll back."; exit 1; }
 
-          echo "${path}: HTTP 200 text/html to a Referer from www.google.com, byte-identical to the unreferred document (${ref:0:12})"
-          echo "Referrer discriminator: \`${path}\` answers a search arrival identically (\`${ref:0:12}\`)" >> "$GITHUB_STEP_SUMMARY"
+          echo "${path}: HTTP 200 text/html to a Referer from www.google.com; Tuned's own markup identical to the unreferred document (${ref:0:12}), ${n_cards} sibling find(s), ${n_feeds} other feed(s)"
+          echo "Referrer discriminator: \`${path}\` answers a search arrival identically in Tuned's own markup (\`${ref:0:12}\`, ${n_feeds} other feed(s))" >> "$GITHUB_STEP_SUMMARY"
 
       # Last, and deliberately able to fail a job in which every check above passed.
       #
