@@ -1660,6 +1660,71 @@ export type ShareState =
   | { status: "duplicate"; item: Item }
   | { status: "nourl"; raw: string };
 
+/** What a stranger is shown at an address this site has nothing at.
+ *
+ * WHY THIS IS A PUBLIC SURFACE AND NOT AN ERROR PATH. Every RSS item this service has ever
+ * delivered carries a permanent link back to its find page — `rssFeed` puts
+ * "Provenance on Tuned →" into the item description, and a reader keeps that description
+ * forever. `retract` (src/operator.ts) is the rollback the operating record's deployment gates
+ * require for a publication, and it works by setting `visibility='hidden'`, which makes
+ * `GET /:handle/:id` stop resolving. So the moment a publication is correctly reversed, every
+ * subscriber already holding the link — and every search result pointing at it, from a sitemap
+ * this service published — resolves to this response. Until now that response was
+ * `c.text("No such find", 404)`: twelve bytes of plain text, no navigation, no way back to the
+ * feed the reader had subscribed to. The rollback was sound on the feed and stranded the one
+ * kind of visitor this funnel can currently produce.
+ *
+ * WHAT IT MAY AND MAY NOT SAY. It does not claim which of these happened. A find page can be
+ * absent because it never existed, because the agent retracted it, or because the owner vetoed
+ * it from their studio, and this renderer cannot tell those apart without asserting something
+ * about a human's act — so the copy is the disjunction and nothing narrower.
+ *
+ * NO CANONICAL, NO OPEN GRAPH, AND `noindex`. `socialHead` is deliberately NOT called here.
+ * Every other public page wants to be indexed and says so with a self-referential canonical; a
+ * 404 that carried one would be this site asking a crawler to index an address it just said has
+ * nothing at it. The status stays 404 for the same reason — an HTML body on a 200 is a soft 404,
+ * which is worse than the plain text it replaces, because it also pollutes the index.
+ *
+ * `handle` is rendered ONLY where the caller resolved it against `creators` first. An unknown
+ * handle is never reflected: `esc` would make it safe, but a 404 that repeats arbitrary input is
+ * a surface with no reason to exist.
+ */
+export function notFoundPage(o: { kind: "find" | "feed" | "page"; handle?: string }): string {
+  const line =
+    o.kind === "find"
+      ? "Nothing is published at this address. This find was either never here, or it has since been withdrawn."
+      : o.kind === "feed"
+        ? "There is no feed at this address."
+        : "There is no page at this address.";
+  const feedLink =
+    o.kind === "find" && o.handle
+      ? `<a class="btn" href="/${esc(o.handle)}">What @${esc(o.handle)} is paying attention to →</a>`
+      : "";
+  // `display:inline-block` is set here rather than on `.btn`, which is shared with four other
+  // pages and where a global change would move layout nobody asked to move. Without it an
+  // anchor is inline, vertical padding does not grow the line box, and the two buttons overlap
+  // on a narrow viewport once the first one wraps — a defect no assertion about the document
+  // could see, and the reason this page was photographed at 390px before it shipped.
+  const body = `
+  <div class="site-top">
+    <a class="wordmark" href="/"><b>·</b> ${esc(BRAND.toLowerCase())}</a>
+  </div>
+  <div class="empty" style="padding:60px 0 24px;font-size:15px">${esc(line)}</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+    ${feedLink}
+    <a class="btn" href="/">See the feeds on ${esc(BRAND)} →</a>
+  </div>
+  <footer><a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>`;
+  return layout(
+    `Not found — ${BRAND}`,
+    "#7c6cff",
+    body,
+    "",
+    `<meta name="robots" content="noindex">
+<style>.wrap .btn { display: inline-block; text-align: center; }</style>`
+  );
+}
+
 export function sharePage(creator: Creator, token: string, state: ShareState): string {
   const studio = `/studio/${esc(token)}`;
   let main: string;
