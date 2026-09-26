@@ -1057,6 +1057,72 @@ jobs:
           echo "${path}: HTTP 200, provenance block present, canonical ${canon}; ${finds} find pages in the sitemap"
           echo "Find pages: ${finds} in the sitemap; \`${path}\` serves one" >> "$GITHUB_STEP_SUMMARY"
 
+      # The exact twin of the step above, on the other side of the same claim. That step proves the
+      # sitemap advertises no 404s. This one proves that when a 404 DOES happen — and it happens by
+      # design, every time `agent operator` retracts a publication — the reader who followed an
+      # already-delivered RSS link gets a page and not twelve bytes of plain text.
+      #
+      # Why it is graded from production rather than left to the unit suite: the unit suite renders
+      # the routes, and the failure mode that costs something here is a soft 404. An HTML body on a
+      # 200 satisfies "it is a page", passes every rendering test, and asks a crawler to index an
+      # address this site just said has nothing at it. Only a real response carries the status.
+      #
+      # Both addresses are DERIVED from /sitemap.xml, like the step above: a handle this site
+      # publishes, mutated into one it does not, and an id past every row it has. A page class
+      # registered later is graded without being named here.
+      - name: An address with nothing at it answers as a page, and still as a 404
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          find_url=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml \
+            | sed 's/<[^>]*>//g' \
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; } \
+            | sed -n '1p')
+          [ -n "$find_url" ] || { echo "::error::no find page in the sitemap to derive an absent sibling from"; exit 1; }
+          handle=$(printf '%s' "${find_url#https://justtuned.com/}" | cut -d/ -f1)
+          absent_find="/${handle}/99999999"
+          absent_feed="/${handle}-not-a-feed"
+
+          fail_soft () {
+            echo "::error::$1 answered HTTP $2 with an HTML body — a soft 404. It is now asking every crawler to index an address with nothing at it. Roll back."
+            exit 1
+          }
+
+          # 1. A withdrawn or never-published find, on a feed that does exist.
+          ctype=$(scripts/prod-http.sh headers "${BASE}${absent_find}" /tmp/nf.head 'text/html')
+          code=$(scripts/prod-http.sh get "${BASE}${absent_find}" /tmp/nf.html 'text/html')
+          [ "$code" = "404" ] || { [ "$code" = "200" ] && fail_soft "$absent_find" "$code"; echo "::error::${absent_find} returned HTTP $code, expected 404"; exit 1; }
+          [ "$ctype" = "404" ] || { echo "::error::${absent_find} header request returned HTTP $ctype"; exit 1; }
+          grep -qi '^content-type: *text/html' /tmp/nf.head \
+            || { echo "::error::${absent_find} is not served as text/html — a reader who followed a retracted find's RSS link gets a dead end"; exit 1; }
+          grep -q 'href="/"' /tmp/nf.html \
+            || { echo "::error::${absent_find} offers no way back to the site. Roll back."; exit 1; }
+          grep -q '<meta name="robots" content="noindex">' /tmp/nf.html \
+            || { echo "::error::${absent_find} is missing robots noindex"; exit 1; }
+          grep -q 'rel="canonical"' /tmp/nf.html \
+            && { echo "::error::${absent_find} declares a canonical — a 404 must not ask to be indexed. Roll back."; exit 1; }
+          grep -q "href=\"/${handle}\"" /tmp/nf.html \
+            || { echo "::error::${absent_find} does not offer @${handle}'s feed, which is the feed the reader had subscribed to"; exit 1; }
+
+          # 2. A handle this site has no feed at.
+          code=$(scripts/prod-http.sh get "${BASE}${absent_feed}" /tmp/nfeed.html 'text/html')
+          [ "$code" = "404" ] || { [ "$code" = "200" ] && fail_soft "$absent_feed" "$code"; echo "::error::${absent_feed} returned HTTP $code, expected 404"; exit 1; }
+          grep -qi '<!doctype html' /tmp/nfeed.html \
+            || { echo "::error::${absent_feed} is not a page"; exit 1; }
+          grep -q 'href="/"' /tmp/nfeed.html \
+            || { echo "::error::${absent_feed} offers no way back to the site"; exit 1; }
+
+          # 3. The machine half. A feed client asked for XML; answering with a page is not useful to
+          # it, and the split under test is the surface rather than the status.
+          code=$(scripts/prod-http.sh get "${BASE}${absent_feed}/rss.xml" /tmp/nfrss.txt 'application/rss+xml')
+          [ "$code" = "404" ] || { echo "::error::${absent_feed}/rss.xml returned HTTP $code, expected 404"; exit 1; }
+          grep -qi '<!doctype html' /tmp/nfrss.txt \
+            && { echo "::error::${absent_feed}/rss.xml is answering a feed reader with an HTML page"; exit 1; }
+
+          echo "${absent_find}: 404 text/html, noindex, no canonical, offers /${handle}; ${absent_feed}: 404 page; ${absent_feed}/rss.xml: 404 non-HTML"
+          echo "Absent addresses answer as pages and still as 404s (\`${absent_find}\`, \`${absent_feed}\`)" >> "$GITHUB_STEP_SUMMARY"
+
       # The edge INTO the find pages, which is a different claim from the one above.
       #
       # The step above proves a find page exists and that the sitemap points at it. It says nothing

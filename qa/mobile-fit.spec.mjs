@@ -159,15 +159,28 @@ test.describe("every public page fits a phone", () => {
     const step = Math.max(1, Math.ceil(finds.length / FIND_SAMPLE));
     const findSample = finds.filter((_, i) => i % step === 0).slice(0, FIND_SAMPLE);
 
-    const visiting = [...landing, ...singles, ...findSample];
+    // The address a sitemap can never advertise, and which this spec's own heading nonetheless
+    // covers: since run 195 a public 404 is a rendered page, not twelve bytes of plain text — it
+    // is where a reader who followed a retracted find's RSS link arrives. It is derived here the
+    // same way every other path is, by mutating a handle this site publishes into one it does
+    // not, so nothing about it is typed. It was added because its first render overlapped its own
+    // two buttons at 390px while every document-level assertion about it passed.
+    const absent = [];
+    if (singles.length) absent.push({ path: `${singles[0]}-not-a-feed`, status: 404 });
+    if (finds.length) absent.push({ path: `${finds[0].split("/")[1] ? "/" + finds[0].split("/")[1] : ""}/99999999`, status: 404 });
+
+    const visiting = [
+      ...[...landing, ...singles, ...findSample].map((path) => ({ path, status: 200 })),
+      ...absent.filter((a) => a.path.startsWith("/") && a.path !== "/99999999"),
+    ];
     expect(visiting.length, "nothing to visit — the sitemap parse is wrong").toBeGreaterThan(0);
 
     // --- measure each one -------------------------------------------------------------------------
     const readings = [];
-    for (const p of visiting) {
+    for (const { path: p, status } of visiting) {
       const res = await page.goto(p, { waitUntil: "load" });
       expect(res, `no response for GET ${p}`).not.toBeNull();
-      expect(res.status(), `GET ${p} status`).toBe(200);
+      expect(res.status(), `GET ${p} status`).toBe(status);
       const m = await measure(page, deviceWidth);
       readings.push({ path: p, ...m });
       if (m.zoomedOut || m.scrollsSideways || m.overEdge) {
@@ -186,7 +199,13 @@ test.describe("every public page fits a phone", () => {
       viewport: testInfo.project.use.viewport,
       target: target.origin,
       sitemapUrls: locs.length,
-      visited: { landing: landing.length, singles: singles.length, finds: findSample.length, total: visiting.length },
+      visited: {
+        landing: landing.length,
+        singles: singles.length,
+        finds: findSample.length,
+        absent: visiting.filter((v) => v.status === 404).length,
+        total: visiting.length,
+      },
       findsInSitemap: finds.length,
       brokenCount: broken.length,
       broken,

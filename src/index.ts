@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { resolveLink } from "./meta";
-import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, BRAND, CATEGORIES, type Creator, type Item, type LandingFeed, type ShareState, type FeedViewer } from "./pages";
+import { publicPage, itemPage, studioPage, landingPage, rssFeed, sharePage, setupPage, notFoundPage, BRAND, CATEGORIES, type Creator, type Item, type LandingFeed, type ShareState, type FeedViewer } from "./pages";
 import { termsPage, privacyPage } from "./legal";
 import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
@@ -1268,7 +1268,7 @@ app.get("/:handle", async (c) => {
   const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators WHERE handle = ?")
     .bind(handle)
     .first<Creator>();
-  if (!creator) return c.text("No such feed", 404);
+  if (!creator) return c.html(notFoundPage({ kind: "feed" }), 404);
   // `feed_view` itself is untouched — same name, same event, so the ten-day series stays
   // comparable across this deploy and the split is additive rather than a replacement.
   const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
@@ -1456,14 +1456,17 @@ app.get("/:handle/:id", async (c) => {
   const creator = await c.env.DB.prepare("SELECT id, handle, name, bio, avatar_url, accent, kind, created_at FROM creators WHERE handle = ?")
     .bind(handle)
     .first<Creator>();
-  if (!creator) return c.text("No such feed", 404);
+  if (!creator) return c.html(notFoundPage({ kind: "feed" }), 404);
   const item = await c.env.DB.prepare(
     `SELECT i.*, v.handle AS via_handle FROM items i LEFT JOIN creators v ON v.id = i.via_creator_id
       WHERE i.id = ? AND i.creator_id = ? AND i.visibility = 'public'`
   )
     .bind(Number(id), creator.id)
     .first<Item>();
-  if (!item) return c.text("No such find", 404);
+  // The retraction case, and the reason `notFoundPage` exists: this is where a reader who
+  // followed a link out of an RSS item lands after that item is withdrawn. The feed is known to
+  // exist here — the creator row resolved one statement above — so the way back is offered.
+  if (!item) return c.html(notFoundPage({ kind: "find", handle: creator.handle }), 404);
   const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
   const src = c.req.query("src") ?? "";
   track(
@@ -1664,6 +1667,21 @@ app.post("/:handle/desk", async (c) => {
     ])
   );
   return c.redirect("/today", 303);
+});
+
+// Everything this Worker does not route. Hono's default is the bare text "404 Not Found", which
+// is what `/<handle>/<malformed-id>` and every mistyped public path served until now.
+//
+// The split is the surface, not the status. A page a person could have arrived at gets the HTML
+// page; an API, a capability URL or a document a machine asked for keeps a plain-text body,
+// because an HTML error page is not a useful answer to a client that asked for JSON or XML and
+// `isPrivatePath` is already the single list those surfaces are defined by (src/crawl.ts).
+// `/<handle>/rss.xml` for a feed that does not exist is deliberately in the machine half too:
+// its caller is a feed reader.
+app.notFound((c) => {
+  const path = new URL(c.req.url).pathname;
+  const machine = isPrivatePath(path) || /\.(xml|json|txt|js|webmanifest)$/i.test(path);
+  return machine ? c.text("Not found", 404) : c.html(notFoundPage({ kind: "page" }), 404);
 });
 
 app.onError((err, c) => {
