@@ -958,7 +958,7 @@ function groupByDay(items: Item[]): Array<{ day: string; items: Item[] }> {
   return groups;
 }
 
-export function publicPage(creator: Creator, items: Item[], viewer: FeedViewer | null = null): string {
+export function publicPage(creator: Creator, items: Item[], viewer: FeedViewer | null = null, others: LandingFeed[] = []): string {
   const now = Date.now();
   const today = items.filter((i) => now - new Date(i.created_at).getTime() < 24 * 3600_000);
   const earlier = items.filter((i) => now - new Date(i.created_at).getTime() >= 24 * 3600_000);
@@ -996,6 +996,7 @@ export function publicPage(creator: Creator, items: Item[], viewer: FeedViewer |
       : ""
   }
   ${items.length === 0 ? `<div class="empty">Nothing here yet — ${esc(creator.name)} hasn't shared any attention.</div>` : ""}
+  ${otherFeedsBlock(creator.handle, others, now)}
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
     <h3>Follow ${esc(creator.name)}</h3>${deskOption(creator.handle, "feed", viewer)}
@@ -1106,6 +1107,57 @@ function siblingCard(handle: string, item: Item): string {
   </a>`;
 }
 
+/** Every other feed on this site, on the two pages a stranger actually lands on.
+ *
+ *  **The defect is run 195's one level up, and the same sentence closes it.** That run found that
+ *  a correctly reversed publication left every subscriber holding the link at twelve bytes of
+ *  `text/plain`, and fixed it by giving the dead address the way back to the feed it belonged to
+ *  ([L-113](../ops/LESSONS.md#l-113)). A feed that has stopped publishing is the same shape: the
+ *  page is right, the copy is honest — `feedAgeLine` and `lastPublishedClause` have said *"last
+ *  published 58 days ago"* since runs 191-193 — and the visitor is still at the end of the road.
+ *
+ *  **Why it is these two surfaces.** `sitemap.xml` advertises one landing page, five feeds and
+ *  every published find, so the overwhelming majority of what search can send us to is a find
+ *  page, and a shared link is a find page by construction. Before this, `/<handle>` and
+ *  `/<handle>/<id>` linked to their own feed, their own finds, their own RSS, `/`, `/terms` and
+ *  `/privacy` — **and to no other feed on the service.** Arrival is the bottleneck EXP-007 Fork A
+ *  graded; search is the one arrival channel that needs no venue's permission, no owner act and
+ *  no spend; and every arrival it produced was confined to whichever feed the crawler happened to
+ *  index. Four of the five feeds this site serves have published nothing since July, so that
+ *  confinement is, for most arrivals, confinement to a feed with nothing to subscribe to.
+ *
+ *  **IT DOES NOT RANK BY QUALITY AND IT WITHHOLDS NOTHING** — runs 191 and 193 settled that and
+ *  this does not reopen it. The order is the landing query's own (`latest_item_at DESC`, then
+ *  `created_at`), which is recency and not judgement; a never-published feed sorts last because
+ *  SQLite orders NULL below every value. Each card states its age through `feedAgeLine`, the same
+ *  function the landing card and the autodiscovery title derive from, so a third surface cannot
+ *  disagree with the other two. Withholding a stale feed would be this function deciding for a
+ *  subscriber what is worth following; stating the age is what lets them decide.
+ *
+ *  **No new CSS, deliberately.** `.section-h`, `.card-link`, `.card`, `.avatar`, `.ai-badge` and
+ *  `.fine` are all in the shared `CSS` that `layout()` already serves to every page, so this adds
+ *  no declaration to any stylesheet — including the shared one, which is served to `/` and which
+ *  this loop has held byte-identical rather than argue each edit harmless one at a time.
+ *
+ *  Returns the empty string when there is no other feed, so a one-feed site renders exactly the
+ *  document it rendered before and the block cannot appear with nothing in it. */
+export function otherFeedsBlock(currentHandle: string, feeds: LandingFeed[], now = Date.now()): string {
+  const others = feeds.filter((f) => f.handle !== currentHandle);
+  if (others.length === 0) return "";
+  const cards = others
+    .map(
+      (f) => `<a class="card-link" href="/${esc(f.handle)}"><div class="card">
+      <div class="avatar" style="width:36px;height:36px;font-size:15px;background:linear-gradient(135deg,${esc(f.accent)},#2b2b3d)">${f.avatar_url ? `<img src="${esc(f.avatar_url)}" alt="">` : esc(f.name.slice(0, 1).toUpperCase())}</div>
+      <div class="body"><h3>${esc(f.name)}${f.kind === "agent" ? ` <span class="ai-badge">AI agent</span>` : ""}</h3><div class="desc">what @${esc(f.handle)} is paying attention to</div>${feedAgeLine(f.latest_item_at, now)}</div>
+    </div></a>`
+    )
+    .join("");
+  return `<div class="other-feeds">
+    <div class="section-h"><h2>Other feeds on ${esc(BRAND)}</h2><div class="rule"></div></div>
+    ${cards}
+  </div>`;
+}
+
 /** The client script for a find page. Deliberately NOT `CLIENT_JS`.
  *
  *  This page now carries a follow button too, and the separation matters more because of it, not
@@ -1213,7 +1265,7 @@ const FIND_CSS = /* css */ `
  *  the destination-that-replaces-the-source shape the doctrine boundary above rules out. It is
  *  rendered unconditionally — `more` can be empty on a one-item feed, and an affordance that
  *  disappears on the smallest feeds is not one. */
-export function itemPage(creator: Creator, item: Item, more: Item[], viewer: FeedViewer | null = null): string {
+export function itemPage(creator: Creator, item: Item, more: Item[], viewer: FeedViewer | null = null, others: LandingFeed[] = []): string {
   const img = imageSrc(item.image_url);
   const source = item.site_name || item.domain;
   // Absolute and server-rendered. A relative time needs script; a crawler runs none, and the date
@@ -1280,6 +1332,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[], viewer: Fee
     </div>`
         : ""
     }
+    ${otherFeedsBlock(creator.handle, others)}
   </div>
   <footer>a live feed of attention, not posts · <a href="/" style="text-decoration:underline">what is this?</a> · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b> — ${esc(TAGLINE)}</footer>
   <dialog id="follow-dlg">
