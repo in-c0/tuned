@@ -1306,10 +1306,44 @@ jobs:
           # The card itself must still open the source. If a permalink ever becomes the card's own
           # href, every click on the only conversion surface lands on Tuned instead of the thing
           # the member was paying attention to — a worse outcome than having no permalink at all.
-          if grep -q '<a class="card-link" href="/' /tmp/feed-inbound.html; then
-            echo "::error::a feed card on /${handle} now links to Tuned rather than to its source. Roll back."
-            exit 1
-          fi
+          #
+          # IT IS SPLIT BY POPULATION, and the single grep it replaces is why. That grep asked the
+          # whole document for any `.card-link` with a site-relative href, which was an exact
+          # statement of the property for as long as every `.card-link` on this page was a find.
+          # Run 196 put the feed directory on this surface, whose cards are `.card-link` anchors
+          # pointing at `/<handle>` **by design** — they are feeds, not finds — so the old grep
+          # could no longer tell "an item card now points at Tuned" from "the directory points at
+          # a feed", and it failed the deploy that introduced the second one while the first was
+          # still true of all thirty item cards. Splitting the document at the directory and
+          # grading each half for what it is supposed to be is STRONGER than the grep it replaces:
+          # the item half must be entirely off-site rather than merely not-slash-prefixed, and the
+          # directory half is now graded at all.
+          python3 - "$handle" <<'PY' || exit 1
+          import re, sys
+          handle = sys.argv[1]
+          html = open("/tmp/feed-inbound.html", encoding="utf-8", errors="replace").read()
+          body = html[html.find("<body"):]
+          cut = body.find('<div class="other-feeds">')
+          items, directory = (body[:cut], body[cut:]) if cut >= 0 else (body, "")
+          href = re.compile(r'<a class="card-link" href="([^"]+)"')
+          item_links = href.findall(items)
+          if not item_links:
+              print("::error::/%s has no item cards at all — this check would pass vacuously" % handle)
+              sys.exit(1)
+          inward = [h for h in item_links if not h.startswith(("http://", "https://"))]
+          if inward:
+              print("::error::a feed card on /%s now links to Tuned rather than to its source (%s). "
+                    "Every click on the only conversion surface would land here instead of on the "
+                    "thing the member was paying attention to. Roll back." % (handle, inward[0]))
+              sys.exit(1)
+          outward = [h for h in href.findall(directory) if h.startswith(("http://", "https://"))]
+          if outward:
+              print("::error::/%s's feed directory links off-site (%s); its cards are feeds on this "
+                    "service and must stay on it" % (handle, outward[0]))
+              sys.exit(1)
+          print("/%s: %d item card(s), all off-site; %d directory card(s), all on-site"
+                % (handle, len(item_links), len(href.findall(directory))))
+          PY
           first=$(printf '%s\n' "$links" | sed -n '1p')
           code=$(scripts/prod-http.sh get "${BASE}${first}" /tmp/inbound-find.html 'text/html')
           [ "$code" = "200" ] || { echo "::error::permalink ${first} on /${handle} returns HTTP $code"; exit 1; }

@@ -5046,3 +5046,50 @@ live sitemap, so a public page class registered later is graded without being na
 derivation is itself graded so an empty list cannot pass vacuously. `verify production` step *"A feed
 that stopped publishing still offers the ones that have not"* makes the same reading against the
 deployed site and is the rollback signal.
+
+---
+
+## L-115 — a check can be exact today because of a fact about the page that nothing pins (2026-09-26, run 196)
+
+**Problem.** `verify production` went red on [`74803de`](https://github.com/in-c0/tuned/commit/74803de)
+at step 28 — *"a feed card on /sportstech now links to Tuned rather than to its source. Roll back."*
+It did not. All thirty item cards still carried their source's absolute URL. The deploy was healthy
+and the check said to reverse it.
+
+**Attempt.** The guard was one line: `grep -q '<a class="card-link" href="/'` over the whole
+document. Run 165 wrote it to protect a real and important property — if a permalink ever became the
+card's own `href`, every click on the only conversion surface would land on Tuned instead of on the
+thing the member was attending to, which is worse than having no permalink at all.
+
+**Mistake.** It was an **exact** statement of that property only for as long as every `.card-link`
+on the page was a find. Nothing anywhere pinned that, stated it, or would notice it changing. Run
+196 put the feed directory on the same page — `.card-link` anchors pointing at `/<handle>`, which
+are feeds and are supposed to be site-relative — and the guard silently became a different check
+than the one its own comment describes.
+
+**Why.** A check written over *"every X on this page"* inherits an unstated assumption about what
+the population of X is. The assumption is invisible precisely because it was true when the check was
+written; it is not in the code, not in the comment, and no test fails when it stops holding. The
+check does not break loudly — **it goes on passing right up until something legitimate trips it, and
+then it accuses the legitimate thing.** That is worse than a check that stops working, because its
+message carries the authority of a regression report and, here, an instruction to roll back.
+
+**Evidence and cost.** One red deploy on a healthy commit, and a rollback instruction that would
+have reverted a working change had it been followed without reading. The cost was bounded only
+because the claim was checkable: thirty item hrefs, all absolute, measured in one command.
+
+**Lesson.** **When a check quantifies over "every element like this on the page", name the
+population it means and grade each population for what it is.** A single predicate over a mixed set
+answers a question nobody asked. The replacement splits the document and asserts the item cards are
+*entirely off-site* (stronger than not-slash-prefixed), asserts the directory cards stay *on* this
+service (previously ungraded), names the offending href instead of only the page, and **fails rather
+than passes when there are no item cards at all**.
+
+**More elegant next attempt.** Before shipping anything that adds a second population of an element
+an existing check quantifies over, grep the checks for that element's selector. `card-link` appears
+in `verify-production.yml` and would have been found in seconds. The cheaper habit: a check that
+says *"every A is B"* should say *which* A, in a way that a new kind of A cannot join by accident.
+
+**Prevention check.** Both halves are mutation-graded against a server serving the commit under
+test: pointing the feed page's `card()` at a permalink reddens the original subject naming
+`/sportstech/101`, and pointing the directory off-site reddens the new half.
