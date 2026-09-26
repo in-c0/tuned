@@ -4994,3 +4994,55 @@ type, the link back, `noindex`, no canonical — because none of them is about g
 by photographing the page, and it is the same boundary L-83 and `qa/mobile-fit.spec.mjs` already
 name: **a markup assertion cannot see a layout defect, and a new rendered surface is not verified
 until something has looked at it.**
+
+---
+
+## L-114 — the honest dead end: every surface truthfully said the feed was over, and none of them said where to go next (2026-09-26, run 196)
+
+**Problem.** `sitemap.xml` advertises one landing page, five feeds and every published find, so what
+search can send this service is overwhelmingly a **find page**, and a shared link is a find page by
+construction. `/<handle>` and `/<handle>/<id>` linked to their own feed, their own finds, their own
+RSS, `/`, `/terms` and `/privacy` — **and to no other feed on the service.** Four of the five feeds
+here have published nothing since July. So for most arrivals the entire reachable site was one feed
+with nothing left to subscribe to.
+
+**Attempt.** Runs 191–193 had already made every one of those surfaces *honest* about it. The
+landing card states the age, `<link rel="alternate">` carries it into the reader's picker, the follow
+dialog and the follow block both say *"the last was 58 days ago"*, and run 182 took the word *live*
+out of the RSS channel description. Each of those was the right fix to the defect it was aimed at.
+
+**Mistake.** Every one of them improved what the page **says** and none of them changed what the
+visitor can **do next**. Honesty was treated as the whole of the obligation. A visitor correctly
+told that this feed died eight weeks ago, and given a Follow button for it and a link to `/`, has
+been informed and not helped.
+
+**Why it stayed invisible.** There was no false claim to catch and no test to redden: the age lines
+are derived from the row and were all correct. It is the same class as [L-113](#l-113) one level up —
+there the rollback was right and stranded the subscriber holding the link; here the page is right
+and strands the arrival. Both are **surfaces with no owner**: nobody's feature, nobody's regression,
+and absent from every page inventory because an inventory lists pages and not the edges between them.
+Runs 164, 165 and 176–178 each built or repaired a rung of the arrival funnel; none asked what the
+graph looked like from the one page search actually indexes.
+
+**Evidence and cost.** `feed_view:<handle>` has read 37 unsuffixed views over 21 days against
+`followers` 0 and `totals.followers` 0 throughout. Arrival is the bottleneck EXP-007 Fork A graded,
+and search is the one arrival channel needing no venue's permission, no owner act and no spend — and
+every arrival it produced was sealed inside whichever feed the crawler happened to index. The cost
+is unmeasurable by construction, which is part of the lesson: a visitor who leaves because there was
+nowhere to go writes no counter.
+
+**Lesson.** **An honest statement of a dead end is not an exit from it.** When a surface has to
+report that there is nothing here — retracted, never published, stopped publishing, empty — the
+check is not *"is the sentence true?"* but *"what can this person do from this page, and is any of it
+worth doing?"* Truthful copy closes the question of whether we misled them and opens no door.
+
+**More elegant next attempt.** Ask it as a graph rather than as a page: take the addresses this
+service advertises to strangers (`sitemap.xml` is the list, and it is already written down), walk the
+links out of each one, and see which pages are cul-de-sacs. That reading costs one fetch per address
+and would have found this the day find pages shipped at run 164.
+
+**Prevention check.** `test/feed-discovery.test.ts` grades it as a class over a set derived from the
+live sitemap, so a public page class registered later is graded without being named, and the
+derivation is itself graded so an empty list cannot pass vacuously. `verify production` step *"A feed
+that stopped publishing still offers the ones that have not"* makes the same reading against the
+deployed site and is the rollback signal.

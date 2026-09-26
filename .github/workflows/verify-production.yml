@@ -1318,6 +1318,75 @@ jobs:
           echo "/${handle}: ${n} permalinks into find pages; ${first} serves one; cards still open their source"
           echo "Inbound edge: \`/${handle}\` carries ${n} permalinks; \`${first}\` resolves" >> "$GITHUB_STEP_SUMMARY"
 
+      # Can a visitor who arrived on ONE feed reach any other attention on this service?
+      #
+      # Until run 196 the answer was no on every surface a stranger lands on. `/<handle>` and
+      # `/<handle>/<id>` linked to their own feed, their own finds, their own RSS, `/`, `/terms`
+      # and `/privacy` — and to no other feed. Four of the five feeds here have published nothing
+      # since July, so for most arrivals the whole reachable site was a feed with nothing left to
+      # subscribe to. The step above proves a find page can be REACHED; this one proves it is not
+      # a cul-de-sac once you are there.
+      #
+      # GRADED OVER A SET DERIVED FROM THE SITEMAP, never a list written here, so a feed this loop
+      # registers later is graded the day it is published. The derivation is graded first: a
+      # sitemap that yielded no feed and no find page would make every assertion below vacuous,
+      # which is how a class check passes by checking nothing.
+      #
+      # It asserts the LINK and the AGE, and deliberately not the order. Recency ordering is the
+      # landing query's and is pinned by a vitest mutation; asserting it again here would fail this
+      # job on the day a feed publishes, which is a fact about the data and not about the deploy.
+      - name: A feed that stopped publishing still offers the ones that have not
+        env:
+          BASE: ${{ steps.vantage.outputs.base }}
+        run: |
+          set -euo pipefail
+          locs=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml | sed 's/<[^>]*>//g')
+          feeds=$(printf '%s\n' "$locs" \
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+$' || true; } \
+            | { grep -vE '/(terms|privacy)$' || true; } \
+            | sed 's|^https://justtuned\.com||' | sort -u)
+          find_page=$(printf '%s\n' "$locs" \
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; } \
+            | sed -n '1s|^https://justtuned\.com||p')
+          n_feeds=$(printf '%s\n' "$feeds" | { grep -c . || true; })
+          [ "$n_feeds" -ge 2 ] || { echo "::error::sitemap advertises ${n_feeds} feed(s); this check needs at least two to mean anything"; exit 1; }
+          [ -n "$find_page" ] || { echo "::error::no find page in the sitemap to grade"; exit 1; }
+
+          # Each page must offer every OTHER advertised feed, and never itself.
+          checked=0
+          for page in $feeds $find_page; do
+            own="/$(printf '%s' "$page" | cut -d/ -f2)"
+            code=$(scripts/prod-http.sh get "${BASE}${page}" /tmp/of.html 'text/html')
+            [ "$code" = "200" ] || { echo "::error::${page} returned HTTP $code"; exit 1; }
+            grep -q 'class="other-feeds"' /tmp/of.html \
+              || { echo "::error::${page} carries no other-feeds block — an arrival here can reach no other attention on this service. Roll back."; exit 1; }
+            block=$(sed -n 's/.*<div class="other-feeds">\(.*\)/\1/p' /tmp/of.html | head -1)
+            [ -n "$block" ] || block=$(tr -d '\n' < /tmp/of.html | sed 's|.*<div class="other-feeds">||')
+            for feed in $feeds; do
+              if [ "$feed" = "$own" ]; then
+                printf '%s' "$block" | grep -q "href=\"${feed}\"" \
+                  && { echo "::error::${page} offers its own feed ${feed} in its other-feeds block"; exit 1; }
+                continue
+              fi
+              printf '%s' "$block" | grep -q "href=\"${feed}\"" \
+                || { echo "::error::${page} does not offer ${feed}. A visitor who landed here cannot reach it. Roll back."; exit 1; }
+            done
+            # The age is what makes the offer a choice rather than a list of names (L-109).
+            printf '%s' "$block" | grep -qE 'last published (today|yesterday|[0-9]+ days ago)|nothing published yet' \
+              || { echo "::error::${page}'s other-feeds block states no age for any feed — the visitor is choosing between names with nothing to choose by"; exit 1; }
+            checked=$((checked + 1))
+          done
+
+          # The machine half, on the same split as the 404 step: a feed client asked for XML.
+          first_feed=$(printf '%s\n' "$feeds" | head -1)
+          code=$(scripts/prod-http.sh get "${BASE}${first_feed}/rss.xml" /tmp/of.xml 'application/rss+xml')
+          [ "$code" = "200" ] || { echo "::error::${first_feed}/rss.xml returned HTTP $code"; exit 1; }
+          grep -q 'other-feeds' /tmp/of.xml \
+            && { echo "::error::${first_feed}/rss.xml carries the other-feeds block — RSS has no element for one"; exit 1; }
+
+          echo "${checked} page(s) graded across ${n_feeds} advertised feed(s); each offers every other feed with its age; ${first_feed}/rss.xml unchanged"
+          echo "Feed-to-feed discovery: ${checked} page(s) each offer the other ${n_feeds} feed(s) with a stated age" >> "$GITHUB_STEP_SUMMARY"
+
       # Last, and deliberately able to fail a job in which every check above passed.
       #
       # When the zone is challenging clients, everything above has been read from the Worker's

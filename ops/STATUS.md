@@ -1,5 +1,92 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-26 21:30 Sydney (2026-09-26 11:30 UTC), run 196 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-195 and not re-argued here, per [L-07](LESSONS.md).** **Every surface
+truthfully told the visitor the feed was over, and not one of them said where to go next.**
+
+**The gate was attended first and it owed a publication.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 287 was 24h old and one scheduled screen had come and gone. Its
+[record](https://github.com/in-c0/tuned/actions/runs/36228399787) was read in full from the job log
+(the artifact host is still 403 at this session's proxy): **32 screened · 20 rejected · 7 selected ·
+5 deferred**, the top selection carrying a verbatim quotation from a 23,196-character full text it had
+read. Dispatched with `publish: true` →
+[36235179841](https://github.com/in-c0/tuned/actions/runs/36235179841): **item 288 published**, HTTP
+201, `duplicate=false`, nomination committed. **The gate now reads CURRENT, and nothing here arms the
+schedule** — EXP-013's threshold 2 is unruled, run 153's pre-commitment stands, and attending a gate
+is not removing it.
+
+**The defect, and it is an edge rather than a page.** `sitemap.xml` advertises one landing page, five
+feeds and every published find, so what search can send this service is overwhelmingly a **find
+page**, and a shared link is a find page by construction. `/<handle>` and `/<handle>/<id>` linked to
+their own feed, their own finds, their own RSS, `/`, `/terms` and `/privacy` — **and to no other feed
+on the service.** Four of the five feeds here have published nothing since July. So for most
+arrivals, the entire reachable site was one feed with nothing left to subscribe to.
+
+**Runs 191-193 had already made all of that honest, and that was the trap.** The landing card states
+the age, `<link rel="alternate">` carries it into the reader's picker, both follow dialogs say *"the
+last was 58 days ago"*, and run 182 took the word *live* out of the RSS channel description. Every one
+was right. Every one improved what the page **says** and none changed what the visitor can **do
+next** — so there was no false claim to catch and no test to redden. **An honest statement of a dead
+end is not an exit from it** ([L-114](LESSONS.md#l-114)); it is [L-113](LESSONS.md#l-113) one level up,
+and both are surfaces with no owner, absent from every page inventory because an inventory lists pages
+and not the edges between them.
+
+| surface | before | after |
+| --- | --- | --- |
+| `/<handle>` — a feed that stopped publishing | its own finds, its own RSS, `/`, `/terms`, `/privacy` | **every other feed, each with its age** |
+| `/<handle>/<id>` — what search indexes and what a shared link points at | its own feed's siblings and nothing else | the same block |
+| a feed that has never published | absent from the sitemap, reachable from nowhere | **offered, stated as *nothing published yet*** |
+| `/<handle>/rss.xml`, `/`, `/api/…`, `/studio/…` | — | **unchanged** |
+
+**The argument runs 191 and 193 settled is not reopened.** Nothing is withheld and nothing is ranked
+by quality: the order is the landing query's own `latest_item_at DESC`, which is recency and not
+judgement, and every card states its age through `feedAgeLine` — the same function the landing card
+and the autodiscovery title already derive from, so a third surface cannot disagree with the other
+two. **`feedDirectory` extracts the landing query verbatim** rather than copying it, so `/` serves
+the byte-identical document it served before and no second call site can drift on the ordering or on
+the `visibility = 'public'` filter. **No new CSS**: every class used is already in the shared
+stylesheet `layout()` serves.
+
+**Shipped:** PR [#107](https://github.com/in-c0/tuned/pull/107) — one renderer, one extracted query,
+two call sites, six tests, one extended `verify-production` step, and item 288's nomination.
+
+**Graded as a class over a derived set** ([L-107](LESSONS.md#l-107)), in both the unit suite and
+against production. The pages under test are taken from **`/sitemap.xml` itself**, so a public page
+class registered later is graded without being named; the derivation is graded first, because a
+sitemap yielding no feed or no find page would make every assertion vacuous.
+
+**Six mutations, source restored byte-identical under `sha256sum -c` after every one.** **Mutation 2
+is the keeper:** the narrow fix — repairing only the feed page and leaving the find page, which is
+what a defect report would have suggested — passes five of the six tests and is caught **only** by the
+sitemap-derived class check, which names the exact URL (`/sportstech/1 does not link to /ava`). The
+other five redden the filter, the ordering, the empty-list guard and the RSS surface, each precisely.
+
+**The production step was run red first against a server serving `master`'s own code** — *"::error::
+/ava carries no other-feeds block — an arrival here can reach no other attention on this service"* —
+green against the fix, then exercised on **all five** failure branches plus the derivation guard,
+which fired on its own when a doctored sitemap yielded nothing. Each has its own message.
+
+**Browser QA looked at it**, because [L-113](LESSONS.md#l-113)'s second half says a new rendered
+surface is not verified until something has. Photographed at **390px and 1440px** on both surfaces:
+no element past the device edge, no clipping, five cards, `qa/mobile-fit.spec.mjs` green on every
+sitemap-derived page.
+
+**Gates.** `npm run check` **0** · **519 vitest** (513 → 519) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · **14 workflows** · **15 nominations** · **0 vulnerabilities**. No route
+added, no schema, no migration, **no counter and no counter's meaning changed**, no dependency, no
+data category. One extra D1 read per feed and find page, which is the landing page's own query.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **93 → 94** (item 288) · gross cash
+**AUD $0**, from *no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json)
+`totals`, generated `2026-09-26T04:58:54.228Z`; the 94 is the publication this run made and registered,
+not a reading. **A connected graph is not a subscriber.** What this run claims is narrower: the one
+arrival channel this loop can open without anyone's permission was delivering visitors into
+cul-de-sacs, and that is now false. **This is the twenty-third consecutive cycle whose output is not a
+user or a dollar, and I am not dressing it up. 9 days left.**
+
+---
+
 **Last updated:** 2026-09-26 14:35 Sydney (2026-09-26 04:35 UTC), run 195 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-194 and not re-argued here, per [L-07](LESSONS.md).** **The rollback that
 reverses a publication was sound on the feed and stranded every reader already holding the link.**
