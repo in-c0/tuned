@@ -1,5 +1,95 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-26 14:35 Sydney (2026-09-26 04:35 UTC), run 195 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-194 and not re-argued here, per [L-07](LESSONS.md).** **The rollback that
+reverses a publication was sound on the feed and stranded every reader already holding the link.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 287, 18h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted, and the day's scheduled screen had not yet run.
+
+**The defect, and it is in `src/` rather than in the control plane.** `agent operator` → `retract` is
+this loop's undo for a publication — built because the operating record's deployment gates require a
+rollback path and a publication was shipping without one. It sets `visibility='hidden'`, at which
+point `GET /:handle/:id` stops resolving. That is correct, and it is tested.
+
+**The readers are not on this site.** [`rssFeed`](../src/pages.ts) puts `Provenance on Tuned →` into
+**every** item's `<description>`, pointing at `/:handle/:id`, and a feed reader keeps that description
+**forever**. So the moment a publication was correctly reversed, every subscriber already holding the
+link — and every search result reached from a sitemap this service published itself — resolved to
+**twelve bytes of `text/plain`**: *"No such find"*, no navigation, no way back to the feed they had
+subscribed to. **RSS is the one subscription this funnel can complete with no account, no application
+and no owner act**, so the single visitor this product can currently produce is by construction
+someone holding a link the system no longer honours.
+
+| address | before | after |
+| --- | --- | --- |
+| `/<handle>/<id>` — a withdrawn or never-published find | `No such find`, **12 B** `text/plain` | the site shell, one sentence, **the feed it belonged to**, and the site |
+| `/<handle>` — no feed at this handle | `No such feed`, 12 B `text/plain` | the site shell, one sentence, the site |
+| `/<handle>/<malformed-id>` and every mistyped path | Hono's default `404 Not Found` | the same page |
+| `/<handle>/rss.xml`, `/api/…`, `/studio/…` | plain text | **unchanged** — plain text |
+
+**The split is the surface, not the status** — the same distinction [L-110](LESSONS.md#l-110) turns
+on. A feed client asking for a missing feed's `rss.xml` is not helped by a page, and
+[`isPrivatePath`](../src/crawl.ts) is already the single list those surfaces are defined by, so there
+is no second list to drift.
+
+**What the page may not say.** It does not claim **which** happened: a find page can be absent because
+it never existed, because the agent retracted it, or because the owner vetoed it from their studio,
+and the renderer cannot tell those apart without asserting something about a human's act. The copy is
+the disjunction and nothing narrower. **`socialHead` is deliberately not called**: the page carries
+`robots: noindex` and **no canonical and no `og:url`**, because a 404 that declared one would be this
+site asking a crawler to index an address it had just said has nothing at it — and the status stays
+**404**, since an HTML body on a 200 is a soft 404 and worse than the plain text it replaces. An
+unknown handle is never reflected into the page.
+
+**Shipped:** PR [#105](https://github.com/in-c0/tuned/pull/105) — one renderer, three call sites, one
+`notFound` handler, three tests, one extended `verify-production` step, and the absent addresses added
+to the browser fit spec.
+
+**Graded as a class over a derived set** ([L-107](LESSONS.md#l-107)). The addresses under test are
+built by **mutating the paths `/sitemap.xml` advertises** — a handle this site publishes turned into
+one it does not, an id past every row — so a page class registered later is graded without being
+named. The derivation is itself graded: a sitemap the test could not read would make every assertion
+vacuous, which is how a class check passes by checking nothing.
+
+**Six mutations, source restored byte-identical under `sha256sum -c` after every one.** Mutation 1 is
+**the code serving production** and reddens the class check and the retraction test. Mutation 2 is the
+**soft 404** — the page on a `200` — and reddens both on status. **Mutation 6 is the keeper:** the
+narrow fix, repairing only the find route, which the retraction test **passes** and only the
+sitemap-derived class check catches, naming the URL.
+
+**The production step was run red first**, against a server serving `master`'s own code, green against
+the fix, then exercised on **all four** failure branches — soft 404, a canonical on the 404, no way
+back, a feed reader answered with a page. All four fire.
+
+**And browser QA caught what no document assertion could.** The page's **first render put its two
+buttons on top of each other at 390px**: `.btn` declares no `display`, an anchor is inline, vertical
+padding does not grow the line box, and the second button overlapped the first as soon as the first
+wrapped. Status, content type, the link back, `noindex` and the absent canonical **all passed**. It
+was caught by photographing the page. `qa/mobile-fit.spec.mjs`, whose own heading claims *every public
+page*, now derives the absent addresses too, and a mutation confirms both are **graded** rather than
+merely visited. That is **[L-113](LESSONS.md#l-113)**.
+
+**Gates.** `npm run check` **0** · **513 vitest** (510 → 513) · **ops suite 319/319** (unchanged — no
+`scripts/` file touched) · **14 workflows** · **14 nominations** · **0 vulnerabilities**. No route
+added, no schema, no migration, no counter, no dependency, no data category, and **no counter's
+meaning changes** — the 404 paths wrote no metrics before and write none now. Every existing page
+renders byte-identically.
+
+**EXP-013 is closed and byte-untouched, and nothing here arms anything.** `agent-scout.yml`, the bar,
+`gradeMetadata` and the 25% threshold are unchanged; the daily schedule is **still NOT armed** and the
+publisher's gate stands unchanged. Whether the schedule may publish unattended is the reviewer's
+question, unruled since 2026-09-12 and not re-argued here.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **93** · gross cash **AUD $0**, from
+*no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-25T23:28:58.372Z`. **A working 404 is not a subscriber** — what this run can claim is
+narrower and firmer: the one path by which this funnel can produce a visitor had a dead end at the
+end of it, put there by the loop's own rollback, and it is cheaper to find before a subscriber exists
+than after. **9 days left.**
+
 **Last updated:** 2026-09-26 08:35 Sydney (2026-09-25 22:35 UTC), run 194 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-193 and not re-argued here, per [L-07](LESSONS.md).** **EXP-013 is graded
 and closed: it failed its bar, and its headline question cannot be answered from its own window.**

@@ -7483,3 +7483,51 @@ dependency. No visitor sees a different byte. Rollback is `git revert`, which re
 changes no behaviour.
 
 **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-26 — run 195: a public 404 is a page, because the rollback was verified on the feed and never on the readers
+
+**Decision: the public 404 becomes a rendered page, and the undo that produces it is now graded from
+the reader's side.** `agent operator` → `retract` sets `visibility='hidden'`, which is the honest
+mechanism and the one this loop chose deliberately over a delete. What was never checked is what the
+act does to someone **off** this site: `rssFeed` puts `Provenance on Tuned →` into every item's
+`<description>`, a reader keeps that description forever, and the correctly-reversed publication
+resolved to twelve bytes of `text/plain` with no navigation and no way back to the feed they had
+subscribed to. **RSS is the one subscription this funnel can complete with no account, no application
+and no owner act**, so the only visitor this product can currently produce is by construction someone
+holding a link the system no longer honours. That is [L-113](LESSONS.md#l-113).
+
+**Decision: the page states the disjunction and nothing narrower.** A find page can be absent because
+it never existed, because the agent retracted it, or because the owner vetoed it from their studio.
+The renderer cannot separate those without asserting something about a human's act, so it does not
+try. **Nothing on the page is a claim about how this service is doing**, which is `socialHead`'s
+standing contract applied to a surface that does not call it.
+
+**Decision: no canonical, no Open Graph, `robots: noindex`, and the status stays 404.** Every other
+public page here declares a self-referential canonical because it wants to be indexed. One on this
+page would be this site asking a crawler to index an address it had just said has nothing at it, and
+an HTML body on a `200` is a soft 404 — worse than the plain text it replaces, because it also
+pollutes the index. Both are graded in the unit suite **and** against production.
+
+**Decision: the split is the surface, not the status.** A feed client asking for a missing feed's
+`rss.xml`, an `/api/` caller and a capability URL keep a plain-text body. `isPrivatePath`
+([`src/crawl.ts`](../src/crawl.ts)) is already the single list those surfaces are defined by, so this
+adds no second list that could drift from it.
+
+**Reversibility.** One renderer, three call sites, one `notFound` handler. No route added, no schema,
+no migration, no counter, no dependency, no data category, and **no counter's meaning changes** — the
+404 paths wrote no metrics before and write none now. Every existing page renders byte-identically.
+Rollback is `git revert` of [`4b3401d`](https://github.com/in-c0/tuned/commit/4b3401d), which restores
+the two plain-text strings and nothing else. The new `verify-production` step is the standing rollback
+signal. **A 404 body grows from 12 bytes to ~18 KB**, because `layout()` inlines the shared
+stylesheet; stated rather than buried, and not material at this service's volume.
+
+**No commercial claim follows.** `applications` **0** · `members` **1** · `members_ever_active` **0** ·
+`followers` **0** · `items_public` **93** · gross cash **AUD $0**, from *no billing exists*. **A
+working 404 is not a subscriber.** What this run claims is narrower: the one path by which this funnel
+can produce a visitor had a dead end at the end of it, put there by the loop's own rollback, and it is
+cheaper to find before a subscriber exists than after.
+
+**Nothing here arms anything.** `agent-scout.yml`, the bar, `gradeMetadata` and the 25% threshold are
+byte-untouched; the daily schedule is **still NOT armed** and the publisher's gate stands unchanged.
+
+**Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
