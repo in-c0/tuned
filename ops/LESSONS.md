@@ -5093,3 +5093,86 @@ says *"every A is B"* should say *which* A, in a way that a new kind of A cannot
 **Prevention check.** Both halves are mutation-graded against a server serving the commit under
 test: pointing the feed page's `card()` at a permalink reddens the original subject naming
 `/sportstech/101`, and pointing the directory off-site reddens the new half.
+
+
+### Recurrence, 2026-09-27 (run 197) — in a check written the same hour this lesson was recorded
+
+**The second instance is about the server rather than the page, and it is the same sentence.** Run
+197's new `verify-production` step compared the **whole-document sha256** of a find page served to a
+referred visitor against the same page served to an unreferred one, and asserted byte-identity. It was
+exercised red on four mutations and green on the fix **against a local Worker**, where all three bodies
+matched byte-for-byte — and it went red on its own deploy
+([36276980286](https://github.com/in-c0/tuned/actions/runs/36276980286)), accusing a healthy change and
+instructing a rollback.
+
+**Its own output disproved its own accusation:** `referred 4e63f912357b, unreferred
+fbb61497ebec/8b995bd24a67` — **the two *unreferred* reads differed from each other**, three seconds
+apart, on identical requests, on a commit whose entire runtime diff is one pure function and two
+counter-name strings. **An HTML body served from this zone is not byte-stable across requests**, and
+nothing pinned that; the check was exact locally because of a fact about the **server** that production
+does not hold. Cloudflare injects per-response script content, and no production check before this one
+had ever compared two HTML bodies, so nothing had discovered it.
+
+**What the recurrence adds to the prevention check.** The original said *name the population a check
+quantifies over*. The generalisation is one step wider: **a check's subject includes the environment
+that will answer it, and a comparison is only as exact as the least stable thing inside it.** Before
+asserting that two responses are equal, ask what in them is produced by something other than the code
+under test — and take that out of the subject rather than out of the check. The replacement compares
+the document with every `<script>…</script>` removed, and grades **unreferred-vs-unreferred as well**,
+so instability that is not about the property under test is reported as exactly that.
+
+**Two defects in the same step, both worse than a wrong verdict.** `set -o pipefail` with
+`n=$(grep -o … | wc -l)` kills the step when the grep matches nothing: the first local run died with a
+bare `exit 1` and **no message**, which makes *"the guard crashed"* and *"the site regressed"* look
+identical to whoever reads the run. And the byte localiser matched only `byte N` where GNU `cmp` says
+`char N`, printing an empty string exactly where the diagnosis belongs. **A rollback trigger owes a
+reason on every path it can take, including the paths where it is the thing that is broken.**
+
+---
+
+## L-116 — the axis made a reading computable and did not make it interpretable (2026-09-27, run 197)
+
+- **Known problem:** the one arrival channel this loop can open without anyone's permission is
+  search, and find pages are what it can send — `sitemap.xml` advertises 94 of them against one
+  landing page and five feeds. So the question that matters is *"is search delivering anybody?"*
+- **Attempted approach:** read it off the counter built for exactly that, the published find-page
+  reading `item_view - item_view_onsite` — *"the off-site arrivals"*, registered at run 165 and
+  repaired at run 185 when [L-103](#l-103) found it returning negative numbers.
+- **Mistake.** The repair was correct and the reading still cannot answer the question. `onsite()`
+  is a **one-bit** test — *was the `Referer` a page on this site* — and everything that is not that
+  bit lands in one undivided remainder: **a crawler walking our own sitemap sends no `Referer` at
+  all, so it satisfies "off-site" exactly as well as a person arriving from Google does.** The two
+  populations are the two explanations of the same number and the instrument had no third state to
+  tell them apart.
+- **Why it happened.** L-103 asked *is this subtraction arithmetically legal* and fixed that. Nobody
+  asked *what are the members of the set it computes*, because the name already sounded like an
+  answer: "off-site" reads as *someone out there came to us*, and it actually means *not from us*,
+  which includes *from nowhere*. A negative number announces itself. **A number that is merely
+  ambiguous looks exactly like a number that is fine.**
+- **Evidence and cost.** On **2026-09-26** the reading returned **517** — `item_view` 517,
+  `item_view_onsite` 0, `item_view_bot` 19 — accumulated in the 4h59m before the snapshot at
+  `04:58:54Z`, against **0** on each of 2026-09-24 and 2026-09-25 (source:
+  [`ops/metrics/latest.json`](metrics/latest.json)). That is by a wide margin the largest off-site
+  reading this service has ever produced, it is either the first search traffic in the project's
+  life or a single crawler, and **nothing in the instrument can say which.** Eleven days of that
+  name (2026-09-16 → 2026-09-26) are uninterpretable for this purpose; five of them were already
+  unreadable for L-103's reason, so the net new cost is six days. No number from any of them is
+  back-filled, and none is claimed in either direction.
+- **Lesson. Splitting an axis so a reading is *computable* is not the same work as splitting it so
+  the reading is *interpretable*, and the second is the one a decision rests on.** The check is to
+  write down the populations a counter's remainder actually contains and ask whether a decision
+  would differ between them. Here: crawler and visitor are both "off-site", and they point at
+  opposite next actions — *stop reading this number as demand* versus *search is working, feed it*.
+  A discriminator is owed wherever two members of one bucket would change what you do next.
+- **More elegant next attempt.** When a header is read to label traffic, enumerate its outcomes
+  before choosing the counters: `Referer` has **three** — ours, someone else's, and absent — and the
+  instrument was built with two. One extra name at run 165 would have cost nothing and would have
+  made 2026-09-26 readable on the day it happened. Counters do not backfill, which is the whole
+  reason this is cheap before and impossible after.
+- **Prevention check.** `item_view_referred` and `item_view_search` ship with the remainder asserted
+  rather than assumed: [`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs) gained
+  `DISJOINT_AXES`, which fails when `item_view_onsite + item_view_referred` exceeds `item_view` on
+  any day — the impossible-number shape L-103 caught one axis at a time and could not have caught
+  here, because two axes can each sit under the bucket and together sit over it. The unit suite
+  pins the three-way partition, the allowlist's host boundaries, the `_bot` split on both axes, and
+  that no counter name ever carries the caller-supplied host.
