@@ -18,6 +18,68 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **Yesterday our own numbers said 517 people from outside Tuned read our finds. That was the biggest figure this site has ever produced, and I cannot tell you whether it was people or one robot.**
+>
+> **What the number is.** Every published find on Tuned has its own web address, and we count how
+> many times those pages are asked for. We also record whether the visitor arrived by clicking a link
+> **on Tuned** or from somewhere else. "From somewhere else" is the number that would tell us a
+> stranger found us — it is the only figure on this platform that could.
+>
+> **Yesterday it read 517**, in under five hours, against **zero** on each of the two days before.
+> That is either the first search traffic in this project's life or **a single robot walking the list
+> of pages we hand search engines**, and I want to be very clear that nothing we had built could tell
+> those two apart.
+>
+> **Why not.** We only ever asked one question of the visitor: *did you come from a page on Tuned?*
+> Everything that isn't that — a person arriving from Google, and a robot that announces nothing at
+> all — went into the same pile. **A robot sends no "where I came from" information, so it looks
+> exactly like someone who came from outside.** The number was never wrong. It was two different
+> populations wearing one name.
+>
+> **What I fixed.** The question is now asked three ways instead of two: *from Tuned*, *from another
+> website* (and if so, whether that website is a search engine), or *from nowhere identifiable*. The
+> third one is the robot-shaped pile, and it is now separate. Nothing else on the site changed — the
+> pages are byte-for-byte identical, which the post-deploy check now proves for a visitor arriving
+> from Google specifically.
+>
+> **Nothing new is stored about anybody.** We match the website name against a short fixed list and
+> throw it away. No cookies, no visitor identifier, nothing written down — same as before. The privacy
+> page needed no change and got none.
+>
+> **I also re-checked whether Google can find us at all,** rather than repeating what I said on
+> 19 September: **still zero pages of justtuned.com in the search index I can query**, on two
+> different searches, with a control search proving the method works. Eight days unchanged. That
+> points at the robot explanation — but it is one search service, not necessarily Google's own, so it
+> is a hint and not an answer, which is exactly why I built the measurement instead of just asserting
+> the conclusion.
+>
+> **What happens next, written down before the data exists.** The first full day of the new counters
+> is today. If the "from a search engine" count stays at zero while the page views stay high, yesterday
+> was a robot and I will retire that 517 as a traffic figure for good. If it moves, **search is sending
+> us people**, and that becomes the most important thing available to this loop. If "from another
+> website" moves without search, **someone has linked to us** — which on 19 September I recorded as
+> the one missing ingredient. Each of those three points at a different next move, and I have
+> committed to them in advance so I cannot pick one after the fact.
+>
+> **One thing went wrong and I am telling you rather than tidying it away.** The automatic post-deploy
+> check I wrote for this change failed the deploy and told me to undo it. It was wrong, and its own
+> output said so: it compared the page served to a Google visitor against the page served to everyone
+> else, and **the two "everyone else" copies did not match each other either** — three seconds apart, on
+> identical requests. Cloudflare adds a small unique fragment to every page it serves, so "exactly the
+> same bytes" was never a fair test of our own pages. I did not undo the change; the other 29 checks all
+> passed. The test now compares our own markup and ignores what Cloudflare adds — and it now also checks
+> the two ordinary copies against each other, so it can tell "this page is unstable" from "this page
+> treats Google visitors differently", which it could not before.
+>
+> **No commercial number moves** — `applications` 0 · `members` 1 (you) · `followers` 0 · cash
+> **AUD $0**. A counter you can finally read is not a visitor, and I am not dressing this up: this is
+> the twenty-fourth cycle in a row whose output is neither a user nor a dollar. **8 days left.**
+>
+> **Nothing here needs you.** [§1](#1-owner-action-required) is unchanged: ONE, undeadlined, not
+> re-argued.
+
+---
+
 > # **The 14-day test of our agent finished today. It failed its own bar — and the more useful finding is that it could never have passed the main question, because of a fix we made on day one.**
 >
 > **What was being tested.** Since 12 September, `@sportstech` — one of our five feeds — has had a
@@ -2019,10 +2081,10 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-116** | **The axis made a reading computable and did not make it interpretable.** `item_view - item_view_onsite` is published as *the off-site find-page arrivals* and is the only instrument here that would say whether anyone outside Tuned reads its finds. `onsite()` is a **one-bit** test — *was the `Referer` a page on this site* — so everything that is not that bit lands in one remainder, and **a crawler walking our own `sitemap.xml` sends no `Referer` at all, satisfying "off-site" exactly as well as a person arriving from Google does.** On 2026-09-26 the reading returned **517** in 4h59m against **0** on each of the two days before — the largest off-site figure this service has produced, either the first search traffic in the project's life or one crawler, with nothing able to say which. Run 185's repair asked whether the subtraction was *legal* and fixed that; nobody asked what the **members of the set it computes** are. | **Splitting an axis so a reading is computable is not the same work as splitting it so the reading is interpretable, and the second is the one a decision rests on.** A negative number announces itself; **an ambiguous one looks exactly like a number that is fine.** The check: write down the populations a counter's remainder actually contains and ask whether a decision would differ between them — here crawler and visitor point at opposite next actions, *stop reading this as demand* versus *search works, feed it*. **When a header is read to label traffic, enumerate its outcomes before choosing counters:** `Referer` has **three** — ours, someone else's, absent — and the instrument was built with two. One extra name at run 165 would have cost nothing and made 2026-09-26 readable on the day. Counters do not backfill, which is why this is cheap before and impossible after. |
 | **L-115** | **A check can be exact today because of a fact about the page that nothing pins.** `verify production` went red on a healthy deploy and told this loop to roll it back: *"a feed card on /sportstech now links to Tuned rather than to its source."* It did not — all thirty item cards still carried their source's absolute URL. The guard asked the **whole document** for any `.card-link` with a site-relative href, which was an exact statement of the property for as long as every `.card-link` on that page was a find, and stopped being one the moment the feed directory added a second population of cards. | **When a check quantifies over "every element like this on the page", name the population it means and grade each population for what it is.** A single predicate over a mixed set answers a question nobody asked. Such a check does not break loudly — it passes until something legitimate trips it, then accuses the legitimate thing with the authority of a regression report. The replacement is **stronger**: item cards must be *entirely off-site* rather than merely not-slash-prefixed, the directory half is graded at all, the failure names the offending href, and a page with no item cards **fails rather than passing vacuously**. Cheap habit: before adding a second population of an element, grep the checks for its selector. |
 | **L-114** | **The honest dead end: every surface truthfully said the feed was over, and none said where to go next.** `sitemap.xml` advertises one landing page, five feeds and every published find, so what search can send this service is overwhelmingly a **find page** — and `/<handle>` and `/<handle>/<id>` linked to their own feed, their own finds, their own RSS, `/`, `/terms` and `/privacy`, **and to no other feed on the service.** Four of five feeds here have published nothing since July, so for most arrivals the entire reachable site was one feed with nothing left to subscribe to. Runs 191-193 had already made every one of those surfaces *honest* about the age — and each improved what the page **says** while none changed what the visitor can **do next**, so there was no false claim to catch and no test to redden. | **An honest statement of a dead end is not an exit from it.** When a surface must report that there is nothing here — retracted, never published, stopped publishing, empty — the check is not *"is the sentence true?"* but *"what can this person do from this page, and is any of it worth doing?"* Truthful copy closes the question of whether we misled them and opens no door. **Ask it as a graph rather than as a page:** take the addresses this service advertises to strangers (`sitemap.xml` is already that list), walk the links out of each one, and see which pages are cul-de-sacs. One fetch per address, and it would have found this the day find pages shipped at run 164. It is [L-113](LESSONS.md#l-113) one level up — both are **surfaces with no owner**, absent from every page inventory because an inventory lists pages and not the edges between them. |
 | **L-113** | **The rollback was verified on the thing it reverses and never on the readers already holding the link.** `retract` is this loop's undo for a publication, and it is tested: the item leaves the feed, leaves the sitemap, and its address stops resolving. Every one of those checks is about **this site**. The readers are not on this site — every RSS item ever delivered carries `Provenance on Tuned →` pointing at that address, and a reader keeps it **forever**. So the act of correctly reversing a publication turned every already-delivered link into **twelve bytes of plain text**, with no navigation and no way back to the feed they had subscribed to. RSS is the one subscription this funnel can complete with no account and no owner act, so the only visitor this product can currently produce is by construction someone holding a link the system no longer honours. | **Ask what is already out there carrying a reference to the thing you are removing, and follow it.** Not *does the revert restore the previous state* (it did) and not *is the status correct* (it was): **what does the person at the other end of the artifact we already sent now see?** The check is mechanical — list the surfaces this address has ever been published on, take the oldest one still in someone's hands, and open the link. It stayed invisible because there was no contradiction to find: the defect is a **surface with no owner**, absent from every page inventory because nobody lists a 404. Its own smaller instance: the replacement page's first render **overlapped its own two buttons at 390px** while every document-level assertion passed, because none of them is about geometry. **A new rendered surface is not verified until something has looked at it.** |
-| **L-112** | **The remedy a pre-registration names for one threshold destroyed another threshold's ability to be measured, and the same document held both.** EXP-013 asked *can an agent feed publish on a cadence with no person selecting?* and closed **unable to answer it** — not because the source refused or the agent was starved, but because the window ran exactly as designed. Two clauses were the same mechanism pointed opposite ways: **threshold 4** was *newest item ≤ 72h **with zero hand publications***, and **Fork B**, the remedy for a threshold-2 failure, was ***disable the schedule the same day***. Threshold 2 failed on **day 1** at 25.7%, Fork B fired as written, and from that moment the only path to a publication was the hand dispatch threshold 4 forbids. It failed at 203.8h and **would have failed identically had the bar been perfect.** The pre-registration was otherwise exemplary — five falsifiable thresholds, five actioned forks, a frozen baseline, and a paragraph on what it could not show. | **A fork's action is a change to the system, and the system is what the other thresholds are measuring — so check forks against thresholds, not just each in isolation.** The pass costs one trip down the table: for every fork ask *what does its action change*, for every threshold ask *what does it measure*, and **any overlap is a threshold that becomes unmeasurable the moment that fork fires.** Say in advance what the window then measures, because after the fork fires the same sentence is indistinguishable from an excuse — run 188 wrote it two days early, which is the only reason the reading can state it plainly. **The tell was available from day 1 and read by nobody for thirteen:** the fork that fired was *"stop publishing"* while a threshold about publication cadence was still collecting numbers, nine paragraphs apart in one file. **Second, smaller instance in the same document:** threshold 5 specifies *"a **human** reading"* — a grader an autonomous loop does not have, written into an experiment whose whole point was that no person is in the path. **A threshold names a grader as surely as it names a number, and the grader has to exist.** |
 
 
 
@@ -2036,7 +2098,9 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-26 21:50 Sydney (2026-09-26 11:50 UTC), run 196. |
+| **Last materially updated** | 2026-09-27 06:50 Sydney (2026-09-26 20:50 UTC), run 197. |
+| **Run** | 197 — **our own numbers said 517 people from outside Tuned read our finds yesterday, and I could not tell you whether that was people or one robot.** It is the biggest figure this site has ever produced, against zero on each of the two days before. We only ever asked the visitor one question — *did you come from a page on Tuned?* — so a person arriving from Google and a robot that announces nothing at all went into the same pile. The question is now asked three ways, the robot-shaped pile is separate, and I wrote down in advance what each of the three possible answers means. Written up in full at the top of this file. |
+| **Run** | 196 — **a find page or a feed page linked to its own feed and to no other feed on the service, and four of the five have published nothing since July.** So for most arrivals the entire reachable site was one feed with nothing left to subscribe to. Every public page now offers every other feed with its age. Nothing else changed. |
 | **Run** | 195 — **when our robot takes a find back down, everyone who already has the link in their feed reader got a blank page saying "No such find" and nothing else.** Taking a find back down is supposed to be the safe undo, and on our own site it works. But every item we have ever sent out by RSS carries a link back to that find, and a feed reader keeps it forever — so the undo pointed those people at a dead end with no way back to the feed they had subscribed to. RSS is the only thing on Tuned someone can sign up for without an account or your approval, so that is the one visitor we can currently produce. Those pages now say plainly that nothing is published there, and offer the feed and the site. Nothing else changed. |
 | **Run** | 194 — **the 14-day test of the robot selector finished and failed its own bar, and it could never have answered its main question because of a fix we made on day one.** Written up in full at the top of this file. |
 | **Run** | 193 — **the one-line description Google would show for our front page called it "a live page", while four of the five feeds it spoke for had published nothing for eight weeks.** The word is gone, and the guard that missed it now checks the claim rather than the exact sentence. |

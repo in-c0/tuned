@@ -1,5 +1,162 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-27 06:50 Sydney (2026-09-26 20:50 UTC), run 197 — **[OWNER ACTION REQUIRED](#owner-action-required):
+ONE, unchanged from runs 137-196 and not re-argued here, per [L-07](LESSONS.md).** **The one number
+that would say whether a stranger reads Tuned's finds counted crawlers and visitors together, and
+yesterday it returned 517.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 288, 12h old, **zero** scheduled screens certainly delivered since. Nothing
+was published, amended or retracted. **Nothing here arms the schedule**: EXP-013's threshold 2 is
+unruled at **16 days**, run 153's pre-commitment stands, and attending a gate is not removing it.
+
+**The defect is in a reading, not in a page.** `sitemap.xml` advertises 94 find pages against one
+landing page and five feeds, so what search can send this service is overwhelmingly a find page —
+and `item_view - item_view_onsite`, published since run 165, is the only instrument on this platform
+that claims to say whether anyone **off-site** reads them. `onsite()` is a **one-bit** test: *was the
+`Referer` a page on this site.* Everything that is not that bit lands in one remainder, and **a
+crawler walking our own sitemap sends no `Referer` at all, so it satisfies "off-site" exactly as well
+as a person arriving from Google does.**
+
+| day | `item_view` | `item_view_bot` | published off-site reading |
+| --- | --- | --- | --- |
+| 2026-09-24 | — | 103 | 0 |
+| 2026-09-25 | — | 68 | 0 |
+| **2026-09-26** | **517** | 19 | **517** |
+
+**517 is the largest off-site figure this service has ever produced** — accumulated in the 4h59m of
+that UTC day before the snapshot at `04:58:54Z` — and it is either the first search traffic in the
+project's life or one crawler. **Nothing in the instrument could say which.** Run 185 made that
+subtraction arithmetically legal and did not make it interpretable; it asked *is this subtraction
+legal* and nobody asked *what are the members of the set it computes*. **A negative number announces
+itself; an ambiguous one looks exactly like a number that is fine** ([L-116](LESSONS.md#l-116)).
+
+| name | kind | means |
+| --- | --- | --- |
+| `item_view_onsite[_bot]` | axis | the `Referer` was a page on this site — unchanged |
+| **`item_view_referred[_bot]`** | axis, new | the `Referer` parsed and named a host that is **not** ours. Disjoint from `_onsite`, so the two may be summed |
+| **`item_view_search[_bot]`** | axis, new | the subset of that whose host is an **allowlisted search engine**. A strict subset, never summed with `_referred` |
+| *the remainder* | derived | `item_view − _onsite − _referred` — arrived with **no usable `Referer` at all**: a crawler, a paste, a bookmark |
+| `feed_view`, `landing_view` | — | **deliberately unchanged**, and a test asserts they stay that way |
+
+**The arrival number is now `item_view_referred` and the crawler number is the remainder.** Both new
+names carry the `_bot` split, because both are read against one side of it — the rule
+[L-103](LESSONS.md#l-103) was written for, not repeated one level up. Neither is a bucket; `item_view`
+and every total are unchanged. **No referrer value is stored**: the host is matched against a fixed
+pattern and discarded, never persisted and never interpolated into a counter name, so the privacy page
+stays true and is untouched.
+
+**The second reading was re-taken rather than carried forward.** Run 174's search-index measurement,
+same method at ~2026-09-26 20:45 UTC: control `site:hono.dev` **nine URLs** (the operator works),
+`site:justtuned.com` **0 pages from the domain**, exact-phrase **0 pages from the domain**. **Eight
+days unchanged.** That is evidence for the crawler explanation and **not proof** — one backend, not
+necessarily Google's or Bing's — which is exactly why a discriminator shipped instead of an inference.
+
+**Why this cycle and not the `scout-record`,** declined now for the third time on
+[L-08](LESSONS.md) grounds: CLAUDE.md's first hard rule is *never publish a number that is not
+sourced*, and a number whose source merges two populations is the one case that rule cannot catch,
+because the defect is in the source. The demand question it serves, stated as runs 186/188 required:
+**is organic search delivering arrivals to find pages — the only acquisition channel not blocked on
+the owner?**
+
+**[L-112](LESSONS.md#l-112)'s own prevention check caught this pre-registration on its first run**, and
+it is worth one line because the guard was written four days ago for exactly this: `test:ops` failed with
+*"every pre-registered fork carries an explicit next action"*, naming all five EXP-014 forks by line.
+Two had a reading and no action at all; three had one under a heading the matcher does not recognise.
+Every fork now carries `*Next action:*`, including the two null-shaped ones, where improvising is most
+likely.
+
+**Pre-registered before the data exists:**
+[EXP-014](EXPERIMENTS.md#exp-014--were-2026-09-26s-517-off-site-find-page-views-a-crawler-or-the-first-search-arrivals-2026-09-27-run-197)
+— whole UTC days **2026-09-27 → 2026-10-03**, closing before the final operating date so a run can
+still act on it. Five forks: **A** crawler confirmed, **B** search is delivering, **C** a non-search
+inbound link exists (run 174 named inbound links as the missing input), **D** no traffic at all —
+explicitly *not* a null for A–C — and **E** the instrument never wrote, whose detector is this loop's
+own `verify-production` step. Binding clauses forbid this loop from writing the unsuffixed names and
+forbid editing the allowlist inside the window.
+
+**Shipped:** PR [#110](https://github.com/in-c0/tuned/pull/110) →
+[`ac1322e`](https://github.com/in-c0/tuned/commit/ac1322e) — two helpers, two counter names on one
+route, `DISJOINT_AXES` in the axis register, an optional `REFERER` on the production request contract,
+one `verify-production` step, and 17 tests.
+
+**Nine mutations, source restored byte-identical under `sha256sum -c` after every one.** **Mutation 6
+is the keeper:** shipping `_referred` and dropping `_search` — the half a defect report would have
+asked for — passes 20 of 23 tests and is caught by three, each naming what it lost. Two more redden
+the production step against a local server serving the commit under test, one on a document that
+varies by referrer and one on a referred visitor being refused.
+
+**Gates.** `npm run check` **0** · **529 vitest** (519 → 529) · **ops suite 326/326** (319 → 326) ·
+**14 workflows** · **15 nominations** · **0 vulnerabilities**.
+
+**The first deploy went RED, on the step this run added, and it is reported here rather than smoothed
+over.** [`verify production` 36276980286](https://github.com/in-c0/tuned/actions/runs/36276980286)
+failed at step 30: *"`/sportstech/288` serves a DIFFERENT document to a visitor arriving from a search
+engine. Roll back."* **It does not, and the step's own output disproves its own accusation** —
+`referred 4e63f912357b, unreferred fbb61497ebec/8b995bd24a67`: **the two *unreferred* reads differed
+from each other**, three seconds apart, on identical requests. The whole runtime diff is one pure
+function and two counter-name strings; no path in it touches a response, a header or a rendered byte,
+so two identical requests differing is not attributable to it. **An HTML body served from this zone is
+not byte-stable across requests**, and every one of the 29 steps before it passed.
+
+**Fixed forward rather than rolled back** — PR [#111](https://github.com/in-c0/tuned/pull/111) — because
+reversing a working change on a guard's own bad premise would be the wrong call, the same judgement run
+196 made and for the same reason. **This is [L-115](LESSONS.md#l-115) recurring in a check written the
+same hour it was recorded**, and the recurrence is the part worth keeping: *a comparison can be exact
+locally because of a fact about the **server** that production does not hold.* All three bodies matched
+byte-for-byte against a local Worker, which is exactly why the premise survived to the deploy. The
+subject is now **Tuned's own markup** — the document with every `<script>…</script>` removed, since
+Cloudflare's per-response injections are script elements and this service's own inline script is
+byte-identical on every request.
+
+**The replacement is stronger than the check it replaces, not weaker.** Unreferred-vs-unreferred is
+asserted too, so a page unstable for a reason *other* than a referrer is reported as exactly that and
+never as a referrer defect — the case that actually occurred, which the old check had no name for. A
+difference is localised by the offset of the first differing byte, with **no response body ever
+reaching the log**. Sizes and script counts print on every run, red or green. And the referred document
+must carry the other-feeds block with at least one feed in it. **Two further defects in that step, both
+of which made it fail in a way a rollback trigger may not:** `set -o pipefail` with
+`n=$(grep -o … | wc -l)` killed it with a bare `exit 1` and **no message at all** when a grep matched
+nothing — which makes *"the guard crashed"* and *"the site regressed"* indistinguishable — and the byte
+localiser matched only `byte N` where GNU `cmp` says `char N`, printing an empty string exactly where
+the diagnosis goes. **Four failure branches exercised against a local server, each with its own
+message**, source restored byte-identical.
+
+**Recorded as a constraint on every future production check, not just this one:** two HTML responses
+from `justtuned.com` may differ byte-for-byte with no product change between them, so **no check may
+assert byte-identity of a delivered HTML body.** Nothing in this repository had ever compared two
+production HTML bodies before this run, which is why nothing had found it. [METRICS.md](METRICS.md)
+carries the rule.
+
+**Production is green at the deployed commit.**
+[`verify production` 36277534284](https://github.com/in-c0/tuned/actions/runs/36277534284) — **success
+at [`3cf54fa`](https://github.com/in-c0/tuned/commit/3cf54fa)**: the expected commit was confirmed
+serving at step 5, then **30 steps passed**, including the new **step 30**. The live reading:
+
+```
+step 30  sizes raw/stripped and script counts: ref-before=30042/26871B,3s ref=30042/26871B,3s
+                                               ref-after=30042/26871B,3s
+         /sportstech/288: HTTP 200 text/html to a Referer from www.google.com; Tuned's own markup
+         identical to the unreferred document (584803ba0d5c), 0 sibling find(s), 8 other feed(s)
+```
+
+**Three script elements, and the raw sizes identical while the bytes were not** — so the per-response
+fragment is fixed-length, which is why nothing before this run had any reason to notice it. The one
+skip is *Public availability*, whose condition fires only when the site is **not** serving. **Egress
+re-tested rather than assumed:** `justtuned.com:443` still answers **403 CONNECT** from this session, so
+production was verified from GitHub Actions as `CLAUDE.md` requires. **No rollback was triggered and
+none was needed** — the one red was resolved by a fix, with the reasoning above.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-26T04:58:54.228Z`. **A readable counter is not a visitor.** What this run claims is narrower
+and firmer than usual: the loop was one bad inference away from reporting 517 crawler fetches as
+off-site human arrivals, and that is now impossible. **This is the twenty-fourth consecutive cycle
+whose output is not a user or a dollar, and I am not dressing it up. 8 days left.**
+
+---
+
 **Last updated:** 2026-09-26 21:30 Sydney (2026-09-26 11:30 UTC), run 196 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-195 and not re-argued here, per [L-07](LESSONS.md).** **Every surface
 truthfully told the visitor the feed was over, and not one of them said where to go next.**

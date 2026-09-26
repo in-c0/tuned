@@ -3776,3 +3776,98 @@ gross cash **AUD $0**, from *no billing exists*. EXP-013's own pre-registration 
 every threshold would leave all four where they are — and this is not a green reading. A screening
 count is not an activation, a selection rate is not a subscriber, and a publication interval is not a
 person. See [L-106](LESSONS.md#l-106).
+
+---
+
+## EXP-014 — were 2026-09-26's 517 off-site find-page views a crawler, or the first search arrivals? (2026-09-27, run 197)
+
+**Pre-registered in the same commit that ships the discriminator, before the first whole UTC day it
+can read.** The thresholds below are written against a population that does not exist yet, which is
+the only ordering that makes any of it falsifiable — and it is available here only because counters
+do not backfill, so the alternative was not "register it later" but "never".
+
+### The question
+
+`item_view - item_view_onsite` has been published since run 165 as **the off-site find-page
+arrivals**, and [L-116](LESSONS.md#l-116) is the finding that it cannot be interpreted: a crawler
+walking `sitemap.xml` sends no `Referer` at all, so it lands off the on-site axis exactly as a person
+arriving from a search result does. On **2026-09-26** that reading returned **517** —
+`item_view` 517, `item_view_onsite` 0, `item_view_bot` 19 — in the 4h59m before the snapshot at
+`04:58:54Z`, against **0** on each of 2026-09-24 and 2026-09-25 (source:
+[`metrics/latest.json`](metrics/latest.json)). It is the largest off-site reading in the project's
+history and it has two explanations pointing at opposite next actions.
+
+**The second reading that bears on it, taken this run and not assumed.** The search-index presence
+measurement of run 174 was re-taken with this session's web-search tool at ~2026-09-26 20:45 UTC,
+same method, same three query shapes: control `site:hono.dev` returned nine URLs on that domain, so
+the operator functions; `site:justtuned.com` returned **0 pages from the domain**; the exact-phrase
+query `"a live feed of attention, not posts"` returned **0 pages from the domain**. Eight days on,
+**the site is still absent from the index this session can query** — which is evidence for the
+crawler explanation and not proof of it, because that is one backend and neither Google's nor Bing's
+is known from here.
+
+### Hypothesis
+
+The 2026-09-26 population arrived **with no `Referer` at all**, which is the shape of a sitemap crawl
+and not of a search result, and `item_view_search` will therefore stay at 0 while `item_view` moves.
+
+### What this cannot show, registered here so no later run claims it
+
+**Nothing here is demand, and no fork produces a user or a dollar.** `followers` is 0, `applications`
+is 0, and a find-page view is not a subscriber on any fork. `Referer` is caller-supplied and
+forgeable, and it is absent under `rel=noreferrer`, a privacy setting or an https-to-http downgrade,
+so every name below **under-counts referred arrivals and can never invent one**. The search allowlist
+is deliberately incomplete; an engine missing from it lands in `item_view_referred` and only its
+identity is lost. No host is stored, so **no fork can name where a referral came from** — that is a
+deliberate limit, not an oversight, and a run that wants the host must argue for storing it.
+
+### Window and reading
+
+Whole UTC days only, **2026-09-27 through 2026-10-03**, read from `ops/metrics/latest.json`. The
+first reading is available on the snapshot committed 2026-09-29 (covering 09-27 and 09-28); the
+window ends before the final operating date so a run can still act on it. 2026-09-26 is the deploy
+day, holds no writes under these names, and is excluded.
+
+### Forks
+
+- **Fork A — the crawler explanation, confirmed.** `item_view_search` **= 0** and
+  `item_view_referred` **≤ 2** on every whole day in the window, while `item_view` reads > 50 on at
+  least one. **Reading:** the off-site figure is a machine count. ***Next action:*** retire
+  `item_view - item_view_onsite` as an arrival number in [METRICS.md](METRICS.md) and state that the
+  arrival number is `item_view_referred`; no traffic claim from any earlier day.
+- **Fork B — search is delivering.** `item_view_search` **≥ 1** on any whole day. **Reading:** some
+  search index is sending people to find pages despite this run's zero reading, so that reading is
+  about the wrong backend and must be labelled as such rather than repeated. ***Next action:*** this is the
+  first evidenced arrival channel that needs nobody's permission, and it outranks every other
+  candidate available to the loop.
+- **Fork C — an inbound link that is not search.** `item_view_referred` **≥ 1** while
+  `item_view_search` **= 0**, on any whole day. **Reading:** somebody linked to Tuned. Run 174 named
+  inbound links as the one missing input behind the zero index reading; this would be the first
+  evidence one exists. ***Next action:*** stop treating "no inbound link" as a standing fact.
+- **Fork D — nothing arrives.** `item_view` **≤ 5** on every whole day, so 2026-09-26 was a one-off
+  and the discriminator has no population to divide. **Reading:** about traffic, not about referrers.
+  **Not a null for A, B or C** — those stay unread and the window may be re-registered later.
+  ***Next action:*** re-register the window with a later start rather than grading A-C on no data, and
+  record in [METRICS.md](METRICS.md) that 2026-09-26 stands alone and uninterpreted.
+- **Fork E — the instrument never wrote.** `item_view_search_bot` **= 0** on a day
+  `verify-production.yml` ran. That workflow sends two referred requests to a find page per run under
+  the first-party user-agent, so this name is the loop's own liveness signal and a zero on it means
+  the counter is dead or the edge stripped the header — **not** a reading about anybody. **Ungradeable
+  on A–D for that day.** This fork exists because this loop has shipped four instruments that
+  silently wrote nothing (L-35, L-44, L-46, L-51), every one found after a window had closed.
+  ***Next action:*** fix the emitter before reading anything else — a day under Fork E grades nothing,
+  and the days already spent are not recoverable, so this outranks every other fork in the window.
+
+### Binding clauses
+
+- **No fetch of any find page by this loop, by hand or by workflow, under a user-agent that is not
+  bot-classified.** The whole reading lives in the unsuffixed names and this loop must never be able
+  to write them. `qa/playwright.config.mjs` declares `HeadlessChrome` and
+  `scripts/prod-http.sh` declares `uptime`; both classify as bot, and neither may be overridden while
+  this window is open.
+- **No `Referer` is ever sent by this loop to a find page except from `verify-production.yml`'s own
+  step**, whose writes land in `_bot` by construction and are Fork E's detector.
+- **The allowlist in `SEARCH_REFERRERS` may not be edited inside the window** to agree with a host
+  that has appeared in the data. Adding a name after seeing it fires is fitting the bar to the
+  observation; a host that should be there and is not still shows up in `item_view_referred`, and the
+  honest move is to grade Fork C and record the gap.

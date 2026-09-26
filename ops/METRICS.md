@@ -2948,3 +2948,123 @@ unreadable for the whole period in which that was the only acquisition path open
 
 **No metric moved and none is claimed.** `applications` **0** · `members` **1** ·
 `members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+
+---
+
+## 2026-09-27 (run 197) — the off-site find-page reading counted crawlers and visitors in one number, and 2026-09-26 is the day it mattered
+
+**`item_view - item_view_onsite` is withdrawn as an arrival reading for every day from 2026-09-16 to
+2026-09-26, and nothing is back-filled.** Run 185 made that subtraction arithmetically legal
+([the section above](#2026-09-23-run-185--four-axes-were-being-subtracted-from-a-bucket-they-were-not-drawn-from-and-the-off-site-find-page-reading-has-been-negative-since-the-day-it-was-born)).
+It did not make it interpretable, and [L-116](LESSONS.md#l-116) is why: `onsite()` tests **one bit** —
+was the `Referer` a page on this site — so **a crawler walking our own `sitemap.xml` sends no
+`Referer` at all and satisfies "off-site" exactly as well as a person arriving from a search result
+does.** The number was never wrong. It was two populations with one name.
+
+### The reading that forced it
+
+| day | `item_view` | `item_view_bot` | `item_view_onsite` | published reading |
+| --- | --- | --- | --- | --- |
+| 2026-09-24 | — | 103 | — (`_bot` 45) | 0 |
+| 2026-09-25 | — | 68 | — (`_bot` 34) | 0 |
+| **2026-09-26** | **517** | 19 | 0 (`_bot` 2) | **517** |
+
+Source: [`metrics/latest.json`](metrics/latest.json), `generated_at` **2026-09-26T04:58:54.228Z**, so
+the 517 accumulated in the **4h59m** of that UTC day before the snapshot. It is by a wide margin the
+largest off-site figure this service has produced, and **it is either the first search traffic in the
+project's life or one crawler.** No run can tell from these names, and no traffic or demand claim is
+made from any of them.
+
+### The other half of the evidence, re-read this run rather than carried forward
+
+Run 174's [search-index presence](#search-index-presence--first-reading-2026-09-19-run-174) reading
+was re-taken at ~**2026-09-26 20:45 UTC** with this session's web-search tool, same method:
+
+| query | 2026-09-19 (run 174) | 2026-09-27 (run 197) |
+| --- | --- | --- |
+| `site:hono.dev` — **control** | nine URLs on the domain | **nine URLs on the domain** |
+| `site:justtuned.com` | 0 pages from the domain | **0 pages from the domain** |
+| `"a live feed of attention, not posts"` | 0 pages from the domain | **0 pages from the domain** |
+
+**Eight days on, unchanged.** The same caveats apply verbatim and are not weakened by repetition: one
+backend, not necessarily Google's or Bing's; absence from an index is evidence and not proof; it is
+not a traffic number and not a demand number in either direction. What it adds here is that the
+crawler explanation of 2026-09-26 is the better-supported one — and that is exactly why the
+discriminator, not the inference, is what shipped.
+
+### The names, and what each may be read as
+
+| name | kind | means |
+| --- | --- | --- |
+| `item_view[_bot]` | bucket | a find page was requested. Unchanged. |
+| `item_view_onsite[_bot]` | axis | the `Referer` was a page on this site. Unchanged. |
+| **`item_view_referred[_bot]`** | axis, **new** | the `Referer` parsed and named a host that is not ours. **Disjoint from `_onsite`**, so the two may be summed. |
+| **`item_view_search[_bot]`** | axis, **new** | the subset of `_referred` whose host is an allowlisted search engine. A strict subset; never summed with `_referred`. |
+| *the remainder* | **derived** | `item_view - item_view_onsite - item_view_referred` — arrived with **no usable `Referer` at all**. A crawler, a paste, a bookmark, or a browser that stripped it. |
+
+**The arrival number is now `item_view_referred`, and the crawler number is the remainder.** Both
+new names carry the `_bot` split, because both are read against one side of it — the rule L-103 was
+written for and the reason this is not repeating that mistake one level up.
+
+**Evidence, not proof, and in the safe direction.** `Referer` is absent under `rel=noreferrer`, a
+privacy setting or an https-to-http downgrade, so a genuine search arrival can land off both axes:
+these names **under-count referred arrivals and cannot invent one**. They are also forgeable on one
+header, like every page-reported name in this file. The allowlist is deliberately incomplete and
+costs a reading nothing — an unlisted engine still writes `item_view_referred`, so only the identity
+of the source is lost, and a host added later changes no earlier day's meaning.
+
+**No referrer value is stored.** The host is matched against a fixed pattern and a fixed counter name
+is incremented; the header is never persisted, never interpolated into a name, and no per-visitor
+state exists. `ops/` and the privacy page both stay true without amendment, and a test asserts no
+metric name can carry a caller-supplied host.
+
+### What is deliberately not instrumented
+
+`feed_view` and `landing_view` get **no referrer axis.** They have no published reading that
+subtracts one, so they are coarser rather than ambiguous — and a later run that reads
+`feed_view_referred` as 0 must be able to tell *nobody* from *not built*. A unit test asserts both
+names stay unwritten, so the absence is a decision rather than an omission.
+
+### What now executes the rule
+
+[`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs) gained **`DISJOINT_AXES`**: a group of
+axes whose **sum** may not exceed the bucket a remainder is taken from. The pairs it already checked
+cannot catch this shape — two axes can each sit under the bucket and together sit over it, which is
+precisely the arithmetic the remainder above rests on. The positive control is in
+`scripts/axis-invariant.test.mjs`: a day with `item_view` 10, `_onsite` 6 and `_referred` 5 passes the
+per-axis check and reddens the sum check, printing a remainder of **-1**.
+
+### The reading this makes possible, pre-registered before it exists
+
+[EXP-014](EXPERIMENTS.md#exp-014--were-2026-09-26s-517-off-site-find-page-views-a-crawler-or-the-first-search-arrivals-2026-09-27-run-197),
+whole UTC days 2026-09-27 → 2026-10-03, with five forks and an instrument-liveness fork whose detector
+is this loop's own `verify-production` step.
+
+### A constraint on every production reading taken from an HTML body, found this run
+
+**Two HTML responses from `justtuned.com` may differ byte-for-byte with no product change between
+them.** The step above was first written to assert byte-identity of a find page served to a referred
+visitor against the same page served to an unreferred one; it went red on its own deploy
+([36276980286](https://github.com/in-c0/tuned/actions/runs/36276980286)) reporting `referred
+4e63f912357b, unreferred fbb61497ebec/8b995bd24a67` — **the two unreferred reads differed from each
+other**, three seconds apart, on identical requests. Cloudflare injects per-response script content;
+before this run nothing in this repository had ever compared two production HTML bodies, so nothing had
+found it.
+
+**The rule this sets:** no check may assert byte-identity of a delivered HTML body. A comparison of two
+production documents must first remove everything produced by something other than the code under
+test — every `<script>…</script>`, at present — and must grade the **stable-pair** case as well, so
+instability that is not about the property under test is reported as exactly that. Sizes and script
+counts are now printed on every `verify-production` run so the volatility is a reading rather than a
+surprise. [L-115's recurrence](LESSONS.md#l-115).
+
+**First reading under the new rule**, [36277534284](https://github.com/in-c0/tuned/actions/runs/36277534284)
+step 30, `/sportstech/288`: `ref-before=30042/26871B,3s ref=30042/26871B,3s ref-after=30042/26871B,3s`
+— **three script elements, and all three raw sizes identical while the bytes on the earlier run were
+not.** The per-response fragment is fixed-length, which is why nothing had reason to notice it before a
+check compared two bodies.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+Source: [`metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-26T04:58:54.228Z`.
+**A readable counter is not a visitor.**
