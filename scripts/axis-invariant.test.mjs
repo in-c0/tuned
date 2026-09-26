@@ -8,7 +8,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { SPLIT_FROM, SUBTRACTED_AXES, describeViolations, violations } from "./axis-invariant.mjs";
+import {
+  DISJOINT_AXES,
+  SPLIT_FROM,
+  SUBTRACTED_AXES,
+  describeViolations,
+  sumViolations,
+  violations,
+} from "./axis-invariant.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REAL_SNAPSHOT = path.join(REPO_ROOT, "ops", "metrics", "latest.json");
@@ -103,9 +110,95 @@ describe("a subtracted axis may never exceed the bucket it is subtracted from", 
   });
 });
 
+// The second shape of impossible number, added with the find page's referrer family. Two axes can
+// each sit under the bucket and together sit over it, and the reading that breaks is the remainder:
+// `item_view - item_view_onsite - item_view_referred` is published as "arrived with no usable
+// referrer at all", which is the number that answers whether 2026-09-26's 517 was a crawler.
+describe("disjoint axes may never sum past the bucket the remainder is taken from", () => {
+  it("catches an overlap that neither axis shows on its own", () => {
+    // 6 and 5 are each under 10; together they claim 11 of 10 views, so the remainder is -1.
+    const found = sumViolations(
+      snapshot([
+        ["2026-09-30", "item_view", 10],
+        ["2026-09-30", "item_view_onsite", 6],
+        ["2026-09-30", "item_view_referred", 5],
+      ])
+    );
+
+    assert.equal(found.length, 1);
+    assert.equal(found[0].axis, "item_view_onsite + item_view_referred");
+    assert.equal(found[0].reading, -1);
+    assert.match(describeViolations(found)[0], /is not a count of anything/);
+    // And the per-axis check passes on the same day, which is why this one had to exist.
+    assert.deepEqual(violations(snapshot([
+      ["2026-09-30", "item_view", 10],
+      ["2026-09-30", "item_view_onsite", 6],
+      ["2026-09-30", "item_view_referred", 5],
+    ])), []);
+  });
+
+  it("accepts a day that exactly accounts for every view", () => {
+    assert.deepEqual(
+      sumViolations(
+        snapshot([
+          ["2026-09-30", "item_view", 10],
+          ["2026-09-30", "item_view_onsite", 6],
+          ["2026-09-30", "item_view_referred", 4],
+        ])
+      ),
+      []
+    );
+  });
+
+  it("says nothing about a day on which neither name was written", () => {
+    assert.deepEqual(sumViolations(snapshot([["2026-09-30", "item_view", 5]])), []);
+  });
+
+  it("reads one axis of a group as a group, so a half-written day is still checked", () => {
+    const found = sumViolations(
+      snapshot([
+        ["2026-09-30", "item_view", 2],
+        ["2026-09-30", "item_view_referred", 3],
+      ])
+    );
+
+    assert.equal(found.length, 1);
+    assert.equal(found[0].axisCount, 3);
+  });
+
+  it("excludes days before the split contract, exactly as the per-axis check does", () => {
+    const row = (day) => snapshot([
+      [day, "item_view", 1],
+      [day, "item_view_onsite", 1],
+      [day, "item_view_referred", 1],
+    ]);
+
+    assert.deepEqual(sumViolations(row("2026-09-19")), []);
+    assert.equal(sumViolations(row(SPLIT_FROM)).length, 1);
+  });
+
+  it("covers both sides of the user-agent split, because the remainder is read in each", () => {
+    for (const { axes, of } of DISJOINT_AXES) {
+      if (of.endsWith("_bot")) continue;
+      assert.ok(
+        DISJOINT_AXES.some(
+          (g) => g.of === `${of}_bot` && g.axes.join() === axes.map((a) => `${a}_bot`).join()
+        ),
+        `${of} has no _bot partner group`
+      );
+    }
+  });
+});
+
 describe("the real snapshot", () => {
   it("holds no impossible reading on any day written under the split contract", () => {
     const found = violations(JSON.parse(fs.readFileSync(REAL_SNAPSHOT, "utf8")));
+
+    assert.deepEqual(found, [], describeViolations(found).join("\n"));
+  });
+
+  it("holds no impossible remainder on any day written under the split contract", () => {
+    const found = sumViolations(JSON.parse(fs.readFileSync(REAL_SNAPSHOT, "utf8")));
 
     assert.deepEqual(found, [], describeViolations(found).join("\n"));
   });

@@ -49,11 +49,25 @@ ORIGIN_BASE="${ORIGIN_BASE:-https://attention-feed.wldud5192.workers.dev}"
 # Build the shared header set. The metrics key is passed only when the caller explicitly
 # asks for it, and is read from the environment rather than interpolated by a caller, so
 # it never lands in a command line, a log line or an error message.
+# REFERER, when set, adds one `Referer` header to the request. It exists for exactly one caller:
+# the find page classifies an arrival by that header (`item_view_referred` / `item_view_search`),
+# and whether the edge delivers the header to the Worker at all is a production-only fact — the
+# unit suite constructs the Request itself and so can never see a header Cloudflare stripped.
+#
+# It is not a costume. The user-agent above still says what this caller is, on every request,
+# including these, so a referred probe lands in the `_bot` counters exactly as every other
+# first-party read does and never in the series a human reading is taken from. Nothing here may
+# ever be used to claim traffic: a verifier that wrote into the unsuffixed names would be
+# manufacturing the arrivals it exists to check for, which is the same rule `post` states about
+# Origin. Unset by default, so every existing caller sends the identical request set it did before.
 _headers() {
   local accept="$1" authed="$2"
   printf '%s\0' "-H" "user-agent: ${UA}"
   printf '%s\0' "-H" "accept: ${accept}"
   printf '%s\0' "-H" "cache-control: no-cache"
+  if [ -n "${REFERER:-}" ]; then
+    printf '%s\0' "-H" "referer: ${REFERER}"
+  fi
   if [ "$authed" = "1" ]; then
     printf '%s\0' "-H" "x-metrics-key: ${METRICS_KEY:-}"
   fi
