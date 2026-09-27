@@ -54,7 +54,7 @@ import {
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { screen, publishedSources, amendCycle, fetchRecord, publishOne, writeNomination, USER_AGENT } from "./agent-scout.mjs";
+import { screen, publishedSources, amendCycle, fetchRecord, publishOne, writeNomination, renderTable, USER_AGENT } from "./agent-scout.mjs";
 import { validateNomination } from "../qa/nominations/index.mjs";
 
 const NOW = "2026-09-12T04:00:00.000Z";
@@ -203,6 +203,88 @@ test("a title that announces itself as not-a-paper is refused even when the type
     const r = metaClause({ title });
     assert.equal(r.clause, "research-article", `title "${title}" should be refused`);
   }
+});
+
+test("an appraisal of a literature is refused on its title even when the type list calls it a research article", () => {
+  // The first entry is verbatim the top selection of the 2026-09-27 screen, whose pubTypes
+  // carried no review type at all — so this fixture's clean type list is the live case, not
+  // a convenience. The rest are the framings the old article-bound pattern could not see.
+  const titles = [
+    "Heart rate variability-guided endurance training: evaluating strengths, weaknesses, opportunities, and threats for load prescription and adjustment",
+    "SWOT analysis of wearable training-load monitoring in elite athletes",
+    "Umbrella review of GNSS match-play load in football",
+    "Rapid review of markerless motion capture in sprint athletes",
+    "Integrative review of EMG reliability in resistance-trained athletes",
+    "Literature review of force plate countermovement jump metrics in sport",
+    "A review of accelerometer training load in team-sport athletes",
+    "Markerless motion capture in athletics: state of the art",
+  ];
+  assert.ok(titles.length >= 8, "this rule must be swept over the live case plus the near misses, not an empty list");
+  for (const title of titles) {
+    const r = metaClause({ title, pubTypeList: { pubType: ["research-article", "Journal Article"] } });
+    assert.equal(r.clause, "research-article", `title "${title}" should be refused`);
+  }
+});
+
+test("the appraisal patterns leave the six primary studies beside that review alone", () => {
+  // A title clause that silences the publisher is worse than the defect it fixes, so the
+  // other six selections from the same 2026-09-27 screen are the negative control. They are
+  // refused later or not at all — never as not-a-paper.
+  const titles = [
+    "The preceding eccentric phase enhances mechanical output within the sticking region during the bench press in resistance-trained athletes",
+    "Machine Learning Model Development and Evaluation for Non-contact Lower Limb Injury Risk Prediction in athletes",
+    "Tracking Recovery in Motion: Longitudinal, Multi-Contextual Monitoring of Return-to-Play in an injured athlete",
+    "Discovering the mechanics of ultra-low density elastomeric foams in elite-level racing shoes",
+    "Within-athlete association between morning on-track peak heart rate and same-day pre-performance readiness",
+    "Not all players warm up the same: position-specific external load during standardized pre-match warm-ups",
+    // A reliability study whose title says "state-of-the-art" as an adjective: the spaced
+    // pattern must not take it.
+    "Concurrent validity of a state-of-the-art markerless system against force plates in sprinting athletes",
+  ];
+  assert.ok(titles.length >= 7, "this negative control must sweep the whole selection set, not an empty list");
+  for (const title of titles) {
+    const r = metaClause({ title, pubTypeList: { pubType: ["research-article", "Journal Article"] } });
+    assert.notEqual(r.clause, "research-article", `title "${title}" must not be refused as not-a-paper`);
+  }
+});
+
+test("the record's table reports the type Europe PMC gave each selection", () => {
+  // Run 199 could read the 2026-09-27 screen only through the job log — the scout-record
+  // artifact is unreachable from the routine session — and the log did not carry the one
+  // fact the `research-article` clause had acted on. A selection's row must name it.
+  const table = renderTable({
+    observations: [
+      {
+        verdict: "selected",
+        candidate: { pmcid: "PMC1", title: "Concurrent validity of an IMU in sprinting athletes", pubTypes: ["research-article", "journal article"] },
+        grade: { statistics: ["p-value", "agreement"] },
+        bodyCharacters: 41_000,
+      },
+      {
+        verdict: "rejected",
+        clause: "research-article",
+        detail: 'publication type "review"',
+        candidate: { pmcid: "PMC2", title: "Wearables in sport: a narrative review", pubTypes: ["review"] },
+      },
+    ],
+  });
+  assert.match(table, /\| SELECTED \| PMC1 \|.*typed research-article\/journal article \|/);
+  // A rejection still reports its clause, not a type list: the clause is the reason.
+  assert.match(table, /\| rejected \| PMC2 \|.*research-article: publication type "review" \|/);
+});
+
+test("the record's table survives a selection whose type list is missing", () => {
+  const table = renderTable({
+    observations: [
+      {
+        verdict: "selected",
+        candidate: { pmcid: "PMC3", title: "Force plate asymmetry in football players" },
+        grade: { statistics: ["p-value", "dispersion"] },
+        bodyCharacters: 12_000,
+      },
+    ],
+  });
+  assert.match(table, /typed \(none\)/);
 });
 
 test("in-remit needs BOTH an instrument term and a sport context term", () => {
