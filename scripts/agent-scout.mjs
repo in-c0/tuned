@@ -52,6 +52,7 @@ import {
   recordQuery,
   selectQuotation,
   extractBodyText,
+  extractMethodsText,
   fullTextUrl,
   grade,
   gradeMetadata,
@@ -255,13 +256,19 @@ export async function screen({
     const { xml, note } = await getFullText(fullTextUrl(candidate.pmcid), fetchImpl);
     reads += 1;
     const fullText = extractBodyText(xml);
-    const g = grade(candidate, { now: nowIso, fullText, fetchNote: note, windowDays, publishedUrls: published.urls, publishedDois: published.dois });
+    // The methods section is extracted from the same XML and passed separately, because
+    // `DESIGN_SIGNATURES` is graded there and nowhere else (LESSONS L-119). `grade` fails
+    // closed on an empty one, so forgetting this argument would silence the publisher
+    // rather than loosen it — `agent-scout.test.mjs` asserts this call site passes it.
+    const methodsText = extractMethodsText(xml);
+    const g = grade(candidate, { now: nowIso, fullText, methodsText, fetchNote: note, windowDays, publishedUrls: published.urls, publishedDois: published.dois });
     observations.push({
       candidate,
       verdict: g.verdict,
       clause: g.clause,
       detail: g.detail ?? "",
       encountered: fullText.length > 0,
+      methodsCharacters: methodsText.length,
       bodyCharacters: fullText.length,
       grade: g.verdict === "selected" ? g : undefined,
     });
@@ -460,7 +467,7 @@ export function renderTable(report) {
     // selection was typed as a research article; the record should have said so.
     const reason =
       o.verdict === "selected"
-        ? `${o.grade.statistics.length} stat families, ${o.bodyCharacters} chars, typed ${(o.candidate.pubTypes || []).join("/") || "(none)"}`
+        ? `${o.grade.statistics.length} stat families, ${o.bodyCharacters} chars (methods ${o.grade.methodsCharacters}), typed ${(o.candidate.pubTypes || []).join("/") || "(none)"}`
         : `${o.clause}: ${o.detail}`;
     return `| ${verdict} | ${o.candidate.pmcid || o.candidate.id} | ${o.candidate.title.slice(0, 90)} | ${reason.slice(0, 150)} |`;
   });

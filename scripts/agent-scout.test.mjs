@@ -39,7 +39,9 @@ import {
   QUOTE_CLAUSES,
   REPORTED_VALUE_SIGNATURES,
   describeResponseShape,
+  DESIGN_SIGNATURES,
   extractBodyText,
+  extractMethodsText,
   fullTextUrl,
   grade,
   gradeMetadata,
@@ -402,27 +404,27 @@ test("a full text shorter than the floor is refused", () => {
 });
 
 test("one statistic family is not a measured result", () => {
-  const text = extractBodyText(goodFullText({ stats: "Agreement was excellent (ICC = 0.97).", design: "A validation study was performed." }));
-  const r = grade(candidateOf(), { ...base, fullText: text });
+  const xml = goodFullText({ stats: "Agreement was excellent (ICC = 0.97).", design: "A validation study was performed." });
+  const text = extractBodyText(xml);
+  const r = grade(candidateOf(), { ...base, fullText: text, methodsText: extractMethodsText(xml) });
   assert.equal(r.clause, "measured-result");
   assert.match(r.detail, new RegExp(`need ${MIN_STATISTIC_FAMILIES}`));
 });
 
 test("statistics with no design term is a commentary quoting numbers, and is refused", () => {
-  const text = extractBodyText(
-    goodFullText({
-      stats: "Others have reported ICC = 0.97 and p = 0.03 in this setting.",
-      design: "We reflect on the state of the field.",
-    })
-  );
-  const r = grade(candidateOf(), { ...base, fullText: text });
+  const xml = goodFullText({
+    stats: "Others have reported ICC = 0.97 and p = 0.03 in this setting.",
+    design: "We reflect on the state of the field.",
+  });
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(xml), methodsText: extractMethodsText(xml) });
   assert.equal(r.clause, "measured-result");
   assert.match(r.detail, /no design term/);
 });
 
 test("two statistic families plus a design term is selected, and reports its evidence", () => {
-  const text = extractBodyText(goodFullText());
-  const r = grade(candidateOf(), { ...base, fullText: text });
+  const xml = goodFullText();
+  const text = extractBodyText(xml);
+  const r = grade(candidateOf(), { ...base, fullText: text, methodsText: extractMethodsText(xml) });
   assert.equal(r.verdict, "selected");
   assert.equal(r.clause, null);
   assert.ok(r.statistics.length >= MIN_STATISTIC_FAMILIES);
@@ -431,7 +433,7 @@ test("two statistic families plus a design term is selected, and reports its evi
 });
 
 test("metadata clauses are applied before the encounter, so a review with a perfect full text is still refused", () => {
-  const r = grade(candidateOf({ pubTypeList: { pubType: ["review"] } }), { ...base, fullText: extractBodyText(goodFullText()) });
+  const r = grade(candidateOf({ pubTypeList: { pubType: ["review"] } }), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   assert.equal(r.clause, "research-article");
 });
 
@@ -453,7 +455,7 @@ test("ranking prefers more statistic families, then recency, then length, then D
 });
 
 test("the why line stays inside the publish route's budget and says what the agent did", () => {
-  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   const why = composeWhy({ candidate: candidateOf(), grade: g, observed: 38, observedOn: "2026-09-12" });
   assert.ok(why.length > 0 && why.length <= 280, `why was ${why.length} characters`);
   assert.match(why, /Selected by @sportstech from 38 open-access candidates screened 2026-09-12/);
@@ -463,7 +465,7 @@ test("the why line stays inside the publish route's budget and says what the age
 });
 
 test("the why line drops whole clauses rather than slicing a sentence", () => {
-  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText({ extra: "Cohen's d = 0.8, 95% CI, Pearson r = 0.91, RMSE 0.04, coefficient of variation 2%, randomised crossover, compared with the reference." })) });
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText({ extra: "Cohen's d = 0.8, 95% CI, Pearson r = 0.91, RMSE 0.04, coefficient of variation 2%, randomised crossover, compared with the reference." })), methodsText: extractMethodsText(goodFullText({ extra: "Cohen's d = 0.8, 95% CI, Pearson r = 0.91, RMSE 0.04, coefficient of variation 2%, randomised crossover, compared with the reference." })) });
   const long = composeWhy({ candidate: candidateOf({ journalInfo: { journal: { title: "A Journal With A Very Long Name Indeed For Testing Budgets In Composition" } } }), grade: g, observed: 9999, observedOn: "2026-09-12" });
   assert.ok(long.length <= 280);
   assert.ok(long.endsWith("."), "every composition must end on a finished clause");
@@ -701,24 +703,24 @@ test("every published source in the registry would now be refused as already pub
 // ---------------------------------------------------------------------------
 
 test("MUTATION: accepting one statistic family would admit a paper that merely reports agreement", () => {
-  const text = extractBodyText(goodFullText({ stats: "Agreement was excellent (ICC = 0.97).", design: "A validation study was performed." }));
-  const r = grade(candidateOf(), { ...base, fullText: text });
+  const xml = goodFullText({ stats: "Agreement was excellent (ICC = 0.97).", design: "A validation study was performed." });
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(xml), methodsText: extractMethodsText(xml) });
   assert.equal(r.verdict, "rejected");
   assert.equal(MIN_STATISTIC_FAMILIES, 2, "if this becomes 1 the case above starts passing");
 });
 
 test("MUTATION: keeping the reference list would let a citation satisfy the statistics clause", () => {
   const xml = `<article><body><sec><title>Methods</title><p>A validation study of sprint athletes. ${"athlete sprint sport data ".repeat(400)}</p></sec></body><ref-list><ref><title>IMU validity: ICC = 0.98, p &lt; 0.001, 95% CI reported</title></ref></ref-list></article>`;
-  const withStrip = grade(candidateOf(), { ...base, fullText: extractBodyText(xml) });
+  const withStrip = grade(candidateOf(), { ...base, fullText: extractBodyText(xml), methodsText: extractMethodsText(xml) });
   assert.equal(withStrip.clause, "measured-result", "with ref-list stripped there are no statistics");
   // And the counterfactual: the same text with references included would have passed.
   const naive = xml.replace(/<[^>]+>/g, " ").replace(/&lt;/g, "<").replace(/\s+/g, " ");
-  const withoutStrip = grade(candidateOf(), { ...base, fullText: naive });
+  const withoutStrip = grade(candidateOf(), { ...base, fullText: naive, methodsText: extractMethodsText(xml) });
   assert.equal(withoutStrip.verdict, "selected", "which is exactly why the strip is load-bearing");
 });
 
 test("MUTATION: dropping the open-access requirement would select a paper whose text cannot be read", () => {
-  const r = grade(candidateOf({ isOpenAccess: "N" }), { ...base, fullText: extractBodyText(goodFullText()) });
+  const r = grade(candidateOf({ isOpenAccess: "N" }), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   assert.equal(r.clause, "open-access-full-text");
 });
 
@@ -736,13 +738,13 @@ test("MUTATION: a body-length floor of zero would let an empty fetch be selected
 
 test("a full text that merely mentions sport is refused, however good its statistics", () => {
   const body = `<article><body><sec><title>Methods</title><p>A randomised repeated-measures study compared two groups (p = 0.02, 95% CI, ICC = 0.91). ${"Measurements were recorded in the laboratory. ".repeat(200)} One sentence notes that similar methods are used in sport.</p></sec></body></article>`;
-  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(body) });
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(body), methodsText: extractMethodsText(body) });
   assert.equal(r.clause, "about-sport");
   assert.match(r.detail, /mentioned, not about/);
 });
 
 test("a full text that is about sport passes, and the count is reported", () => {
-  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   assert.equal(r.verdict, "selected");
   assert.ok(r.sportMentions >= MIN_SPORT_MENTIONS, `expected at least ${MIN_SPORT_MENTIONS} mentions, got ${r.sportMentions}`);
 });
@@ -756,14 +758,14 @@ test("the scope clause is asked before the statistics clauses, so the cheaper re
   // No statistics at all AND no sport: the run record should say the scope failed, because
   // that is the fact a reader needs, not "it had one statistic family".
   const body = `<article><body><p>${"A descriptive laboratory note. ".repeat(300)}</p></body></article>`;
-  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(body) });
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(body), methodsText: extractMethodsText(body) });
   assert.equal(r.clause, "about-sport");
 });
 
 test("MUTATION: a sport-mention floor of zero re-admits every clinical paper the first screen selected", () => {
   assert.ok(MIN_SPORT_MENTIONS >= 5);
   const body = `<article><body><sec><title>Methods</title><p>A randomised controlled comparison in stroke survivors (p = 0.01, ICC = 0.88, 95% CI). ${"Gait was recorded with motion capture. ".repeat(200)}</p></sec></body></article>`;
-  const r = grade(candidateOf({ title: "Markerless gait analysis in stroke survivors", abstractText: "Instrumented gait in sprint-cadence walking trials." }), { ...base, fullText: extractBodyText(body) });
+  const r = grade(candidateOf({ title: "Markerless gait analysis in stroke survivors", abstractText: "Instrumented gait in sprint-cadence walking trials." }), { ...base, fullText: extractBodyText(body), methodsText: extractMethodsText(body) });
   assert.notEqual(r.verdict, "selected");
 });
 
@@ -821,7 +823,7 @@ test("the quotation is the source's own sentence, verbatim, inside the publish b
   assert.equal(q.source, "abstract results section");
   assert.deepEqual(q.families.sort(), ["effect size", "p-value"]);
 
-  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   const why = composeWhy({ candidate: quotableCandidate(abstract), grade: g, observed: 35, observedOn: "2026-09-12" });
   assert.ok(why.length <= 280, `why was ${why.length} characters`);
   assert.ok(why.includes(RESULTS_SENTENCE), "the whole sentence, not part of it");
@@ -837,7 +839,7 @@ test("a quotation is never truncated to fit — an over-long sentence is refused
   assert.equal(q.quote, "");
   assert.equal(q.refusedBecause, "too-long");
 
-  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   const why = composeWhy({ candidate: quotableCandidate(structuredAbstract({ results: long, extraResults: "" })), grade: g, observed: 35, observedOn: "2026-09-12" });
   // The fallback is the provenance-only form item 280 carries — not a shortened quote.
   assert.match(why, /^Selected by @sportstech/);
@@ -965,7 +967,7 @@ test("a correction refused by the mark's 23 characters says so in characters, no
 test("no qualifying sentence falls back to the provenance line rather than writing one", () => {
   const q = selectQuotation("BACKGROUND: Vibration training is popular. METHODS: We tested it. CONCLUSION: It is interesting.");
   assert.equal(q.quote, "");
-  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()) });
+  const g = grade(candidateOf(), { ...base, fullText: extractBodyText(goodFullText()), methodsText: extractMethodsText(goodFullText()) });
   const why = composeWhy({ candidate: candidateOf(), grade: g, observed: 12, observedOn: "2026-09-12" });
   assert.match(why, /^Selected by @sportstech from 12 open-access candidates/);
   assert.ok(why.length > 0 && why.length <= 280);
@@ -1712,4 +1714,170 @@ test("an entry the composer builds but the registry refuses is not written", () 
   assert.deepEqual(fs.readdirSync(dir), []);
   assert.ok(lines.some((l) => /does not validate/.test(l)), `the registry's refusal must be named: ${lines.join(" | ")}`);
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// ---------------------------------------------------------------------------
+// The methods-section clause (run 200, LESSONS L-119)
+//
+// L-118 found the bar had ranked a SWOT appraisal of other people's endurance trials FIRST
+// of seven selections, and named the root cause it deliberately did not fix: every term in
+// `DESIGN_SIGNATURES` is vocabulary the paper's SUBJECT supplies, so a paper discussing
+// randomised trials satisfies a clause meant to establish that its own authors ran one.
+// The fix is where the terms are read, not which terms they are — so these cases are all
+// about location, and the word list below is the one that shipped before them.
+// ---------------------------------------------------------------------------
+
+/** An appraisal of other people's work: statistics and design vocabulary throughout,
+ *  written about studies it cites, and — like the paper that provoked this — carrying no
+ *  section in which anybody says what THEY did. */
+function appraisalFullText() {
+  const filler =
+    "Across the athlete and sport science literature, randomised controlled trials have shown that endurance load prescription benefits from daily monitoring, and the reliability of these measures is discussed at length by several groups. ".repeat(
+      40
+    );
+  return `<article><body>
+    <sec sec-type="intro"><title>Introduction</title><p>${filler}</p></sec>
+    <sec><title>Strengths</title><p>Reported agreement was strong across trials (ICC = 0.91, 95% CI 0.85-0.95) and several authors compared with a control group. ${filler}</p></sec>
+    <sec><title>Weaknesses</title><p>Effect sizes were small (Cohen's d = 0.21, p = 0.04) in the repeated-measures studies surveyed. ${filler}</p></sec>
+    <sec><title>Conclusion</title><p>The sport of endurance running would benefit from further work.</p></sec>
+  </body></article>`;
+}
+
+/** A study of equipment rather than of people. This is the control every vocabulary-based
+ *  authorship clause considered in L-118 failed: it has no ethics approval, no informed
+ *  consent, no participants and no recruitment, and it is a primary measured result. */
+function equipmentFullText() {
+  const filler =
+    "Foam specimens cut from the midsole of each racing shoe were mounted in the testing rig and loaded at the sport-specific rates an athlete generates during running. ".repeat(
+      40
+    );
+  return `<article><body>
+    <sec><title>Introduction</title><p>Elite-level racing shoe midsoles are of growing interest in the sport of distance running. ${filler}</p></sec>
+    <sec><title>2. Materials and Methods</title><p>Each specimen was compared with a reference foam of known stiffness on a servo-hydraulic rig. ${filler}</p>
+      <sec><title>2.1 Specimen preparation</title><p>Specimens were conditioned for 24 h before testing.</p></sec>
+    </sec>
+    <sec><title>Results</title><p>Stiffness differed between conditions (p = 0.003, 95% CI 1.2-3.4 N/mm) with a standard deviation of 0.4 N/mm.</p></sec>
+  </body></article>`;
+}
+
+test("an appraisal of other people's trials carries no methods section and is refused there", () => {
+  const xml = appraisalFullText();
+  const body = extractBodyText(xml);
+  assert.ok(body.length >= MIN_BODY_CHARACTERS, "the fixture must clear the length floor to reach this clause");
+
+  // The defect, reproduced: read against the whole document the old clause was satisfied.
+  const asItWas = Object.entries(DESIGN_SIGNATURES)
+    .filter(([, patterns]) => patterns.some((re) => re.test(body)))
+    .map(([name]) => name);
+  assert.ok(asItWas.length > 0, `the old clause passed this document on ${asItWas.join(", ")}`);
+
+  const r = grade(candidateOf({ title: "Heart rate variability-guided endurance training for load prescription" }), {
+    ...base,
+    fullText: body,
+    methodsText: extractMethodsText(xml),
+  });
+  assert.equal(r.verdict, "rejected");
+  assert.equal(r.clause, "measured-result");
+  assert.match(r.detail, /no methods section located/);
+  // And the record says what it found instead, so the refusal is readable at the gate.
+  assert.match(r.detail, /design terms elsewhere: /);
+});
+
+test("a study of equipment with no human participants is selected, which is why this is not a consent clause", () => {
+  const xml = equipmentFullText();
+  const text = extractBodyText(xml);
+  assert.ok(
+    !/ethic|informed consent|participants were recruited|institutional review/i.test(text),
+    "the control is only a control if it would fail every vocabulary-based authorship clause"
+  );
+  const r = grade(candidateOf({ title: "Mechanics of ultra-low density elastomeric foams in elite-level racing shoes" }), {
+    ...base,
+    fullText: text,
+    methodsText: extractMethodsText(xml),
+  });
+  assert.equal(r.verdict, "selected", r.detail);
+  assert.deepEqual(r.designs, ["comparison"]);
+  assert.ok(r.methodsCharacters > 0);
+});
+
+test("design terms outside the methods section are citing a design rather than running one", () => {
+  const xml = `<article><body>
+    <sec><title>Introduction</title><p>Randomised crossover trials have shown much, and reliability is widely reported. ${"Sport and athlete data from the literature. ".repeat(200)}</p></sec>
+    <sec><title>Methods</title><p>We describe the argument developed below. ${"This section restates the framing for the athlete reader. ".repeat(60)}</p></sec>
+    <sec><title>Results</title><p>Others reported p = 0.02 and 95% CI 0.1-0.4 with a standard deviation of 2.</p></sec>
+  </body></article>`;
+  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(xml), methodsText: extractMethodsText(xml) });
+  assert.equal(r.clause, "measured-result");
+  assert.match(r.detail, /appear only outside it/);
+  assert.match(r.detail, /randomi|reliability/i);
+});
+
+test("a methods section is found by sec-type, by a numbered title, and through its subsections", () => {
+  const byType = extractMethodsText(`<article><body><sec sec-type="materials|methods"><p>randomly assigned</p></sec></body></article>`);
+  assert.match(byType, /randomly assigned/);
+
+  const byNumber = extractMethodsText(`<article><body><sec><title>2. Materials and Methods</title><p>control group</p></sec></body></article>`);
+  assert.match(byNumber, /control group/);
+
+  // A nested "Participants" subsection belongs to the parent methods section, and is taken
+  // with it exactly once rather than matched again on its own.
+  const nested = extractMethodsText(
+    `<article><body><sec><title>Methods</title><p>alpha</p><sec><title>Participants</title><p>beta</p></sec></sec></body></article>`
+  );
+  assert.equal(nested, "Methods alpha Participants beta");
+});
+
+test("results, discussion and reference sections are never read as methods", () => {
+  for (const title of ["Results", "Discussion", "Introduction", "Conclusions", "Limitations"]) {
+    const xml = `<article><body><sec><title>${title}</title><p>randomised repeated-measures comparison</p></sec></body></article>`;
+    assert.equal(extractMethodsText(xml), "", `${title} must not be read as a methods section`);
+  }
+  // A reference list is stripped before any section is located, for the same reason
+  // `extractBodyText` strips it: other people's titles are not this paper's conduct.
+  const withRefs = `<article><body><sec><title>Methods</title><p>alpha</p></sec></body><back><sec><title>Methods of prior work</title><p>beta</p></sec></back></article>`;
+  assert.equal(extractMethodsText(withRefs), "Methods alpha");
+});
+
+test("MUTATION: reading design terms against the whole document would select the appraisal", () => {
+  const xml = appraisalFullText();
+  const body = extractBodyText(xml);
+  // The counterfactual is the call the bar made until run 200: the same candidate, the same
+  // text, the design terms read from everywhere. Passing the body as the methods section is
+  // exactly that call, and it selects.
+  const asItWas = grade(candidateOf(), { ...base, fullText: body, methodsText: body });
+  assert.equal(asItWas.verdict, "selected", "if this stops selecting, this mutation no longer proves anything");
+  const asItIs = grade(candidateOf(), { ...base, fullText: body, methodsText: extractMethodsText(xml) });
+  assert.equal(asItIs.verdict, "rejected");
+});
+
+test("MUTATION: a missing methods argument fails closed, and the publisher passes one", () => {
+  // `grade` defaults `methodsText` to "", so the cost of forgetting it is silence rather
+  // than a loosened bar — the direction a bar is allowed to fail in.
+  const xml = goodFullText();
+  const forgotten = grade(candidateOf(), { ...base, fullText: extractBodyText(xml) });
+  assert.equal(forgotten.verdict, "rejected");
+  assert.match(forgotten.detail, /no methods section located/);
+
+  // And the call site that matters is not forgetting it. Asserted on the source rather than
+  // only through behaviour, because a future edit that drops the argument would otherwise
+  // present as "the screen went quiet" a cycle later.
+  const src = fs.readFileSync(new URL("./agent-scout.mjs", import.meta.url), "utf8");
+  assert.match(src, /const methodsText = extractMethodsText\(xml\);/, "the publisher must extract the methods section");
+  assert.match(src, /grade\(candidate, \{[^}]*methodsText[^}]*\}\)/, "and must pass it to grade");
+});
+
+test("the screen reports the methods length on every selection, so a quiet bar is visible", async () => {
+  const f = fakeFetch([
+    ["/search", searchResponse([record()])],
+    ["/fullTextXML", xmlResponse(goodFullText())],
+  ]);
+  const report = await screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} });
+  assert.equal(report.selected.length, 1);
+  const o = report.observations[0];
+  assert.ok(o.methodsCharacters > 0, "the observation must carry it");
+  assert.match(renderTable(report), /methods \d+/, "and the table a run reads at the gate must print it");
+});
+
+test("the design word list is not empty, so the clause above is not sweeping an empty set", () => {
+  assert.ok(Object.keys(DESIGN_SIGNATURES).length >= 5);
 });
