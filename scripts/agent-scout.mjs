@@ -451,10 +451,17 @@ export async function amendCycle({ handle, base, itemId, source, apply, fetchImp
   };
 }
 
-function renderTable(report) {
+export function renderTable(report) {
   const rows = report.observations.map((o) => {
     const verdict = o.verdict === "selected" ? "SELECTED" : o.verdict;
-    const reason = o.verdict === "selected" ? `${o.grade.statistics.length} stat families, ${o.bodyCharacters} chars` : `${o.clause}: ${o.detail}`;
+    // A selection reports the type Europe PMC gave it, because that is the evidence the
+    // `research-article` clause acted on and it is the one thing a reader of this table
+    // cannot infer from the title. Run 199 had to read the library to learn that its top
+    // selection was typed as a research article; the record should have said so.
+    const reason =
+      o.verdict === "selected"
+        ? `${o.grade.statistics.length} stat families, ${o.bodyCharacters} chars, typed ${(o.candidate.pubTypes || []).join("/") || "(none)"}`
+        : `${o.clause}: ${o.detail}`;
     return `| ${verdict} | ${o.candidate.pmcid || o.candidate.id} | ${o.candidate.title.slice(0, 90)} | ${reason.slice(0, 150)} |`;
   });
   return ["| Verdict | Id | Title | Why |", "| --- | --- | --- | --- |", ...rows].join("\n");
@@ -618,6 +625,7 @@ async function main() {
       console.log("top selection");
       console.log(`  title: ${find.title}`);
       console.log(`  url:   ${find.url}`);
+      console.log(`  typed: ${(top.candidate.pubTypes || []).join("/") || "(none)"}`);
       console.log(`  why:   ${find.why}`);
       console.log(`  key:   ${find.idempotencyKey}`);
       console.log(

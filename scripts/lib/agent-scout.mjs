@@ -266,8 +266,30 @@ const EXCLUDED_TITLE_PATTERNS = [
   /^letter to the editor\b/i,
   /\bstudy protocol\b/i,
   /\bprotocol for a\b/i,
-  /\ba (systematic|scoping|narrative) review\b/i,
+  /\b(systematic|scoping|narrative|umbrella|rapid|integrative|literature)\s+review\b/i,
+  /\ba review of\b/i,
   /\bmeta-analysis\b/i,
+  // An appraisal of somebody else's literature, however Europe PMC happens to type it.
+  //
+  // Run 199 attended the publisher's gate and found the 2026-09-27 screen had ranked
+  // "Heart rate variability-guided endurance training: evaluating strengths, weaknesses,
+  // opportunities, and threats for load prescription and adjustment" FIRST of seven
+  // selections. Its `pubTypes` carried no review type, so the clause above never saw it;
+  // in 47,821 characters appraising other people's trials it then matched four statistic
+  // families and the design terms randomised, reliability and comparison — every one of
+  // them supplied by the studies it was discussing rather than by anything its own authors
+  // ran. `rankSelected` orders on statistic families first, and breadth of cited
+  // statistics is precisely what an appraisal has most of, so the ranking does not merely
+  // admit this shape, it prefers it. See LESSONS L-118.
+  //
+  // The review words above lost their required article for the same reason: `\ba
+  // (systematic|scoping|narrative) review\b` could not see "Umbrella review of ..." at the
+  // head of a title, which is where a review most often says so.
+  /\bstrengths,?\s+(and\s+)?weaknesses\b/i,
+  /\bswot\b/i,
+  // Spaces only, deliberately: "state of the art" is a title announcing a survey, while the
+  // hyphenated "a state-of-the-art markerless system" is an adjective in a primary paper.
+  /\bstate of the art\b/i,
 ];
 
 /** Signatures of a reported number with uncertainty attached. The remit asks for "a
