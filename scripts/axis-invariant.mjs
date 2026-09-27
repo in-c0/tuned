@@ -66,6 +66,36 @@ export const DISJOINT_AXES = [
   { axes: ["item_view_onsite_bot", "item_view_referred_bot"], of: "item_view_bot" },
 ];
 
+/** Axes whose value is decided by a request header the caller sends, and can therefore be moved
+ *  by the caller alone.
+ *
+ *  WHY THIS IS A REGISTRY AND NOT A COMMENT. Every name here is written from `Referer`. The header
+ *  is caller-supplied, optional and unverifiable — EXP-014's own "what this cannot show" section
+ *  says so — and the consequence nobody had written down is that **a fork which trips when one of
+ *  these goes UP can be tripped by the caller on purpose.** A fetcher that sends
+ *  `Referer: https://www.google.com/` writes `item_view_search` exactly as a person arriving from
+ *  a search result does, and on 2026-09-26 the population actually walking this site wrote 642
+ *  unsuffixed `item_view` with `item_render` never written at all — so the traffic that is here
+ *  right now is precisely the traffic that could do it.
+ *
+ *  The counterpart is `PULSE_COUNTERS` in `src/index.ts`: those are written by
+ *  `POST /api/pulse/<name>` from the document's own script, behind a same-origin `Origin` check, so
+ *  a client that writes one has run the page. That is not unforgeable either, but forging it means
+ *  being a rendering browser, which is the thing the reading is trying to establish.
+ *
+ *  `scripts/experiment-forks.test.mjs` reads this list and requires that an experiment graded on
+ *  any of these names also name a script-execution counter in its forks. The `_bot` halves are
+ *  included because the split is a header too — `User-Agent` — and a fork reading one side of it is
+ *  reading a caller-supplied value just as much. */
+export const HEADER_DERIVED_AXES = [
+  "item_view_onsite",
+  "item_view_onsite_bot",
+  "item_view_referred",
+  "item_view_referred_bot",
+  "item_view_search",
+  "item_view_search_bot",
+];
+
 // The first WHOLE UTC day written under the split contract. The deploy landed during
 // 2026-09-22 UTC, so that day holds merged writes before it and split writes after it and is
 // readable under neither contract — it is excluded here for the same reason a partial final day

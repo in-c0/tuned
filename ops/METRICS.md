@@ -9,6 +9,7 @@ Every metric here must name its source. Never invent, extrapolate, or manually i
 - **Attention events** — `attention_star` / `attention_skip` daily counters, and `totals.stars` / `totals.skips`. Source: `/api/metrics`.
 - **Return use** — `retention.members_returned_after_first_day` and `members_active_2plus_days`, computed from distinct `member_days.day` per member. Source: `/api/metrics`.
 - **Landing views** — `landing_view` (non-bot by user-agent heuristic) vs `landing_view_bot`. A UA heuristic is not proof of a human; report both, never merge them, and never call `landing_view` "verified human traffic".
+- **Off-site find-page arrivals** — `item_view_referred` (a `Referer` naming a host that is not ours) and `item_view_search` (the subset whose host is an allowlisted engine), each with its `_bot` half. Split at run 197; `item_view - item_view_onsite` is **withdrawn** as an arrival reading for 2026-09-16 → 2026-09-26 and nothing is back-filled (L-116). **From 2026-09-27 (run 198) neither may be published as an arrival without `item_render` on the same UTC day.** `Referer` is a header the caller sends, so a fetcher can write both names without ever rendering a page; `item_render` is written by the find page's own script behind a same-origin `Origin` check, so it says a client **ran the document**. `item_view_search` > 0 with `item_render` = 0 is a machine presenting a header — see *a referrer is not an arrival* below, and EXP-014 Fork F.
 - **Human traffic** — Cloudflare `/cdn-cgi/rum` or Worker-side instrumentation only. Raw CF request counts are scanner-dominated and must never be cited as human traffic.
 - **Gross cash collected** — payment provider records only. Currently **$0 and unmeasurable: no billing exists**. No other source may ever back this number.
 
@@ -3068,3 +3069,39 @@ check compared two bodies.
 `members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
 Source: [`metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-26T04:58:54.228Z`.
 **A readable counter is not a visitor.**
+
+## A referrer is not an arrival — 2026-09-27 (run 198)
+
+**The rule this sets:** `item_view_referred` and `item_view_search` may **never** be published as
+arrivals for a UTC day on which `item_render` reads 0. `Referer` is a header the caller sends and
+nothing verifies; `item_render` is written by the find page's own script through a same-origin
+`POST /api/pulse/item_render`, so a client that writes it has **run the document**. A day with a
+referrer and no render is a machine presenting a header, and it is registered as
+[EXP-014](EXPERIMENTS.md) **Fork F** rather than left to the grading run's reading. The corroboration
+is not claimed to be unforgeable — only more expensive to forge than the thing it corroborates, since
+forging it means being a rendering browser, which is exactly what the reading is trying to establish.
+[L-117](LESSONS.md#l-117).
+
+**The reading that forced it, and it is quoted as an observation and graded by nothing.** The snapshot
+generated `2026-09-26T23:06:50.359Z` (source: [`metrics/latest.json`](metrics/latest.json)) carries,
+for the complete UTC day **2026-09-26**:
+
+| name | count | what it means here |
+| --- | --- | --- |
+| `item_view` | **642** | the **first** non-zero unsuffixed reading this name has ever had — 0 on 2026-09-24 and 0 on 2026-09-25 |
+| `item_view_bot` | 214 | the UA heuristic caught this much of it |
+| `item_render` | **absent** | **no client ran a find page** |
+| `item_view_onsite`, `item_view_referred` | **absent** | nothing arrived from our own pages, and nothing arrived with any other host's `Referer` |
+| `item_view_referred_bot`, `item_view_search_bot` | 8, 8 | `verify-production.yml`'s own referred requests, 4 runs × 2 — the counters write, which is EXP-014 Fork E's detector answered in the affirmative |
+| `landing_view` / `landing_render` | 179 / **2** | the same shape one surface over |
+| `feed_view` / `feed_render` | 65 / **absent** | and one surface the other way |
+
+**What may be concluded, and it is narrow.** The counters are alive: the `_bot` halves wrote on the
+deploy day, so Fork E is not the state of the window. **What is walking these pages is not
+bot-classified by user agent and does not execute JavaScript** — 642 unsuffixed find-page requests and
+not one rendered document. **What may not be concluded:** anything about 2026-09-26 as a fork reading.
+It is the deploy day, it holds ~1h20m of writes under the new names, EXP-014 excludes it by
+registration, and it is recorded here as the evidence for a rule rather than as a result. **No
+arrival, no visitor and no demand is claimed on any day.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*;
+`totals` from the same snapshot.

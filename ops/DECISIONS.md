@@ -7576,3 +7576,84 @@ byte-untouched; the daily schedule is **still NOT armed** and the publisher's ga
 - **Decision: the subject of a production body comparison is Tuned's own markup, not the delivered bytes.** Every `<script>…</script>` is stripped before comparing, because Cloudflare's per-response injections are script elements and this service's own inline script is byte-identical on every request. **Not a weakening:** the original assertion was false as stated, and the replacement grades *unreferred-vs-unreferred* too — so instability that is not about the referrer is reported as exactly that, which the old check had no name for. Sizes, script counts and a first-differing-byte offset are printed on every run; **no response body ever reaches the log**, per `scripts/prod-http.sh`'s standing contract.
 - **Recorded as a constraint on every future production check, not just this one:** two HTML responses from `justtuned.com` may differ byte-for-byte with no product change between them. No check may assert byte-identity of a delivered HTML body. Before this run nothing had compared two production HTML bodies, so nothing had found it.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-27 — run 198: the corroboration EXP-014 rested a five-day redirect on, and did not have
+
+**Run lock claimed before any action:** `executor`, cycle `2026-09-27/w14`, holder `vm:503`, claimed
+`2026-09-27T04:13Z`, attempt 1, won clean.
+
+**The gate was attended first and owed nothing.** `scout-gate.mjs` read **CURRENT** — item 288 at
+`2026-09-26T10:15:17.187Z`, 18h old, **zero** scheduled screens certainly delivered since. Nothing was
+published, amended or retracted. **Nothing here arms `agent-scout.yml`**: EXP-013's threshold 2 is
+unruled at 17 days, run 153's pre-commitment stands, and EXP-013 Fork A says in terms that a held bar
+does not settle it.
+
+**Run 197's own candidate 1 was taken and it closed on the data rather than on a change.** *"Read
+EXP-014 on the first whole UTC day; Fork E is the one to check first."* Fork E asks whether the
+instrument ever wrote. It did: the snapshot generated `2026-09-26T23:06:50.359Z` carries
+`item_view_referred_bot` **8** and `item_view_search_bot` **8** for 2026-09-26 — `verify-production`'s
+own two referred requests across four runs. The window's first whole day (2026-09-27 UTC) had four
+hours behind it and no row on disk, so **no fork could be graded and none was.**
+
+**What the same table showed instead, and it is the decision.** `item_view` **642** unsuffixed on
+2026-09-26 — the first non-zero unsuffixed reading that name has ever had, against 0 and 0 on the two
+prior days — with **`item_render` never written at all**, `landing_render` **2** against
+`landing_view` 179, and `feed_render` absent against `feed_view` 65. **The client walking these 94 find
+pages is not bot-classified by user agent and does not execute JavaScript.**
+
+**That is the population that could have tripped EXP-014's Fork B.** Fork B — *search is delivering* —
+trips on `item_view_search ≥ 1` on one whole day, and its registered next action is the strongest in
+the file: *"the first evidenced arrival channel that needs nobody's permission, and it outranks every
+other candidate available to the loop."* `item_view_search` is written from `Referer`, and EXP-014's
+own limits section already said the header is *"caller-supplied and forgeable"*. **The two statements
+sit four paragraphs apart in one document and nothing joined them.** One fetcher sending
+`Referer: https://www.google.com/` once in seven days was sufficient to redirect this loop's last five
+days onto a channel that does not exist — and the fetcher is already here.
+
+**Decision: amend EXP-014 before its first whole day exists, rather than grade it later and discount
+it.** Forks B and C now require `item_render ≥ 1` on the **same** whole day; new **Fork F** covers a
+referrer with no render and routes it to Fork A's next action; a binding clause freezes
+`item_render`'s emitter inside the window, the protection EXP-011 gave `landing_render`. The original
+registered text of B and C is kept verbatim with the requirement added under a dated label, because
+rewriting a registration is worse than annotating one. **The amendment is legitimate only because of
+its timing and that is stated in the entry itself:** made ~04:30Z on 2026-09-27 against a snapshot
+carrying **no row on any day in the window**, so no fork was moved to agree with an observation.
+
+**The general rule is code, not prose.** `scripts/experiment-forks.test.mjs` gains a second rule beside
+L-77's: *an experiment whose forks name any axis in `HEADER_DERIVED_AXES` must also name a
+script-execution counter in its forks.* Both registries are **read rather than transcribed** —
+`HEADER_DERIVED_AXES` is new in `scripts/axis-invariant.mjs`, `PULSE_COUNTERS` is parsed out of
+`src/index.ts` — so a rename reddens the guard instead of silently emptying its input, and each half
+carries an L-61 vacuity assertion. **It reddens on EXP-014 exactly as run 197 registered it**, naming
+all four axes; that positive control is the only evidence it would have fired on the day rather than
+after the window closed. [L-117](LESSONS.md#l-117).
+
+**Considered and rejected.**
+
+1. **Grading EXP-014 today.** The window's first whole UTC day had not ended. Reading it would be
+   L-37's defect — a partial day is not a rate — and `scripts/metrics-window.mjs` exists to refuse it.
+2. **Making `verify-production` exercise the unsuffixed referrer names**, to close Fork E on both
+   halves in production. **Forbidden by EXP-014's own binding clause** and rightly: the reading lives
+   in those names and this loop must never be able to write them. Run 197 already verified the
+   unsuffixed path over a real HTTP round trip against a local Worker, which is where that belongs.
+3. **Widening `isBot()` to catch the 2026-09-26 walker.** It is a UA heuristic and the walker declares
+   nothing; a pattern tuned until this one population lands in `_bot` is fitting the classifier to an
+   observation inside an open window, and `item_render` already separates the two populations without
+   touching a running counter's meaning.
+4. **Arming `agent-scout.yml` so `@sportstech` survives 2026-10-05.** EXP-013 Fork A reserves that
+   decision explicitly and a held bar does not settle it. Named again in the report as a dated
+   consequence, not acted on. Per [L-07](LESSONS.md) it is not re-argued.
+5. **Any acquisition action.** IndexNow was rejected at run 174 on that run's own data and nothing
+   here changes it — discovery is not the constraint, indexing is. Every remaining distribution step
+   is an account this session does not hold or an authorship decision that is the owner's. Not
+   re-argued, per L-07.
+6. **A `src/` change of any kind.** The corroborating instrument was already built, already deployed,
+   and already in the axis register. The defect was entirely in what had been rested on it.
+
+**Scope.** **No `src/` file touched — the deployed Worker is byte-identical**, so nothing deployed and
+no rollback path was required. No route, schema, migration, counter, counter meaning, secret,
+dependency, page, data category or public claim. No item published, amended, retracted or restored.
+The `agent-scout` schedule is still disarmed and EXP-013's threshold-2 re-specification is still
+unruled.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

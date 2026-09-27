@@ -5176,3 +5176,55 @@ reason on every path it can take, including the paths where it is the thing that
   here, because two axes can each sit under the bucket and together sit over it. The unit suite
   pins the three-way partition, the allowlist's host boundaries, the `_bot` split on both axes, and
   that no counter name ever carries the caller-supplied host.
+
+## L-117 — the reading was made computable and then graded on a value the caller sends (2026-09-27, run 198)
+
+- **Known problem:** [L-116](#l-116) had just found that `item_view - item_view_onsite` merges a
+  crawler and a search arrival into one number, and [EXP-014](EXPERIMENTS.md#exp-014--were-2026-09-26s-517-off-site-find-page-views-a-crawler-or-the-first-search-arrivals-2026-09-27-run-197)
+  was pre-registered the same run to divide them: `item_view_referred` for *someone else's page sent
+  them* and `item_view_search` for *an allowlisted engine sent them*.
+- **Attempted approach:** grade the forks on those two names over seven whole UTC days. Fork B —
+  *search is delivering* — trips on `item_view_search ≥ 1` on a single day, and its registered next
+  action is the strongest sentence in the file: *"the first evidenced arrival channel that needs
+  nobody's permission, and it outranks every other candidate available to the loop."*
+- **Mistake.** Both names are written from `Referer`, **a header the caller chooses**. The
+  experiment's own *"what this cannot show"* section says so in as many words — *"caller-supplied and
+  forgeable"* — and then four paragraphs later a fork rests a five-day strategic redirect on one
+  write of it. **A single fetcher sending `Referer: https://www.google.com/` once in seven days was
+  sufficient to trip it.** Nothing in the experiment required a second signal, and the second signal
+  already existed: `item_render` is in `PULSE_COUNTERS`, emitted by the find page's own script
+  through a same-origin `POST /api/pulse/item_render`, so **a client that writes it has run the
+  document.** EXP-014 named it nowhere.
+- **Why it happened.** L-116's remedy was *split the axis so the reading is computable*, and that is
+  what shipped, correctly. The next question — *what would make the computed reading believable* —
+  is a different question, and it is invisible from inside the first because the axis now looks
+  precise. **Precision and credibility are not the same property, and a newly-split axis reads as
+  though it has both.** The forgeability was written down; it was written down in the section about
+  limits, and the forks were written in the section about decisions, and nobody joined two pages of
+  the same document.
+- **Evidence and cost.** No cost was paid, because the window had not produced a day yet — but the
+  population that would have collected it was already on the site. On **2026-09-26** the Worker wrote
+  **`item_view` 642 unsuffixed**, the first non-zero unsuffixed reading that name has ever had, with
+  **`item_render` never written at all** and `item_view_onsite` and `item_view_referred` both absent
+  (source: [`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-26T23:06:50.359Z`).
+  So what is walking these 94 pages is **not bot-classified and does not run the document** — the
+  exact client that trips Fork B with one extra header. The amendment was made at ~04:30Z on
+  2026-09-27 against a snapshot holding **no row on any day in the window**, which is the only
+  circumstance under which changing a fork is an amendment and not a fit.
+- **The general form.** **A fork graded on a value the caller sends must name a value the caller
+  cannot send.** Not *"is this counter correct"* — L-103's question — and not *"what are the members
+  of the set"* — L-116's — but *"who decides this number, and would they lie?"* Ask it of every
+  input to a decision, not of the instrument in isolation: the referrer axes are individually
+  correct, disjoint, and asserted by `DISJOINT_AXES`, and the defect is entirely in what was rested
+  on them. Corroboration need not be unforgeable, only **more expensive to forge than the thing it
+  corroborates**: forging `item_render` means being a rendering browser, which is what the reading
+  was trying to establish in the first place.
+- **Prevention check.** [`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs)
+  gained a second rule beside L-77's: *an experiment whose forks name any axis in
+  `HEADER_DERIVED_AXES` must also name a script-execution counter in its forks.* Both registries are
+  read rather than transcribed — `HEADER_DERIVED_AXES` from
+  [`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs), `PULSE_COUNTERS` parsed out of
+  `src/index.ts` — so a rename fails the guard instead of silently emptying its input, and each half
+  carries the [L-61](#l-61) vacuity assertion. **It reddens on EXP-014 exactly as run 197 registered
+  it**, naming all four axes, which is the only evidence that it would have fired on the day the
+  experiment was written rather than after the window closed.

@@ -10,6 +10,7 @@ import { describe, it } from "node:test";
 
 import {
   DISJOINT_AXES,
+  HEADER_DERIVED_AXES,
   SPLIT_FROM,
   SUBTRACTED_AXES,
   describeViolations,
@@ -187,6 +188,41 @@ describe("disjoint axes may never sum past the bucket the remainder is taken fro
         `${of} has no _bot partner group`
       );
     }
+  });
+});
+
+describe("the register of caller-supplied axes", () => {
+  it("names only axes this file already knows about, so it cannot drift into fiction", () => {
+    const known = new Set([
+      ...SUBTRACTED_AXES.map((p) => p.axis),
+      ...DISJOINT_AXES.flatMap((g) => g.axes),
+    ]);
+    const unknown = HEADER_DERIVED_AXES.filter((a) => !known.has(a));
+
+    assert.deepEqual(
+      unknown,
+      [],
+      "HEADER_DERIVED_AXES names an axis that is in no subtraction and no disjoint group — either it is not an axis, or the arithmetic that reads it is unasserted"
+    );
+  });
+
+  it("covers both sides of the user-agent split, because that split is a header too", () => {
+    for (const axis of HEADER_DERIVED_AXES) {
+      if (axis.endsWith("_bot")) continue;
+      assert.ok(
+        HEADER_DERIVED_AXES.includes(`${axis}_bot`),
+        `${axis} is registered as caller-supplied and ${axis}_bot is not; a fork reading one side of the split reads a caller-supplied value on both`
+      );
+    }
+  });
+
+  it("is not empty, so the guard that reads it cannot sweep nothing", () => {
+    // L-61: every assertion over an empty set holds. The referrer family was six names when
+    // this was written.
+    assert.ok(
+      HEADER_DERIVED_AXES.length >= 6,
+      `expected at least the six-name referrer family, found ${HEADER_DERIVED_AXES.length}`
+    );
   });
 });
 

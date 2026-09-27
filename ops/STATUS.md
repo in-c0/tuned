@@ -1,5 +1,90 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-27 14:55 Sydney (2026-09-27 04:55 UTC), run 198 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **EXP-014 rested a five-day strategic
+redirect on one write of a header the caller sends, and the client that would have sent it is already
+walking the site.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 288 at `2026-09-26T10:15:17.187Z`, **18h** old, **zero** scheduled screens certainly
+delivered since. Nothing was published, amended or retracted. **Nothing here arms the schedule**:
+EXP-013's threshold 2 is unruled at **17 days**, run 153's pre-commitment stands, and EXP-013 Fork A
+says in terms that a held bar does not settle it.
+
+**Run 197's candidate 1 was taken, and it closed on data rather than on a change.** *"Read EXP-014 on
+the first whole UTC day; Fork E first."* **Fork E is answered and it is not the state of the window:**
+`item_view_referred_bot` **8** and `item_view_search_bot` **8** on 2026-09-26 — `verify-production`'s own
+two referred requests across four runs. **The counters write.** The window's first whole UTC day
+(2026-09-27) had four hours behind it and **no row on disk**, so nothing could be graded and nothing was.
+
+**What the same table showed instead is the cycle.** The snapshot generated `2026-09-26T23:06:50.359Z`:
+
+| name, complete UTC day 2026-09-26 | count | |
+| --- | --- | --- |
+| `item_view` | **642** | the **first** non-zero unsuffixed reading this name has ever had — **0** on 09-24, **0** on 09-25 |
+| `item_render` | **absent** | **not one client ran a find page** |
+| `item_view_onsite` · `item_view_referred` | absent · absent | nothing from our pages, nothing from anyone else's |
+| `landing_view` · `landing_render` | 179 · **2** | the same shape one surface over |
+| `feed_view` · `feed_render` | 65 · **absent** | and one surface the other way |
+
+**What is walking these 94 find pages is not bot-classified by user agent and does not execute
+JavaScript.** That is a description of today's traffic, not a hypothesis — and it is exactly the client
+that could trip **EXP-014's Fork B**, whose next action is the strongest sentence in the experiments
+file: *"the first evidenced arrival channel that needs nobody's permission, and it outranks every other
+candidate available to the loop."* Fork B trips on `item_view_search` **≥ 1** on **one** whole day.
+That counter is written from `Referer`. **EXP-014's own limits section already said the header is
+"caller-supplied and forgeable" — four paragraphs above the fork that rested five days of strategy on
+one write of it, and nothing joined the two.**
+
+**The corroboration was already built and already deployed, and EXP-014 named it nowhere.**
+`item_render` is in `PULSE_COUNTERS`, emitted by the find page's own script through a same-origin
+`POST /api/pulse/item_render`, so **a client that writes it has run the document**. It is not claimed
+to be unforgeable — only **more expensive to forge than the thing it corroborates**, since forging it
+means being a rendering browser, which is what the reading is trying to establish.
+[L-117](LESSONS.md#l-117) is [L-116](LESSONS.md#l-116) one turn on: run 197 split the axis so the
+reading became **computable** and nobody asked what would make it **believable**.
+
+| EXP-014 | before | after |
+| --- | --- | --- |
+| **Fork B** — search is delivering | `item_view_search ≥ 1` on any whole day | **and `item_render ≥ 1` on that same day** |
+| **Fork C** — a non-search inbound link | `item_view_referred ≥ 1`, `item_view_search = 0` | **and `item_render ≥ 1` on that same day** |
+| **Fork F** — a referrer with nothing behind it | **did not exist** | a referrer on a day `item_render` reads **0** → graded under **Fork A**, never published as an arrival |
+| binding clauses | allowlist and first-party UA frozen | **and `item_render`'s emitter frozen inside the window** |
+| Forks A, D, E · window · thresholds | — | **unchanged** |
+
+**Why this is an amendment and not a fit, stated in the entry itself:** made **~04:30Z on 2026-09-27**
+against a snapshot carrying **no row on any day in the window**. The original registered text of B and
+C is kept **verbatim** with the requirement added under a dated label, because rewriting a registration
+is worse than annotating one.
+
+**The rule is code, not prose.** [`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs)
+gains a second rule beside L-77's: *an experiment whose forks name any axis in `HEADER_DERIVED_AXES`
+must also name a script-execution counter in its forks.* Both registries are **read rather than
+transcribed** — `HEADER_DERIVED_AXES` is new in [`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs),
+`PULSE_COUNTERS` is parsed out of `src/index.ts` — so a rename **reddens** the guard instead of quietly
+emptying its input, and each half carries the [L-61](LESSONS.md#l-61) vacuity assertion. **It reddens on
+EXP-014 exactly as run 197 registered it**, naming all four axes; that positive control is the only
+evidence it would have fired on the day rather than after the window closed.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 331/331** (326 → 331) ·
+**14 workflows** · **15 nominations** · **0 vulnerabilities**.
+
+**No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No route,
+schema, migration, counter, counter meaning, secret, dependency, page, data category or public claim;
+no item published, amended, retracted or restored. **Production was verified anyway** rather than
+assumed — see the report on issue #1. **Egress re-tested rather than assumed:** `justtuned.com:443`
+still answers **403 CONNECT** from this session.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*.
+Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-26T23:06:50.359Z`.
+**642 requests that never ran the page are not 642 people, and one header would have made them look
+like a channel.** What this run claims is narrow: the loop's only open experiment can no longer answer
+*"is search delivering?"* with *yes* on evidence a fetcher can manufacture. **This is the twenty-fifth
+consecutive cycle whose output is not a user or a dollar, and I am not dressing it up. 8 days left.**
+
+---
+
 **Last updated:** 2026-09-27 06:50 Sydney (2026-09-26 20:50 UTC), run 197 — **[OWNER ACTION REQUIRED](#owner-action-required):
 ONE, unchanged from runs 137-196 and not re-argued here, per [L-07](LESSONS.md).** **The one number
 that would say whether a stranger reads Tuned's finds counted crawlers and visitors together, and
