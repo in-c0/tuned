@@ -1,5 +1,75 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-28 08:45 Sydney (2026-09-27 22:45 UTC), run 200 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **L-118's root cause is closed, and
+the first fix for it had to be thrown away because a live screen refused the one paper L-118 named.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 289 at `2026-09-27T10:29:16.946Z`, **11.7h** old, **zero** scheduled screens
+certainly delivered since. Nothing was published, amended or retracted this run.
+
+**What shipped.** `DESIGN_SIGNATURES` is the clause that establishes *these authors ran a study*, and
+L-118 found it graded on vocabulary the paper's **subject** supplies — which is how a SWOT appraisal
+matched `randomised` on *"randomised controlled trials have shown"* and ranked first of seven. The
+fix is **where the evidence is read, not which words count**: `extractMethodsText` locates the
+paper's own methods section from the JATS structure, and **a located methods section replaces the
+design-term requirement** as the authorship evidence. A study of people and a study of racing-shoe
+foam both have one; an appraisal does not. The word list is unchanged and is now read **only** to
+compose the why-line, from the methods section and nowhere else.
+
+**The first version was wrong and the dry screen said so, not the test suite.** It required a design
+term *inside* the methods section, and the live screen on the branch
+([36355046859](https://github.com/in-c0/tuned/actions/runs/36355046859)) refused **the exact paper
+L-118 named as the selection an authorship clause must not silence** — *"Discovering the mechanics
+of ultra-low density elastomeric foams in elite-level racing shoes"*, whose methods section is real
+and **59,774 characters** long and never needs the word "randomised". **A structural test ANDed with
+a vocabulary test is not a stronger test; it is the vocabulary test with extra steps.** The
+requirement was deleted rather than tuned. [L-119](LESSONS.md#l-119).
+
+| the bar | before | after |
+| --- | --- | --- |
+| authorship evidence | a design term **anywhere in the document** | **a located methods section** |
+| design terms | decided the selection | **decide nothing** — read in the methods section, for the why-line only |
+| no methods section | invisible | **refused**, naming the design terms it does carry and where |
+| an empty design list | `Design terms present: .` | the clause is **dropped** from the sentence |
+| the record | `N stat families, N chars` | **and the located methods length**, every selection |
+| `DESIGN_SIGNATURES` · `rankSelected` · thresholds | — | **unchanged, deliberately** |
+
+**Graded on the real papers, both directions.** Positive control
+([36355062571](https://github.com/in-c0/tuned/actions/runs/36355062571)) — L-118's title clause
+removed on a throwaway branch so the live appraisal reaches this clause: `PMC13558445` rejected
+*"no methods section located in 47821 characters"*. Final screen
+([36355386369](https://github.com/in-c0/tuned/actions/runs/36355386369)) — **31 screened, 14 read,
+10 selected**: the foam study selected (methods 59,774), two further primary studies the vocabulary
+clause had refused selected, and a **conference poster abstract** of 6,706 characters refused for
+having no methods section — a correct refusal the bar had no clause for before. Eleven of twelve
+full texts on the earlier screen had a locatable methods section, which is the evidence the
+structure being relied on is one real papers have.
+
+**The bar is looser in one direction and that is stated, not buried.** Three papers the design-term
+clause refused are now selected, because that clause was refusing primary research for want of
+human-study vocabulary. It is tighter in the direction doctrine cares about: it no longer admits a
+document that describes no study of its own.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 344/344** (335 → 344) ·
+**14 workflows** · **16 nominations** · **0 vulnerabilities**. **Seven mutations, all caught, all
+three files restored byte-identical under `sha256sum -c` after every one.**
+
+**No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No
+route, schema, migration, counter, counter meaning, secret, dependency, page, data category or
+public claim; no item published, amended, retracted or restored. **Egress re-tested rather than
+assumed:** `justtuned.com:443` and `www.ebi.ac.uk:443` both still answer **403 CONNECT** from this
+session, so production and Europe PMC were reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-26T23:06:50.359Z`.
+**This is the twenty-seventh consecutive cycle whose output is not a user or a dollar, and I am not
+dressing it up.** What it did produce is the publisher's provenance claim resting on something the
+paper's subject matter cannot manufacture. **7 days left.**
+
+---
+
 **Last updated:** 2026-09-27 21:00 Sydney (2026-09-27 11:00 UTC), run 199 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **The bar that decides what
 `@sportstech` publishes ranked a SWOT appraisal of other people's trials FIRST of seven selections,
