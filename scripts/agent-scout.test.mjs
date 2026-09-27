@@ -411,14 +411,23 @@ test("one statistic family is not a measured result", () => {
   assert.match(r.detail, new RegExp(`need ${MIN_STATISTIC_FAMILIES}`));
 });
 
-test("statistics with no design term is a commentary quoting numbers, and is refused", () => {
+test("a methods section with no design term still selects, and the why-line drops the clause", () => {
+  // Until run 200 this was refused, and the live screen of 2026-09-27 showed what that cost:
+  // it refused a servo-hydraulic study of racing-shoe foam whose methods section is real,
+  // 59,774 characters long, and written in vocabulary `DESIGN_SIGNATURES` does not carry.
+  // The design terms are now reported rather than required, so the paper is selected and the
+  // sentence simply does not claim what its methods section does not say.
   const xml = goodFullText({
-    stats: "Others have reported ICC = 0.97 and p = 0.03 in this setting.",
-    design: "We reflect on the state of the field.",
+    stats: "Agreement was excellent (ICC = 0.97) and differences were trivial (p = 0.41).",
+    design: "Each specimen was mounted in the rig and loaded at rates a runner generates.",
   });
   const r = grade(candidateOf(), { ...base, fullText: extractBodyText(xml), methodsText: extractMethodsText(xml) });
-  assert.equal(r.clause, "measured-result");
-  assert.match(r.detail, /no design term/);
+  assert.equal(r.verdict, "selected", r.detail);
+  assert.deepEqual(r.designs, []);
+  const line = composeWhy({ candidate: candidateOf({ abstractText: "<p>No quotable sentence here.</p>" }), grade: r, observed: 31, observedOn: "2026-09-27" });
+  assert.doesNotMatch(line, /Design terms present/);
+  assert.match(line, /Reported: /, "the statistics clause is the floor and stays");
+  assert.doesNotMatch(line, /\s{2}/, "and the dropped clause must not leave a double space behind");
 });
 
 test("two statistic families plus a design term is selected, and reports its evidence", () => {
@@ -1753,7 +1762,7 @@ function equipmentFullText() {
     );
   return `<article><body>
     <sec><title>Introduction</title><p>Elite-level racing shoe midsoles are of growing interest in the sport of distance running. ${filler}</p></sec>
-    <sec><title>2. Materials and Methods</title><p>Each specimen was compared with a reference foam of known stiffness on a servo-hydraulic rig. ${filler}</p>
+    <sec><title>2. Materials and Methods</title><p>Each specimen was loaded on a servo-hydraulic rig against foam of known stiffness. ${filler}</p>
       <sec><title>2.1 Specimen preparation</title><p>Specimens were conditioned for 24 h before testing.</p></sec>
     </sec>
     <sec><title>Results</title><p>Stiffness differed between conditions (p = 0.003, 95% CI 1.2-3.4 N/mm) with a standard deviation of 0.4 N/mm.</p></sec>
@@ -1780,7 +1789,7 @@ test("an appraisal of other people's trials carries no methods section and is re
   assert.equal(r.clause, "measured-result");
   assert.match(r.detail, /no methods section located/);
   // And the record says what it found instead, so the refusal is readable at the gate.
-  assert.match(r.detail, /design terms elsewhere: /);
+  assert.match(r.detail, /the design terms it does carry \(.+\) are somewhere else/);
 });
 
 test("a study of equipment with no human participants is selected, which is why this is not a consent clause", () => {
@@ -1795,21 +1804,28 @@ test("a study of equipment with no human participants is selected, which is why 
     fullText: text,
     methodsText: extractMethodsText(xml),
   });
+  assert.ok(
+    !/randomi|repeated[- ]measures|reliability|compared (with|to|against)|control group|gold standard/i.test(extractMethodsText(xml)),
+    "and its methods section must carry no DESIGN_SIGNATURES vocabulary either — this is the live 2026-09-27 refusal"
+  );
   assert.equal(r.verdict, "selected", r.detail);
-  assert.deepEqual(r.designs, ["comparison"]);
+  assert.deepEqual(r.designs, []);
   assert.ok(r.methodsCharacters > 0);
 });
 
-test("design terms outside the methods section are citing a design rather than running one", () => {
+test("a design term outside the methods section is never claimed as this paper's own", () => {
   const xml = `<article><body>
     <sec><title>Introduction</title><p>Randomised crossover trials have shown much, and reliability is widely reported. ${"Sport and athlete data from the literature. ".repeat(200)}</p></sec>
-    <sec><title>Methods</title><p>We describe the argument developed below. ${"This section restates the framing for the athlete reader. ".repeat(60)}</p></sec>
+    <sec><title>Methods</title><p>We loaded each specimen on the rig. ${"Measurements were logged for the athlete population of interest. ".repeat(60)}</p></sec>
     <sec><title>Results</title><p>Others reported p = 0.02 and 95% CI 0.1-0.4 with a standard deviation of 2.</p></sec>
   </body></article>`;
-  const r = grade(candidateOf(), { ...base, fullText: extractBodyText(xml), methodsText: extractMethodsText(xml) });
-  assert.equal(r.clause, "measured-result");
-  assert.match(r.detail, /appear only outside it/);
-  assert.match(r.detail, /randomi|reliability/i);
+  const body = extractBodyText(xml);
+  const r = grade(candidateOf(), { ...base, fullText: body, methodsText: extractMethodsText(xml) });
+  // Selected — it has a methods section — but "randomised" and "reliability" belong to the
+  // literature it cites, so neither reaches the published sentence.
+  assert.equal(r.verdict, "selected", r.detail);
+  assert.deepEqual(r.designs, []);
+  assert.ok(/randomi/i.test(body), "the terms really are in the document, which is the point");
 });
 
 test("a methods section is found by sec-type, by a numbered title, and through its subsections", () => {

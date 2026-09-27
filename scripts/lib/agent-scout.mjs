@@ -306,26 +306,30 @@ export const STATISTIC_SIGNATURES = {
   dispersion: [/\bstandard deviation/i, /\b±\s*\d/, /\bsd\s*=\s*\d/i, /\binterquartile/i],
 };
 
-/** Signatures of a design that produced those numbers on purpose. A paper can carry
- *  statistics and still be a commentary quoting them; a design term is the evidence that
- *  this paper ran something.
+/** Signatures of a design that produced the reported numbers on purpose. Read now only to
+ *  say so in the why-line, never to decide a selection.
  *
- *  THESE TERMS ARE GRADED IN THE METHODS SECTION ONLY, and that restriction is the whole
- *  clause. Run 199 refused a SWOT appraisal of other people's endurance trials that had
- *  ranked FIRST of seven selections: it matched `reliability` on one occurrence in 47,821
- *  characters and `randomised` on the phrase "randomised controlled trials have shown".
- *  Both are true sentences about somebody else's work. L-118 named the root cause —
- *  *"every design term is vocabulary the subject supplies, not evidence the authorship
- *  supplies"* — and left it open, because every cheap authorship clause anyone could think
- *  of (ethics approval, informed consent, "participants were recruited") also refuses a
- *  legitimate study of racing-shoe foam that never touched a person.
+ *  THEY USED TO DECIDE ONE, AND TAKING THAT AWAY IS THE FIX. Run 199 refused a SWOT
+ *  appraisal of other people's endurance trials that had ranked FIRST of seven selections:
+ *  it matched `reliability` on one occurrence in 47,821 characters and `randomised` on the
+ *  phrase "randomised controlled trials have shown". Both are true sentences about somebody
+ *  else's work. L-118 named the root cause — *"every design term is vocabulary the subject
+ *  supplies, not evidence the authorship supplies"* — and left it open, because every cheap
+ *  authorship clause anyone could think of (ethics approval, informed consent, "participants
+ *  were recruited") also refuses a legitimate study of racing-shoe foam that never touched a
+ *  person.
  *
- *  Where a term appears is the thing that separates those two, and it needs no new
- *  vocabulary at all. A paper's methods section is the one place where its authors write
- *  in their own voice about what they themselves did; a study of people and a study of
- *  foam both have one, and an appraisal of other people's trials does not. So the fix is
- *  not a stricter word list — the list below is unchanged, deliberately — it is reading
- *  the same list somewhere narrower. See `extractMethodsText` and LESSONS L-119. */
+ *  The answer is that this table was never an authorship test. It is a list of the ways a
+ *  STUDY OF PEOPLE says what it did, so asking it to certify authorship made it both too
+ *  weak and too strong. `grade` now takes that evidence from a structural fact instead — the
+ *  paper contains a section in which its own authors describe their conduct, which a study
+ *  of people and a study of foam have equally and an appraisal does not. See
+ *  `extractMethodsText` and LESSONS L-119.
+ *
+ *  What survives here is the why-line. The terms are matched against the methods section and
+ *  nowhere else, so a published provenance claim quotes only vocabulary the authors used
+ *  about their own work — and when there is none, the sentence drops that clause rather than
+ *  the bar dropping the paper. The word list itself is unchanged, deliberately. */
 export const DESIGN_SIGNATURES = {
   randomised: [/\brandomi[sz]ed/i, /\brandomly assigned/i, /\bcross-?over design/i],
   "repeated measures": [/\brepeated[- ]measures/i, /\bwithin-subject/i, /\bpre-?post\b/i, /\btest-?re-?test/i],
@@ -579,7 +583,12 @@ function isMethodsSection(openTag, innerXml) {
  *
  *  WHY "" IS A REFUSAL AND NOT A PASS. A document in which no section says "this is what
  *  we did" has not shown that anybody did anything, and the clause that reads this fails
- *  closed on it (`grade`, clause `measured-result`). The cost of that choice is real and is
+ *  closed on it (`grade`, clause `measured-result`). On the live screen of 2026-09-27 this
+ *  refused exactly one of twelve full texts read — a conference poster abstract of 6,706
+ *  characters — and located a section in the other eleven, which is the evidence that the
+ *  structure being relied on is one real papers actually have.
+ *
+ *  The cost of that choice is real and is
  *  the reason the screen prints the located length on every read: a publisher family whose
  *  JATS carries no sections at all would go quiet rather than go wrong, and the record is
  *  where a later run would see that happening. Silence that is visible in the log is the
@@ -823,12 +832,24 @@ export function grade(candidate, { now, fullText, methodsText = "", fetchNote = 
     return { verdict: "rejected", clause: "measured-result", detail: `only ${statistics.length} statistic famil${statistics.length === 1 ? "y" : "ies"} reported (${statistics.join(", ") || "none"}), need ${MIN_STATISTIC_FAMILIES}` };
   }
 
-  // The authorship question, asked where the authors speak for themselves. `designs` is
-  // matched against the methods section ONLY — see `DESIGN_SIGNATURES` and
-  // `extractMethodsText` — so what the composed why-line goes on to assert about this paper
-  // is read from the part of it that is about this paper. The two refusals below are
-  // deliberately distinct: one says the document never describes a study, the other says it
-  // describes one in somebody else's words.
+  // The authorship question: does this document contain a passage in which its own authors
+  // say what they did? A located methods section IS that evidence, and it REPLACES the
+  // design-term requirement rather than joining it — see `extractMethodsText` and L-119.
+  //
+  // THE VERSION THAT REQUIRED BOTH WAS WRONG AND THE DRY SCREEN SAID SO. Run 200 first wrote
+  // this as "a design term, matched inside the methods section", and the live screen on the
+  // branch (36355046859) refused *"Discovering the mechanics of ultra-low density elastomeric
+  // foams in elite-level racing shoes"* — the exact paper L-118 named as the legitimate
+  // selection any authorship clause must not silence. Its methods section is real and 59,774
+  // characters long; it describes servo-hydraulic loading of foam and never needs the word
+  // "randomised" or "compared with". `DESIGN_SIGNATURES` is a list of the ways a STUDY OF
+  // PEOPLE says what it did, which is exactly the narrowness L-118 warned about, and asking
+  // it to certify authorship made it both too weak (an appraisal passes on borrowed words)
+  // and too strong (a materials study fails for want of them).
+  //
+  // So the design terms are still matched — in the methods section and nowhere else — but
+  // only because the why-line quotes them. An empty list costs a clause of that sentence,
+  // never the selection.
   const methods = typeof methodsText === "string" ? methodsText : "";
   const designs = matchedFamilies(methods, DESIGN_SIGNATURES);
   const designsAnywhere = matchedFamilies(body, DESIGN_SIGNATURES);
@@ -836,14 +857,7 @@ export function grade(candidate, { now, fullText, methodsText = "", fetchNote = 
     return {
       verdict: "rejected",
       clause: "measured-result",
-      detail: `no methods section located in ${body.length} characters — nothing in this paper describes a study its own authors ran${designsAnywhere.length ? ` (design terms elsewhere: ${designsAnywhere.join(", ")})` : ""}`,
-    };
-  }
-  if (designs.length === 0) {
-    return {
-      verdict: "rejected",
-      clause: "measured-result",
-      detail: `no design term in the ${methods.length}-character methods section${designsAnywhere.length ? ` — ${designsAnywhere.join(", ")} appear only outside it, which is citing a design rather than running one` : " and none anywhere else either"}`,
+      detail: `no methods section located in ${body.length} characters — nothing in this paper describes a study its own authors ran${designsAnywhere.length ? `, and the design terms it does carry (${designsAnywhere.join(", ")}) are somewhere else` : ""}`,
     };
   }
 
@@ -1306,7 +1320,10 @@ export function composeWhy({ candidate, grade: g, observed, observedOn }) {
 
   const chars = g.bodyCharacters.toLocaleString("en-US");
   const head = `Selected by @sportstech from ${observed} open-access candidate${observed === 1 ? "" : "s"} screened ${observedOn}: full text read (${chars} characters).`;
-  const design = `Design terms present: ${g.designs.join(", ")}.`;
+  // Empty when the methods section carries no term from this file's table. The ladder below
+  // already has rungs without it, and dropping the clause is the honest outcome: the line
+  // must not assert design terms the authors' own methods section does not contain.
+  const design = g.designs.length > 0 ? `Design terms present: ${g.designs.join(", ")}.` : "";
   const stats = `Reported: ${g.statistics.join(", ")}.`;
   const where = candidate.journal ? `${candidate.journal}, ${candidate.firstPublicationDate}.` : `${candidate.firstPublicationDate}.`;
 
@@ -1321,7 +1338,7 @@ export function composeWhy({ candidate, grade: g, observed, observedOn }) {
     [head, stats, where],
     [head, stats],
   ]) {
-    const line = parts.join(" ");
+    const line = parts.filter((part) => part !== "").join(" ");
     if (line.length <= WHY_MAX) return line;
   }
   // Every composition overflowed. Refuse rather than publish a sentence that stops
