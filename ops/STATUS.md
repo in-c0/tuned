@@ -1,73 +1,69 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-09-27 14:55 Sydney (2026-09-27 04:55 UTC), run 198 — **[OWNER ACTION REQUIRED](#owner-action-required):
-TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **EXP-014 rested a five-day strategic
-redirect on one write of a header the caller sends, and the client that would have sent it is already
-walking the site.**
+**Last updated:** 2026-09-27 21:00 Sydney (2026-09-27 11:00 UTC), run 199 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **The bar that decides what
+`@sportstech` publishes ranked a SWOT appraisal of other people's trials FIRST of seven selections,
+and the gate caught it before it published.**
 
-**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
-**CURRENT** — item 288 at `2026-09-26T10:15:17.187Z`, **18h** old, **zero** scheduled screens certainly
-delivered since. Nothing was published, amended or retracted. **Nothing here arms the schedule**:
-EXP-013's threshold 2 is unruled at **17 days**, run 153's pre-commitment stands, and EXP-013 Fork A
-says in terms that a held bar does not settle it.
+**The gate was attended first, it read ATTEND, and reading the record is what produced this run's
+work.** The 2026-09-27 scheduled screen
+([36306484832](https://github.com/in-c0/tuned/actions/runs/36306484832)) screened 31, selected 7 and
+ranked first *"Heart rate variability-guided endurance training: evaluating strengths, weaknesses,
+opportunities, and threats for load prescription and adjustment"* — admitted with **4 statistic
+families** and the design terms **randomised, reliability, comparison**.
 
-**Run 197's candidate 1 was taken, and it closed on data rather than on a change.** *"Read EXP-014 on
-the first whole UTC day; Fork E first."* **Fork E is answered and it is not the state of the window:**
-`item_view_referred_bot` **8** and `item_view_search_bot` **8** on 2026-09-26 — `verify-production`'s own
-two referred requests across four runs. **The counters write.** The window's first whole UTC day
-(2026-09-27) had four hours behind it and **no row on disk**, so nothing could be graded and nothing was.
+**Three clauses failed together and all three failed the same way.** Its Europe PMC `pubTypes`
+carried **no review type**, so `EXCLUDED_PUB_TYPES` never saw it. The title patterns required an
+article — `\ba (systematic|scoping|narrative) review\b` — that a SWOT title does not contain. And
+`DESIGN_SIGNATURES`, whose own comment says *"a design term is the evidence that this paper ran
+something"*, matched on `/\breliability\b/i` appearing once in 47,821 characters and on the phrase
+"randomised controlled trials have shown". **Every design term is vocabulary the subject supplies,
+not evidence the authorship supplies** — and because `rankSelected` orders on statistic families
+first, and breadth of cited statistics is exactly what an appraisal has most of, **the ranking did
+not merely admit the shape, it preferred it.** [L-118](LESSONS.md#l-118).
 
-**What the same table showed instead is the cycle.** The snapshot generated `2026-09-26T23:06:50.359Z`:
+**What it would have cost.** The composed why-line was *"full text read (47,821 characters). Design
+terms present: randomised, reliability, comparison. Reported: p-value, confidence interval, error,
+dispersion."* Against an appraisal every clause of that asserts of **this paper** what is true only
+of **the papers it discusses** — a fabricated provenance claim on the one surface Tuned has that
+publishes. **Nothing had to be retracted only because the gate is attended before a publication.**
 
-| name, complete UTC day 2026-09-26 | count | |
+| the bar | before | after |
 | --- | --- | --- |
-| `item_view` | **642** | the **first** non-zero unsuffixed reading this name has ever had — **0** on 09-24, **0** on 09-25 |
-| `item_render` | **absent** | **not one client ran a find page** |
-| `item_view_onsite` · `item_view_referred` | absent · absent | nothing from our pages, nothing from anyone else's |
-| `landing_view` · `landing_render` | 179 · **2** | the same shape one surface over |
-| `feed_view` · `feed_render` | 65 · **absent** | and one surface the other way |
+| SWOT framing | invisible | `/\bstrengths,?\s+(and\s+)?weaknesses\b/i`, `/\bswot\b/i` |
+| review words | `\ba (systematic\|scoping\|narrative) review\b` | article dropped; `umbrella\|rapid\|integrative\|literature` added; `a review of` |
+| survey titles | — | `state of the art`, **spaced** — the hyphenated adjective in "a state-of-the-art markerless system" is deliberately not caught |
+| the record | `4 stat families, 47821 chars` | **and the `pubTypes` it was admitted under** |
+| `DESIGN_SIGNATURES` · ranking · thresholds | — | **unchanged, deliberately** |
 
-**What is walking these 94 find pages is not bot-classified by user agent and does not execute
-JavaScript.** That is a description of today's traffic, not a hypothesis — and it is exactly the client
-that could trip **EXP-014's Fork B**, whose next action is the strongest sentence in the experiments
-file: *"the first evidenced arrival channel that needs nobody's permission, and it outranks every other
-candidate available to the loop."* Fork B trips on `item_view_search` **≥ 1** on **one** whole day.
-That counter is written from `Referer`. **EXP-014's own limits section already said the header is
-"caller-supplied and forgeable" — four paragraphs above the fork that rested five days of strategy on
-one write of it, and nothing joined the two.**
+**`DESIGN_SIGNATURES` is the root cause and it is deliberately still open.** The honest fix is an
+authorship-of-conduct clause, and every cheap version (ethics approval, informed consent,
+"participants were recruited") refuses *"Discovering the mechanics of ultra-low density elastomeric
+foams in elite-level racing shoes"* — a legitimate selection from the same screen that tests shoes,
+not people. **Guessing from seven data points trades a defect that has published nothing for one
+that silences the publisher.** It is the next candidate, named rather than fitted.
 
-**The corroboration was already built and already deployed, and EXP-014 named it nowhere.**
-`item_render` is in `PULSE_COUNTERS`, emitted by the find page's own script through a same-origin
-`POST /api/pulse/item_render`, so **a client that writes it has run the document**. It is not claimed
-to be unforgeable — only **more expensive to forge than the thing it corroborates**, since forging it
-means being a rendering browser, which is what the reading is trying to establish.
-[L-117](LESSONS.md#l-117) is [L-116](LESSONS.md#l-116) one turn on: run 197 split the axis so the
-reading became **computable** and nobody asked what would make it **believable**.
+**Confirmed live before the merge, not only in tests.** Dry screen on the branch
+([36312552188](https://github.com/in-c0/tuned/actions/runs/36312552188)): `PMC13558445` rejected with
+`research-article: title matches /\bstrengths,?\s+(and\s+)?weaknesses\b/i`; metadata survivors
+16 → 15, rejected 20 → 21. **All seven selections that day were typed `research-article/journal
+article`**, the appraisal included — which is the evidence the type list was useless here, and it
+was not in the log.
 
-| EXP-014 | before | after |
-| --- | --- | --- |
-| **Fork B** — search is delivering | `item_view_search ≥ 1` on any whole day | **and `item_render ≥ 1` on that same day** |
-| **Fork C** — a non-search inbound link | `item_view_referred ≥ 1`, `item_view_search = 0` | **and `item_render ≥ 1` on that same day** |
-| **Fork F** — a referrer with nothing behind it | **did not exist** | a referrer on a day `item_render` reads **0** → graded under **Fork A**, never published as an arrival |
-| binding clauses | allowlist and first-party UA frozen | **and `item_render`'s emitter frozen inside the window** |
-| Forks A, D, E · window · thresholds | — | **unchanged** |
+**The gate was then attended with a publication rather than another discard.**
+**`@sportstech` published item 289** — *"Baseline cognitive performance moderates ACL
+injury-related knee biomechanics during unanticipated sidestep cutting in highly trained male soccer
+players"*, 5 statistic families, 55,372 characters, HTTP 201 `duplicate=false` at
+`2026-09-27T10:29:16.946Z`
+([36312655873](https://github.com/in-c0/tuned/actions/runs/36312655873)). **On the morning's screen
+this candidate was DEFERRED for want of a read slot; the slot was freed by refusing the appraisal
+that had ranked first.** `scout-gate.mjs` now reads **CURRENT**. **Nothing here arms the schedule**:
+EXP-013's threshold 2 is unruled at 18 days and run 153's pre-commitment stands.
 
-**Why this is an amendment and not a fit, stated in the entry itself:** made **~04:30Z on 2026-09-27**
-against a snapshot carrying **no row on any day in the window**. The original registered text of B and
-C is kept **verbatim** with the requirement added under a dated label, because rewriting a registration
-is worse than annotating one.
-
-**The rule is code, not prose.** [`scripts/experiment-forks.test.mjs`](../scripts/experiment-forks.test.mjs)
-gains a second rule beside L-77's: *an experiment whose forks name any axis in `HEADER_DERIVED_AXES`
-must also name a script-execution counter in its forks.* Both registries are **read rather than
-transcribed** — `HEADER_DERIVED_AXES` is new in [`scripts/axis-invariant.mjs`](../scripts/axis-invariant.mjs),
-`PULSE_COUNTERS` is parsed out of `src/index.ts` — so a rename **reddens** the guard instead of quietly
-emptying its input, and each half carries the [L-61](LESSONS.md#l-61) vacuity assertion. **It reddens on
-EXP-014 exactly as run 197 registered it**, naming all four axes; that positive control is the only
-evidence it would have fired on the day rather than after the window closed.
-
-**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 331/331** (326 → 331) ·
-**14 workflows** · **15 nominations** · **0 vulnerabilities**.
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 335/335** (331 → 335) ·
+**14 workflows** · **16 nominations** (15 → 16) · **0 vulnerabilities**. Five mutations, all caught,
+all files restored byte-identical; **M0 — the screen checked out exactly as it stood when it selected
+the appraisal — reddens the new rule naming that paper's title verbatim.**
 
 **No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No route,
 schema, migration, counter, counter meaning, secret, dependency, page, data category or public claim;
