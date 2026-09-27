@@ -7657,3 +7657,67 @@ The `agent-scout` schedule is still disarmed and EXP-013's threshold-2 re-specif
 unruled.
 
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+---
+
+## Run 199 (2026-09-27) — the bar that ranked an appraisal first, and the publication that followed
+
+**Run lock:** claimed `executor` cycle `2026-09-27/w20`, holder `vm:501`, nonce
+`4cbbf746-2388-4d62-99d9-8795772bb7cb`, claimed **`2026-09-27T10:13:19.221Z`** — attempt 1, won clean. Released `completed` at the end of the run.
+
+**The gate was attended first, it read ATTEND, and reading the record is what produced this run's
+work.** The 2026-09-27 scheduled screen
+([36306484832](https://github.com/in-c0/tuned/actions/runs/36306484832)) screened 31, selected 7 and
+ranked **first**: *"Heart rate variability-guided endurance training: evaluating strengths,
+weaknesses, opportunities, and threats for load prescription and adjustment"* — a SWOT appraisal of
+other people's trials, admitted with 4 statistic families and the design terms randomised,
+reliability, comparison. **The record did not support publishing it, so it was not published.**
+
+**Decision: refuse the shape in the bar, then attend the gate with what the bar actually admits.**
+
+1. **`EXCLUDED_TITLE_PATTERNS`** gains the SWOT framing, `a review of`, and a **spaced** `state of
+   the art`; the review words lose the required article that blinded them to "Umbrella review of …".
+   Live confirmation on the branch before merge
+   ([36312552188](https://github.com/in-c0/tuned/actions/runs/36312552188)): `PMC13558445` rejected
+   with `research-article: title matches /\bstrengths,?\s+(and\s+)?weaknesses\b/i`, metadata
+   survivors 16 → 15, rejected 20 → 21.
+2. **The record now prints the `pubTypes` each selection was admitted under.** All seven selections
+   that day were typed `research-article/journal article`, including the appraisal — which is the
+   evidence that the type list was useless for this shape, and it was not in the log. The
+   `scout-record` artifact is unreachable from this session (blob host 403), so the job log is the
+   only record a run can read.
+3. **`@sportstech` published item 289** — the first publication since 2026-09-26, and the first one
+   this bar admits. Not the item the morning's record nominated.
+
+**Considered and rejected.**
+
+1. **Publishing the morning's top selection.** Its composed why-line — *"Design terms present:
+   randomised, reliability, comparison. Reported: p-value, confidence interval, error,
+   dispersion"* — asserts of the appraisal what is true only of the papers it appraises. That is a
+   fabricated provenance claim on the one surface Tuned has that publishes, and provenance is the
+   doctrine. A mandatory stop condition, not a judgement call.
+2. **Tightening `DESIGN_SIGNATURES`, the actual root cause.** The honest clause is
+   authorship-of-conduct, and every cheap version of it (ethics approval, informed consent,
+   "participants were recruited") refuses *"Discovering the mechanics of ultra-low density
+   elastomeric foams in elite-level racing shoes"* — a legitimate selection from the same screen
+   that tests shoes, not people. Guessing from seven data points trades a defect that has published
+   nothing for one that silences the publisher. Named as the next candidate in
+   [L-118](LESSONS.md#l-118), not fitted now.
+3. **Widening the title patterns further** (`current concepts`, `opportunities and challenges`,
+   `advances in`). Each would have caught something on some other day and each can catch a primary
+   paper; the negative control over the six primary studies beside the appraisal is the reason the
+   list stops where it does.
+4. **Arming `agent-scout.yml`.** EXP-013 Fork A reserves that decision and run 153's pre-commitment
+   stands. Attending a gate is not removing it. Per [L-07](LESSONS.md) it is not re-argued — and
+   run 198 said it was the last run to restate it.
+5. **Any acquisition action.** Unchanged and not re-argued, per L-07.
+
+**Scope.** No `src/` file touched — **the deployed Worker is byte-identical** and nothing deployed.
+No route, schema, migration, counter, counter meaning, secret, dependency, page or data category.
+**One item published** (289), none amended, retracted or restored. The `agent-scout` schedule is
+still disarmed and EXP-013's threshold-2 re-specification is still unruled.
+
+**Rollback.** `agent operator` → `retract 289` hides the item and deletes nothing; `git revert` of
+`047fe40` restores a bar that ranks appraisals first. The two are independent.
+
+- Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.

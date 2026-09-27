@@ -5228,3 +5228,60 @@ reason on every path it can take, including the paths where it is the thing that
   carries the [L-61](#l-61) vacuity assertion. **It reddens on EXP-014 exactly as run 197 registered
   it**, naming all four axes, which is the only evidence that it would have fired on the day the
   experiment was written rather than after the window closed.
+
+---
+
+## L-118 — the clause that proved the authors ran something was graded on the subject's vocabulary (2026-09-27, run 199)
+
+- **Known problem:** `@sportstech`'s bar must publish "a concrete measured result", so
+  `EXCLUDED_PUB_TYPES` refuses Europe PMC's review types and `DESIGN_SIGNATURES` exists to establish
+  that a paper carrying statistics actually produced them. Its own comment states the job in one
+  line: *"A paper can carry statistics and still be a commentary quoting them; a design term is the
+  evidence that this paper ran something."*
+- **Attempted approach:** screen on the type list, then require two statistic families plus one
+  design term in the full text, then rank the survivors on statistic families first.
+- **Mistake.** Every design term is **vocabulary the topic supplies, not evidence the authorship
+  supplies.** `reliability: /\breliability\b/i` is satisfied by the bare word anywhere in 47,821
+  characters; `comparison: /\bcompared (with|to|against)\b/i` by any sentence comparing two other
+  people's studies; `randomised: /\brandomi[sz]ed/i` by the phrase "randomised controlled trials have
+  shown". An appraisal of a literature therefore matches the clause designed to exclude it — and
+  because `rankSelected` orders on statistic families first, and **breadth of cited statistics is
+  precisely what an appraisal has most of**, the ranking does not merely admit the shape, it
+  **prefers** it.
+- **Evidence.** The 2026-09-27 scheduled screen
+  ([run 36306484832](https://github.com/in-c0/tuned/actions/runs/36306484832)) screened 31, selected
+  7, and ranked **first** of the seven: *"Heart rate variability-guided endurance training:
+  evaluating strengths, weaknesses, opportunities, and threats for load prescription and
+  adjustment"* — a SWOT appraisal, admitted with **4 statistic families and the design terms
+  randomised, reliability, comparison**. Its `pubTypes` carried no review type, so the type clause
+  never saw it, and the title patterns required an article (`\ba (systematic|scoping|narrative)
+  review\b`) that a SWOT title does not contain. **The other six selections were primary studies.**
+  One of seven was review-shaped and the ranking put it at the top.
+- **What it would have cost, had the gate not been attended first.** The composed why-line was
+  *"full text read (47,821 characters). Design terms present: randomised, reliability, comparison.
+  Reported: p-value, confidence interval, error, dispersion."* Published against an appraisal, every
+  clause of that sentence asserts of **this paper** what is true only of **the papers it discusses**
+  — a fabricated provenance claim on the one surface Tuned has that publishes, and the doctrine this
+  product is for is provenance. Nothing had to be retracted only because the gate is attended before
+  a publication, not after.
+- **Why it was invisible.** The clause reads as an authorship test and is written as a topic test,
+  and the two are indistinguishable on any paper that really did run a study — which is every
+  candidate anybody checked it against. A filter is tested on what it should admit far more often
+  than on what should slip through, and this one slipped a shape nobody had a fixture for.
+- **The general form.** **L-117 asked who decides a number and whether they would lie; this is the
+  same question asked of a word.** A clause meant to establish *what these authors did* must be
+  graded on something only the authors could have put there — a methods statement, a consent or
+  ethics line, a first-person account of conduct — and never on terminology the paper's **subject
+  matter** guarantees. When the two are confused, the clause still fires on every honest paper, so
+  its test suite stays green and its failure mode is invisible until something with the wrong shape
+  ranks first.
+- **What shipped, and what deliberately did not.** The title patterns now refuse the SWOT framing,
+  "a review of" and a spaced "state of the art", and the review words lost the article that blinded
+  them to "Umbrella review of ..." — precise, and graded against a negative control over the six
+  primary studies beside it. **`DESIGN_SIGNATURES` was left alone on purpose.** The honest fix is an
+  authorship-of-conduct clause, and the obvious candidates (ethics approval, informed consent,
+  "participants were recruited") would refuse a legitimate selection from this very screen —
+  *"Discovering the mechanics of ultra-low density elastomeric foams in elite-level racing shoes"*
+  tests shoes, not people, and carries no consent statement. **Guessing a stricter clause from seven
+  data points would trade a defect that has published nothing for one that silences the publisher,
+  and that is the worse trade.** It is the next candidate, named as such rather than fitted now.

@@ -1,0 +1,17 @@
+{
+  "itemId": 289,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3389/fphys.2026.1911093",
+  "title": "Baseline cognitive performance moderates ACL injury-related knee biomechanics during unanticipated sidestep cutting in highly trained male soccer players",
+  "category": "Research",
+  "why": "Selected by @sportstech from 31 open-access candidates screened 2026-09-27: full text read (55,372 characters). Design terms present: randomised, repeated measures, comparison. Reported: p-value, confidence interval, effect size, correlation, dispersion.",
+  "preregistration": {
+    "commit": "047fe406dab58ded16155f04201dedff574b85d2",
+    "committedAt": "2026-09-27T20:28:29+10:00",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36312655873",
+    "verifyWith": "git show 047fe40 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-27T10:29:16.946Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun. The bar commit named here is the one that added the appraisal-title clause (LESSONS L-118): on the screen four hours earlier this candidate was DEFERRED for want of a read slot, and the slot was freed by refusing a SWOT appraisal that had ranked first. The dry screen on the same bar, before the merge, is run 36312552188."
+}
