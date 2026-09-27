@@ -32,6 +32,37 @@
 // THE EXEMPTIONS ARE SELF-PRUNING, which is the property that keeps a list like this
 // honest. A fork named here that has since been given a next action FAILS the test, so the
 // list cannot quietly become the place unfixed things go to rest.
+//
+// ---------------------------------------------------------------------------------------
+//
+// THE SECOND RULE, added 2026-09-27 (run 198): a fork graded on a value the CALLER SENDS
+// must name a value the caller cannot send.
+//
+// WHY IT EXISTS. EXP-014 was registered on 2026-09-27 to decide whether the 2026-09-26
+// find-page traffic was a crawler or the first search arrivals. Its Fork B — "search is
+// delivering" — trips on `item_view_search >= 1` on any one whole day, and its next action
+// is the strongest in the file: *"the first evidenced arrival channel that needs nobody's
+// permission, and it outranks every other candidate available to the loop."* That counter
+// is written from `Referer`. The same experiment's own "what this cannot show" section says
+// the header is forgeable. Nothing connected the two, so a single fetcher sending
+// `Referer: https://www.google.com/` once in seven days could have redirected the loop's
+// last five days onto a channel that does not exist.
+//
+// It is not a hypothetical population. The traffic on the site the day the experiment was
+// written wrote 642 unsuffixed `item_view` and never once wrote `item_render` — so what is
+// actually walking these pages is non-bot-classified, does not run the document, and is
+// therefore exactly the client that can trip Fork B on purpose or by accident.
+//
+// The corroborating instrument already existed and was already deployed: `PULSE_COUNTERS`
+// in src/index.ts are written by the document's own script behind a same-origin `Origin`
+// check, so a client that writes one has RUN the page. EXP-014 named none of them. That is
+// L-116 one turn further on — the axis was split so the reading became computable, and the
+// corroboration that makes it *believable* was a separate question nobody asked.
+//
+// WHAT IT ENFORCES. If any fork of an experiment is graded on a name in
+// HEADER_DERIVED_AXES, some fork of that experiment must also name a script-execution
+// counter. It is a label check, exactly like the rule above: it cannot tell whether the
+// corroboration was used correctly, only that the run grading the fork has been handed it.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -39,8 +70,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 
+import { HEADER_DERIVED_AXES } from "./axis-invariant.mjs";
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = path.join(ROOT, "ops/EXPERIMENTS.md");
+const SRC_INDEX = path.join(ROOT, "src/index.ts");
 
 // Both shapes in use. EXP-007 … EXP-012 write `- **Fork R-A — …`; EXP-013 writes
 // `- **A — …` under its own "Forks, decided in advance" heading. A syntactic check that
@@ -146,4 +180,66 @@ test("the exemption list is self-pruning", () => {
       `${k} now carries a next action — remove it from EXEMPT in ${path.basename(fileURLToPath(import.meta.url))}`,
     );
   }
+});
+
+/** The counters only a client that ran the document can write, read from the Worker rather than
+ *  copied, so the two cannot drift. `PULSE_COUNTERS` gates `POST /api/pulse/:name` and that route
+ *  also requires a same-origin `Origin`, which is why writing one means having rendered the page. */
+function readPulseCounters() {
+  const src = fs.readFileSync(SRC_INDEX, "utf8");
+  const block = src.match(/const PULSE_COUNTERS = new Set\(\[([\s\S]*?)\]\);/);
+  assert.ok(
+    block,
+    `could not find PULSE_COUNTERS in ${path.relative(ROOT, SRC_INDEX)} — if it was renamed, rename it here too rather than letting this guard read an empty set`,
+  );
+  // Only double-quoted names. Every name inside that block's comments is written in backticks,
+  // so prose cannot inflate the set.
+  return [...block[1].matchAll(/"([a-z0-9_]+)"/g)].map((m) => m[1]);
+}
+
+/** Whole-name match: `item_view_referred` must not be found inside `item_view_referred_bot`. */
+const names = (text, name) => new RegExp(`(?<![a-z0-9_])${name}(?![a-z0-9_])`).test(text);
+
+/** Experiment id -> the concatenated text of all its fork bullets. */
+function forkTextByExperiment() {
+  const byExp = new Map();
+  for (const f of readForks()) {
+    byExp.set(f.exp, (byExp.get(f.exp) ?? "") + "\n" + f.body);
+  }
+  return byExp;
+}
+
+test("the script-execution counter list is read from the Worker and is not empty", () => {
+  const pulse = readPulseCounters();
+  // L-61 again. Nine names existed when this was written; `item_render` is the one the find-page
+  // reading rests on, so its absence means the set has been gutted whatever the count says.
+  assert.ok(pulse.length >= 7, `expected at least 7 pulse counters, found ${pulse.length}: ${pulse.join(", ")}`);
+  assert.ok(pulse.includes("item_render"), `PULSE_COUNTERS no longer contains item_render: ${pulse.join(", ")}`);
+});
+
+test("an experiment graded on a caller-supplied axis also names a script-execution counter", () => {
+  const pulse = readPulseCounters();
+  const byExp = forkTextByExperiment();
+
+  const subject = [];
+  const missing = [];
+  for (const [exp, text] of byExp) {
+    const axes = HEADER_DERIVED_AXES.filter((a) => names(text, a));
+    if (axes.length === 0) continue;
+    subject.push(exp);
+    if (!pulse.some((p) => names(text, p))) missing.push(`${exp} (graded on ${axes.join(", ")})`);
+  }
+
+  // The vacuity half. If no experiment is graded on a caller-supplied axis, this rule is asserting
+  // nothing and must say so rather than pass.
+  assert.ok(
+    subject.length >= 1,
+    "no experiment's forks name any axis in HEADER_DERIVED_AXES — this rule is sweeping an empty set",
+  );
+
+  assert.deepEqual(
+    missing,
+    [],
+    "a fork graded on a header the caller sends can be tripped by the caller. Name a PULSE_COUNTERS counter in the forks too — a client that writes one has run the document — or say in the fork why no corroboration is possible.",
+  );
 });

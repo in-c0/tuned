@@ -3828,6 +3828,46 @@ first reading is available on the snapshot committed 2026-09-29 (covering 09-27 
 window ends before the final operating date so a run can still act on it. 2026-09-26 is the deploy
 day, holds no writes under these names, and is excluded.
 
+### Amendment 1 — a referrer is a value the caller sends (2026-09-27 ~04:30Z, run 198)
+
+**Made before any whole day in the window existed on disk**, which is the only thing that makes it an
+amendment rather than a fit. The window's first whole UTC day is 2026-09-27; the snapshot in the
+repository at the time of this edit was generated `2026-09-26T23:06:50.359Z` and **carries no row on
+any 2026-09-27 day**, so no fork below has been moved to agree with an observation. The original
+registered text of Forks B and C is kept verbatim and the new requirement is added under a dated
+label, for the reason `scripts/experiment-forks.test.mjs` gives for not rewriting registered text.
+
+**What was wrong with it.** Fork B trips on `item_view_search ≥ 1` on a single whole day and its next
+action is the strongest in this file — *"the first evidenced arrival channel that needs nobody's
+permission, and it outranks every other candidate available to the loop"*, with five days of decision
+time left after the first reading. That counter is written from `Referer`, and the section above
+already says the header is *"caller-supplied and forgeable"*. **The two sentences are four paragraphs
+apart and nothing joined them.** One fetcher sending `Referer: https://www.google.com/` once in seven
+days is sufficient to redirect the loop's remaining capacity onto a channel that does not exist, and
+`Referer` is not a header anybody has to earn.
+
+**And the population that would do it is the one already here.** On 2026-09-26 the site wrote
+**`item_view` 642** unsuffixed — the first non-zero unsuffixed reading on that name in the project's
+history — with **`item_render` never written at all**, and `item_view_onsite` and `item_view_referred`
+both absent (source: [`metrics/latest.json`](metrics/latest.json), generated `2026-09-26T23:06:50.359Z`;
+day excluded from the window and graded by nothing). So the client walking these pages is
+**not bot-classified, and does not run the document.** It is not a hypothesis about a forger; it is a
+description of today's traffic, and a `Referer` is the one field it would have to change to look like
+an arrival.
+
+**The corroboration was already built, already deployed, and named nowhere in this experiment.**
+`item_render` is in `PULSE_COUNTERS`, written by the find page's own script through
+`POST /api/pulse/item_render` behind a same-origin `Origin` check — so a client that writes it **ran
+the page**. That is not unforgeable either, and it is not claimed to be: forging it means being a
+rendering browser, which is the thing the reading is trying to establish. Run 197 split the referrer
+axis so the reading became **computable** and did not ask what would make it **believable**
+([L-116](LESSONS.md#l-116) one turn further on, recorded as [L-117](LESSONS.md#l-117)).
+
+`scripts/experiment-forks.test.mjs` now enforces the general form — *an experiment graded on a name in
+`HEADER_DERIVED_AXES` must name a script-execution counter in its forks* — and it **reddens on
+EXP-014 as originally registered**, naming all four axes, which is the only evidence that the rule
+would have caught this on 2026-09-27 rather than after the window closed.
+
 ### Forks
 
 - **Fork A — the crawler explanation, confirmed.** `item_view_search` **= 0** and
@@ -3835,13 +3875,20 @@ day, holds no writes under these names, and is excluded.
   least one. **Reading:** the off-site figure is a machine count. ***Next action:*** retire
   `item_view - item_view_onsite` as an arrival number in [METRICS.md](METRICS.md) and state that the
   arrival number is `item_view_referred`; no traffic claim from any earlier day.
-- **Fork B — search is delivering.** `item_view_search` **≥ 1** on any whole day. **Reading:** some
+- **Fork B — search is delivering.** `item_view_search` **≥ 1** on any whole day **and — amended
+  2026-09-27 (run 198) — `item_render` ≥ 1 on that same whole day.** Both halves are required and the
+  second is not a tie-breaker: a search arrival is a browser, so it renders; a fetcher presenting a
+  search `Referer` does not. A day satisfying the first half alone is **Fork F**, not a weak Fork B.
+  **Reading:** some
   search index is sending people to find pages despite this run's zero reading, so that reading is
   about the wrong backend and must be labelled as such rather than repeated. ***Next action:*** this is the
   first evidenced arrival channel that needs nobody's permission, and it outranks every other
   candidate available to the loop.
 - **Fork C — an inbound link that is not search.** `item_view_referred` **≥ 1** while
-  `item_view_search` **= 0**, on any whole day. **Reading:** somebody linked to Tuned. Run 174 named
+  `item_view_search` **= 0**, on any whole day, **and — amended 2026-09-27 (run 198) —
+  `item_render` ≥ 1 on that same whole day**, for the reason given under Fork B: a person following a
+  link off another page arrives in a browser. The first half alone is **Fork F**.
+  **Reading:** somebody linked to Tuned. Run 174 named
   inbound links as the one missing input behind the zero index reading; this would be the first
   evidence one exists. ***Next action:*** stop treating "no inbound link" as a standing fact.
 - **Fork D — nothing arrives.** `item_view` **≤ 5** on every whole day, so 2026-09-26 was a one-off
@@ -3858,6 +3905,21 @@ day, holds no writes under these names, and is excluded.
   ***Next action:*** fix the emitter before reading anything else — a day under Fork E grades nothing,
   and the days already spent are not recoverable, so this outranks every other fork in the window.
 
+- **Fork F — a referrer with nothing behind it (new, amended in 2026-09-27, run 198).**
+  `item_view_search` **≥ 1** or `item_view_referred` **≥ 1** on a whole day on which `item_render`
+  reads **0**. **Reading:** a referrer header arrived and **no client ran the document**, so something
+  that does not render pages presented one — a forged, copied or stale `Referer` on a fetcher. This is
+  **not** an arrival and it is **not** a weak Fork B; it is Fork A's population with one extra header,
+  and the only thing it adds is that the referrer axis alone cannot carry a demand claim. It is also
+  the fork this experiment would have mis-read as Fork B before the amendment, which is why it is
+  registered rather than left to the grading run's judgement. ***Next action:*** grade the day under
+  **Fork A** and take Fork A's next action; record in [METRICS.md](METRICS.md) that
+  `item_view_search` > 0 with `item_render` = 0 is a machine presenting a header and **must never be
+  published as an arrival**; do **not** redirect the loop onto a search channel, and do **not** edit
+  the allowlist or the emitter to explain it. If `item_render` is 0 on *every* day of the window while
+  `item_view` moves, the honest reading of the whole window is that nothing rendered these pages at
+  all.
+
 ### Binding clauses
 
 - **No fetch of any find page by this loop, by hand or by workflow, under a user-agent that is not
@@ -3867,6 +3929,15 @@ day, holds no writes under these names, and is excluded.
   this window is open.
 - **No `Referer` is ever sent by this loop to a find page except from `verify-production.yml`'s own
   step**, whose writes land in `_bot` by construction and are Fork E's detector.
+- **`item_render`'s emitter may not be edited inside the window, and may not become conditional on
+  any element.** Added 2026-09-27 (run 198) with Fork F, and it is the protection
+  [EXP-011](#exp-011--is-landing_view-a-browser-at-all-2026-09-05-run-138) gave `landing_render`
+  transplanted one surface over: the counter is now load-bearing in three forks, and `FIND_JS` keeps
+  it **first and unconditional** precisely so a markup change cannot take out the corroboration while
+  leaving the referrer axes writing. A page-script edit inside the window makes `item_render` = 0 mean
+  two things at once — *nothing rendered* and *the beacon stopped* — which is the ambiguity this whole
+  experiment exists to remove. If `src/pages.ts`'s find-page script must change for an unrelated
+  defect, the window is re-registered from the day after the deploy rather than read across it.
 - **The allowlist in `SEARCH_REFERRERS` may not be edited inside the window** to agree with a host
   that has appeared in the data. Adding a name after seeing it fires is fitting the bar to the
   observation; a host that should be there and is not still shows up in `item_view_referred`, and the
