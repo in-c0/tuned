@@ -7721,3 +7721,39 @@ still disarmed and EXP-013's threshold-2 re-specification is still unruled.
 `047fe40` restores a bar that ranks appraisals first. The two are independent.
 
 - Running spend total: **AUD $0.00 of $500** — unchanged; this run cost nothing.
+
+## 2026-09-28 — run 200: the authorship clause L-118 named, and the version of it that had to be thrown away first
+
+- **Decision: close L-118's root cause with a structural clause, not a stricter word list.**
+  `DESIGN_SIGNATURES` establishes *these authors ran a study* and is graded on vocabulary the
+  paper's **subject** supplies, which is how a SWOT appraisal of other people's endurance trials
+  came to rank first of seven selections on 2026-09-27. `extractMethodsText` now locates the
+  paper's own methods section from the JATS section structure, and **a located methods section
+  replaces the design-term requirement** as the authorship evidence. The word list is unchanged and
+  is read only to compose the why-line — from the methods section and nowhere else — so a published
+  provenance claim quotes only vocabulary the authors used about their own work.
+- **Reversal inside the same run, and it is the substance of the cycle.** The first version
+  required a design term **inside** the methods section. The live dry screen on the branch
+  ([36355046859](https://github.com/in-c0/tuned/actions/runs/36355046859)) refused *"Discovering the
+  mechanics of ultra-low density elastomeric foams in elite-level racing shoes"* — **the exact paper
+  L-118 named as the selection an authorship clause must not silence** — along with one other
+  primary study. Conjunction of a structural test and a vocabulary test is not a stronger test: it
+  keeps every false negative of both. The requirement was removed rather than tuned. See L-119.
+- **Evidence both ways, on the real papers rather than on fixtures.**
+  - Positive control ([36355062571](https://github.com/in-c0/tuned/actions/runs/36355062571)): with
+    L-118's title clause removed on a throwaway branch, `PMC13558445` — the live SWOT appraisal —
+    reaches the new clause and is refused, *"no methods section located in 47821 characters"*.
+  - Final screen ([36355386369](https://github.com/in-c0/tuned/actions/runs/36355386369)): 31
+    screened, 14 read, **10 selected**. The foam study is selected (methods 59,774 chars), as are
+    two other primary studies the old vocabulary clause had refused; **a conference poster abstract
+    of 6,706 characters is refused for having no methods section**, which is a correct refusal the
+    bar had no clause for before.
+- **Accepted consequence, stated rather than buried: the bar is looser in one direction.** Three
+  papers the design-term clause refused are now selected, because that clause was refusing primary
+  research for want of human-study vocabulary. All three carry ≥2 statistic families and a methods
+  section of 7,371–59,774 characters. The bar is tighter in the direction that matters for
+  doctrine — it no longer admits a document that describes no study of its own.
+- **Not changed, deliberately:** `rankSelected` still orders on statistic families first;
+  `DESIGN_SIGNATURES`, `EXCLUDED_PUB_TYPES`, `MIN_STATISTIC_FAMILIES` and every threshold are
+  untouched; the `agent-scout` schedule remains disarmed and EXP-013's threshold 2 unruled.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

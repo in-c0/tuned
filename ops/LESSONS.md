@@ -5285,3 +5285,57 @@ reason on every path it can take, including the paths where it is the thing that
   tests shoes, not people, and carries no consent statement. **Guessing a stricter clause from seven
   data points would trade a defect that has published nothing for one that silences the publisher,
   and that is the worse trade.** It is the next candidate, named as such rather than fitted now.
+
+## L-119 — an authorship clause has to be graded on structure, and the first version of it silenced the paper L-118 named (2026-09-27, run 200)
+
+- **Known problem:** the root cause L-118 named and deliberately left open. `DESIGN_SIGNATURES` is
+  the clause that establishes *these authors ran a study*, and it is graded on vocabulary the
+  paper's **subject** supplies, so a SWOT appraisal of other people's endurance trials satisfied it
+  on "randomised controlled trials have shown" and one occurrence of "reliability" in 47,821
+  characters. L-118 shipped a title clause that catches *that* appraisal and said the general fix
+  needed an authorship-of-conduct clause it would not guess at from seven data points.
+- **What shipped.** Not a stricter word list — a different **place to read**. A paper's methods
+  section is the one region written in its authors' own voice about what they themselves did, and
+  it is a region a study of racing-shoe foam has exactly as reliably as a study of people, which is
+  the property every vocabulary candidate in L-118 lacked. `extractMethodsText` locates it from the
+  JATS section structure (by `sec-type`, by the section's own `<title>`, matched by depth because
+  "Participants" nests inside "Materials and methods"), and a located methods section **replaces**
+  the design-term requirement as the authorship evidence. `DESIGN_SIGNATURES` is unchanged and is
+  now read **only** to compose the why-line, from the methods section and nowhere else.
+- **The mistake, and it was caught live rather than in review.** The first version required a
+  design term **inside** the methods section — structure *and* vocabulary. The dry screen on the
+  branch ([36355046859](https://github.com/in-c0/tuned/actions/runs/36355046859)) refused
+  *"Discovering the mechanics of ultra-low density elastomeric foams in elite-level racing shoes"*:
+  **the exact paper L-118 named as the selection an authorship clause must not silence.** Its
+  methods section is real and **59,774 characters** long, describes servo-hydraulic loading of
+  foam, and never needs the word "randomised" or "compared with". A second candidate went the same
+  way. **Requiring both did not remove the narrowness L-118 warned about; it moved it inside the
+  methods section and kept it.**
+- **The general form.** **A structural test and a vocabulary test are not a stronger test when you
+  AND them — they are the vocabulary test with extra steps.** Where the structure is the better
+  evidence, it must *replace* the proxy, not be added to it. Conjunction feels conservative and is
+  not: it inherits every false negative of both clauses while fixing only the false positives of
+  one. Whenever a clause is being strengthened, ask which of the two tests is now doing the work,
+  and delete the other.
+- **Evidence, both directions, on the real papers.**
+  - **Positive control** — the L-118 title clause removed on a throwaway branch so the live SWOT
+    appraisal reaches this clause
+    ([36355062571](https://github.com/in-c0/tuned/actions/runs/36355062571)): `PMC13558445` rejected
+    `measured-result: no methods section located in 47821 characters — nothing in this paper
+    describes a study its own authors ran`. The root cause, refused on the paper that exposed it,
+    with the title clause standing down.
+  - **Negative control** — eleven of the twelve full texts read on the same screen had a locatable
+    methods section (8,002 to 22,623 characters). The twelfth was a **conference poster abstract**
+    of 6,706 characters, refused for having none: a correct refusal the bar had no clause for
+    before, and the only refusal the structure itself produced.
+- **Why the fixture suite could not have caught the regression and the dry screen could.** The
+  equipment fixture written for this change said "compared with a reference foam" in its methods,
+  because that is how someone *writing a control* phrases it. The real paper does not. **A fixture
+  for "a paper unlike the ones we have" is written by the same intuition that wrote the clause, so
+  it inherits the clause's blind spot.** The only test that does not is the live screen, and it
+  costs one workflow dispatch — cheaper than the fixture, and it disagreed with it.
+- **Also recorded: `sha256sum -c` earned its place a second time in three runs.** The mutation
+  harness ran `git checkout --` against files whose latest edits were **uncommitted**, reverting
+  the corrected clause back to the broken one; the byte-identity check failed immediately and the
+  mutation results from that point were discarded and re-run. **Mutation-grade after committing,
+  never before** (L-... as recorded at run 198, and now twice).

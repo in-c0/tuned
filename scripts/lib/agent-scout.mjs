@@ -306,9 +306,30 @@ export const STATISTIC_SIGNATURES = {
   dispersion: [/\bstandard deviation/i, /\b±\s*\d/, /\bsd\s*=\s*\d/i, /\binterquartile/i],
 };
 
-/** Signatures of a design that produced those numbers on purpose. A paper can carry
- *  statistics and still be a commentary quoting them; a design term is the evidence that
- *  this paper ran something. */
+/** Signatures of a design that produced the reported numbers on purpose. Read now only to
+ *  say so in the why-line, never to decide a selection.
+ *
+ *  THEY USED TO DECIDE ONE, AND TAKING THAT AWAY IS THE FIX. Run 199 refused a SWOT
+ *  appraisal of other people's endurance trials that had ranked FIRST of seven selections:
+ *  it matched `reliability` on one occurrence in 47,821 characters and `randomised` on the
+ *  phrase "randomised controlled trials have shown". Both are true sentences about somebody
+ *  else's work. L-118 named the root cause — *"every design term is vocabulary the subject
+ *  supplies, not evidence the authorship supplies"* — and left it open, because every cheap
+ *  authorship clause anyone could think of (ethics approval, informed consent, "participants
+ *  were recruited") also refuses a legitimate study of racing-shoe foam that never touched a
+ *  person.
+ *
+ *  The answer is that this table was never an authorship test. It is a list of the ways a
+ *  STUDY OF PEOPLE says what it did, so asking it to certify authorship made it both too
+ *  weak and too strong. `grade` now takes that evidence from a structural fact instead — the
+ *  paper contains a section in which its own authors describe their conduct, which a study
+ *  of people and a study of foam have equally and an appraisal does not. See
+ *  `extractMethodsText` and LESSONS L-119.
+ *
+ *  What survives here is the why-line. The terms are matched against the methods section and
+ *  nowhere else, so a published provenance claim quotes only vocabulary the authors used
+ *  about their own work — and when there is none, the sentence drops that clause rather than
+ *  the bar dropping the paper. The word list itself is unchanged, deliberately. */
 export const DESIGN_SIGNATURES = {
   randomised: [/\brandomi[sz]ed/i, /\brandomly assigned/i, /\bcross-?over design/i],
   "repeated measures": [/\brepeated[- ]measures/i, /\bwithin-subject/i, /\bpre-?post\b/i, /\btest-?re-?test/i],
@@ -527,6 +548,89 @@ export function extractBodyText(xml) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+/** A JATS section heading that announces the authors describing their own conduct.
+ *
+ *  Matched against `sec-type` and against the section's own `<title>`, because publishers
+ *  disagree about which one they populate: Frontiers and PLOS type their sections, while
+ *  plenty of JATS in Europe PMC carries a bare `<sec><title>Materials and methods</title>`.
+ *  Both spellings of the same claim, so both are read. */
+const METHODS_SEC_TYPE = /(^|[|\s-])(methods?|materials?|subjects?|patients?|participants?|procedures?|experimental|study-?design|data-?collection)([|\s-]|$)/i;
+
+const METHODS_TITLE = /^\s*(?:\d+[.)]?\s*)*(materials?\s*(and|&|\/)\s*methods?|methods?\s*(and|&|\/)\s*materials?|methods?|methodology|experimental\s*(section|procedures?|set-?up|design|methods?|protocol)?|study\s*design|research\s*design|design\s*and\s*(methods?|procedures?)|(participants?|subjects?|patients?|animals?|specimens?)\s*(and|&)\s*methods?|methods?\s*(and|&)\s*(procedures?|analysis|materials?)|data\s*collection|materials?)\s*$/i;
+
+/** True when this `<sec>`'s own heading says it is the methods section. */
+function isMethodsSection(openTag, innerXml) {
+  const typeAttr = /sec-type\s*=\s*"([^"]*)"/i.exec(openTag);
+  if (typeAttr && METHODS_SEC_TYPE.test(typeAttr[1])) return true;
+  // The section's OWN title, not a descendant's: anything before the first nested `<sec`.
+  const head = innerXml.split(/<sec\b/i)[0];
+  const title = /<title\b[^>]*>([\s\S]*?)<\/title>/i.exec(head);
+  if (!title) return false;
+  const text = title[1].replace(/<[^>]+>/g, " ").replace(/&[^;\s]{1,8};/g, " ").replace(/\s+/g, " ").trim();
+  return METHODS_TITLE.test(text);
+}
+
+/** JATS full text into the prose of the paper's METHODS section alone, or "" when the
+ *  document has none that can be located.
+ *
+ *  WHY THIS EXISTS AND WHAT IT IS FOR. `DESIGN_SIGNATURES` asks whether the authors ran a
+ *  study, and until run 200 it asked that of the whole document, where the answer is
+ *  contaminated by every sentence the authors wrote about somebody else's study. The
+ *  methods section is the narrowest region of a paper that is, by construction, about what
+ *  its own authors did — and it is a region a study of equipment has exactly as reliably
+ *  as a study of people, which is the property every vocabulary-based authorship clause
+ *  considered in L-118 lacked.
+ *
+ *  WHY "" IS A REFUSAL AND NOT A PASS. A document in which no section says "this is what
+ *  we did" has not shown that anybody did anything, and the clause that reads this fails
+ *  closed on it (`grade`, clause `measured-result`). On the live screen of 2026-09-27 this
+ *  refused exactly one of twelve full texts read — a conference poster abstract of 6,706
+ *  characters — and located a section in the other eleven, which is the evidence that the
+ *  structure being relied on is one real papers actually have.
+ *
+ *  The cost of that choice is real and is
+ *  the reason the screen prints the located length on every read: a publisher family whose
+ *  JATS carries no sections at all would go quiet rather than go wrong, and the record is
+ *  where a later run would see that happening. Silence that is visible in the log is the
+ *  admissible half of L-118's warning; silence nobody can see is not.
+ *
+ *  Sections are matched by depth rather than by a non-greedy regex, because `<sec>` nests
+ *  and "Participants" is routinely a subsection of "Materials and methods". A matched
+ *  section is taken whole, subsections included, and is not descended into again. */
+export function extractMethodsText(xml) {
+  if (typeof xml !== "string" || xml === "") return "";
+  let doc = xml;
+  for (const tag of ["ref-list", "back", "front", "front-stub", "journal-meta"]) {
+    doc = doc.replace(new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?</${tag}>`, "gi"), " ");
+  }
+
+  const open = /<sec\b[^>]*>/gi;
+  const found = [];
+  let m;
+  while ((m = open.exec(doc)) !== null) {
+    const innerStart = m.index + m[0].length;
+    // Walk forward counting `<sec` opens against `</sec` closes to find this one's end.
+    let depth = 1;
+    let i = innerStart;
+    const boundary = /<(\/?)sec\b/gi;
+    boundary.lastIndex = innerStart;
+    let b;
+    while (depth > 0 && (b = boundary.exec(doc)) !== null) {
+      depth += b[1] === "/" ? -1 : 1;
+      i = b.index;
+    }
+    const innerEnd = depth === 0 ? i : doc.length;
+    const inner = doc.slice(innerStart, innerEnd);
+    if (isMethodsSection(m[0], inner)) {
+      found.push(inner);
+      // Do not re-enter this section: a matched region is taken whole, once.
+      open.lastIndex = innerEnd;
+    }
+  }
+  if (found.length === 0) return "";
+  return extractBodyText(found.join(" "));
+}
+
 // ---------------------------------------------------------------------------
 // The bar
 // ---------------------------------------------------------------------------
@@ -697,7 +801,7 @@ export function sameSource(a, b) {
 
 /** The whole bar, metadata plus the encounter. `fullText` is the extracted prose; pass an
  *  empty string for a fetch that failed, and the clause that refuses it says so. */
-export function grade(candidate, { now, fullText, fetchNote = "", windowDays = DEFAULT_WINDOW_DAYS, publishedUrls = [], publishedDois = [] } = {}) {
+export function grade(candidate, { now, fullText, methodsText = "", fetchNote = "", windowDays = DEFAULT_WINDOW_DAYS, publishedUrls = [], publishedDois = [] } = {}) {
   const meta = gradeMetadata(candidate, { now, windowDays, publishedUrls, publishedDois });
   if (meta.verdict === "rejected") return meta;
 
@@ -724,12 +828,37 @@ export function grade(candidate, { now, fullText, fetchNote = "", windowDays = D
   }
 
   const statistics = matchedFamilies(body, STATISTIC_SIGNATURES);
-  const designs = matchedFamilies(body, DESIGN_SIGNATURES);
   if (statistics.length < MIN_STATISTIC_FAMILIES) {
     return { verdict: "rejected", clause: "measured-result", detail: `only ${statistics.length} statistic famil${statistics.length === 1 ? "y" : "ies"} reported (${statistics.join(", ") || "none"}), need ${MIN_STATISTIC_FAMILIES}` };
   }
-  if (designs.length === 0) {
-    return { verdict: "rejected", clause: "measured-result", detail: "no design term — statistics present with nothing saying the authors ran the study" };
+
+  // The authorship question: does this document contain a passage in which its own authors
+  // say what they did? A located methods section IS that evidence, and it REPLACES the
+  // design-term requirement rather than joining it — see `extractMethodsText` and L-119.
+  //
+  // THE VERSION THAT REQUIRED BOTH WAS WRONG AND THE DRY SCREEN SAID SO. Run 200 first wrote
+  // this as "a design term, matched inside the methods section", and the live screen on the
+  // branch (36355046859) refused *"Discovering the mechanics of ultra-low density elastomeric
+  // foams in elite-level racing shoes"* — the exact paper L-118 named as the legitimate
+  // selection any authorship clause must not silence. Its methods section is real and 59,774
+  // characters long; it describes servo-hydraulic loading of foam and never needs the word
+  // "randomised" or "compared with". `DESIGN_SIGNATURES` is a list of the ways a STUDY OF
+  // PEOPLE says what it did, which is exactly the narrowness L-118 warned about, and asking
+  // it to certify authorship made it both too weak (an appraisal passes on borrowed words)
+  // and too strong (a materials study fails for want of them).
+  //
+  // So the design terms are still matched — in the methods section and nowhere else — but
+  // only because the why-line quotes them. An empty list costs a clause of that sentence,
+  // never the selection.
+  const methods = typeof methodsText === "string" ? methodsText : "";
+  const designs = matchedFamilies(methods, DESIGN_SIGNATURES);
+  const designsAnywhere = matchedFamilies(body, DESIGN_SIGNATURES);
+  if (methods.length === 0) {
+    return {
+      verdict: "rejected",
+      clause: "measured-result",
+      detail: `no methods section located in ${body.length} characters — nothing in this paper describes a study its own authors ran${designsAnywhere.length ? `, and the design terms it does carry (${designsAnywhere.join(", ")}) are somewhere else` : ""}`,
+    };
   }
 
   return {
@@ -742,6 +871,7 @@ export function grade(candidate, { now, fullText, fetchNote = "", windowDays = D
     ageDays: meta.ageDays,
     statistics,
     designs,
+    methodsCharacters: methods.length,
     bodyCharacters: body.length,
   };
 }
@@ -1190,7 +1320,10 @@ export function composeWhy({ candidate, grade: g, observed, observedOn }) {
 
   const chars = g.bodyCharacters.toLocaleString("en-US");
   const head = `Selected by @sportstech from ${observed} open-access candidate${observed === 1 ? "" : "s"} screened ${observedOn}: full text read (${chars} characters).`;
-  const design = `Design terms present: ${g.designs.join(", ")}.`;
+  // Empty when the methods section carries no term from this file's table. The ladder below
+  // already has rungs without it, and dropping the clause is the honest outcome: the line
+  // must not assert design terms the authors' own methods section does not contain.
+  const design = g.designs.length > 0 ? `Design terms present: ${g.designs.join(", ")}.` : "";
   const stats = `Reported: ${g.statistics.join(", ")}.`;
   const where = candidate.journal ? `${candidate.journal}, ${candidate.firstPublicationDate}.` : `${candidate.firstPublicationDate}.`;
 
@@ -1205,7 +1338,7 @@ export function composeWhy({ candidate, grade: g, observed, observedOn }) {
     [head, stats, where],
     [head, stats],
   ]) {
-    const line = parts.join(" ");
+    const line = parts.filter((part) => part !== "").join(" ");
     if (line.length <= WHY_MAX) return line;
   }
   // Every composition overflowed. Refuse rather than publish a sentence that stops
