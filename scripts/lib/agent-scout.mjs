@@ -285,8 +285,6 @@ const EXCLUDED_TITLE_PATTERNS = [
   // The review words above lost their required article for the same reason: `\ba
   // (systematic|scoping|narrative) review\b` could not see "Umbrella review of ..." at the
   // head of a title, which is where a review most often says so.
-  /\bstrengths,?\s+(and\s+)?weaknesses\b/i,
-  /\bswot\b/i,
   // Spaces only, deliberately: "state of the art" is a title announcing a survey, while the
   // hyphenated "a state-of-the-art markerless system" is an adjective in a primary paper.
   /\bstate of the art\b/i,
