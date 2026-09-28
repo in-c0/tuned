@@ -5339,3 +5339,48 @@ reason on every path it can take, including the paths where it is the thing that
   the corrected clause back to the broken one; the byte-identity check failed immediately and the
   mutation results from that point were discarded and re-run. **Mutation-grade after committing,
   never before** (L-... as recorded at run 198, and now twice).
+
+## L-120 — the corroborating counter was named, and naming is not witnessing (2026-09-28, run 201)
+
+**The rule that fired, and the half of it that did not exist.** Run 198 wrote L-117 and built a
+guard for it: an experiment graded on a header the caller sends must also name a script-execution
+counter in its forks, because a client that writes one has **run the document**.
+`scripts/experiment-forks.test.mjs` enforces it and EXP-014 satisfies it — Forks B, C and F all name
+`item_render`. The guard was green. The experiment was still resting three of its six forks on a
+beacon **nobody in this repository had ever seen fire**.
+
+- **A label check answers "was the corroboration named".** It cannot answer "does it work", and
+  those are different questions with the same green.
+- **`item_render` had no first-party writer.** EXP-014's own **Fork E** exists for precisely this
+  failure and covers the *other* counter: `item_view_search_bot`'s liveness is re-established by
+  `verify-production.yml` on every run. The counter Amendment 1 added was the one with nothing
+  standing behind it, and the amendment that added it did not notice it was adding an unguarded
+  dependency while removing a different one.
+- **The failure mode is self-confirming, which is what makes it worse than an ordinary gap.** A dead
+  `item_render` does not make the window unreadable; it makes every day grade to **Fork F or
+  Fork A** whatever arrived. The experiment would have returned a confident answer, and it would
+  have been the answer it assumed. A broken instrument that yields *no* reading gets found. One
+  that yields the *default* reading does not.
+
+**The generalisation, and why a grep could not have implemented it.** The new guard
+(`scripts/pulse-observed.test.mjs`) requires that a counter an experiment's forks rest on be
+declared in some `qa/` spec's exported `OBSERVES_PULSES` — a spec that asserts the beacon **fires
+and is accepted**. It reads declarations rather than file text because the file text is actively
+misleading here: `qa/pulse-instrument.spec.mjs` names `item_render`, in its `NEVER_HERE` list, as a
+counter that must **never** fire on the landing page. **An assertion that a beacon is silent is the
+opposite of coverage, and looks identical to a grep.** Wherever a check asks "is X mentioned", ask
+what the most common *mention* of X in this repository actually asserts.
+
+**What the check found, which was not what the gap predicted.** The beacon is **alive** — one fire,
+`204`, correct `Origin`, no page error, on production build `3d537b4`
+([36377540765](https://github.com/in-c0/tuned/actions/runs/36377540765)). So the six zero days are a
+fact about traffic: the clients behind 642 and 104 find-page requests **ran none of the document**.
+Two things worth keeping from that:
+
+- **A liveness check is worth dispatching when you expect it to pass.** The value was never the
+  chance of finding a bug; it was that the *zeros become readable either way*, and they were not
+  readable before.
+- **It cost one workflow dispatch, and it was available at any point in the six days.** Nothing was
+  blocking it except that no fork's next action pointed at it. The window's first reading lands
+  2026-09-29, so this is the first run where it was cheap and also still in time — that is luck, and
+  the guard is what replaces the luck.

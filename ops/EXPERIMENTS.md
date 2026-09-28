@@ -3942,3 +3942,62 @@ would have caught this on 2026-09-27 rather than after the window closed.
   that has appeared in the data. Adding a name after seeing it fires is fitting the bar to the
   observation; a host that should be there and is not still shows up in `item_view_referred`, and the
   honest move is to grade Fork C and record the gap.
+
+### Amendment 2 — the corroborating beacon was witnessed, and the zeros are about traffic (2026-09-28 ~04:25Z, run 201)
+
+**Registered text of every fork is unchanged.** This amendment adds no fork and moves no threshold.
+It supplies the one thing Amendment 1 assumed and did not establish, and it states exactly what was
+on disk when it was written so that nothing here can be read as fitting.
+
+**What was known before the check was dispatched.** The snapshot in the repository, generated
+`2026-09-27T23:21:56.781Z`, carries `item_render` and `item_render_bot` **absent on every day from
+2026-09-22 through 2026-09-27** — six consecutive days, both names — while `item_view` reads **642**
+on 2026-09-26 and **104** on 2026-09-27. Both names last wrote on 2026-09-21. 2026-09-27's row is
+the window's first day and is ~38 minutes short of whole, so **no fork is graded here**; the first
+graded reading is still the snapshot committed 2026-09-29.
+
+**The hole Amendment 1 left.** It made `item_render` load-bearing in Forks B, C and F — B and C each
+require it ≥ 1 on the same whole day, and F is *defined* by it reading 0. That is sound only while a
+silent beacon means *nothing rendered the page*. If the beacon were dead, **every day of the window
+would grade to Fork F or Fork A whatever arrived**, and this experiment could return only the answer
+it assumed. [Fork E](#exp-014--were-2026-09-26s-517-off-site-find-page-views-a-crawler-or-the-first-search-arrivals-2026-09-27-run-197)
+was registered against exactly this failure for `item_view_search_bot`, whose liveness
+`verify-production.yml` re-establishes on every run. `item_render` has **no first-party writer at
+all**, and until this run had never been observed firing from a browser anywhere in this repository.
+
+**The reading, taken rather than assumed.** `qa/find-instrument.spec.mjs` dispatched through
+`qa-browser.yml` against production, run
+[36377540765](https://github.com/in-c0/tuned/actions/runs/36377540765), serving build
+`3d537b4` (`/api/version` recorded in the job log before the spec ran):
+
+| | |
+| --- | --- |
+| find page loaded | `/sportstech/289`, taken from the live sitemap (95 find pages advertised) |
+| `item_render` fired | **1** — exactly once on the load |
+| production's answer | **204**, with the page's own `Origin` on the request |
+| page errors · console errors · first-party HTTP errors | **0 · 0 · 0** |
+
+**So the instrument is alive, and the six zero days are a fact about traffic.** The honest reading of
+2026-09-22 … 2026-09-27 is the one Fork F's closing sentence anticipated: **nothing rendered a find
+page on any of those days**, while 642 and then 104 unsuffixed `item_view` were recorded. The clients
+walking these pages take the HTML and execute none of it.
+
+**The gate this puts on the window, which is Fork E's clause transplanted one counter over.** No day
+may be graded **Fork B** or **Fork C** — both of which require `item_render` ≥ 1 — without a dated
+browser observation of `item_render` bracketing that day, and a run that grades **Fork F** must cite
+one too, because Fork F's whole content is that the beacon was working and nothing ran the document.
+The observation above is the near-side bracket. A far-side bracket is owed before the window's
+reading is called final, for the reason `qa/pulse-instrument.spec.mjs` gives about EXP-007: a single
+pre-window check cannot foresee a beacon detaching midway.
+
+**This run's own footprint, declared so tomorrow's snapshot is not misread.** The dispatch wrote
+**`item_view_bot` +1 and `item_render_bot` +1 on UTC 2026-09-28**, plus one `GET /sitemap.xml`. The
+headless user-agent is what keeps both out of the unsuffixed names every fork reads. A
+non-zero `item_render_bot` of exactly 1 on 2026-09-28 is **this check and not an arrival**, and
+`item_render` unsuffixed is untouched by it.
+
+**Binding clauses honoured, each named rather than asserted.** The user-agent declared
+`HeadlessChrome` and was not overridden. The find page was reached by a direct, referrer-less
+`page.goto` and never by clicking a permalink, so no first-party `Referer` reached a find page and
+`item_view_onsite_bot` was not written. **No `src/` file was touched**, so the emitter is unedited
+and the deployed Worker is byte-identical — the window is not re-registered.

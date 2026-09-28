@@ -32,6 +32,11 @@ import { expect, test } from "@playwright/test";
 
 const PULSE_PREFIX = "/api/pulse/";
 
+/** The counters this file positively asserts the FIRING of, read by
+ *  `scripts/pulse-observed.test.mjs`. `feed_render` is included because the spec asserts the exact
+ *  set that fired, which is what makes its absence a failure here. */
+export const OBSERVES_PULSES = ["feed_render", "follow_open", "follow_rss"];
+
 test.describe("follow dialog — is the working path offered, disclosed and counted?", () => {
   test("RSS is offered above the ask, the disclosure precedes the input on screen, and follow_rss lands once", async ({
     page,

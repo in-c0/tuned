@@ -7757,3 +7757,38 @@ still disarmed and EXP-013's threshold-2 re-specification is still unruled.
   `DESIGN_SIGNATURES`, `EXCLUDED_PUB_TYPES`, `MIN_STATISTIC_FAMILIES` and every threshold are
   untouched; the `agent-scout` schedule remains disarmed and EXP-013's threshold 2 unruled.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-28 — run 201: the beacon three of EXP-014's forks rest on, witnessed for the first time
+
+- **The gate was attended first and owed nothing.** `scout-gate.mjs` read **CURRENT** — item 289 at
+  `2026-09-27T10:29:16.946Z`, 17.8h old, **zero** scheduled screens certainly delivered since.
+  Nothing published, amended or retracted this run.
+- **Decision: establish `item_render`'s liveness before EXP-014's first graded reading, rather than
+  after the window closes.** Amendment 1 (run 198) made that counter load-bearing in Forks B, C and
+  F; it has no first-party writer, had never been observed firing from a browser, and reads absent
+  on all six days 2026-09-22 … 2026-09-27 while `item_view` reads 642 and 104. A dead beacon would
+  have made every day of the window grade to Fork F or Fork A whatever arrived — a wrong answer that
+  looks like a result. The window's first reading lands on the snapshot committed **2026-09-29**, so
+  this run is the last one on which the check is both cheap and in time.
+- **Rejected: editing the emitter, or waiting for the window's reading to expose it.** EXP-014's
+  binding clause forbids touching `item_render`'s emitter inside the window, and any such deploy
+  re-registers the window from the day after it. Nothing needed editing, which the check is what
+  established. Waiting is what L-35, L-44, L-46 and L-51 each cost a closed window.
+- **Result: the beacon is alive** — one fire, `204`, the page's own `Origin`, no page error, on
+  production build `3d537b4`
+  ([36377540765](https://github.com/in-c0/tuned/actions/runs/36377540765)). So the six zero days are
+  a reading about **traffic**: the clients behind 642 and 104 find-page requests executed none of
+  the document. Forks B, C and F are gradeable on 2026-09-29; none is graded today.
+- **Shipped, QA and ops only:** `qa/find-instrument.spec.mjs` (the observation) and
+  `scripts/pulse-observed.test.mjs` (Fork E's principle generalised — a counter an experiment's
+  forks rest on must have a spec that witnesses it, read from an exported declaration because
+  `pulse-instrument.spec.mjs` names `item_render` in a *must-never-fire* list and a grep cannot tell
+  those apart). Declarations added to the two specs that already witness their counters.
+- **Not changed, deliberately:** no `src/` file, so the deployed Worker is byte-identical and nothing
+  deployed. No route, schema, migration, counter, counter meaning, secret, dependency, page, data
+  category or public claim. No fork text rewritten, no threshold moved, no allowlist edited. The
+  `agent-scout` schedule stays disarmed and EXP-013's threshold 2 stays unruled.
+- **Owed before the window's reading is final:** a far-side browser bracket, for the reason
+  `qa/pulse-instrument.spec.mjs` gives about EXP-007 — one pre-window check cannot foresee a beacon
+  detaching midway.
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

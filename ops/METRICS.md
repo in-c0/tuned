@@ -3105,3 +3105,56 @@ registration, and it is recorded here as the evidence for a rule rather than as 
 arrival, no visitor and no demand is claimed on any day.** `applications` **0** · `members` **1** ·
 `members_ever_active` **0** · `followers` **0** · gross cash **AUD $0**, from *no billing exists*;
 `totals` from the same snapshot.
+
+## 2026-09-28 (run 201) — the find-page beacon works, so six days of zeros are about traffic and not about the instrument
+
+**Source:** [`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-27T23:21:56.781Z`,
+and browser run [36377540765](https://github.com/in-c0/tuned/actions/runs/36377540765) against
+production build `3d537b4`. No number here is forecast, inferred or back-filled.
+
+**The reading that could not be interpreted until today.** `item_render` — the find page's
+script-execution counter, written by the page's own script behind a same-origin `Origin` check —
+reads **absent on every day from 2026-09-22 through 2026-09-27**, on both the unsuffixed and the
+`_bot` name. Over the same six days `item_view` reads **642** (2026-09-26) and **104** (2026-09-27),
+with 0 on the four days between. Both `item_render` names last wrote on 2026-09-21.
+
+| day | `item_view` | `item_view_bot` | `item_render` | `item_render_bot` |
+| --- | --- | --- | --- | --- |
+| 2026-09-21 | 20 | 48 | **1** | **8** |
+| 2026-09-22 | 131 | 89 | — | — |
+| 2026-09-23 | 31 | 105 | — | — |
+| 2026-09-24 | — | 103 | — | — |
+| 2026-09-25 | — | 68 | — | — |
+| 2026-09-26 | **642** | 214 | — | — |
+| 2026-09-27 | **104** | 84 | — | — |
+
+**Why it was uninterpretable.** A counter reading zero says either *nobody did the thing* or *the
+instrument is dead*, and this loop has shipped four instruments that silently wrote nothing (L-35,
+L-44, L-46, L-51), every one found after a window closed. `item_render` had **no first-party
+writer** — nothing in this loop wrote it on a schedule the way `verify-production.yml` writes
+`item_view_search_bot` — and it had never been observed firing from a browser anywhere in the
+repository. The `_bot` values on 09-16 … 09-21 were hand-dispatched QA runs, and they stopped
+because nobody dispatched any more, not because anything was fixed or broken.
+
+**The observation.** A real browser on production loaded `/sportstech/289` (from the live sitemap)
+and emitted `POST /api/pulse/item_render` **once**, carrying the page's own `Origin`, **accepted
+with 204**, with **no page error, console error or first-party HTTP error**. The emitter's bytes in
+`src/pages.ts` are unchanged across every build that served the six days — `git log -S'item_render'`
+over `src/` returns no commit since the counter shipped on 2026-09-15.
+
+**So the zeros are a fact about traffic.** The clients that produced 642 and then 104 unsuffixed
+find-page requests **took the HTML and executed none of it.** That is not a claim about who they
+are — no host is stored and none can be named — and it is **not an arrival number in either
+direction**. It is the corroboration EXP-014's Forks B, C and F rest on, now established rather
+than assumed. No fork is graded here; 2026-09-27 is ~38 minutes short of a whole UTC day in this
+snapshot and the first graded reading remains the snapshot committed 2026-09-29.
+
+**First-party footprint of the check itself, declared so it is never read as traffic.** UTC
+2026-09-28 carries **`item_view_bot` +1 and `item_render_bot` +1** from this dispatch, under the
+`HeadlessChrome` user-agent. An `item_render_bot` of exactly 1 on that day **is this check.** The
+unsuffixed names are untouched by it, which is the property that makes the dispatch admissible
+inside EXP-014's open window.
+
+**No commercial metric moved.** `applications` **0** · `members` **1** · `followers` **0** ·
+`stars` **8** · `items_public` **95** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`metrics/latest.json`](metrics/latest.json) `totals`.
