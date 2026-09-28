@@ -494,6 +494,46 @@ export function searchResponseDefect(body, results = parseSearchResults(body)) {
   return "";
 }
 
+/** The statuses on which the search may be asked again, and nothing wider. The server-side
+ *  "could not": 500, 502, 503 and 504. */
+const RETRIABLE_SEARCH_STATUSES = new Set([500, 502, 503, 504]);
+
+/** Whether a non-2xx status from the search endpoint is a REFUSAL or a NON-ANSWER — the same
+ *  distinction `searchResponseDefect` draws for a body, on the axis a status arrives on.
+ *  Returns "" for a refusal, which must be asked exactly once, and a sentence naming the
+ *  defect for a non-answer, which may be asked again.
+ *
+ *  WHAT WENT WRONG WITHOUT THIS. Run 187 built `searchWithRetry` on the right principle and
+ *  attached it to the wrong axis. Its rule was: a 200 with an unusable body is asked again,
+ *  everything else is a refusal. The sentence it wrote for the second half — "a non-2xx is
+ *  Europe PMC declining" — was pinned by a test whose example status was **503**. Five days
+ *  later, on 2026-09-28, the 02:40Z scheduled screen died on exactly that status one second
+ *  in, published nothing and uploaded NO record at all
+ *  (https://github.com/in-c0/tuned/actions/runs/36400347041). The identical query dispatched
+ *  79 minutes later screened the window normally. That is the second time in six days the
+ *  feed's only content pipeline was lost to a transient, and the first time was the one run
+ *  187 fixed.
+ *
+ *  A 503 IS NOT A REFUSAL. RFC 9110 §15.6.4 defines it as the server being "currently unable
+ *  to handle the request due to a temporary overload or scheduled maintenance" — a statement
+ *  about the server's own capacity, explicitly transient, and silent on whether this request
+ *  was welcome. That is the same event as a 200 carrying no `hitCount`: a non-answer, not an
+ *  answer of no. The distinction run 187 argued for is `the service said no` versus `the
+ *  service could not say`, and a status code is simply the other way the second one arrives.
+ *  Refusing to retry a refusal and refusing to retry a stutter are separate decisions, and
+ *  only the first was ever argued for — which is the shape of L-119 exactly.
+ *
+ *  WHY THE LINE IS HERE AND NOT WIDER. Only the 5xx that mean "could not". Every 4xx stays a
+ *  refusal and is asked exactly once, **429 included and deliberately**: a rate limit is the
+ *  service declining THIS request and asking for fewer of them, which is precisely the case
+ *  the file header's promise was written about, and retrying it is the behaviour that promise
+ *  forbids. 501 is a permanent "will not" and stays a refusal too. Widening this set requires
+ *  an observed failure, never a taxonomy. */
+export function searchStatusDefect(status) {
+  if (!RETRIABLE_SEARCH_STATUSES.has(status)) return "";
+  return `HTTP ${status} from Europe PMC search, which is the service unable to answer rather than declining`;
+}
+
 /** What an unusable search response actually was, in a form safe to print in a public log.
  *
  *  WHY THE REFUSAL WAS NOT ENOUGH ON ITS OWN. `searchResponseDefect` names the SHAPE that is

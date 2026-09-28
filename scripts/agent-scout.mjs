@@ -30,11 +30,14 @@
 // itself honestly in its User-Agent with a contact address, follows no links, and fetches no
 // page a human would otherwise be served — `fullTextXML` is the archive's own machine
 // endpoint. Nothing here varies its identity to get a different answer, and NOTHING HERE
-// RETRIES A REFUSAL: a non-2xx is Europe PMC declining, and asking a service that said no to
-// say it again is exactly the behaviour that sentence was written to forbid. What run 187 does
-// retry, at most twice and five seconds apart, is a 200 whose body is NOT A SEARCH RESULT —
-// a non-answer rather than an answer of no. The distinction is load-bearing and the line
-// between them is `searchResponseDefect`; see `searchWithRetry` for why it had to exist.
+// RETRIES A REFUSAL: a service that said no is asked exactly once, and asking it again is
+// exactly the behaviour that sentence was written to forbid. What IS asked again, at most
+// twice and five seconds apart, is a NON-ANSWER — the service unable to answer rather than
+// declining to. That arrives in two forms and both take the same path: a 200 whose body is
+// not a search result (`searchResponseDefect`, run 187) and a 5xx that means "could not"
+// (`searchStatusDefect`, run 202, after a 503 cost the 2026-09-28 screen its whole day).
+// The distinction is load-bearing, it is refusal-vs-stutter and never 2xx-vs-not, and
+// `searchWithRetry` is where the two meet.
 
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -61,6 +64,7 @@ import {
   nominationFilename,
   parseSearchResults,
   searchResponseDefect,
+  searchStatusDefect,
   rankSelected,
   searchUrl,
 } from "./lib/agent-scout.mjs";
@@ -130,7 +134,15 @@ export function publishedSources(dir = path.join(REPO_ROOT, "qa", "nominations")
 
 async function getJson(url, fetchImpl) {
   const res = await fetchImpl(url, { headers: { accept: "application/json", "user-agent": USER_AGENT } });
-  if (!res.ok) throw new Error(`HTTP ${res.status} from Europe PMC search`);
+  if (!res.ok) {
+    // A refusal and a stutter both arrive here as a status line. `searchStatusDefect` is the
+    // only thing that tells them apart, and it hangs its verdict on the error rather than
+    // deciding the retry itself — the loop stays the single place that asks again.
+    const defect = searchStatusDefect(res.status);
+    const err = new Error(defect === "" ? `HTTP ${res.status} from Europe PMC search` : defect);
+    if (defect !== "") err.searchDefect = defect;
+    throw err;
+  }
   return await res.json();
 }
 
@@ -174,15 +186,34 @@ const SEARCH_RETRY_PAUSE_MS = 5_000;
  *  uptime. Refusing to screen a bad answer and refusing to ask again are separate decisions,
  *  and only the first one was ever argued for.
  *
- *  A non-2xx is NOT retried here, deliberately — `getJson` throws and that throw is left
- *  alone. That is Europe PMC declining, and the header's promise not to retry a refusal is
- *  about exactly that case. */
+ *  WHAT A STATUS LINE CHANGED, AND WHAT IT DID NOT. Run 187 left every non-2xx unretried on
+ *  the reasoning that it is Europe PMC declining. That is true of a 4xx and false of a 503,
+ *  which RFC 9110 defines as the server temporarily unable — and on 2026-09-28 a 503 killed
+ *  the scheduled screen one second in, with no record uploaded, exactly as the body defect
+ *  had five days earlier. So the retriable set is now decided by `searchStatusDefect` rather
+ *  than by the status being 200, and a refusal — every 4xx, 429 among them — is still asked
+ *  exactly once and rethrown untouched. The promise did not move; the test of what counts as
+ *  a refusal did. */
 async function searchWithRetry({ query, pageSize, fetchImpl, pause, log }) {
   const url = searchUrl(query, { pageSize });
   let defect = "";
   let shape = "";
   for (let attempt = 1; attempt <= SEARCH_ATTEMPTS; attempt += 1) {
-    const body = await getJson(url, fetchImpl);
+    let body;
+    try {
+      body = await getJson(url, fetchImpl);
+    } catch (err) {
+      // A REFUSAL is rethrown untouched and never asked again; that promise is unchanged and
+      // `searchStatusDefect` is what keeps it. A NON-ANSWER that arrived as a status rather
+      // than as a body joins the path the unusable body already takes, because it is the same
+      // event wearing a different hat.
+      if (!err?.searchDefect) throw err;
+      defect = err.searchDefect;
+      shape = "the request returned no body to describe";
+      log(`search attempt ${attempt} of ${SEARCH_ATTEMPTS} was not an answer: ${defect}`);
+      if (attempt < SEARCH_ATTEMPTS) await pause(SEARCH_RETRY_PAUSE_MS);
+      continue;
+    }
     const candidates = parseSearchResults(body);
     defect = searchResponseDefect(body, candidates);
     if (defect === "") {

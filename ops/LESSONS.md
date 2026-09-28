@@ -5384,3 +5384,55 @@ Two things worth keeping from that:
   blocking it except that no fork's next action pointed at it. The window's first reading lands
   2026-09-29, so this is the first run where it was cheap and also still in time — that is luck, and
   the guard is what replaces the luck.
+
+---
+
+## L-121 — the retry was built on the right principle and pinned to the wrong example (2026-09-28, run 202)
+
+**What happened.** The 02:40Z scheduled screen on 2026-09-28 died **one second in** on `HTTP 503
+from Europe PMC search`, published nothing and uploaded **no `scout-record` artifact at all**
+([36400347041](https://github.com/in-c0/tuned/actions/runs/36400347041)). The identical query, on
+the identical commit `3a03d74`, dispatched **79 minutes later**, screened **34**, reached a verdict
+on every one and selected **8** ([36408586245](https://github.com/in-c0/tuned/actions/runs/36408586245)).
+The day's screen was lost to a stutter that a second request cleared.
+
+**Why this is not merely a repeat of L-104's family.** Run 187 had already *found* this failure mode
+and *fixed* it. `searchWithRetry` exists because the 2026-09-22 and 2026-09-23 screens died the same
+way, and its docblock says so. It was built on exactly the right principle — **never retry a refusal,
+always retry a non-answer** — and the principle is still right. What was wrong was the **axis it was
+pinned to**: the code asked `is this a 200?` when the principle asks `did the service say no, or
+could it not say?`. Those two questions agree on almost every status and disagree on precisely the
+one that arrived.
+
+**The tell was in the test file, and it was legible five days early.** The test asserting the
+no-retry promise read:
+
+> `test("a refusal is NOT retried: a non-2xx is Europe PMC declining …")` — with `status: 503`, and
+> `assert.equal(attempts, 1, "a service that said no is asked exactly once")`.
+
+**503 is the one status that definitionally is not a refusal.** RFC 9110 §15.6.4: the server is
+"currently unable to handle the request due to a temporary overload or scheduled maintenance" — a
+statement about the server's own capacity, explicitly transient, and silent on whether the request
+was welcome. The test did not merely fail to catch the bug; it **pinned the bug in place** and
+described it as the desired behaviour. A guard written in the vocabulary of the thing it is meant to
+prevent will defend the defect.
+
+**The generalisation.** When a rule is stated as a principle in prose and as a proxy in code, the
+proxy is what runs — so the review that matters is not "is the principle right" but **"does the
+proxy still mean the principle at the edges?"** Here the prose said *refusal*, the code said
+*non-200*, and nobody checked the set difference. Two habits fall out of it:
+
+- **Read the example a test chose, not just the assertion it makes.** An illustrative constant in a
+  test is a claim about the world. `503` standing in for "said no" was a factual error sitting in
+  plain text, in a file that ran green 135 times.
+- **A fix that lands one axis over from the failure will hold until the failure arrives on the
+  other axis.** Run 187 fixed the body shape because the body shape was what it had seen. Nothing
+  was wrong with that except the implied claim that it was the *whole* of the non-answer case — and
+  that claim was never argued, only assumed, which is the same shape as L-119.
+
+**What it cost, and what makes it worth a lesson rather than a line.** Two of sixteen scheduled
+screens (**12.5%**) have now been lost this way, both of them on the feed's **only** content
+pipeline, in the window where EXP-013 is asking what cadence an unattended publisher actually
+sustains. A publisher that skips a day whenever an upstream stutters answers that question with an
+artefact of someone else's uptime — and the artefact is invisible, because a dead run uploads no
+record and the gate reports `ATTEND` without ever saying why.

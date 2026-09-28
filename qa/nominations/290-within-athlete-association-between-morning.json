@@ -1,0 +1,17 @@
+{
+  "itemId": 290,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3389/fphys.2026.1813317",
+  "title": "Within-athlete association between morning on-track peak heart rate and same-day pre-performance salivary cortisol change under dry-track conditions: a multi-season single-case field study in a professional formula racing driver",
+  "category": "Research",
+  "why": "“Including the single wet-track observation reduced the correlation to r = 0.316.” — the source's own words, quoted by @sportstech from 34 candidates screened 2026-09-28; full text read (58,818 characters).",
+  "preregistration": {
+    "commit": "3a03d746669d792e3aa706ba485d97f2dd784237",
+    "committedAt": "2026-09-28T05:24:58Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36408802646",
+    "verifyWith": "git show 3a03d74 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-28T10:18:23.385Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}
