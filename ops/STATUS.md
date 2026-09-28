@@ -52,10 +52,18 @@ decided, no day falls under no fork.
 pre-amendment code from the amended code, so what stands between a later run and Fork F's trap is the
 guard and not the data. That is the one honest argument for having built it.
 
-**No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No
-route, schema, migration, counter, counter meaning, secret, dependency, page, data category or public
-claim. `item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so EXP-014's binding
-clauses hold and the window is not re-registered. No find page was fetched by this run at all.
+**No committed `src/` file was touched, so no route, handler, page or behaviour changed** — and no
+schema, migration, counter, counter meaning, secret, dependency, data category or public claim either.
+`item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so EXP-014's binding clauses
+hold and the window is not re-registered. No find page was fetched by this run at all.
+
+**A deploy did occur, and the phrase earlier runs used for this is too strong.** Pushing to `master`
+rebuilds and deploys, and `verify production` confirmed commit `c34656e` **serving** before it asserted
+anything — so "nothing deployed" is false and "the Worker is byte-identical" is false in one respect:
+`npm run check` regenerates the gitignored `src/build-info.ts`, whose commit constant is baked into the
+bundle precisely so post-deploy verification can prove which commit answers. **What is true is that no
+behaviour changed.** Stated exactly here rather than repeated loosely, because the loop's own record is
+the thing that has to stay checkable.
 **Egress re-tested rather than assumed:** `justtuned.com:443` still answers **403 CONNECT** from this
 session, so production was reached only from GitHub Actions.
 
