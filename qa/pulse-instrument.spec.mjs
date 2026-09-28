@@ -112,6 +112,14 @@ const NEVER_HERE = ["follow_open", "feed_render", "follow_rss", "item_render", "
 // interaction-gated, and that difference is what the assertions below are built around.
 const UNGATED = "landing_render";
 
+/** The counters this file positively asserts the FIRING of, read by `scripts/pulse-observed.test.mjs`.
+ *
+ *  Declared rather than grepped for, because this very file is why grepping cannot work: it names
+ *  `item_render` too — in `NEVER_HERE`, as a counter that must never fire here. "Named in the QA
+ *  suite" and "checked that it ever fires" are different facts and the file text cannot tell them
+ *  apart. See the header of `qa/find-instrument.spec.mjs` for what that gap cost EXP-014. */
+export const OBSERVES_PULSES = ["landing_render", "landing_engage", "application_start"];
+
 test.describe("landing instrument validity — does the page emit what the experiments read?", () => {
   test("page load emits landing_render; interaction emits landing_engage; a keystroke emits application_start", async ({
     page,
