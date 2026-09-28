@@ -3158,3 +3158,46 @@ inside EXP-014's open window.
 **No commercial metric moved.** `applications` **0** · `members` **1** · `followers` **0** ·
 `stars` **8** · `items_public` **95** · gross cash **AUD $0**, from *no billing exists*. Source:
 [`metrics/latest.json`](metrics/latest.json) `totals`.
+
+## 2026-09-29 (run 203) — EXP-014's first whole day: 105 find-page requests, no referrer on any of them, and nothing ran the document
+
+**Source:** [`ops/metrics/latest.json`](metrics/latest.json), generated `2026-09-28T05:24:58.372Z`,
+graded by [`scripts/exp014-window.mjs`](../scripts/exp014-window.mjs). No number here is forecast,
+inferred or back-filled.
+
+**What is admissible, asked before anything was read.**
+[`scripts/metrics-window.mjs`](../scripts/metrics-window.mjs) reports the snapshot complete through
+**2026-09-27** only, so **one** of EXP-014's seven whole days exists. 2026-09-28 is ~1h47m short of
+whole at the moment of this reading and is **not graded**.
+
+| 2026-09-27 (whole UTC day) | count | what it means |
+| --- | --- | --- |
+| `item_view` | **105** | find-page requests that did not declare themselves as automation |
+| `item_view_search` | **0** | none carried an allowlisted search engine's `Referer` |
+| `item_view_referred` | **0** | none carried **any** other host's `Referer` |
+| `item_view_onsite` | **0** | none came from a page on this site |
+| `item_render` | **0** | **not one of the 105 ran the page's own script** |
+| `item_view_bot` | 84 | the UA heuristic caught this much separately |
+| `item_view_search_bot` | **18** | `verify-production.yml`'s own referred requests, 9 runs × 2 — **the instrument writes** |
+
+**The reading, and it is narrow.** All 105 arrived with **no usable `Referer` at all** — the shape a
+sitemap crawl, a pasted URL and a bookmark share — and **none executed JavaScript**. This is
+[EXP-014](EXPERIMENTS.md) **Fork A's population described**. It is *not* Fork A graded: Fork A
+quantifies over every whole day in the window and **six remain**. The window verdict is
+**A-PENDING**, and any run reporting it as confirmed before 2026-10-03 is over-reading it.
+
+**What may not be concluded, stated because the number is large enough to tempt it.** **105 is not
+105 people, and no arrival, visitor, subscriber or dollar is claimed on it.** A request that runs no
+script is not a reader. `item_view − item_view_onsite` remains **withdrawn** as an arrival reading for
+2026-09-16 → 2026-09-26 and nothing is back-filled; this day is not offered as its replacement.
+The replacement arrival names are still `item_view_referred` / `item_view_search`, and both read **0**.
+
+**Forks excluded on this day, each by its own registered condition.** **B** and **C** — both require a
+referrer, and both referrer axes read 0. **F** — requires a referrer too, so a day with none is not F,
+which is also why Amendment 2's browser-bracket gate does not bind this reading. **D** — `item_view`
+105 > 5. **E** — excluded outright by `item_view_search_bot` = 18, the one half of Fork E a snapshot
+can decide without knowing whether a workflow ran.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** · gross cash **AUD $0**, from *no billing exists*. Source: the same
+snapshot's `totals`.
