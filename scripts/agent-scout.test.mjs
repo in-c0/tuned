@@ -51,6 +51,7 @@ import {
   readerUrl,
   sameSource,
   searchResponseDefect,
+  searchStatusDefect,
   searchUrl,
 } from "./lib/agent-scout.mjs";
 import fs from "node:fs";
@@ -627,16 +628,71 @@ test("the retry is bounded, and an endpoint that never answers still fails the c
   assert.equal(attempts, 3, "three attempts and no more — a retry must not become a storm");
 });
 
-test("a refusal is NOT retried: a non-2xx is Europe PMC declining, and asking again is the thing the header forbids", async () => {
+// --- the 2026-09-28 02:40Z shape: the retry's own example status was the bug ---------------
+//
+// The test that stood here asserted a **503** is asked exactly once, as its illustration of
+// "a service that said no". On 2026-09-28 the scheduled screen died on exactly that status
+// one second in, published nothing and uploaded NO record
+// (https://github.com/in-c0/tuned/actions/runs/36400347041); the identical query 79 minutes
+// later (run 36408586245, same commit 3a03d74) screened 34 and selected 8. A 503 is RFC 9110's
+// "currently unable to handle the request … temporary overload or scheduled maintenance" — the
+// server's own capacity, not a verdict on the request. The principle run 187 argued for was
+// always refusal-vs-stutter; only its chosen example was wrong. See `searchStatusDefect`.
+
+test("a 503 is the service unable to answer, and the cycle is not given up on one", async () => {
+  let attempts = 0;
+  const f = fakeFetch([
+    [
+      "/search",
+      () => {
+        attempts += 1;
+        // Two stutters, then the answer. Fails if the status retry is removed OR capped below three.
+        if (attempts < 3) return { ok: false, status: 503, async json() { return {}; }, async text() { return ""; } };
+        return searchResponse([record()])();
+      },
+    ],
+    ["/fullTextXML", xmlResponse(goodFullText())],
+  ]);
+  const report = await screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} });
+  assert.equal(attempts, 3, "a 503 is a non-answer and is asked again");
+  assert.equal(report.returned, 1, "the recovered cycle screens the candidate it was finally handed");
+});
+
+test("an endpoint that 503s forever still fails the cycle, and never screens a thing", async () => {
   let attempts = 0;
   const f = fakeFetch([
     ["/search", () => { attempts += 1; return { ok: false, status: 503, async json() { return {}; }, async text() { return ""; } }; }],
   ]);
   await assert.rejects(
     () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
-    /HTTP 503 from Europe PMC search/
+    /after 3 attempts.*HTTP 503/s
   );
-  assert.equal(attempts, 1, "a service that said no is asked exactly once");
+  assert.equal(attempts, 3, "three attempts and no more — a retry must not become a storm");
+});
+
+test("a REFUSAL is still NOT retried: a service that said no is asked exactly once", async () => {
+  // Every 4xx, and 429 above all: a rate limit is Europe PMC declining THIS request and asking
+  // for fewer of them, which is the exact case the file header's promise was written about.
+  for (const status of [400, 403, 404, 429, 501]) {
+    let attempts = 0;
+    const f = fakeFetch([
+      ["/search", () => { attempts += 1; return { ok: false, status, async json() { return {}; }, async text() { return ""; } }; }],
+    ]);
+    await assert.rejects(
+      () => screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} }),
+      new RegExp(`HTTP ${status} from Europe PMC search`)
+    );
+    assert.equal(attempts, 1, `HTTP ${status} is a refusal and must be asked exactly once`);
+  }
+});
+
+test("searchStatusDefect draws the line where the header says it is, and nowhere else", () => {
+  for (const status of [500, 502, 503, 504]) {
+    assert.match(searchStatusDefect(status), /unable to answer rather than declining/, `${status} is a non-answer`);
+  }
+  for (const status of [400, 401, 403, 404, 410, 429, 501, 505]) {
+    assert.equal(searchStatusDefect(status), "", `${status} is a refusal and must never be retried`);
+  }
 });
 
 test("the run holding the unusable body says what it was, and never what it contained", async () => {

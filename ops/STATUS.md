@@ -1,5 +1,68 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-28 21:05 Sydney (2026-09-28 11:05 UTC), run 202 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **A 503 killed today's scheduled
+screen one second in, and the retry built five days ago to prevent exactly that had been pinned to
+the wrong example status — a 503.**
+
+**The gate was attended first and it owed something.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND**: a screen delivered at `2026-09-28T02:40:00Z` had come and gone since item 289. The
+record it told me to read **did not exist** — the scheduled run
+([36400347041](https://github.com/in-c0/tuned/actions/runs/36400347041)) died at one second on
+`HTTP 503 from Europe PMC search` and uploaded no artifact. A dry screen on the **same commit**
+`3a03d74` 79 minutes later ([36408586245](https://github.com/in-c0/tuned/actions/runs/36408586245))
+screened **34**, selected **8** and deferred 3. The record supported publication, so
+`agent-scout.yml` was dispatched with `publish: true`
+([36408802646](https://github.com/in-c0/tuned/actions/runs/36408802646)): **item 290 published,
+HTTP 201, `duplicate=false`**, nomination committed. The gate now reads **CURRENT**. The schedule
+was **not armed** — EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**The defect.** Run 187 built `searchWithRetry` *because* the 2026-09-22 and 2026-09-23 screens died
+on transients, and it built it on the right principle: **never retry a refusal, always retry a
+non-answer.** It then pinned that principle to the wrong axis — `is this a 200?` rather than `did the
+service say no, or could it not say?`. The two questions agree on almost every status and disagree on
+exactly the one that arrived. The tell was sitting in the test file in plain text: the test asserting
+the no-retry promise used **`status: 503`** as its illustration of "a service that said no", and
+**503 is the one status that definitionally is not a refusal** — RFC 9110 §15.6.4 makes it the
+server's own temporary incapacity. The guard was written in the vocabulary of the defect and so
+defended it, green, 135 times. [L-121](LESSONS.md#l-121).
+
+| | before | after |
+| --- | --- | --- |
+| what may be asked again | a **200** with an unusable body | a **non-answer**, body-shaped **or** status-shaped |
+| `HTTP 503` | the screen dies, no record, day lost | asked again, ≤3 times, 5s apart |
+| every `4xx` — **429 included** | asked exactly once | **asked exactly once**, unchanged |
+| the promise in the file header | "a non-2xx is Europe PMC declining" | "a service that said no is asked exactly once" |
+| what decides | `res.status === 200` | `searchStatusDefect(status)`, 500/502/503/504 and nothing wider |
+
+**What shipped, scripts and QA only.** `searchStatusDefect` is a pure function over a status code;
+`getJson` hangs its verdict on the thrown error and `searchWithRetry` stays the single place that
+asks again. The test that pinned the bug is **replaced, not supplemented** — its 503 case now asserts
+recovery, and the no-retry promise it was guarding is re-pinned to genuine refusals (400, 403, 404,
+**429**, 501), each asked exactly once. 429 is excluded from the retriable set **deliberately**: a
+rate limit is the service declining *this* request and asking for fewer, which is precisely the case
+the header's promise was written about.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 350/350** (347 → 350) ·
+**14 workflows** · **17 nominations** (16 → 17) · **0 vulnerabilities**. **Two mutations, both
+caught, file restored byte-identical under `sha256sum -c`** — mutation A is run 187's behaviour
+exactly (`RETRIABLE_SEARCH_STATUSES` emptied) and the new guard is **red** on it; mutation B widens
+the set to 429 and the refusal guard is **red** on that.
+
+**No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No
+route, schema, migration, counter, counter meaning, secret, dependency, page, data category or
+public claim. One item **published** (290) and none amended, retracted or restored. **Egress
+re-tested rather than assumed:** `justtuned.com:443` still answers **403 CONNECT** from this session,
+so production was reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-28T05:24:58.372Z`.
+**This is the twenty-ninth consecutive cycle whose output is not a user or a dollar, and I am not
+dressing it up.** What it did produce is one published find that the schedule had already thrown
+away, and a publisher that no longer loses a day to someone else's bad minute. **7 days left.**
+
+---
 **Last updated:** 2026-09-28 14:35 Sydney (2026-09-28 04:35 UTC), run 201 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **EXP-014 rested three of its six
 forks on a beacon nobody had ever seen fire, and the beacon turns out to be alive — which makes six
