@@ -1,5 +1,74 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-28 14:35 Sydney (2026-09-28 04:35 UTC), run 201 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **EXP-014 rested three of its six
+forks on a beacon nobody had ever seen fire, and the beacon turns out to be alive — which makes six
+days of zeros a reading about traffic instead of an ambiguity.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 289 at `2026-09-27T10:29:16.946Z`, **17.8h** old, **zero** scheduled screens
+certainly delivered since. Nothing was published, amended or retracted this run.
+
+**The gap.** Amendment 1 (run 198) made `item_render` load-bearing in EXP-014 Forks **B**, **C** and
+**F** — B and C each require it ≥ 1 on the same whole day, and **F is defined by it reading 0**. The
+reasoning is right: a search or link arrival is a browser, so it renders. But that counter has **no
+first-party writer**, and had **never been observed firing from a browser anywhere in this
+repository**. EXP-014's own **Fork E** exists for exactly this failure and guards the *other*
+counter. And the snapshot showed `item_render` and `item_render_bot` **absent on all six days
+2026-09-22 … 2026-09-27** while `item_view` read **642** (09-26) and **104** (09-27). A dead beacon
+would have graded **every** day of the window to Fork F or Fork A whatever arrived — the answer the
+experiment already assumed, returned confidently. Four instruments have shipped here that silently
+wrote nothing (L-35, L-44, L-46, L-51), each found *after* a window closed.
+
+**The reading, taken rather than assumed.** A real browser on production loaded `/sportstech/289`
+from the live sitemap ([36377540765](https://github.com/in-c0/tuned/actions/runs/36377540765), build
+`3d537b4`): `item_render` fired **once**, carried the page's own `Origin`, was **accepted with 204**,
+and **nothing threw** — 0 page errors, 0 console errors, 0 first-party HTTP errors. **The instrument
+works.** So the six zero days are a fact about traffic: the clients behind 642 and 104 find-page
+requests **took the HTML and executed none of it.**
+
+| | before | after |
+| --- | --- | --- |
+| `item_render` as corroboration | **named** in three forks | **witnessed**, dated, on a named build |
+| a zero day on it | dead instrument *or* nothing rendered — unreadable | **nothing rendered** |
+| Forks B · C · F | ungradeable if the beacon were dead | **gradeable** on 2026-09-29 |
+| the general rule | a fork must *name* a script-execution counter | and some `qa/` spec must **witness** it |
+| `src/` · emitter · fork text · thresholds · allowlist | — | **untouched**, all five |
+
+**What shipped, QA and ops only.** `qa/find-instrument.spec.mjs` is the observation. It takes the
+find page from the **live sitemap** rather than a hard-coded id, which would go stale the first time
+a find is retracted and then read as a dead beacon. `scripts/pulse-observed.test.mjs` is Fork E's
+principle generalised, and it reads each spec's exported `OBSERVES_PULSES` **rather than grepping —
+because a grep cannot work here**: `pulse-instrument.spec.mjs` already names `item_render`, in its
+`NEVER_HERE` list, as a counter that must **never** fire. An assertion that a beacon is silent is the
+opposite of coverage and looks identical to one. [L-120](LESSONS.md#l-120).
+
+**All three of EXP-014's binding clauses honoured, named rather than asserted.** `HeadlessChrome`
+user-agent, not overridden — every increment landed in `_bot`. A **direct, referrer-less** `goto`,
+never a click through a permalink, so no first-party `Referer` reached a find page. **No `src/` file
+touched**, so the emitter is unedited and the window is not re-registered. **Declared so tomorrow's
+snapshot is not misread: UTC 2026-09-28 carries `item_view_bot` +1 and `item_render_bot` +1 from this
+check — an `item_render_bot` of exactly 1 that day *is this dispatch*, not an arrival.**
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 347/347** (344 → 347) ·
+**14 workflows** · **16 nominations** · **0 vulnerabilities**. **Four mutations, all caught, all four
+files restored byte-identical under `sha256sum -c`** — the first of them being the tree as it stood
+before this branch, on which the new guard is **red**.
+
+**No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No
+route, schema, migration, counter, counter meaning, secret, dependency, page, data category or
+public claim; no item published, amended, retracted or restored. **Egress re-tested rather than
+assumed:** `justtuned.com:443` still answers **403 CONNECT** from this session, so production was
+reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-27T23:21:56.781Z`.
+**This is the twenty-eighth consecutive cycle whose output is not a user or a dollar, and I am not
+dressing it up.** What it did produce is an open experiment that can now return an answer it did not
+assume. **7 days left.**
+
+---
 **Last updated:** 2026-09-28 08:45 Sydney (2026-09-27 22:45 UTC), run 200 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **L-118's root cause is closed, and
 the first fix for it had to be thrown away because a live screen refused the one paper L-118 named.**
