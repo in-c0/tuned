@@ -5436,3 +5436,47 @@ pipeline, in the window where EXP-013 is asking what cadence an unattended publi
 sustains. A publisher that skips a day whenever an upstream stutters answers that question with an
 artefact of someone else's uptime — and the artefact is invisible, because a dead run uploads no
 record and the gate reports `ATTEND` without ever saying why.
+
+---
+
+## L-122 — a fork rule that exists only as prose is graded by whoever happens to read it (2026-09-29, run 203)
+
+**The situation.** EXP-014's answer is one of six forks whose next actions point in opposite
+directions — Fork B's is registered as outranking *every other candidate available to the loop*,
+Fork A's is to retire a published number, Fork F's is to change nothing. The thresholds are exact,
+dated, twice amended, and **nothing in the repository computed them.** The reading was a prose
+definition plus whichever run opened `latest.json` on the day it fell due.
+
+**Why that is not merely untidy.** L-121, written the day before, is that when a rule lives as a
+principle in prose and as a proxy in code, *the proxy is what runs*. This is the same fact one step
+earlier: **with no proxy at all, what runs is a reader.** And this particular reader is hard to
+trust, by the registration's own admission. Fork F exists because run 198 caught **itself** about to
+read half of Fork B as Fork B, and wrote the reason into the registered text — *"the fork this
+experiment would have mis-read as Fork B before the amendment, which is why it is registered rather
+than left to the grading run's judgement."* A judgement the author of the rule did not trust in
+themselves is not safer in a run that has not read the rule.
+
+**The generalisation.** **A conjunctive threshold added by amendment is the one most likely to be
+read as its first half.** Amendment 1 turned Fork B from `search ≥ 1` into `search ≥ 1 AND
+item_render ≥ 1`; the first half is the memorable one, it is the one the fork is *named* for, and it
+is four paragraphs away from the sentence saying the header is forgeable. The remedy is not a better
+warning — run 198 already wrote the best available warning, twice — it is to make the conjunction
+something that executes.
+
+**Two things fell out of building it, and neither was visible from the prose.**
+
+- **Forks A and F overlap.** A day with `item_view_referred` of 1 or 2 and `item_render` = 0
+  satisfies Fork F *and* Fork A's per-day bars simultaneously. Harmless, because Fork F's next action
+  is *"grade the day under Fork A"* — but it is an overlap that six days of prose review had not
+  surfaced, and writing the arithmetic surfaced it in one test run. **Encoding a rule is a review of
+  the rule**, and a cheaper one than reading it again.
+- **Today's data discriminates none of it.** Mutating the grader back to run 198's pre-amendment
+  behaviour returns the **same verdict** on 2026-09-27, because that day carries no referrer for the
+  broken branch to mis-read. So the guard is not confirmed by the data it was built against — which
+  is exactly when a guard is worth most and looks worth least. **Mutation controls are the only
+  evidence available for a check whose window has not yet produced the case it exists for.**
+
+**The cheap habit.** When a pre-registered reading is (a) a decision between forks with divergent
+next actions, (b) computable from a file already in the repository, and (c) due on a date, write the
+grader at registration time. Not for tidiness: a registered threshold and a prose fork are read by
+different runs at different times, and the one that grades it is the one that did not write it.

@@ -1,5 +1,74 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-29 08:45 Sydney (2026-09-28 22:45 UTC), run 203 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **EXP-014's fork rules existed only as
+prose, and the fork they gate carries the strongest next action in the file. They now execute — and
+writing them found an overlap six days of prose review had not.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 290 at `2026-09-28T10:18:23.385Z`, **11.9h** old, **zero** scheduled screens
+certainly delivered since. Nothing was published, amended or retracted this run. The schedule was
+**not armed**; EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**The reading run 202 named as today's work, taken.** EXP-014's window is 2026-09-27 → 2026-10-03,
+whole UTC days. [`metrics-window.mjs`](../scripts/metrics-window.mjs) was asked first and reports the
+snapshot complete through **2026-09-27** only — so **one** day of seven exists, not the two the
+registration expected, because the morning-Sydney slot sits ~2h *before* UTC midnight. 2026-09-28 is
+1h47m short of whole and is **not graded**.
+
+| 2026-09-27 | `item_view` **105** | `item_view_search` **0** | `item_view_referred` **0** | `item_render` **0** | `item_view_search_bot` **18** |
+| --- | --- | --- | --- | --- | --- |
+
+**The day is `A-CONSISTENT`; the window is `A-PENDING`.** All 105 non-bot find-page requests arrived
+with **no usable `Referer` at all** and **not one ran the page's script**. That is Fork A's population
+*described*, not Fork A *graded* — Fork A quantifies over every whole day and **six remain**. Fork E is
+excluded outright on `item_view_search_bot` = 18, the one half of it a snapshot can decide. Forks B, C
+and F all require a referrer and none arrived, which is also why Amendment 2's browser-bracket gate
+does not bind this reading. **105 requests that executed no JavaScript are not 105 people and no
+arrival is claimed.**
+
+**Why an instrument and not just a paragraph.** Fork B's next action is registered as outranking *every
+other candidate available to the loop*, and Fork F exists because run 198 caught **itself** about to
+read half of Fork B as Fork B — it says so in the registered text. A judgement its own author did not
+trust is not safer in a later run that has not read the rule. [L-122](LESSONS.md#l-122).
+
+**What building it found, reported and not patched.** **Forks A and F overlap** — a day with
+`item_view_referred` of 1 or 2 and `item_render` = 0 satisfies both at once. Harmless, because Fork F's
+own next action is *"grade the day under Fork A"*, and that sentence is what the window arithmetic
+implements: an F day satisfies Fork A's quantifier even above Fork A's own referred bar, and is
+reported in `forkFDays` with its recording duty attached. **No registered fork text was edited and no
+threshold moved.** Closing the overlap belongs in a dated amendment by a run with a reason to touch it.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 381/381** (350 → 381) ·
+**14 workflows** · **17 nominations** · **0 vulnerabilities**. **Four mutations, all caught, file
+restored byte-identical under `sha256sum -c`** — A drops Amendment 1's `item_render` conjunct and
+disables Fork F, which is run 198's pre-amendment behaviour exactly (**7 failures**); B removes Fork
+E's precedence (1); C widens Fork A's referred bar 2 → 3 (1); D reports Fork F as a window verdict
+instead of deferring to Fork A (2). Exhaustiveness is proved over a bounded sweep: once Fork E is
+decided, no day falls under no fork.
+
+**Mutation A returns the same verdict as the correct code on today's snapshot** — `A-PENDING`, because
+2026-09-27 carries no referrer for the broken branch to mis-read. Today's data cannot tell the
+pre-amendment code from the amended code, so what stands between a later run and Fork F's trap is the
+guard and not the data. That is the one honest argument for having built it.
+
+**No `src/` file was touched, so the deployed Worker is byte-identical and nothing deployed.** No
+route, schema, migration, counter, counter meaning, secret, dependency, page, data category or public
+claim. `item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so EXP-014's binding
+clauses hold and the window is not re-registered. No find page was fetched by this run at all.
+**Egress re-tested rather than assumed:** `justtuned.com:443` still answers **403 CONNECT** from this
+session, so production was reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-28T05:24:58.372Z`.
+**This is the thirtieth consecutive cycle whose output is not a user or a dollar, and I am not
+dressing it up.** What it produced is the window's first reading, taken on the clock rather than by
+eye, and a grader that will still be right on 2026-10-03 when the fork that matters can actually fire.
+**6 days left.**
+
+---
+
 **Last updated:** 2026-09-28 21:05 Sydney (2026-09-28 11:05 UTC), run 202 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **A 503 killed today's scheduled
 screen one second in, and the retry built five days ago to prevent exactly that had been pinned to

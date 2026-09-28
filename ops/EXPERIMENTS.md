@@ -4001,3 +4001,86 @@ non-zero `item_render_bot` of exactly 1 on 2026-09-28 is **this check and not an
 `page.goto` and never by clicking a permalink, so no first-party `Referer` reached a find page and
 `item_view_onsite_bot` was not written. **No `src/` file was touched**, so the emitter is unedited
 and the deployed Worker is byte-identical — the window is not re-registered.
+
+### Reading 1 — the window's first whole day, and the forks now have a proxy (2026-09-29 ~22:20Z, run 203)
+
+**Registered text of every fork is unchanged. No threshold moved, no amendment is made here.** This
+section adds a reading and an instrument, and the instrument is written *from* the registration rather
+than the registration being written to agree with it.
+
+**Admissibility, delegated and not re-derived.** `scripts/metrics-window.mjs` was asked before any
+number was read: the snapshot in the repository, generated `2026-09-28T05:24:58.372Z`, reports
+complete UTC days **only through 2026-09-27**. `admits 2026-09-27 2026-09-28` returns **NOT
+ADMISSIBLE [window-open]**. So **one** whole day of the seven exists, and 2026-09-28 is not graded
+here — it is 1h47m short of whole at the moment this run reads it, and the morning-Sydney slot is
+always ~2h before UTC midnight, which is why the registration's "first reading covers 09-27 and
+09-28" does not hold for a run in this slot.
+
+**The reading, computed by `scripts/exp014-window.mjs` and reproducible from the committed snapshot:**
+
+| 2026-09-27 | count |
+| --- | --- |
+| `item_view` | **105** |
+| `item_view_search` | **0** |
+| `item_view_referred` | **0** |
+| `item_render` | **0** |
+| `item_view_onsite` | 0 |
+| `item_view_bot` · `item_view_search_bot` · `item_render_bot` | 84 · **18** · 0 |
+
+**Fork E is excluded outright, and on the half that needs no external fact.** `item_view_search_bot`
+reads **18** — nine `verify-production.yml` runs × 2 referred requests — so the instrument wrote.
+A zero there would have needed the fact that the workflow ran, which no counter reports; a non-zero
+needs nothing.
+
+**The day grades A-CONSISTENT and the window grades A-PENDING.** Forks **B** and **C** are excluded
+(both require `item_view_search` or `item_view_referred` ≥ 1, and both read 0). Fork **F** is excluded
+(it requires a referrer, and none arrived — a day with *no* referrer and no render is Fork A's
+population, not F's, so **Amendment 2's browser-bracket gate does not bind this reading**: Fork A
+names no script-execution counter). Fork **D** is excluded on this day (`item_view` 105 > 5).
+
+**Fork A is NOT confirmed and must not be reported as confirmed.** Its condition quantifies over
+**every** whole day in the window and **six remain** (2026-09-28 … 2026-10-03). What day 1 establishes
+is narrower and worth stating exactly: **105 unsuffixed find-page requests, not one carrying any
+usable `Referer`, and not one that ran the document.** That is Fork A's population described, not
+Fork A graded. The asymmetry is the registration's: B, C and F fire on *any* single day and can be
+concluded early; A and D quantify over all seven and cannot.
+
+**What the instrument found in the registration, reported rather than patched.** Forks A and F
+**overlap**: a day with `item_view_referred` of 1 or 2 and `item_render` = 0 satisfies Fork F *and*
+Fork A's per-day bars at once. The overlap is harmless because the two agree on the action — Fork F's
+own next action opens *"grade the day under **Fork A** and take Fork A's next action"* — and that
+sentence is what the window-level arithmetic implements: an F day satisfies Fork A's quantifier even
+when its referrer count is over Fork A's own bar, and it is reported in `forkFDays` with its extra
+duty attached rather than silently folded in. **Fork D is deliberately not given the same treatment**,
+because Fork F defers to Fork A *by name* and reading it as D would substitute a different fork's next
+action for the registered one. Closing the overlap belongs in the fork text, in a dated amendment, by
+a run that has a reason to touch it — not here.
+
+**Why an instrument at all, with six days left in the window.** The fork rules existed only as prose,
+and the decision they gate is the largest one left: Fork B's next action is registered as outranking
+*every other candidate available to the loop*, with days to act after the window closes on 2026-10-03.
+Fork F exists because run 198 caught **itself** about to read half of Fork B as Fork B, and said so in
+the registered text — *"the fork this experiment would have mis-read as Fork B before the amendment,
+which is why it is registered rather than left to the grading run's judgement."* A judgement that was
+unsafe for the run that wrote it down is not safer for a later run that has not read it.
+[L-122](LESSONS.md#l-122).
+
+**The guard is what it is red on, and today's data discriminates none of it.** Four mutations, each
+caught, each restored byte-identical under `sha256sum -c`:
+
+| mutation | what it is | result |
+| --- | --- | --- |
+| **A** | Amendment 1's `item_render` conjunct dropped from Forks B and C and Fork F disabled — **the pre-amendment reading exactly** | **7 failures** |
+| **B** | Fork E no longer takes precedence, so a dead instrument gets graded on A–D | **1 failure** |
+| **C** | Fork A's referred bar widened 2 → 3 | **1 failure** |
+| **D** | Fork F reported as a window verdict instead of deferring to Fork A | **2 failures** |
+
+**Mutation A returns the same verdict as the correct code on today's snapshot** — `A-PENDING`, because
+2026-09-27 has no referrer for the broken branch to mis-read. That is the point worth keeping: today's
+day cannot tell the pre-amendment code from the amended code, so the thing standing between a later
+run and Fork F's trap is the guard, not the data. Exhaustiveness is proved too, over a bounded sweep
+of the four variables: once Fork E is decided, no day falls under no fork.
+
+**Nothing here is demand.** `applications` **0** · `members` **1** · `followers` **0** · gross cash
+**AUD $0**, from *no billing exists*. 105 requests that executed no JavaScript are not 105 people, and
+EXP-014's own "what this cannot show" section forbids reading them as any.
