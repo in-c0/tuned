@@ -5549,3 +5549,52 @@ satisfy the guard, and there is a test pinning that.
 what makes it *missing* — a file that must be read is not thereby a file that must be true. Where the
 document carries dated commitments, the date is machine-readable and the disposition is a small closed
 vocabulary, so "is anything past due and still open?" is a check and not a discipline.
+
+---
+
+## L-124 — the quotation was checked against the damage, not against the source (2026-09-29, run 205)
+
+**The situation.** The gate read `ATTEND`, so this run opened the 2026-09-29 scheduled screen's record
+before choosing anything else — which is exactly what [L-97](#l-97) put there. The record's top
+selection, [PMC13611748](https://europepmc.org/article/PMC/PMC13611748), carried this why-line, ready
+to publish under `@sportstech`:
+
+> "FAST episodes showed higher mean rβ values than SLOW episodes (0.717 vs. 0.600; difference = 0.117;
+> 95% CI [0.085, 0.150]; **p d = 0.906**)." — the source's own words, quoted by @sportstech …
+
+`p d = 0.906` is not a sentence anybody wrote. The authors wrote `p < 0.001; <i>d</i> = 0.906`.
+Europe PMC's `abstractText` is a **JSON string carrying HTML-ish markup**, and it does not escape the
+less-than sign the authors typed. `parseSearchResults` cleaned it with `/<[^>]+>/g`, which starts at
+the mathematical `<` and runs to the first `>` available — the one closing `<i>` — so `< 0.001; <i>`
+was deleted **as if it were a single tag**. Reconstructed byte for byte from the real string before
+anything was changed; the mutation test pins that reconstruction.
+
+**Why this one is worse than a rendering bug.** The next clause of that same line says **"the source's
+own words"**. Provenance state 2 is *selected by agent* — the agent selected the sentence, it did not
+write it, and the whole point of the line is to say which. A p-value silently removed from a sentence
+in quotation marks makes that line false. It is the one claim this product cannot get wrong, on the
+one surface that faces the public.
+
+**Why nothing downstream could see it.** `selectQuotation`'s last clause is `verbatim`, and it is the
+clause that "makes this quotation rather than authoring". It asks `prose.includes(quote)` — where
+`prose` **is the stripper's output**. Every check was downstream of the damage, so the damage was
+self-consistent and the log printed *"verbatim substring of the abstract confirmed"* about a sentence
+the source never contained. `MANGLED_SPACING` exists to catch stripper residue and was looking for the
+wrong residue: a space before punctuation, `( `, ` )` — none of which this leaves.
+
+**A second consequence, found only by fixing it.** The deleted span took the p-value out of
+`matchedFamilies` too, so the screen counted **one** statistic family where the source reports
+**two**. `rankSelected` orders on family count. The damage was not merely being published — it was
+**voting on what got published**, and against the better-evidenced sentence. The test pins both counts.
+
+**The fix is where the meaning is decided, not where it is displayed.** `stripAbstractMarkup` treats a
+`<` as markup only when what follows could begin a tag — an optional `/` then a letter — plus comments
+and declarations. `< 0.001`, `n > 5`, `p <= 0.05` and `load <35 kg` are arithmetic and survive.
+Restoring the character is safe downstream because every render path escapes it (`esc` in
+`src/pages.ts`, `xmlEscape` for the feed); it was never an injection question, it was a truth question.
+
+**The cheap habit, and it generalises past this file.** *A check that compares a value against a
+transformed copy of its own source cannot see the transformation.* When code asserts fidelity —
+verbatim, unchanged, round-trips, byte-identical — ask what it is comparing **to**, and whether that
+reference has already been through the step the assertion is supposed to be grading. Here the answer
+was yes, and the assertion had been passing confidently for every item this feed has published.
