@@ -5480,3 +5480,72 @@ something that executes.
 next actions, (b) computable from a file already in the repository, and (c) due on a date, write the
 grader at registration time. Not for tidiness: a registered threshold and a prose fork are read by
 different runs at different times, and the one that grades it is the one that did not write it.
+
+---
+
+## L-123 — the file every run must read was the one nobody had to maintain (2026-09-29, run 204)
+
+**The situation.** `ops/MILESTONES.md` is **item 3 in the operating card's read order** — every run is
+obliged to open it and take "the nearest active horizon" from it. Today it had not been touched since
+**2026-08-13**. In that gap it was telling every run three false things at once:
+
+- the **2-week** horizon (2026-08-22) and the **1-month** horizon (2026-09-08) had closed **38** and
+  **21** days earlier and still read `not started`, with prospective next actions — *"once a baseline
+  exists, request the provider account"*, *"decided by the first baseline"*;
+- six **sub-day** windows whose own text calls them *"a rolling execution ladder, re-anchored at the
+  start of each run"* were still anchored at **run 20**, still marked `active`, with next actions —
+  *"open the PR"*, *"merge, then read the verification job log"* — completed on **2026-08-08**;
+- `DASHBOARD.md` §3, the **owner's** one-screen view, named *"the 3-hour one"* as the nearest
+  falsifiable milestone: a window that closed **2026-08-08 12:30 UTC**, offered to the owner as
+  current 52 days later. Its ladder was anchored at **run 18** while MILESTONES had **run 20** — the
+  two mirrors of the same ladder never agreed with each other.
+
+**The shape, and this is the fourth time.** An obligation that lives only as prose is honoured by
+whichever run happens to read that far. [L-76](#l-76): the run lock, buried at line 2493 of a
+3,000-line file, and two runs shipped eight commits without claiming it. [L-97](#l-97): the scout
+record, an artifact no run was obliged to open, and eight screens published nothing. [L-122](#l-122),
+yesterday: a fork rule that existed only as prose, graded by whoever read the paragraph. **Here the
+prose obligation was literally the sentence "re-anchored at the start of each run", and it rotted for
+roughly 183 runs.** The remedy has been the same every time and it is the remedy here: make the
+obligation execute.
+
+**What is worse about this instance than the other three.** The other three were obligations a run
+could *fail to discover*. This one was in a file every run was **required** to read, and being read
+did not help — because reading it produces no obligation to *update* it. **A document's staleness is
+invisible to its own reader when the document's job is to state the current state:** a horizon that
+says `active` looks exactly like a horizon that *is* active, and nothing in the act of reading
+distinguishes them. That is why this outlasted a lock, a workflow and a threshold.
+
+**The grading, which is the substance and not the cleanup.** Both closed horizons are graded
+**MISSED** against [`ops/metrics/latest.json`](metrics/latest.json) (`generated_at`
+2026-09-29T00:30:53.032Z), and the 1-month grade turns on a distinction the raw counters hide:
+`stars` **8** and `skips` **33** are non-zero, which reads like activation — but `stars_owner` is
+**8** and `skips_owner` is **33**, so **non-owner activation is exactly 0** and the condition fails.
+A horizon graded off the unsuffixed names alone would have been graded *passed*.
+
+**And one thing deliberately not done.** Five of the six sub-day windows describe outcomes that did
+occur. They are recorded **`closed, ungraded`**, not `achieved`. MILESTONES' own anti-invention rule
+is that reconstructing a target and then marking it achieved *"would be exactly the invented
+retrospective accomplishment this file exists to prevent"* — and **that rule is symmetric: inventing a
+retrospective failure is no better than inventing a retrospective achievement.** The grade belonged to
+the next run, on evidence fresh at the time; no run made it; a grade assembled 46 days later is a
+reconstruction wearing a grade's clothes. What is recorded is the honest fact — the window closed and
+nobody graded it.
+
+**The prevention check.** `scripts/milestone-horizons.mjs` fails when a horizon whose target date has
+passed still carries a prospective disposition (`not started` / `active` / `blocked`), or carries no
+status line, or carries one it cannot classify. It runs in `npm run test:ops` and therefore in CI. It
+is **red on the tree as it stood before this run**, naming all eight horizons — which is the only
+evidence that it would have caught this on 2026-08-23 rather than on day 54 of 60.
+
+It deliberately does **not** check whether a grade is *correct*. A grade is an argument against
+evidence and belongs in a run's report; a parser cannot hold one. The guard answers only *was it
+graded at all* — which is precisely the question 46 days of silence answered wrong. The escape hatch
+is spelled **`closed, ungraded`** in full, as two words, so that declining to grade stays a deliberate
+act a run has to write out rather than a default it can drift into; the bare word `ungraded` does not
+satisfy the guard, and there is a test pinning that.
+
+**The cheap habit.** When a document is named in a read order, ask what makes it *wrong* rather than
+what makes it *missing* — a file that must be read is not thereby a file that must be true. Where the
+document carries dated commitments, the date is machine-readable and the disposition is a small closed
+vocabulary, so "is anything past due and still open?" is a check and not a discipline.

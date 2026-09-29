@@ -1,7 +1,14 @@
 # Tuned — MILESTONES
 
-**Last updated:** 2026-08-13 Sydney (run 33 — the Show HN was submitted at 10:13 Sydney and **killed at submission**; the 1-week horizon's second condition stays **MISSED** as graded by run 31, since a dead submission is not a run experiment; the six sub-day windows below remain **stale, anchored at run 20, and deliberately left ungraded** rather than back-filled). Update when evidence, status,
-timing or strategy changes — not every run. Current state lives in [STATUS.md](STATUS.md); the owner's
+**Last updated:** 2026-09-29 Sydney (run 204 — **the two closed near-term horizons are graded, both
+MISSED, and the sub-day ladder is retired rather than re-anchored**. Before this run the file had not
+been touched since 2026-08-13: the 2-week horizon had closed 38 days earlier and the 1-month horizon
+21 days earlier, both still reading `not started` with prospective next actions, and the six sub-day
+windows still read `active` with next actions completed on 2026-08-08. This file is item 3 in the
+operating card's read order, so every run was obliged to open it and be told that the nearest active
+horizon was a 15-minute window that closed 46 days before. `scripts/milestone-horizons.mjs` now fails
+CI when a closed horizon still reads as prospective — see [L-123](LESSONS.md#l-123)). Update when
+evidence, status, timing or strategy changes — not every run. Current state lives in [STATUS.md](STATUS.md); the owner's
 one-screen view is [DASHBOARD.md](DASHBOARD.md); reasoning lives in [DECISIONS.md](DECISIONS.md) and
 [EXPERIMENTS.md](EXPERIMENTS.md).
 
@@ -14,10 +21,24 @@ horizon below forecasts it, and none should be read as predicting it.** Every ne
 written so it can be *failed* on evidence. Status vocabulary:
 `not started / active / blocked / achieved / missed / revised`.
 
-**On the six sub-day horizons.** They are a **rolling execution ladder, re-anchored at the start of
-each run** — a 15-minute milestone fixed to a date three days ago would be noise, not a commitment.
-Current anchor: **run 20, 2026-08-08 14:00 UTC / 2026-08-09 00:00 Sydney**. Each window is written so the *next*
-run can grade it `achieved` or `missed` against evidence that already exists by then.
+**On the six sub-day horizons: the ladder is RETIRED as of 2026-09-29 (run 204), and every window on
+it is `closed, ungraded`.** Its own text called it *"a rolling execution ladder, re-anchored at the
+start of each run"* — and it was last anchored at **run 20, 2026-08-08 14:00 UTC**, then carried
+unchanged through roughly 183 runs. That sentence was an obligation no run was obliged to execute, so
+it did not execute; it is the same shape as [L-76](LESSONS.md), [L-97](LESSONS.md) and
+[L-122](LESSONS.md), and the finding is recorded as [L-123](LESSONS.md#l-123).
+
+**Retired rather than re-anchored, deliberately.** Six fresh sub-day commitments written six days
+before the final operating date would be manufactured commitments, and this file's own anti-invention
+rule forbids them in both directions — see the paragraph below, whose logic is symmetric: inventing a
+retrospective *failure* is no better than inventing a retrospective achievement.
+
+**And every one of the six is `closed, ungraded` rather than graded now.** Five of them describe
+outcomes that did occur on 2026-08-08, and marking them `achieved` 46 days later from hindsight is
+exactly what the next paragraph rules out: the grade was supposed to be made by the *next* run against
+evidence fresh at the time, and no run made it. A grade assembled now would be a reconstruction, not a
+reading. What is recorded instead is that the window closed and nobody graded it — which is the honest
+fact and the one that carries the lesson.
 
 These six horizons did not exist before the owner requested them at
 [07:04 UTC on 2026-08-08](https://github.com/in-c0/tuned/issues/1#issuecomment-5225045057). **No grade
@@ -44,7 +65,7 @@ arrival is attributable. It is re-set below rather than quietly extended.*
 - **Evidence of completion:** `STATUS.md` and `DASHBOARD.md` open with the publish action carrying all
   seven required fields, `ops/EXP-002-PACKET.md` exists with the approved text byte-identical, and a PR
   is open with CI green.
-- **Status:** **active** — set this run.
+- **Status:** **closed, ungraded** — retired with the ladder 2026-09-29. The PR was opened and the outcome did occur; the grade was the next run's to make on fresh evidence and no run made it, so it is not reconstructed here.
 - **Blocker:** none.
 - **Next action:** open the PR.
 - **Last evidence-linked update:** 2026-08-08 14:15 UTC.
@@ -55,7 +76,7 @@ arrival is attributable. It is re-set below rather than quietly extended.*
   not move a byte of the site hours before a channel points at it.
 - **Evidence of completion:** `verify-production` passes at the merged SHA with the landing page the
   same size as at `c6def8d` (21,974 bytes).
-- **Status:** **active.**
+- **Status:** **closed, ungraded** — retired with the ladder 2026-09-29, on the same reasoning as the 15-minute window above.
 - **Blocker:** none.
 - **Next action:** merge, then read the verification job log rather than the status API ([L-05](LESSONS.md)).
 - **Last evidence-linked update:** 2026-08-08 14:15 UTC.
@@ -67,7 +88,7 @@ arrival is attributable. It is re-set below rather than quietly extended.*
 - **Evidence of completion:** the run-20 execution report states the boundary; `EXPERIMENTS.md`,
   `STATUS.md` and `DASHBOARD.md` all say NOT STARTED. **Falsified** if any file or comment describes
   EXP-002 as started, or reports a window, without a `news.ycombinator.com/item?id=…` URL.
-- **Status:** **active.**
+- **Status:** **closed, ungraded** — retired with the ladder 2026-09-29. Run 20's report did state the boundary, but the window's own grader was the following run and it never graded it.
 - **Blocker:** none.
 - **Next action:** post the report and stop.
 - **Last evidence-linked update:** 2026-08-08 14:15 UTC.
@@ -80,7 +101,7 @@ arrival is attributable. It is re-set below rather than quietly extended.*
 - **Evidence of completion:** the next claim in issue #1 selects a stand-down or measurement-only work.
   **Falsified** by a copy/positioning change, a new counter, a second channel, outreach, or any edit to
   the approved packet text.
-- **Status:** **active** — this rung binds the next run, which cannot grade itself.
+- **Status:** **closed, ungraded** — retired with the ladder 2026-09-29. Its text says *"this rung binds the next run, which cannot grade itself"*; the next run did not grade it, and 46 days later this run cannot either without reconstructing it.
 - **Blocker:** none.
 - **Next action:** none.
 - **Last evidence-linked update:** 2026-08-08 14:15 UTC.
@@ -91,7 +112,7 @@ arrival is attributable. It is re-set below rather than quietly extended.*
   loop, through the whole window in which the owner is asleep.
 - **Evidence of completion:** EXP-002 is still `NOT STARTED` everywhere, no 48-hour window is described
   as open, and no private channel (phone, email, SMS) has been used to chase the paste.
-- **Status:** **active.**
+- **Status:** **closed, ungraded** — retired with the ladder 2026-09-29, on the same reasoning as the windows above.
 - **Blocker:** none — this is a discipline rung, not a capability one.
 - **Next action:** none.
 - **Last evidence-linked update:** 2026-08-08 14:15 UTC.
@@ -102,7 +123,7 @@ arrival is attributable. It is re-set below rather than quietly extended.*
   contrast EXP-002 is graded on has a clean zero immediately behind it.
 - **Evidence of completion:** the scheduled 20:40 UTC `metrics-snapshot` commits a new dated file under
   `ops/metrics/`, aggregate-only, with `application_submit` still 0.
-- **Status:** **not started** — it runs unattended.
+- **Status:** **closed, ungraded** — retired with the ladder 2026-09-29. Previously **not started**; the snapshot it named did run, but no run graded the window inside its life.
 - **Blocker:** none. No dispatch is needed and none was made.
 - **Next action:** read it next run; if `application_submit` is non-zero **before** any publication,
   that is a finding about the existing traffic, not about EXP-002.
@@ -208,14 +229,23 @@ the ladder above feeds the 1-week horizon rather than this one.*
 - **Evidence of completion:** a payment provider account exists and a checkout that can accept a live
   AUD charge is deployed behind the existing gates; **and** either ≥1 completed payment or ≥3 distinct
   people who named a price/budget (per EXP-002's WTP definition).
-- **Status:** **not started.**
-- **Progress:** pricing frame drafted in NORTH_STAR.md (Free / Pro ~$17/mo / Team / creators). No
-  billing code, no provider, no checkout. Gross cash AUD $0, source: no billing exists.
-- **Blocker:** payment-provider account creation is an owner/auth boundary; also gated on knowing the
-  funnel is non-empty, since shipping billing into zero traffic is polish.
-- **Next action:** once a baseline exists, request the provider account in issue #1 with the smallest
-  reviewable integration scoped in advance.
-- **Last evidence-linked update:** 2026-08-06 — run-1 audit recorded "payment: does not exist".
+- **Status:** **MISSED**, graded 2026-09-29 (run 204), 38 days after the window closed. **Both
+  conditions fail, and the first fails absolutely rather than narrowly:** no payment-provider account
+  exists, no checkout is deployed, and there is no billing code in `src/` at all — so gross cash is
+  **AUD $0** sourced from *no billing exists* and not from a reading. The second condition needed ≥1
+  completed payment or ≥3 distinct people who named a price or budget; `applications` is **0**, so no
+  such person has ever reached the loop, and none is recorded anywhere in issue #1.
+- **Progress:** pricing frame drafted in NORTH_STAR.md (Free / Pro ~$17/mo / Team / creators) and
+  never tested against a human. No billing code, no provider, no checkout.
+- **Why it is graded MISSED and not `blocked`:** the account creation is genuinely an owner boundary,
+  but a horizon is graded on whether its outcome exists, not on whose fault it is that it does not.
+  Recording a blocker in the status field is how a closed commitment stops being a commitment.
+- **Blocker:** payment-provider account creation is an owner/auth boundary. Unchanged since 2026-08-06
+  and not re-argued here per [L-07](LESSONS.md).
+- **Next action:** **none for this horizon — it is closed.** The wedge is not falsified either, which
+  is the honest reading: nothing was learned about willingness to pay, because nobody was ever asked.
+- **Last evidence-linked update:** 2026-09-29 — [`ops/metrics/latest.json`](metrics/latest.json)
+  `totals`, `generated_at` 2026-09-29T00:30:53.032Z: `applications` 0, `members` 1, `followers` 0.
 
 ## 1 month — by 2026-09-08
 
@@ -224,13 +254,26 @@ the ladder above feeds the 1-week horizon rather than this one.*
 - **Evidence of completion:** payment-provider records show gross cash > AUD $0 (that source only);
   **and** `retention.members_returned_after_first_day` ≥ 1 with `attention_star`/`attention_skip`
   non-zero across ≥2 distinct UTC days, from committed snapshots.
-- **Status:** **not started.**
+- **Status:** **MISSED**, graded 2026-09-29 (run 204), 21 days after the window closed. **Both
+  conditions fail.** Gross cash is **AUD $0** from *no billing exists*, so the first has no source
+  that could satisfy it. The second required `retention.members_returned_after_first_day` ≥ 1 with
+  attention events across ≥2 distinct UTC days: `members_returned_after_first_day` is **0**, and so is
+  `members_ever_active` — meaning the desk has never written a `member_days` row for anybody, the
+  owner included.
+- **And the attention numbers do not rescue it, for a reason worth stating precisely.** `stars` is
+  **8** and `skips` is **33**, both non-zero — but `stars_owner` is **8** and `skips_owner` is **33**,
+  with `owner_resolved` **1**. Every attention event this service has ever recorded is the owner
+  triaging their own desk. The condition was written to evidence *activation*, and non-owner
+  activation is exactly **0**.
 - **Progress:** retention became *computable* at `feb6c4f` (`member_days` replaced the overwritten
-  `members.last_desk_at`). Nothing observed yet.
-- **Blocker:** all of the above, in order.
-- **Next action:** decided by the first baseline — conversion work if traffic exists, distribution if
-  it does not.
-- **Last evidence-linked update:** 2026-08-06 — retention made measurable at the schema level (run 2).
+  `members.last_desk_at`). It has recorded nothing since.
+- **Blocker:** no payment path and no arrival. Unchanged and not re-argued here per
+  [L-07](LESSONS.md).
+- **Next action:** **none for this horizon — it is closed.** What it establishes for the closeout is
+  narrow and worth carrying forward exactly as narrow: activation has never been observed in a
+  non-owner, and the instrument that would observe it is deployed and silent rather than missing.
+- **Last evidence-linked update:** 2026-09-29 — [`ops/metrics/latest.json`](metrics/latest.json)
+  `totals` and `retention`, `generated_at` 2026-09-29T00:30:53.032Z.
 
 ## 3 months — by 2026-11-08
 
