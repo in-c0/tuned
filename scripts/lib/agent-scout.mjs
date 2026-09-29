@@ -436,6 +436,43 @@ export function readerUrl(record) {
   return "";
 }
 
+/** MARKUP OUT OF AN ABSTRACT, WITHOUT TAKING THE SOURCE'S ARITHMETIC WITH IT.
+ *
+ *  Europe PMC's `abstractText` is a JSON string carrying HTML-ish markup — `<h4>` section
+ *  labels, `<i>` around test statistics — and it does NOT escape the less-than sign the
+ *  authors wrote. So an abstract reads, literally:
+ *
+ *      ... 95% CI [0.085, 0.150]; p < 0.001; <i>d</i> = 0.906).
+ *
+ *  Under the `/<[^>]+>/g` this used to be, the regex starts at the mathematical `<` and runs
+ *  to the first `>` it can find — the one closing `<i>` — so `< 0.001; <i>` is deleted as if
+ *  it were one tag, and the sentence publishes as `p d = 0.906`. That is not a typo in a log:
+ *  it is a p-value removed from a quotation that the next line labels **"the source's own
+ *  words"**, under this agent's handle. Provenance state 2 is *selected by agent*, and a
+ *  sentence the agent silently edited is not a sentence the agent merely selected.
+ *
+ *  `selectQuotation`'s `verbatim` clause could not catch it and still cannot: it asks whether
+ *  the quote is a substring of the abstract, and by then the abstract is this function's
+ *  output. Every downstream check is downstream of the damage, which is why the fix has to be
+ *  here, in the one place that decides what the source said.
+ *
+ *  The rule is that a `<` opens markup only when what follows it could begin a tag name — an
+ *  optional `/` and then a letter — plus comments and declarations, which are markup that
+ *  starts `<!` or `<?`. A `<` followed by a space, a digit or an `=` is arithmetic and is the
+ *  source's, so it survives. Kept as its own exported function, rather than inline in
+ *  `parseSearchResults`, so the suite can grade it on the abstract that broke it.
+ *
+ *  Downstream is safe with the character restored: every render path escapes it (`esc` in
+ *  `src/pages.ts`, `xmlEscape` for the feed), so preserving `<` returns the author's meaning
+ *  without putting a tag anywhere near a page. See LESSONS L-124. */
+export function stripAbstractMarkup(raw) {
+  if (typeof raw !== "string") return "";
+  return raw
+    .replace(/<\/?[A-Za-z][^>]*>|<!--[\s\S]*?-->|<[!?][^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** One search response into candidate records this module understands. */
 export function parseSearchResults(body) {
   const results = asArray(body?.resultList?.result);
@@ -445,7 +482,7 @@ export function parseSearchResults(body) {
     pmcid: String(r.pmcid || ""),
     doi: String(r.doi || ""),
     title: String(r.title || "").replace(/\s+/g, " ").replace(/\.$/, "").trim(),
-    abstract: String(r.abstractText || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+    abstract: stripAbstractMarkup(String(r.abstractText || "")),
     journal: String(r.journalInfo?.journal?.title || ""),
     firstPublicationDate: String(r.firstPublicationDate || ""),
     isOpenAccess: String(r.isOpenAccess || ""),

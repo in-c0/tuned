@@ -47,6 +47,7 @@ import {
   gradeMetadata,
   idempotencyKeyFor,
   parseSearchResults,
+  stripAbstractMarkup,
   rankSelected,
   readerUrl,
   sameSource,
@@ -132,6 +133,59 @@ test("parsing strips the abstract's markup and normalises the title", () => {
   assert.equal(c.title, "A study of things");
   assert.ok(!c.abstract.includes("<p>"));
   assert.match(c.abstract, /^This study examined/);
+});
+
+/** THE SENTENCE THAT BROKE IT, in the markup Europe PMC actually served on 2026-09-29.
+ *
+ *  Run 205 read the scheduled screen's record at the gate and found its top selection's
+ *  why-line reading `p d = 0.906` — the p-value gone from a string the next clause calls
+ *  "the source's own words". The abstract below is that sentence with the markup restored;
+ *  the old `/<[^>]+>/g` reproduces the published damage from it byte for byte. */
+const REAL_MANGLED_ABSTRACT =
+  "RESULTS: FAST episodes showed higher mean rβ values than SLOW episodes " +
+  "(0.717 vs. 0.600; difference = 0.117; 95% CI [0.085, 0.150]; p < 0.001; <i>d</i> = 0.906).";
+
+test("a mathematical less-than in an abstract is the source's, not a tag: the p-value survives", () => {
+  const out = stripAbstractMarkup(REAL_MANGLED_ABSTRACT);
+  assert.ok(out.includes("p < 0.001"), "the p-value the authors reported must still be there");
+  assert.ok(out.includes("d = 0.906"), "and so must the effect size");
+  assert.ok(!out.includes("<i>"), "while the markup around it is gone");
+  assert.ok(!out.includes("p d ="), "the published mangling must not be reachable");
+});
+
+test("MUTATION: the stripper as it was deletes the p-value and publishes the damage", () => {
+  // The counterfactual is the exact expression this file replaced. If this ever stops
+  // reproducing `p d = 0.906`, the mutation has stopped proving anything and should be
+  // re-derived from a real record rather than deleted.
+  const asItWas = REAL_MANGLED_ABSTRACT.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  assert.ok(asItWas.includes("p d = 0.906"), "this is what a reader of @sportstech was served");
+  assert.ok(!asItWas.includes("0.001"), "the p-value was silently removed, not merely reformatted");
+  assert.notEqual(stripAbstractMarkup(REAL_MANGLED_ABSTRACT), asItWas);
+});
+
+test("the quotation clause quotes the restored sentence, p-value and all", () => {
+  const prose = stripAbstractMarkup(REAL_MANGLED_ABSTRACT);
+  const q = selectQuotation(prose);
+  assert.equal(q.refusedBecause, "", "the restored sentence must still be quotable");
+  assert.ok(q.quote.includes("p < 0.001"), "and the quote is what a reader sees");
+  assert.ok(prose.includes(q.quote), "still verbatim");
+  // Restoring the operator also restores a statistic family the screen could not see: the
+  // old string carried only the confidence interval, because the p-value had been deleted
+  // before `matchedFamilies` ever read it. `rankSelected` orders on family count, so the
+  // damage was not only published, it was also voting.
+  assert.deepEqual(q.families, ["p-value", "confidence interval"]);
+  assert.deepEqual(selectQuotation(REAL_MANGLED_ABSTRACT.replace(/<[^>]+>/g, " ")).families, ["confidence interval"]);
+});
+
+test("the stripper removes the markup Europe PMC does send, and only that", () => {
+  assert.equal(stripAbstractMarkup("<h4>Results</h4><p>Mean was 8.4.</p>"), "Results Mean was 8.4.");
+  assert.equal(stripAbstractMarkup("A<br/>B"), "A B");
+  assert.equal(stripAbstractMarkup("<!-- note -->Kept."), "Kept.");
+  // Arithmetic, in each shape a paper writes it. None of these opens a tag.
+  assert.equal(stripAbstractMarkup("n < 20 and n > 5"), "n < 20 and n > 5");
+  assert.equal(stripAbstractMarkup("p <= 0.05"), "p <= 0.05");
+  assert.equal(stripAbstractMarkup("load <35 kg"), "load <35 kg");
+  assert.equal(stripAbstractMarkup(undefined), "");
 });
 
 test("parsing accepts a single pubType as well as a list", () => {
