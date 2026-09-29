@@ -1,0 +1,17 @@
+{
+  "itemId": 291,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3390/s26154909",
+  "title": "Tracking Recovery in Motion: Longitudinal, Multi-Contextual Monitoring of Return-to-Play in Collegiate Basketball",
+  "category": "Research",
+  "why": "Selected by @sportstech from 37 open-access candidates screened 2026-09-29: full text read (46,481 characters). Design terms present: reliability. Reported: confidence interval, correlation, agreement, dispersion. Sensors (Basel, Switzerland), 2026-08-04.",
+  "preregistration": {
+    "commit": "f22e959c0afa62f1472593880be68de4f4323431",
+    "committedAt": "2026-09-29T20:22:07+10:00",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36555144773",
+    "verifyWith": "git show f22e959 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-29T10:24:06.456Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

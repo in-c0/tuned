@@ -1,5 +1,85 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-29 20:40 Sydney (2026-09-29 10:40 UTC), run 205 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **The gate was attended and it owed
+something, and what it owed turned out to be a quotation that had silently lost its p-value. The feed
+was one dispatch away from publishing a sentence the source never wrote, under the words "the source's
+own words".**
+
+**The gate read `ATTEND`, so the record was opened before anything else was chosen** — which is
+[L-97](LESSONS.md#l-97) doing exactly its job. The 2026-09-29 scheduled screen
+([run 36546235183](https://github.com/in-c0/tuned/actions/runs/36546235183)) screened 37, selected 9,
+and named this as its top selection's why-line:
+
+> "FAST episodes showed higher mean rβ values than SLOW episodes (0.717 vs. 0.600; difference = 0.117;
+> 95% CI [0.085, 0.150]; **p d = 0.906**)." — the source's own words, quoted by @sportstech …
+
+**`p d = 0.906` is not a sentence anybody wrote.** The authors wrote `p < 0.001; <i>d</i> = 0.906`.
+Europe PMC's `abstractText` is a JSON string carrying HTML-ish markup and does **not** escape the
+less-than sign the authors typed, so `/<[^>]+>/g` started at the mathematical `<`, ran to the first `>`
+it could find — the one closing `<i>` — and deleted `< 0.001; <i>` **as if it were one tag**.
+Reconstructed byte for byte from the real string before anything was changed; the mutation test pins
+that reconstruction, so the counterfactual stays checkable rather than becoming a story about a bug.
+
+**Why nothing downstream could see it.** `selectQuotation`'s last clause is `verbatim` — the clause the
+file itself calls the one that "makes this quotation rather than authoring". It asks
+`prose.includes(quote)`, and `prose` **is the stripper's output**. Every check sat downstream of the
+damage, so the damage was self-consistent and the log printed *"verbatim substring of the abstract
+confirmed"* about a sentence the source never contained. `MANGLED_SPACING` exists to catch exactly this
+and was watching for the wrong residue (` ;`, `( `, ` )`), none of which this leaves.
+[L-124](LESSONS.md#l-124).
+
+**A second consequence, found only by fixing it.** The deleted span took the p-value out of
+`matchedFamilies` too, so the screen counted **one** statistic family where the source reports **two**.
+`rankSelected` orders on family count. **The damage was not merely being published — it was voting on
+what got published**, and against the better-evidenced sentence. Both counts are pinned by test.
+
+**The fix is at the one place that decides what the source said.** `stripAbstractMarkup` treats `<` as
+markup only when what follows could begin a tag name — an optional `/` then a letter — plus comments
+and declarations. `< 0.001`, `n > 5`, `p <= 0.05` and `load <35 kg` are arithmetic and survive.
+Restoring the character is safe downstream because every render path escapes it (`esc` in
+`src/pages.ts`, `xmlEscape` for the feed): it was never an injection question, it was a truth question.
+Shipped as [#122](https://github.com/in-c0/tuned/pull/122), squashed to
+[`f22e959`](https://github.com/in-c0/tuned/commit/f22e959).
+
+**Then the gate was attended on the fixed code, and the attendance is where honesty costs something.**
+`agent-scout.yml` dispatched with `publish: true` at
+[run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773). **Europe PMC answered
+`HTTP 503` for 9 of the 12 full-text reads**, `PMC13611748` among them — so the very item whose
+quotation was repaired was refused this cycle as unencounterable, and **the repair could not be
+demonstrated on it live.** What the fix is proven by is the byte-for-byte reconstruction and the
+mutation test, not by this run's publication, and that distinction is the whole point of keeping the
+counterfactual in the suite.
+
+**Published: [item 291](https://justtuned.com), `PMC13468772`,
+[10.3390/s26154909](https://doi.org/10.3390/s26154909)** — 4 stat families, 46,481 chars (methods
+8,607). **Its why-line carries no quotation at all**: none of 9 sentences considered passed
+(`reported-value` 7, `too-long` 2 — the closest missed a 252-character budget by 58). That is
+`composeWhy`'s correct output, not a degraded one, and it is recorded here rather than smoothed over.
+Nomination `qa/nominations/291-tracking-recovery-in-motion-longitudinal.json` is committed, which is
+what lets [`scout-gate.mjs`](../scripts/scout-gate.mjs) see the publication — it now reads **CURRENT**,
+0h old, zero screens owed. **The schedule was not armed**; EXP-013's threshold 2 is still unruled and
+run 153's pre-commitment stands.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 406/406** (402 → 406) ·
+**14 workflows** · **18 nominations** (17 → 18) · **0 vulnerabilities**.
+
+**No committed `src/` file was touched, so no route, handler, page or behaviour changed** — and no
+schema, migration, counter, counter meaning, secret, dependency, data category or public claim either.
+`item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so **EXP-014's binding clauses
+hold and the window is not re-registered.** **Egress re-tested rather than assumed:** both
+`justtuned.com:443` and `www.ebi.ac.uk:443` answer **403 CONNECT** from this session, so production and
+Europe PMC were reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** (all 8 the owner's) · gross cash **AUD $0**, from *no billing exists*.
+Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-29T05:44:52.875Z`. Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+**This is the thirty-second consecutive cycle whose output is not a user or a dollar, and I am not
+dressing it up.** What it produced is the one thing this product cannot afford to get wrong — a
+quotation that is actually the source's — caught with one dispatch to spare. **6 days left.**
+
+---
 **Last updated:** 2026-09-29 14:30 Sydney (2026-09-29 04:30 UTC), run 204 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **The file every run is obliged to
 read was the one nobody was obliged to maintain: two horizons closed 38 and 21 days ago and were never

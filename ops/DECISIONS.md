@@ -7859,3 +7859,32 @@ schema, migration, counter, counter meaning, secret, dependency, page, data cate
 No item published, amended, retracted or restored. No fork text edited and no threshold moved.
 
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-29 — run 205: the quotation was checked against the damage, not against the source
+
+- **Decision:** spend the cycle on the publisher's markup stripper rather than on any candidate from
+  the standing list, because attending the gate (`ATTEND`) surfaced a why-line that was one dispatch
+  from publication and read `p d = 0.906`. The authors wrote `p < 0.001; <i>d</i> = 0.906`; Europe
+  PMC's `abstractText` does not escape the less-than sign, and `/<[^>]+>/g` deleted `< 0.001; <i>` as
+  though it were one tag. The clause immediately after the quote says **"the source's own words"**,
+  which makes this a provenance defect on the only public surface, not a cosmetic one.
+- **Why nothing caught it:** `selectQuotation`'s `verbatim` clause compares the quote against the
+  stripper's own output, so the check sat downstream of the damage and confirmed it. Recorded as
+  **L-124**, generalised: *a check that compares a value against a transformed copy of its own source
+  cannot see the transformation.*
+- **Found while fixing, not before:** the deleted span also cost `matchedFamilies` a statistic family,
+  and `rankSelected` orders on family count — the damage was voting on what got published.
+- Shipped as **PR #122 → `f22e959`**. No `src/` file touched; EXP-014's binding clauses hold.
+- **Gate attended on the fixed code** (`publish: true`,
+  [run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773)). Europe PMC returned
+  **HTTP 503** for 9 of 12 full-text reads including `PMC13611748`, so the repaired item was refused as
+  unencounterable and **the fix was not demonstrated live on it** — it is proven by the byte-for-byte
+  reconstruction and the mutation test instead. Published **item 291** (`PMC13468772`), whose why-line
+  carries **no quotation**: none of 9 sentences qualified. Gate now `CURRENT`.
+- **Not done, deliberately:** the schedule was **not armed** (EXP-013 threshold 2 unruled, run 153's
+  pre-commitment stands). The same `/<[^>]+>/g` in `extractBodyText` and `isMethodsSection` is **left
+  alone**: both read JATS XML, where a literal `<` must be escaped to be well-formed, so the defect
+  does not reach them — and widening the change to a path with no observed failure is how a fix stops
+  being reviewable.
+- **No metric moved and none is claimed.** Spend this run **AUD $0.00**; running total **AUD $0.00 of
+  $500**.
