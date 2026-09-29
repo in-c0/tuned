@@ -54,6 +54,7 @@ import {
   searchResponseDefect,
   searchStatusDefect,
   searchUrl,
+  fullTextStatusDefect,
 } from "./lib/agent-scout.mjs";
 import fs from "node:fs";
 import os from "node:os";
@@ -612,6 +613,174 @@ test("a full-text endpoint that refuses produces a rejection, not a crash and no
   assert.equal(report.selected.length, 0);
   assert.equal(report.observations[0].clause, "encountered");
   assert.match(report.observations[0].detail, /HTTP 404/);
+});
+
+// ---------------------------------------------------------------------------
+// The archive could not answer, which is not the same as the document having nothing.
+// The incident this is all about: run 36555144773, 2026-09-29, 8 of 12 reads answered 503.
+// ---------------------------------------------------------------------------
+
+test("a 5xx from the full-text endpoint is the archive stuttering, a 4xx is a fact about the document", () => {
+  for (const status of [500, 502, 503, 504]) {
+    assert.match(fullTextStatusDefect(status), /unable to answer/, `${status} is the archive unable to answer`);
+  }
+  // A 404 is the archive telling us this document has no full text here. That is evidence and
+  // the bar is entitled to act on it. 429 stays a refusal for the reason the file header gives.
+  for (const status of [400, 403, 404, 410, 429, 451, 501]) {
+    assert.equal(fullTextStatusDefect(status), "", `${status} must stay a document fact, asked exactly once`);
+  }
+});
+
+test("a full-text read the archive could not answer is deferred, not rejected", async () => {
+  const f = fakeFetch([
+    ["/search", searchResponse([record()])],
+    ["/fullTextXML", () => ({ ok: false, status: 503, async text() { return ""; } })],
+  ]);
+  const report = await screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} });
+
+  const o = report.observations[0];
+  assert.equal(o.verdict, "deferred", "a 503 says nothing about this paper, so it cannot reject it");
+  assert.equal(o.clause, "unanswered");
+  assert.match(o.detail, /HTTP 503/);
+  assert.equal(report.selected.length, 0, "and it is certainly not a selection");
+  // The count is on the report, because the run that publishes has to be able to say its pool
+  // was thinned by the archive rather than by the literature.
+  assert.equal(report.full_text_unanswered, 1);
+  assert.equal(report.full_text_reads, 0, "nothing was read, so no read is claimed");
+});
+
+test("a transport failure is on the same side of the line as a 5xx", async () => {
+  const f = fakeFetch([
+    ["/search", searchResponse([record()])],
+    ["/fullTextXML", () => { throw new Error("ECONNRESET"); }],
+  ]);
+  const report = await screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} });
+  assert.equal(report.observations[0].verdict, "deferred");
+  assert.equal(report.observations[0].clause, "unanswered");
+  assert.equal(report.full_text_unanswered, 1);
+});
+
+test("a document the archive says it does not have is still a rejection on the bar", async () => {
+  // The other side of the line, pinned so a later widening of CANNOT_ANSWER_STATUSES breaks
+  // something. A 404 must keep costing a read slot and keep producing `encountered`.
+  const f = fakeFetch([
+    ["/search", searchResponse([record()])],
+    ["/fullTextXML", () => ({ ok: false, status: 404, async text() { return ""; } })],
+  ]);
+  const report = await screen({ now: new Date(NOW), fetchImpl: f.impl, pause: async () => {}, published: { urls: [], dois: [] }, log: () => {} });
+  assert.equal(report.observations[0].verdict, "rejected");
+  assert.equal(report.observations[0].clause, "encountered");
+  assert.equal(report.full_text_reads, 1);
+  assert.equal(report.full_text_unanswered, 0);
+});
+
+test("THE INCIDENT: non-answers no longer evict the readable candidates queued behind them", async () => {
+  // Run 36555144773's shape, reduced to its mechanism and keeping its real ordering: the
+  // non-answers arrive FIRST and consecutively, then the readable documents. Eight 503s on the
+  // cycle's real budget of twelve reads, with twenty candidates through metadata so the budget
+  // is exactly consumable.
+  const records = Array.from({ length: 20 }, (_, i) =>
+    record({ pmcid: `PMC${i + 1}`, id: String(i + 1), doi: `10.1/${i + 1}` })
+  );
+  let asked = 0;
+  const f = fakeFetch([
+    ["/search", searchResponse(records)],
+    [
+      "/fullTextXML",
+      () => {
+        asked += 1;
+        // The first eight reads 503 exactly as Europe PMC did; the rest serve a real document.
+        return asked <= 8
+          ? { ok: false, status: 503, async text() { return ""; } }
+          : { ok: true, status: 200, async text() { return goodFullText(); } };
+      },
+    ],
+  ]);
+  const report = await screen({
+    now: new Date(NOW),
+    maxReads: 12,
+    fetchImpl: f.impl,
+    pause: async () => {},
+    published: { urls: [], dois: [] },
+    log: () => {},
+  });
+
+  assert.equal(report.full_text_unanswered, 8, "eight non-answers, exactly as the archive sent");
+  assert.equal(report.full_text_reads, 12, "and the full read budget still spent on documents");
+  assert.equal(report.selected.length, 12, "twelve papers graded, where the old code reached four");
+
+  // Not one of the eight is recorded as having failed the bar.
+  const unansweredObs = report.observations.filter((o) => o.clause === "unanswered");
+  assert.equal(unansweredObs.length, 8);
+  assert.ok(unansweredObs.every((o) => o.verdict === "deferred"));
+  assert.equal(
+    report.observations.filter((o) => o.clause === "read-budget").length,
+    0,
+    "and nothing was evicted on a budget the outage had spent"
+  );
+});
+
+test("MUTATION: charging a read slot for a non-answer is what evicted them, and it fails this", async () => {
+  // The counterfactual, run against the SAME fixture as the test above. This is the old
+  // behaviour expressed as an allowance of zero: the screen stops asking the moment the archive
+  // stutters, which is the closest this harness can come to "a non-answer ends the cycle's
+  // access to the pool". Twelve documents the archive would have served go ungraded.
+  const records = Array.from({ length: 20 }, (_, i) =>
+    record({ pmcid: `PMC${i + 1}`, id: String(i + 1), doi: `10.1/${i + 1}` })
+  );
+  let asked = 0;
+  const f = fakeFetch([
+    ["/search", searchResponse(records)],
+    [
+      "/fullTextXML",
+      () => {
+        asked += 1;
+        return asked <= 8
+          ? { ok: false, status: 503, async text() { return ""; } }
+          : { ok: true, status: 200, async text() { return goodFullText(); } };
+      },
+    ],
+  ]);
+  const report = await screen({
+    now: new Date(NOW),
+    maxReads: 12,
+    maxUnanswered: 0,
+    fetchImpl: f.impl,
+    pause: async () => {},
+    published: { urls: [], dois: [] },
+    log: () => {},
+  });
+
+  assert.equal(report.selected.length, 0, "nothing is graded once a non-answer is allowed to end the cycle");
+  assert.equal(report.full_text_reads, 0);
+  assert.ok(
+    report.observations.some((o) => o.clause === "archive-unavailable"),
+    "and the screen says the archive was unavailable rather than calling the literature thin"
+  );
+});
+
+test("a wholly unavailable archive costs a bounded number of requests and then goes quiet", async () => {
+  const records = Array.from({ length: 30 }, (_, i) =>
+    record({ pmcid: `PMC${i + 1}`, id: String(i + 1), doi: `10.1/${i + 1}` })
+  );
+  const f = fakeFetch([
+    ["/search", searchResponse(records)],
+    ["/fullTextXML", () => ({ ok: false, status: 503, async text() { return ""; } })],
+  ]);
+  const report = await screen({
+    now: new Date(NOW),
+    maxReads: 5,
+    fetchImpl: f.impl,
+    pause: async () => {},
+    published: { urls: [], dois: [] },
+    log: () => {},
+  });
+
+  const requests = f.calls.filter((u) => u.includes("fullTextXML")).length;
+  assert.equal(requests, 5, "the allowance defaults to maxReads and is not exceeded");
+  assert.equal(report.full_text_unanswered, 5);
+  assert.equal(report.selected.length, 0, "an archive that cannot answer publishes nothing, quietly");
+  assert.ok(report.observations.some((o) => o.clause === "archive-unavailable"));
 });
 
 test("a failed search is an error, because that is the loop's instrument failing and not a thin week", async () => {

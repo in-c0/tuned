@@ -25,10 +25,14 @@
 // expected rate is well under that.
 //
 // HOW MUCH OF SOMEONE ELSE'S SERVICE THIS USES, stated because it is a third party acting
-// on Tuned's behalf: one search request, then at most --max-reads full-text requests, with
-// a pause between them, against Europe PMC's documented key-free REST API. It declares
-// itself honestly in its User-Agent with a contact address, follows no links, and fetches no
-// page a human would otherwise be served — `fullTextXML` is the archive's own machine
+// on Tuned's behalf: one search request, then at most --max-reads full-text requests that the
+// archive ANSWERS plus at most as many again that it does not, with a pause between them,
+// against Europe PMC's documented key-free REST API. A request the archive could not answer
+// costs no read slot, because it read nothing — see `fullTextStatusDefect`, run 206 — so the
+// ceiling on requests is two per read slot and the ceiling on documents graded is one.
+//
+// It declares itself honestly in its User-Agent with a contact address, follows no links, and
+// fetches no page a human would otherwise be served — `fullTextXML` is the archive's own machine
 // endpoint. Nothing here varies its identity to get a different answer, and NOTHING HERE
 // RETRIES A REFUSAL: a service that said no is asked exactly once, and asking it again is
 // exactly the behaviour that sentence was written to forbid. What IS asked again, at most
@@ -56,6 +60,7 @@ import {
   selectQuotation,
   extractBodyText,
   extractMethodsText,
+  fullTextStatusDefect,
   fullTextUrl,
   grade,
   gradeMetadata,
@@ -146,17 +151,26 @@ async function getJson(url, fetchImpl) {
   return await res.json();
 }
 
+/** One full-text read. `unanswered` is the load-bearing field and it is NOT "did I get an
+ *  XML document" — it is "did the archive answer the question". A document the archive says it
+ *  does not have is an answer, and the bar is entitled to act on it. A 503, or a socket that
+ *  died, is not an answer about the document at all, and anything the screen concludes from it
+ *  is a conclusion about Europe PMC's afternoon. `fullTextStatusDefect` holds the line. */
 async function getFullText(url, fetchImpl) {
   let res;
   try {
     res = await fetchImpl(url, { headers: { accept: "application/xml", "user-agent": USER_AGENT } });
   } catch (err) {
-    return { xml: "", note: `fetch threw: ${String(err).slice(0, 200)}` };
+    // Nothing was read and the archive did not decline: the same side of the line as a 5xx.
+    return { xml: "", note: `fetch threw: ${String(err).slice(0, 200)}`, unanswered: true };
   }
-  if (!res.ok) return { xml: "", note: `HTTP ${res.status}` };
+  if (!res.ok) {
+    const defect = fullTextStatusDefect(res.status);
+    return { xml: "", note: defect === "" ? `HTTP ${res.status}` : defect, unanswered: defect !== "" };
+  }
   const xml = await res.text();
-  if (xml.length > MAX_FULL_TEXT_BYTES) return { xml: xml.slice(0, MAX_FULL_TEXT_BYTES), note: `truncated at ${MAX_FULL_TEXT_BYTES} bytes` };
-  return { xml, note: "" };
+  if (xml.length > MAX_FULL_TEXT_BYTES) return { xml: xml.slice(0, MAX_FULL_TEXT_BYTES), note: `truncated at ${MAX_FULL_TEXT_BYTES} bytes`, unanswered: false };
+  return { xml, note: "", unanswered: false };
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -238,6 +252,7 @@ export async function screen({
   windowDays = DEFAULT_WINDOW_DAYS,
   pageSize = 50,
   maxReads = 12,
+  maxUnanswered = null,
   fetchImpl = fetch,
   pause = sleep,
   published = publishedSources(),
@@ -272,7 +287,36 @@ export async function screen({
   log(`${passedMetadata.length} passed metadata screening; reading full text for at most ${maxReads}`);
 
   let reads = 0;
+  let unanswered = 0;
+  // How many non-answers this screen will absorb before it stops asking. A separate allowance
+  // and not a share of `maxReads`, because a read the archive did not answer taught the bar
+  // nothing and must not spend a slot that a readable candidate is queued for.
+  //
+  // WHY A TOTAL AND NOT A RUN OF CONSECUTIVE ONES, which was the first thing tried. On
+  // 2026-09-29 the eight 503s arrived FIRST and consecutively, and the three papers that
+  // passed the bar were read after them. Any consecutive-failure breaker tight enough to be
+  // worth having (four, five) would have stopped that screen before it reached a single one of
+  // its selections and published nothing at all. Europe PMC was refusing individual documents
+  // intermittently, not lying down, and a breaker that cannot tell those apart makes the
+  // outage worse. The real incident is the calibration: at `maxReads` the screen rides out
+  // eight non-answers and still reads its full twelve.
+  //
+  // This is not a retry and nothing here retries anything. Each request is for a DIFFERENT
+  // document, and a 503 about paper A is not evidence about paper B. The allowance is a bound
+  // on total work, so an archive that is wholly down costs the cycle a bounded number of
+  // requests and then silence, which is what a publisher that must fail quiet should do.
+  const unansweredAllowance = Number.isFinite(maxUnanswered) ? maxUnanswered : maxReads;
   for (const { candidate } of passedMetadata) {
+    if (unanswered >= unansweredAllowance) {
+      observations.push({
+        candidate,
+        verdict: "deferred",
+        clause: "archive-unavailable",
+        detail: `not read this cycle — the archive could not answer ${unanswered} read${unanswered === 1 ? "" : "s"}, so this screen stopped asking`,
+        encountered: false,
+      });
+      continue;
+    }
     if (reads >= maxReads) {
       observations.push({
         candidate,
@@ -283,8 +327,22 @@ export async function screen({
       });
       continue;
     }
-    if (reads > 0) await pause(1200);
-    const { xml, note } = await getFullText(fullTextUrl(candidate.pmcid), fetchImpl);
+    if (reads + unanswered > 0) await pause(1200);
+    const { xml, note, unanswered: nonAnswer } = await getFullText(fullTextUrl(candidate.pmcid), fetchImpl);
+    if (nonAnswer) {
+      // Deferred, not rejected, and the clause says whose failure it was. Nothing was learned
+      // about this candidate, so nothing is recorded about it: it is eligible tomorrow on the
+      // same terms it was eligible today.
+      unanswered += 1;
+      observations.push({
+        candidate,
+        verdict: "deferred",
+        clause: "unanswered",
+        detail: note,
+        encountered: false,
+      });
+      continue;
+    }
     reads += 1;
     const fullText = extractBodyText(xml);
     // The methods section is extracted from the same XML and passed separately, because
@@ -314,6 +372,7 @@ export async function screen({
     hit_count: body?.hitCount ?? null,
     returned: candidates.length,
     full_text_reads: reads,
+    full_text_unanswered: unanswered,
     observations,
     selected,
   };
@@ -628,9 +687,18 @@ async function main() {
   console.log("");
   console.log(renderTable(report));
   console.log("");
+  // The unanswered count is printed only when it is non-zero, and it is printed next to the
+  // read count on purpose: those are the two halves of what the cycle's budget actually bought,
+  // and a screen whose pool was thinned by an outage must not read as a thin literature.
   console.log(
-    `screened ${report.returned} · ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(" · ") || "nothing"} · full-text reads ${report.full_text_reads}`
+    `screened ${report.returned} · ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(" · ") || "nothing"} · full-text reads ${report.full_text_reads}` +
+      (report.full_text_unanswered > 0 ? ` · unanswered by the archive ${report.full_text_unanswered}` : "")
   );
+  if (report.full_text_unanswered > 0) {
+    console.log(
+      `  NOTE: Europe PMC could not answer ${report.full_text_unanswered} full-text read(s) this cycle. Those candidates are deferred, not rejected — nothing was learned about them, and they cost no read slot.`
+    );
+  }
 
   let find = null;
   if (report.selected.length > 0) {
@@ -725,6 +793,9 @@ async function main() {
       `### agent scout — @${handle}`,
       "",
       `Screened **${report.returned}** candidates from Europe PMC (${report.window.from} → ${report.window.to}), read **${report.full_text_reads}** full texts.`,
+      ...(report.full_text_unanswered > 0
+        ? ["", `⚠️ Europe PMC could not answer **${report.full_text_unanswered}** full-text read(s). Those candidates are **deferred, not rejected** — this cycle's pool was thinned by the archive, not by the literature.`]
+        : []),
       "",
       renderTable(report),
       "",

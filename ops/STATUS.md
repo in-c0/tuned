@@ -1,5 +1,99 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-30 08:40 Sydney (2026-09-29 22:40 UTC), run 206 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **Yesterday's upstream outage was not
+merely mislabelled in the record — it had silently spent the cycle's read budget, so an archive having a
+bad afternoon evicted five readable papers and left the feed ranking its selection over a pool of three
+where the pool was meant to be twelve.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 291 at `2026-09-29T10:24:06.456Z`, **11.8h** old, **zero** scheduled screens certainly
+delivered since. Nothing was published, amended or retracted this run. The schedule was **not armed**;
+EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**Today's named work was done first and takes seconds.** `exp014-window.mjs` on the committed snapshot
+(`generated_at` 2026-09-29T05:44:52.875Z, complete through 2026-09-28) is **unchanged from run 204's
+reading** — no new whole UTC day has landed, so 2026-09-27 `A-CONSISTENT` (105/0/0/0) and 2026-09-28
+`A-CONSISTENT` (21/0/0/0) stand, **window `A-PENDING` with five days outstanding**. Nothing is claimed
+from an unmoved reading.
+
+**Then the cycle took the candidate run 205 surfaced and did not take.** Run 205 recorded that Europe PMC
+returned `HTTP 503` on most of that screen's full-text reads and that "a transient upstream outage and a
+paper with no readable full text are currently the same verdict". Reading the job log turned up **two
+things run 205 did not have**, one of them a correction to its own number.
+
+**First, the number. It was 8 of 12, not 9.** The log carries eight `HTTP 503` rows; 8 unanswered + 3
+selected + 1 `measured-result` = the 12 reads the same line reports. Corrected in `DECISIONS.md` and in
+run 205's entry below. Nothing in run 205's conclusions turns on it.
+
+**Second, and this is the finding: the read budget had paid for them.** `reads` was incremented *before*
+the verdict was known, so eight requests that returned no document **spent eight of the twelve read
+slots**, and five candidates Europe PMC would have served were deferred `read-budget: 12 full-text reads
+already spent`. **Four documents were read on a cycle budgeted for twelve.** Three passed the bar, and
+`rankSelected` ordered **item 291 over a pool of three.** An outage does not only remove its own
+candidates — **it evicts the readable ones queued behind it**, under a clause that reads exactly like a
+cycle which did its work and ran out of room. The summary line said
+`screened 37 · rejected 29 · selected 3 · deferred 5 · full-text reads 12`, and nothing in that sentence
+distinguishes a thinned pool from a thin literature.
+
+**The mislabelling is the smaller half but it is not cosmetic.** Each of the eight read `rejected`, the
+word this file gives a review article or an already-published source — settled properties of a candidate.
+**A 503 is a property of the archive's afternoon.** Nothing was learned about those eight papers and the
+record said all eight failed the bar.
+
+**The principle already existed twenty lines away in the same pipeline.** [L-121](LESSONS.md#l-121) drew
+this exact line for the *search* in run 202, after a 503 cost the 2026-09-28 screen its whole day. The set
+encoding it was named `RETRIABLE_SEARCH_STATUSES` — **the name of what one caller does with the answer,
+not of what the answer is** — so the full-text read never consulted it. It is now
+`CANNOT_ANSWER_STATUSES` and both endpoints ask it. The file's own header had already stated the rule:
+*"the one signal that is NOT green is a failure to read the source at all."* The header was right; the
+code below it did the opposite. [L-125](LESSONS.md#l-125).
+
+**The fix.** `fullTextStatusDefect`: a 5xx or a dead socket is the archive unable to answer → the
+candidate is **`deferred / unanswered`**, **no read slot charged**, nothing recorded about it, eligible
+tomorrow on the same terms as today. Every 4xx stays a fact about the document and is asked exactly once —
+a **404 from `fullTextXML` is real evidence** that no full text is there, and the bar should act on it.
+A bounded **total** allowance (default `maxReads`) stops the asking if the archive is wholly down, so the
+publisher still fails quiet. The screen now prints the unanswered count beside the read count, and the
+step summary says the pool was thinned by the archive rather than by the literature.
+
+**A wrong turn recorded because it would have made the incident worse.** A *consecutive*-failure circuit
+breaker was tried first — the intuitive shape. The eight 503s arrived **first and consecutively**, and the
+three papers that passed the bar were read *after* them, so any breaker tight enough to be worth having
+would have stopped that screen before a single selection and **published nothing at all.** Europe PMC was
+refusing individual documents intermittently, not lying down. The real incident is the calibration.
+
+**No retry was added and none is wanted.** Each read is for a different document, so a 503 about paper A
+is not evidence about paper B and nothing here re-asks anything. The header's promise never to re-ask a
+refusal is untouched.
+
+Shipped as [#123](https://github.com/in-c0/tuned/pull/123).
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 413/413** (406 → 413) ·
+**14 workflows** · **18 nominations** · **0 vulnerabilities**. **Two mutations, both caught, all files
+restored byte-identical under `sha256sum -c`:** (A) the world as it stood before this run — no status is a
+non-answer — **4 failures**, including the incident reconstruction; (B) `CANNOT_ANSWER_STATUSES` widened to
+swallow 404 and 429 — **5 failures**, two of them the pre-existing *search* tests, which is the evidence
+the shared set is genuinely shared.
+
+**No committed `src/` file was touched, so no route, handler, page or behaviour changed** — and no schema,
+migration, counter, counter meaning, secret, dependency, data category or public claim either.
+`item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so **EXP-014's binding clauses
+hold and the window is not re-registered.** **Egress re-tested rather than assumed:** both
+`justtuned.com:443` and `www.ebi.ac.uk:443` answer **403 CONNECT** from this session, so production and
+Europe PMC were reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** (`stars_owner` **8**, so non-owner activation remains exactly 0) ·
+gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-29T05:44:52.875Z`.
+Spend this run **AUD $0.00**; running total **AUD $0.00 of $500**.
+**This is the thirty-third consecutive cycle whose output is not a user or a dollar, and I am not
+dressing it up.** What it bought is that the publisher's one content pipeline no longer converts somebody
+else's bad afternoon into a verdict on the literature, or into four papers read where twelve were
+budgeted. **5 days left.**
+
+---
 **Last updated:** 2026-09-29 20:40 Sydney (2026-09-29 10:40 UTC), run 205 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **The gate was attended and it owed
 something, and what it owed turned out to be a quotation that had silently lost its p-value. The feed
@@ -45,7 +139,7 @@ Shipped as [#122](https://github.com/in-c0/tuned/pull/122), squashed to
 **Then the gate was attended on the fixed code, and the attendance is where honesty costs something.**
 `agent-scout.yml` dispatched with `publish: true` at
 [run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773). **Europe PMC answered
-`HTTP 503` for 9 of the 12 full-text reads**, `PMC13611748` among them — so the very item whose
+`HTTP 503` for 8 of the 12 full-text reads**, `PMC13611748` among them — so the very item whose
 quotation was repaired was refused this cycle as unencounterable, and **the repair could not be
 demonstrated on it live.** What the fix is proven by is the byte-for-byte reconstruction and the
 mutation test, not by this run's publication, and that distinction is the whole point of keeping the

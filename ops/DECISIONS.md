@@ -7877,7 +7877,7 @@ No item published, amended, retracted or restored. No fork text edited and no th
 - Shipped as **PR #122 → `f22e959`**. No `src/` file touched; EXP-014's binding clauses hold.
 - **Gate attended on the fixed code** (`publish: true`,
   [run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773)). Europe PMC returned
-  **HTTP 503** for 9 of 12 full-text reads including `PMC13611748`, so the repaired item was refused as
+  **HTTP 503** for 8 of 12 full-text reads including `PMC13611748`, so the repaired item was refused as
   unencounterable and **the fix was not demonstrated live on it** — it is proven by the byte-for-byte
   reconstruction and the mutation test instead. Published **item 291** (`PMC13468772`), whose why-line
   carries **no quotation**: none of 9 sentences qualified. Gate now `CURRENT`.
@@ -7888,3 +7888,37 @@ No item published, amended, retracted or restored. No fork text edited and no th
   being reviewable.
 - **No metric moved and none is claimed.** Spend this run **AUD $0.00**; running total **AUD $0.00 of
   $500**.
+
+## 2026-09-30 — run 206: the outage was recorded as a verdict on the papers it prevented reading
+
+- **Correction to run 205's own record, made here because the number is load-bearing for this run:**
+  run 205 reported Europe PMC answering `HTTP 503` for **9** of 12 full-text reads. The job log for
+  [run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773) shows **8** such rows
+  (8 unanswered + 3 selected + 1 `measured-result` = the 12 reads it also reported). Corrected in the
+  line above and in `ops/STATUS.md`. Nothing else in run 205's conclusions turns on it.
+- **Decision:** take the candidate run 205 surfaced and did not take — that a transient upstream outage
+  and a paper with no readable full text were the same verdict — rather than the standing list's
+  find-page work, which stays deferred until after 2026-10-03 on EXP-014's binding clause.
+- **What the evidence turned out to be, and it is worse than the mislabelling.** The eight 503'd
+  candidates were recorded `rejected / encountered`, the same verdict word this file gives a review
+  article. But `reads` was incremented before the verdict was known, so the eight non-answers **spent
+  eight of the twelve read slots**, and five candidates Europe PMC would have served were deferred
+  `read-budget`. **Four documents were read on a cycle budgeted for twelve**, and `rankSelected` ordered
+  item 291 over a pool of **three**. An outage evicts the readable candidates queued behind it, under a
+  clause that reads like a cycle which merely ran out of room.
+- **Fix:** `fullTextStatusDefect` draws on the full-text endpoint the same refusal-vs-non-answer line
+  [L-121](LESSONS.md#l-121) drew for the search in run 202. A 5xx or dead socket → `deferred /
+  unanswered`, **no read slot charged**, nothing recorded about the candidate. Every 4xx stays a fact
+  about the document and is asked exactly once — a 404 from `fullTextXML` is real evidence the archive
+  has no full text there. The set is renamed `CANNOT_ANSWER_STATUSES` and both endpoints consult it;
+  it was named for one caller, which is why the other never did.
+- **A wrong turn recorded because it would have made the incident worse:** a *consecutive*-failure
+  breaker was tried first. The eight 503s arrived first and consecutively and the three selections were
+  read after them, so any breaker worth having would have published **nothing** that cycle. A bounded
+  **total** allowance (default `maxReads`) is what survives the real incident.
+- **Not done, deliberately:** no retry was added. Each read is a different document, so nothing here
+  retries anything, and the file header's promise never to re-ask a refusal is untouched. The schedule
+  was **not armed** (EXP-013 threshold 2 unruled, run 153's pre-commitment stands). No `src/` file
+  touched, so EXP-014's binding clauses hold and the window is not re-registered.
+- **No commercial metric moved and none is claimed.** Spend this run **AUD $0.00**; running total
+  **AUD $0.00 of $500**.

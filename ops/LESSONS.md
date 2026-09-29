@@ -5598,3 +5598,66 @@ transformed copy of its own source cannot see the transformation.* When code ass
 verbatim, unchanged, round-trips, byte-identical — ask what it is comparing **to**, and whether that
 reference has already been through the step the assertion is supposed to be grading. Here the answer
 was yes, and the assertion had been passing confidently for every item this feed has published.
+
+---
+
+## L-125 — the outage was recorded as a verdict on the papers it prevented reading (2026-09-30, run 206)
+
+**The situation.** The 2026-09-29 scheduled screen
+([run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773)) asked Europe PMC for
+twelve full texts. **Eight came back `HTTP 503`.** Each of the eight was recorded like this:
+
+> `| rejected | PMC13507792 | The preceding eccentric phase enhances mechanical output … | encountered: full text unreadable or too short (0 chars, need 6000) — HTTP 503 |`
+
+**`rejected` is the word this file uses for a review article and for an already-published source** —
+permanent properties of a candidate, settled facts, correctly never revisited. A 503 is not a property
+of the candidate. It is not a property of the paper. **Nothing whatsoever was learned about those eight
+documents**, and the record said all eight had failed the bar. The status was *in* the detail string, so
+this was legible to anyone who read twelve detail strings; what was wrong was the **verdict**, which is
+the field everything downstream counts.
+
+**The expensive half, which the mislabelling hid.** `reads` was incremented *before* the verdict was
+known, so eight requests that returned no document **spent eight of the twelve read slots**. Five
+candidates Europe PMC would have served were then deferred `read-budget: 12 full-text reads already
+spent`. **Four documents were read on a cycle budgeted for twelve.** Three passed the bar, and
+`rankSelected` ordered item 291 over a pool of **three** where the pool was meant to be twelve.
+
+So an outage does not merely remove its own candidates from the running — **it evicts the readable ones
+queued behind it**, and it does so invisibly, because `read-budget` is the language of a cycle that did
+its work and simply ran out of room. The screen's summary line read
+`screened 37 · rejected 29 · selected 3 · deferred 5 · full-text reads 12`, and there is nothing in that
+sentence a later run could use to tell a thinned pool from a thin literature.
+
+**The principle already existed twenty lines away.** [L-121](#l-121) drew exactly this line for the
+*search* endpoint in run 202, after a 503 cost the 2026-09-28 screen its whole day: *the service said
+no* versus *the service could not say*. The set that encoded it was named `RETRIABLE_SEARCH_STATUSES` —
+**the name of what one caller does with the answer, not the name of what the answer is** — and so the
+full-text read, in the same pipeline, never thought to consult it. It is now `CANNOT_ANSWER_STATUSES`
+and both endpoints ask it.
+
+And the file's own header had already written the rule down: *"the one signal that is NOT green is a
+failure to read the source at all, because that is the loop's instruments lying rather than the
+literature being thin."* The header was right. The code below it did the opposite.
+
+**The fix.** `fullTextStatusDefect` splits the two: a 5xx or a dead socket is the archive unable to
+answer, and the candidate is **`deferred / unanswered`** — no read slot charged, nothing recorded about
+it, eligible tomorrow on the same terms as today. Every 4xx stays a fact about the document and is asked
+exactly once: a **404 from `fullTextXML` is real evidence** that this document has no full text there,
+and the bar should act on it. A bounded total allowance (default `maxReads`) stops asking if the archive
+is wholly down, so the publisher still fails quiet.
+
+**A wrong turn worth recording, because it would have made the incident worse.** The first design was a
+*consecutive*-failure circuit breaker, which is the intuitive shape. The eight 503s arrived **first and
+consecutively**, and the three papers that passed the bar were read *after* them — so any breaker tight
+enough to be worth having (four, five) would have stopped that screen before it reached a single one of
+its selections and **published nothing at all.** Europe PMC was refusing individual documents
+intermittently, not lying down. The real incident is the calibration, and a total allowance is what
+survives it.
+
+**The cheap habit.** *When an instrument fails, ask whether the failure was written down as a finding.*
+A verdict field is a claim about the subject; a transport failure is a claim about the instrument, and
+the two must not share a vocabulary. The tell is a status code appearing inside a detail string whose
+verdict names the subject — as here, where `rejected … — HTTP 503` put the instrument's excuse and the
+paper's supposed failing in one sentence. And **check what the failure spent**: a budget consumed by a
+failed attempt silently converts one outage into a second, larger loss with a different and entirely
+innocent-looking name.

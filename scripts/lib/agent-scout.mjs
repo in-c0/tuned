@@ -531,9 +531,16 @@ export function searchResponseDefect(body, results = parseSearchResults(body)) {
   return "";
 }
 
-/** The statuses on which the search may be asked again, and nothing wider. The server-side
- *  "could not": 500, 502, 503 and 504. */
-const RETRIABLE_SEARCH_STATUSES = new Set([500, 502, 503, 504]);
+/** The statuses that are the service reporting it COULD NOT answer, as against declining to.
+ *  The server-side "could not": 500, 502, 503 and 504, and nothing wider.
+ *
+ *  ONE SET, TWO ENDPOINTS, BECAUSE THIS IS A PROPERTY OF THE STATUS CODE AND NOT OF THE
+ *  CALLER. It was named for the search alone until run 206, which is the name of what the
+ *  search happens to DO with the answer rather than the name of what the answer IS — and a set
+ *  named after one caller's reaction is a set the other caller never thinks to consult. That is
+ *  exactly what happened: `searchStatusDefect` drew this line in run 202 and the full-text
+ *  read, in the same pipeline, never drew it at all. */
+const CANNOT_ANSWER_STATUSES = new Set([500, 502, 503, 504]);
 
 /** Whether a non-2xx status from the search endpoint is a REFUSAL or a NON-ANSWER — the same
  *  distinction `searchResponseDefect` draws for a body, on the axis a status arrives on.
@@ -567,8 +574,43 @@ const RETRIABLE_SEARCH_STATUSES = new Set([500, 502, 503, 504]);
  *  forbids. 501 is a permanent "will not" and stays a refusal too. Widening this set requires
  *  an observed failure, never a taxonomy. */
 export function searchStatusDefect(status) {
-  if (!RETRIABLE_SEARCH_STATUSES.has(status)) return "";
+  if (!CANNOT_ANSWER_STATUSES.has(status)) return "";
   return `HTTP ${status} from Europe PMC search, which is the service unable to answer rather than declining`;
+}
+
+/** The same distinction on the FULL-TEXT endpoint, where until run 206 it was never drawn at
+ *  all. Returns "" when the archive declined or has nothing — a fact about this document —
+ *  and a sentence when the archive could not answer, which is a fact about the archive.
+ *
+ *  WHAT WENT WRONG WITHOUT IT, and it is worse than the mislabelling. On the 2026-09-29
+ *  scheduled screen (run 36555144773) Europe PMC answered `HTTP 503` to **8 of 12** full-text
+ *  reads. Each was recorded `rejected / encountered: full text unreadable or too short (0
+ *  chars, need 6000)` — the same verdict word this file gives a review article or an
+ *  already-published source, which are permanent properties of a candidate. A 503 is not a
+ *  property of the candidate and not a property of the paper. Nothing whatsoever was learned
+ *  about those eight documents, and the record said they had failed the bar.
+ *
+ *  AND THE READ BUDGET PAID FOR THEM. `reads` was incremented before the verdict was known,
+ *  so eight requests that returned no document consumed eight of the twelve read slots, and
+ *  five candidates Europe PMC would have served were deferred `read-budget: 12 full-text reads
+ *  already spent`. **Four documents were read on a cycle budgeted for twelve**, three passed
+ *  the bar, and `rankSelected` ordered item 291 over a pool of three where the pool was meant
+ *  to be twelve. An outage does not merely remove its own candidates from the running — it
+ *  evicts the readable ones queued behind them, and it does so silently, because `read-budget`
+ *  is the language of a cycle that did its work.
+ *
+ *  The screen's own header was already right and was describing a case it did not implement:
+ *  "the one signal that is NOT green is a failure to read the source at all, because that is
+ *  the loop's instruments lying rather than the literature being thin."
+ *
+ *  THE LINE IS THE SAME LINE, deliberately. Every 4xx stays a document fact and is asked
+ *  exactly once: a 404 from `fullTextXML` is the archive saying this document has no full text
+ *  here, which is real evidence and the bar should act on it. 429 stays a refusal for the
+ *  reason the file header gives. Widening this set wants an observed failure, never a
+ *  taxonomy. */
+export function fullTextStatusDefect(status) {
+  if (!CANNOT_ANSWER_STATUSES.has(status)) return "";
+  return `HTTP ${status} from Europe PMC full text, which is the archive unable to answer rather than this document having no full text`;
 }
 
 /** What an unusable search response actually was, in a form safe to print in a public log.
