@@ -61,10 +61,19 @@ cannot classify. It does **not** judge whether a grade is right — that is an a
 [L-123](LESSONS.md#l-123).
 
 **Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 402/402** (381 → 402) ·
-**14 workflows** · **17 nominations** · **0 vulnerabilities**. **The guard is red on the tree as it
-stood before this run, naming all eight past-due horizons** — the only evidence it would have caught
-this on 2026-08-23 rather than on day 54 of 60. Three mutations, all caught, files restored
-byte-identical under `sha256sum -c`.
+**14 workflows** · **17 nominations** · **0 vulnerabilities**.
+
+**Three mutations, all caught, every file restored byte-identical under `sha256sum -c`.**
+
+| mutation | what it is | result |
+| --- | --- | --- |
+| **A** | `ops/MILESTONES.md` exactly as it stood on `master` before this run | guard **exit 1**, naming **all eight** past-due horizons; suite **red** |
+| **B** | the escape hatch widened from `closed, ungraded` to the bare word `ungraded` | **2 failures** — declining to grade stops being deliberate |
+| **C** | prospective given precedence over terminal, so the 1-week entry's `condition 2 MISSED` reads as ungraded | **1 failure** — a grade that narrates what is not met is still a grade |
+
+**Mutation A is the one that matters: the guard is red on the world as it stood before this run**, which
+is the only evidence it would have caught this on **2026-08-23** — the day after the 2-week horizon
+closed — rather than on day 54 of 60.
 
 **Deliberately not done, each for a stated reason rather than by omission.** The **far-side browser
 bracket** (Amendment 2, genuinely owed) is **deferred to near 2026-10-03**, where one dispatch brackets
