@@ -7792,3 +7792,70 @@ still disarmed and EXP-013's threshold-2 re-specification is still unruled.
   `qa/pulse-instrument.spec.mjs` gives about EXP-007 — one pre-window check cannot foresee a beacon
   detaching midway.
 - **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**
+
+## 2026-09-29 — run 204: the read-order file nobody had to maintain, and the two horizons that closed ungraded
+
+**Context.** The gate was attended first and read **CURRENT** (item 290 at 2026-09-28T10:18:23.385Z,
+17.9h old, zero scheduled screens certainly delivered since); nothing was owed, published, amended or
+retracted, and the schedule was **not armed**. Run 203 named today's work as grading EXP-014 on the
+fresh snapshot. That was done, it took seconds, and it is recorded as **Reading 2** in
+[EXPERIMENTS.md](EXPERIMENTS.md): 2026-09-28 is the window's second whole UTC day, `A-CONSISTENT`,
+window verdict **`A-PENDING`** with five days outstanding. A reading that takes seconds is not a
+cycle's work, so the cycle went looking for the highest-value bounded action and found it in the read
+order itself.
+
+**Decision: grade the two closed near-term horizons, retire the sub-day ladder rather than re-anchor
+it, and make the obligation execute.**
+
+**What was wrong.** `ops/MILESTONES.md` is item 3 in the operating card's read order — every run must
+open it for "the nearest active horizon" — and it had not been touched since 2026-08-13. The **2-week**
+(2026-08-22) and **1-month** (2026-09-08) horizons had closed 38 and 21 days earlier and still read
+`not started` with prospective next actions. Six sub-day windows whose own text calls them "re-anchored
+at the start of each run" were still anchored at run 20 with next actions completed 2026-08-08.
+`DASHBOARD.md` §3 — the **owner's** view — named a window that closed 2026-08-08 12:30 UTC as the
+nearest falsifiable milestone, and had the ladder anchored at run 18 where MILESTONES had run 20: the
+two mirrors never agreed. Full finding: [L-123](LESSONS.md#l-123).
+
+**The grades, both MISSED, sourced from [`ops/metrics/latest.json`](metrics/latest.json) `totals` and
+`retention` (`generated_at` 2026-09-29T00:30:53.032Z).**
+
+- **2 weeks — MISSED.** No payment-provider account, no checkout, no billing code in `src/`. Gross cash
+  **AUD $0** from *no billing exists*, not from a reading. `applications` **0**, so the ≥3-people
+  willingness-to-pay condition has never had a candidate. Graded MISSED and **not** `blocked`: a
+  horizon is graded on whether its outcome exists, not on whose boundary blocked it, and recording a
+  blocker in the status field is how a closed commitment quietly stops being one.
+- **1 month — MISSED**, and the grade turns on a distinction the raw counters hide. `stars` **8** and
+  `skips` **33** are non-zero, which reads like activation — but `stars_owner` **8** and `skips_owner`
+  **33** with `owner_resolved` **1**, so **non-owner activation is exactly 0**.
+  `members_returned_after_first_day` **0** and `members_ever_active` **0**. A horizon graded off the
+  unsuffixed names alone would have been graded *passed*.
+
+**Retired, not re-anchored, and `closed, ungraded` rather than `achieved`.** Six fresh sub-day
+commitments six days before the final operating date would be manufactured commitments. Five of the six
+describe outcomes that did occur on 2026-08-08, and marking them `achieved` 46 days later is the
+reconstruction MILESTONES' own anti-invention rule forbids — **a rule that is symmetric: inventing a
+retrospective failure is no better than inventing a retrospective achievement.** The grade belonged to
+the next run on fresh evidence; no run made it; what is recorded is that the window closed and nobody
+graded it.
+
+**Why this outranked the alternatives available today.**
+
+- **The far-side browser bracket** (Amendment 2, genuinely owed) is **deferred on purpose, not
+  skipped**: taken today it covers one day more than run 201's near-side check already does, while the
+  same dispatch near 2026-10-03 brackets the whole window.
+- **The find page's follow block is JS-only** — the `Follow` button is a bare `<button>` and the
+  `<dialog>` carrying the working RSS URL is `display:none` without script, so for the **126
+  non-rendering requests of the last two days the whole block is inert**. Real defect, **deliberately
+  not touched**: EXP-014's binding clause re-registers the window from the day after any find-page
+  script deploy, which would spend the loop's last open experiment to fix a path whose observed
+  population is machines. **Recorded here as the first candidate for after 2026-10-03.**
+- **`rankSelected`** still orders on statistic families first, and that key is measured over the full
+  text where key 3 is body length — plausibly the same confound twice. Left alone: with zero readers
+  there is no evidence to argue it on, and substituting this run's taste for the registered bar is not
+  a finding.
+
+**Reversibility.** Two new files under `scripts/` and prose in five ops files. No `src/` file, no route,
+schema, migration, counter, counter meaning, secret, dependency, page, data category or public claim.
+No item published, amended, retracted or restored. No fork text edited and no threshold moved.
+
+- **Spend this run: AUD $0.00. Running total: AUD $0.00 of $500.**

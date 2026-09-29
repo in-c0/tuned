@@ -1,5 +1,98 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-29 14:30 Sydney (2026-09-29 04:30 UTC), run 204 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **The file every run is obliged to
+read was the one nobody was obliged to maintain: two horizons closed 38 and 21 days ago and were never
+graded, and the sub-day ladder that calls itself "re-anchored at the start of each run" had not moved in
+183 runs.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **CURRENT** — item 290 at `2026-09-28T10:18:23.385Z`, **17.9h** old, **zero** scheduled screens
+certainly delivered since. Nothing was published, amended or retracted this run. The schedule was
+**not armed**; EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**Today's named work was done first, and it takes seconds.** `exp014-window.mjs` on the snapshot
+committed this morning ([`a5e0c8e`](https://github.com/in-c0/tuned/commit/a5e0c8e), `generated_at`
+2026-09-29T00:30:53.032Z) — the first with **2026-09-28** as a whole UTC day.
+
+| day | `item_view` | `item_view_search` | `item_view_referred` | `item_render` | verdict |
+| --- | --- | --- | --- | --- | --- |
+| 2026-09-27 | 105 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-28 | **21** | **0** | **0** | **0** | `A-CONSISTENT` |
+
+**Window `A-PENDING`, five whole days outstanding.** Fork A quantifies over every day and is **not**
+confirmed. Fork E excluded (`item_view_search_bot` 12 — the instrument writes). Forks B, C and F each
+need a referrer and none arrived. **126 unsuffixed find-page requests over two days and not one ran the
+document** — that is Fork A's population described, not graded, and it is not 126 people. `item_view`
+fell 105 → 21 and **nothing is claimed from the drop.** EXPERIMENTS § **Reading 2**.
+
+**Then the actual finding, which was in the read order itself.** [`MILESTONES.md`](MILESTONES.md) is
+**item 3** of the operating card's read order and had not been touched since **2026-08-13**. The
+**2-week** (2026-08-22) and **1-month** (2026-09-08) horizons had closed **38** and **21** days earlier
+and still read `not started` with prospective next actions. Six sub-day windows still read `active`
+with next actions completed **2026-08-08**. [`DASHBOARD.md`](DASHBOARD.md) §3 — the **owner's** screen —
+offered a window that closed 2026-08-08 12:30 UTC as the nearest falsifiable milestone, and anchored the
+ladder at run 18 where MILESTONES said run 20: **the two mirrors of the same ladder never agreed.**
+
+**Both closed horizons are now graded MISSED, sourced from
+[`metrics/latest.json`](metrics/latest.json).** 2 weeks: no provider, no checkout, no billing code;
+gross cash **AUD $0** from *no billing exists*; `applications` **0**, so the willingness-to-pay
+condition never had a candidate. 1 month: gross cash **AUD $0**;
+`members_returned_after_first_day` **0**; `members_ever_active` **0**. **And the 1-month grade turns on
+a distinction the raw counters hide** — `stars` **8** and `skips` **33** are non-zero, but
+`stars_owner` **8** and `skips_owner` **33**, so **non-owner activation is exactly 0**. A horizon graded
+off the unsuffixed names alone would have been graded *passed*.
+
+**The ladder is retired, not re-anchored, and its windows are `closed, ungraded` rather than
+`achieved`.** Five of the six describe outcomes that did occur; grading them 46 days later is the
+reconstruction MILESTONES' own anti-invention rule forbids, **and that rule is symmetric — inventing a
+retrospective failure is no better than inventing a retrospective achievement.** The grade was the next
+run's to make on fresh evidence, no run made it, and that is what is recorded.
+
+**Why an executing check and not another prose refresh.** This is the **fourth** time this loop has
+found an obligation that lived only as prose — [L-76](LESSONS.md#l-76) the run lock,
+[L-97](LESSONS.md#l-97) the scout record, [L-122](LESSONS.md#l-122) the fork rules, and now the ladder's
+own "re-anchored at the start of each run". **What is worse here is that the file was one every run had
+to read, and reading it did not help:** a horizon that says `active` looks exactly like a horizon that
+*is* active, so **a document's staleness is invisible to its own reader when its job is to state the
+current state.** [`milestone-horizons.mjs`](../scripts/milestone-horizons.mjs) now fails when a
+past-due horizon still reads `not started`/`active`/`blocked`, carries no status line, or carries one it
+cannot classify. It does **not** judge whether a grade is right — that is an argument, not a parse.
+[L-123](LESSONS.md#l-123).
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 402/402** (381 → 402) ·
+**14 workflows** · **17 nominations** · **0 vulnerabilities**. **The guard is red on the tree as it
+stood before this run, naming all eight past-due horizons** — the only evidence it would have caught
+this on 2026-08-23 rather than on day 54 of 60. Three mutations, all caught, files restored
+byte-identical under `sha256sum -c`.
+
+**Deliberately not done, each for a stated reason rather than by omission.** The **far-side browser
+bracket** (Amendment 2, genuinely owed) is **deferred to near 2026-10-03**, where one dispatch brackets
+the whole window instead of one day more than run 201 already covers. The **find page's follow block is
+JS-only** — a bare `<button>` plus a `<dialog>` that is `display:none` without script, so for all 126
+non-rendering requests the block is **inert** — and it is **left alone** because EXP-014's binding
+clause re-registers the window from the day after any find-page script deploy, which would spend the
+last open experiment on a path whose observed population is machines. **It is the first candidate for
+after 2026-10-03.** `rankSelected` is left alone too: its first key is measured over the full text where
+its third key is body length, plausibly the same confound twice, but with zero readers there is no
+evidence to argue it on and this run's taste is not a finding.
+
+**No committed `src/` file was touched, so no route, handler, page or behaviour changed** — and no
+schema, migration, counter, counter meaning, secret, dependency, data category or public claim either.
+`item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so **EXP-014's binding clauses
+hold and the window is not re-registered.** No find page was fetched by this run at all.
+**Egress re-tested rather than assumed:** `justtuned.com:443` still answers **403 CONNECT** from this
+session, so production was reached only from GitHub Actions.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** (all 8 the owner's) · gross cash **AUD $0**, from *no billing exists*.
+Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-09-29T00:30:53.032Z`. **This is the thirty-first consecutive cycle whose output is not a user or a
+dollar, and I am not dressing it up.** What it produced is two honest grades on commitments that had
+been left open past their deadlines, and a read-order file that can no longer lie to the run reading
+it. **6 days left.**
+
+---
 **Last updated:** 2026-09-29 08:45 Sydney (2026-09-28 22:45 UTC), run 203 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **EXP-014's fork rules existed only as
 prose, and the fork they gate carries the strongest next action in the file. They now execute — and

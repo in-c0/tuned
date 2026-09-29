@@ -1820,24 +1820,28 @@ baseline, forecast or traction claim.
 All sixteen, from [MILESTONES.md](MILESTONES.md) — that file carries the full evidence conditions; this
 is the index.
 
-**Sub-day ladder anchor:** run 18, **2026-08-08 09:30 UTC / 19:30 Sydney**. It is rolling — re-anchored
-at the start of each run. Run 17's rungs are graded below **by this run**, not by the one that set them. These six horizons did not exist before the owner requested them at
-[07:04 UTC today](https://github.com/in-c0/tuned/issues/1#issuecomment-5225045057), so **no grade is
-assigned to any sub-day window that closed before that**; inventing retrospective achievements is the
-one thing this ladder must not do.
+**Sub-day ladder: RETIRED 2026-09-29 (run 204).** It was last anchored here at **run 18**, while
+[MILESTONES.md](MILESTONES.md) had it anchored at **run 20** — the two mirrors never agreed, which is
+its own argument for not carrying a hand-maintained ladder. Its text called it rolling and
+re-anchored each run; nothing executed that, and it stood unchanged for roughly 183 runs. Every window
+on it is now **`closed, ungraded`**: five describe outcomes that did occur on 2026-08-08, and grading
+them 46 days later would be the retrospective reconstruction this ladder was written to prevent —
+a rule that cuts against inventing a failure exactly as hard as against inventing an achievement.
+`scripts/milestone-horizons.mjs` now fails CI when any closed horizon still reads as prospective, so
+this cannot rot silently again. See [L-123](LESSONS.md#l-123).
 
 | Horizon | Target | Outcome in one line | Status | Blocker | Next action |
 | --- | --- | --- | --- | --- | --- |
-| 15 min | 09:45 UTC | EXP-003 pre-registered **and committed** before any production reading | **achieved** 09:38 UTC | cleared | — ([`b62bf08`](https://github.com/in-c0/tuned/commit/b62bf083cbdeeb74ab6e81b134a5473d2cd7fc3b)) |
-| 30 min | 10:00 UTC | A real browser has answered *can a visitor apply?* against live production, at both widths | **achieved** 09:47 UTC | cleared | — ([run 31251303499](https://github.com/in-c0/tuned/actions/runs/31251303499)) |
-| 1 hour | 10:30 UTC | Any defect the mechanism test exposes is fixed and verified live, or recorded as deliberately unfixed | **achieved** 09:47 UTC | cleared | — ([`5ef6970`](https://github.com/in-c0/tuned/commit/5ef6970b50487cace86fb4fbdbac8d7a33e2afba)) |
-| 3 hours | 12:30 UTC | The next run does **not** spend its cycle on a copy rewrite or another instrument — falsified if the next claim picks either without a directive requiring it | active | needs a next run to grade | hold the line in the run-19 claim |
-| 6 hours | 15:30 UTC | Owner has an explicit, single decision in front of them: authorize a first channel, or say what to do instead | active | owner is asleep — 19:30 Sydney | surfaced in the run-18 report; do not re-ask |
-| 12 hours | 21:30 UTC | ≥1 arrival is **known** to be human, or a recorded reason none can be | not started | owner authorization for a first channel | nothing executor-side unblocks this |
+| 15 min | 2026-08-08 09:45 UTC | EXP-003 pre-registered **and committed** before any production reading | **`closed, ungraded`** — ladder retired 2026-09-29 | — | none; the window is closed |
+| 30 min | 2026-08-08 10:00 UTC | A real browser has answered *can a visitor apply?* against live production | **`closed, ungraded`** — ladder retired 2026-09-29 | — | none; the window is closed |
+| 1 hour | 2026-08-08 10:30 UTC | Any defect the mechanism test exposes is fixed and verified live, or recorded as deliberately unfixed | **`closed, ungraded`** — ladder retired 2026-09-29 | — | none; the window is closed |
+| 3 hours | 2026-08-08 12:30 UTC | The next run does **not** spend its cycle on a copy rewrite or another instrument | **`closed, ungraded`** — ladder retired 2026-09-29; its own text said the next run must grade it, and none did | — | none; the window is closed |
+| 6 hours | 2026-08-08 15:30 UTC | Owner has an explicit, single decision in front of them | **`closed, ungraded`** — ladder retired 2026-09-29 | — | none; the window is closed |
+| 12 hours | 2026-08-08 21:30 UTC | ≥1 arrival is **known** to be human, or a recorded reason none can be | **`closed, ungraded`** — ladder retired 2026-09-29 | — | none; the window is closed |
 | 1 day | 2026-08-09 | The funnel is readable — one authenticated snapshot | **achieved** 2026-08-08 | cleared | — |
 | 1 week | 2026-08-15 | ≥3 consecutive daily snapshots; constraint identified as conversion or distribution; EXP-002 graded if it ran | **condition 1 MET** (5 snapshots) · **condition 2 MISSED**, graded 2026-08-13 Sydney per the 2026-08-11 precommitment. Run 34's withdrawal does not disturb the grade — it reinforces it: *"if it ran"* was never satisfied, and the experiment is now `INVALIDATED / NOT STARTED` and never will be | — | **No owner action.** The grade is recorded, not renegotiated; an inadmissible packet does not excuse a publication that never happened |
-| 2 weeks | 2026-08-22 | A real payment path exists; first genuine willingness-to-pay evidence — or the wedge is falsified | not started | payment-provider account is an owner boundary | request the account once demand exists |
-| 1 month | 2026-09-08 | First gross cash; activation measured, not assumed | not started | all of the above, in order | decided by the baseline |
+| 2 weeks | 2026-08-22 | A real payment path exists; first genuine willingness-to-pay evidence — or the wedge is falsified | **MISSED**, graded 2026-09-29 — no provider, no checkout, no billing code; gross cash **AUD $0** from *no billing exists*; `applications` **0**, so nobody was ever asked a price | payment-provider account is an owner boundary ([L-07](LESSONS.md)) | none; the window is closed. The wedge is **not** falsified either — nothing was learned about willingness to pay |
+| 1 month | 2026-09-08 | First gross cash; activation measured, not assumed | **MISSED**, graded 2026-09-29 — gross cash **AUD $0**; `members_returned_after_first_day` **0** and `members_ever_active` **0**; `stars` 8 = `stars_owner` 8 and `skips` 33 = `skips_owner` 33, so non-owner activation is exactly **0** | no payment path and no arrival | none; the window is closed |
 | 3 months | 2026-11-08 | A small **retained paying cohort** | not started — *past the 2026-10-05 operating date; owner's to carry* | everything above | hand over an honest cohort table at closeout |
 | 6 months | 2027-02-08 | Multiplayer earns its place: followed attention retains better than the solo desk | not started (directional) | wedge unproven | — |
 | 1 year | 2027-08-08 | Provenance is the reason people stay; agent creators have identity and distribution | not started (directional) | — | — |
@@ -1845,8 +1849,12 @@ one thing this ladder must not do.
 | 5 years | 2031-08 | Attention provenance is infrastructure, verifiable rather than claimed | not started (directional) | — | — |
 | Indefinite | — | Humans contribute **attention, not content**; provenance never blurred, never fabricated | standing doctrine | — | — |
 
-**Nearest falsifiable milestone that is not this run's own paperwork: the 3-hour one** — establish
-whether the apply path works at all.
+**Nearest falsifiable milestone: none is open.** Every near-term horizon has closed and is graded —
+1 day `achieved`, 1 week `condition 1 MET / condition 2 MISSED`, 2 weeks **MISSED**, 1 month
+**MISSED**. The next dated horizon is **3 months (2026-11-08)**, which falls past the
+**2026-10-05** final operating date and is the owner's to carry. This line previously read *"the
+3-hour one — establish whether the apply path works at all"*, a window that closed 2026-08-08
+12:30 UTC and was still being offered to the owner as the nearest milestone 52 days later.
 
 ## 4. Funnel, revenue and spend
 

@@ -4084,3 +4084,48 @@ of the four variables: once Fork E is decided, no day falls under no fork.
 **Nothing here is demand.** `applications` **0** · `members` **1** · `followers` **0** · gross cash
 **AUD $0**, from *no billing exists*. 105 requests that executed no JavaScript are not 105 people, and
 EXP-014's own "what this cannot show" section forbids reading them as any.
+
+### Reading 2 — the second whole day, taken by the grader rather than by eye (2026-09-29 ~04:24Z, run 204)
+
+**Taken with `node scripts/exp014-window.mjs` against the snapshot committed this morning**
+([`a5e0c8e`](https://github.com/in-c0/tuned/commit/a5e0c8e), `generated_at`
+2026-09-29T00:30:53.032Z), which is the first snapshot generated at or after
+`2026-09-29T00:00:00Z` and therefore the first on which **2026-09-28 is a whole UTC day**. No
+threshold, fork text or amendment was touched to take this reading, and the grader was not edited.
+
+| day | `item_view` | `item_view_search` | `item_view_referred` | `item_render` | verdict |
+| --- | --- | --- | --- | --- | --- |
+| 2026-09-27 | 105 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-28 | **21** | **0** | **0** | **0** | `A-CONSISTENT` |
+
+**Window verdict: `A-PENDING`. Five whole days remain** (2026-09-29 … 2026-10-03), and Fork A
+quantifies over every one of them, so it is still **not** confirmed and must not be reported as
+confirmed. Forks B, C and F each require a referrer; **none has arrived on either day**, so none of
+the three has fired and Amendment 2's browser-bracket gate does not bind this reading either. **Fork E
+is excluded** on `item_view_search_bot` = 12 for 2026-09-28 — the instrument wrote.
+
+**Two days, 126 unsuffixed find-page requests, and not one ran the document.** `item_render` reads 0 on
+both. That is Fork A's population described for a second day, and it is **not** an arrival number: 126
+requests that executed no JavaScript are not 126 people, and no arrival, visitor, subscriber or dollar
+is claimed from either day.
+
+**`item_view` fell from 105 to 21.** Recorded because a later run will see it, and claimed as nothing:
+a fifth of the previous day's machine traffic is still machine traffic, the drop is consistent with any
+crawler's own scheduling, and this experiment has no name that could attribute it.
+
+**The predicted first-party writes on 2026-09-28 all landed where run 203 said they would**, which is
+its own small confirmation that the declarations are being kept honestly: `item_render_bot` **1**
+(run 201's liveness check, exactly as declared), `item_view_bot` **95**, `item_view_search_bot` **12**
+(`verify production` runs × 2). **Not one of them touches an unsuffixed name**, so no graded figure
+above carries first-party traffic.
+
+**Binding clauses honoured, named rather than asserted.** `item_render`'s emitter is **unedited** and
+`SEARCH_REFERRERS` is **untouched**, so the window is **not** re-registered. No find page was fetched
+by this run at all, by hand or by workflow, beyond `verify-production.yml`'s own two referred requests
+per run, which land in `_bot` by construction and are Fork E's detector.
+
+**Still owed before the window's reading is called final:** Amendment 2's **far-side browser bracket**
+on `item_render`. Run 201's observation is the near side. It is deliberately **not** taken today —
+a bracket on 2026-09-29 covers one day more than the near side already does, while the same dispatch
+near **2026-10-03** brackets the whole window. That is a timing judgement, recorded so a later run
+reads it as deferred rather than forgotten.
