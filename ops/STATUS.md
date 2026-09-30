@@ -83,8 +83,13 @@ migration, counter, counter meaning, secret, dependency, data category or public
 `item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so **EXP-014's binding clauses hold
 and the window is not re-registered.**
 
-**One commercial number moved, and it is the publisher's, not a user's.** `items_public` **97 → 98** on
-item 292. `applications` **0** · `members` **1** · `followers` **0** · `stars` **8** (`stars_owner` **8**,
+**One thing was published, and the count it moves is not readable yet — so it is not claimed.**
+`items_public` reads **97** in the only committed snapshot (`generated_at` 2026-09-30T05:33:40.259Z), which
+was generated **4h45m before item 292 existed**. That item is published — `HTTP 201`, `published=true`,
+`duplicate=false`, from [its own run's log](https://github.com/in-c0/tuned/actions/runs/36701335922) — so the
+next snapshot should read 98. **98 is not published as a reading here, because no snapshot or workflow run
+carries it**, and the rule is that every number comes from `ops/metrics/latest.json` or a linked run.
+`applications` **0** · `members` **1** · `followers` **0** · `stars` **8** (`stars_owner` **8**,
 so non-owner activation remains exactly 0) · gross cash **AUD $0**, from *no billing exists*. Source:
 [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-30T05:33:40.259Z`. Spend this
 run **AUD $0.00**; running total **AUD $0.00 of $500**.
