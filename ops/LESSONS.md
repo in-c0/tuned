@@ -11,7 +11,7 @@ attempt · prevention check.**
 
 ---
 
-## L-01 — The build gate was broken on a fresh clone, and only a fresh clone could see it
+## L-01 — The build gate was broken on a fresh clone, and only a fresh clone could see it<a id="l-01"></a>
 *Backfilled 2026-08-08 from run 1 (2026-08-06).*
 
 - **Known problem:** connect Cloudflare Workers Builds so pushes to `master` deploy.
@@ -30,7 +30,7 @@ attempt · prevention check.**
 - **Prevention check:** `.github/workflows/check.yml` runs the exact deploy build command on every PR
   from a clean checkout.
 
-## L-02 — An autonomous loop that ships by pushing, and wakes on pushes, has no stopping point
+## L-02 — An autonomous loop that ships by pushing, and wakes on pushes, has no stopping point<a id="l-02"></a>
 *Backfilled from runs 3 and 6 (2026-08-06/07). Consolidates the self-sustaining trigger and the duplicate-session incidents.*
 
 - **Known problem:** let the executor continue work without waiting for the next scheduled run.
@@ -54,7 +54,7 @@ attempt · prevention check.**
 - **Prevention check:** re-read issue #1's newest comments before selecting an action; if a claim is
   newer than the latest directive, stand down or choose disjoint work.
 
-## L-03 — A freshness check that stops discriminating silently keeps passing
+## L-03 — A freshness check that stops discriminating silently keeps passing<a id="l-03"></a>
 *Backfilled from run 6 (2026-08-07).*
 
 - **Known problem:** verify production *after* a deploy, not before it.
@@ -76,7 +76,7 @@ attempt · prevention check.**
 - **Prevention check:** the gate script was run against 8 stubbed production states — old version,
   wrong SHA, `unknown` stamp, empty body, HTML error page, total curl failure all fail closed.
 
-## L-04 — GitHub's response to an unparseable workflow is silence
+## L-04 — GitHub's response to an unparseable workflow is silence<a id="l-04"></a>
 *Backfilled from run 6 (2026-08-07).*
 
 - **Known problem:** ship the verification workflow above.
@@ -94,7 +94,7 @@ attempt · prevention check.**
 - **Prevention check:** after touching any workflow, confirm a run actually appears for the pushed SHA
   — do not infer from the absence of failures.
 
-## L-05 — This loop's instruments mislead more often than its product does
+## L-05 — This loop's instruments mislead more often than its product does<a id="l-05"></a>
 *Backfilled from runs 6 and 9 (2026-08-06/07).*
 
 - **Known problem:** read whether a workflow run succeeded.
@@ -115,7 +115,7 @@ attempt · prevention check.**
 - **Prevention check:** before acting on a standing constraint in NORTH_STAR.md, re-test it if it is
   cheap to re-test.
 
-## L-06 — A two-sided secret fails identically for three different reasons
+## L-06 — A two-sided secret fails identically for three different reasons<a id="l-06"></a>
 *Backfilled from runs 5, 11 and 12 (2026-08-06 → 2026-08-08). This is the loop's longest-running blocker.*
 
 - **Known problem:** the executor cannot read `/api/metrics` without `METRICS_KEY` set in two stores.
@@ -139,7 +139,7 @@ attempt · prevention check.**
 - **Prevention check:** use `keyMatches()`/`keyConfigured()` for any new key-gated surface; never
   compare `c.env.<KEY>` directly. Never print, hash, inspect or rotate a secret to diagnose it.
 
-## L-07 — Fourteen reports to an unread channel look exactly like a blocked loop
+## L-07 — Fourteen reports to an unread channel look exactly like a blocked loop<a id="l-07"></a>
 *Backfilled from runs 9–14 (2026-08-07/08).*
 
 - **Known problem:** an owner-side blocker the executor cannot clear.
@@ -159,7 +159,7 @@ attempt · prevention check.**
 - **Prevention check:** before writing a blocker section, compare it to the previous run's. If it is
   the same, escalate or shorten — do not restate.
 
-## L-08 — Control-plane work is the easiest thing to keep choosing
+## L-08 — Control-plane work is the easiest thing to keep choosing<a id="l-08"></a>
 *Backfilled 2026-08-08, spanning runs 1–14.*
 
 - **Known problem:** find real paid demand within 60 days.
@@ -182,7 +182,7 @@ attempt · prevention check.**
 
 ---
 
-## L-09 — Two explanations that produce the same number are one unanswered question
+## L-09 — Two explanations that produce the same number are one unanswered question<a id="l-09"></a>
 
 - **Problem.** `0 applications / 115 landing views` was treated for two runs as *the conversion
   problem*, and the next candidate proposed against it was a CTA-reach counter and, behind that, a
@@ -212,7 +212,7 @@ attempt · prevention check.**
 - **Prevention check.** For any experiment: *if this returns the result I expect, which competing
   explanation does it eliminate?* If the answer is "none", do not run it.
 
-## L-10 — An experiment that writes into its own measurement is worthless, so make that structural
+## L-10 — An experiment that writes into its own measurement is worthless, so make that structural<a id="l-10"></a>
 
 - **Problem.** EXP-003 had to submit an application to test the application path — against the exact
   counter (`application_submit`) whose value at 0 is the finding under study.
@@ -236,7 +236,7 @@ attempt · prevention check.**
 - **Prevention check.** Before pointing any harness at production: *which counter or table could this
   touch, and what query proves it did not?*
 
-## L-11 — A claim you are about to ask someone else to make in public is yours to check
+## L-11 — A claim you are about to ask someone else to make in public is yours to check<a id="l-11"></a>
 
 **Where it came from:** run 19, EXP-004.
 
@@ -266,7 +266,7 @@ not only a tool for the question that motivated it.**
 Corollary, learned the same run: leaving a `[TOKEN]` in a deliverable is a debt, not a handoff. It
 looks like collaboration and reads like an unfinished job.
 
-## L-12 — A green instrument and a reachable subject are two different assumptions, and only one of them was ever checked
+## L-12 — A green instrument and a reachable subject are two different assumptions, and only one of them was ever checked<a id="l-12"></a>
 
 **Where it came from:** run 25, the 2026-08-10 edge-challenge incident.
 
@@ -304,7 +304,7 @@ hidden the incident from the very dashboard meant to surface it, and left the re
 legitimate the next time something was genuinely wrong. The correct output of a blocked fix is an
 accurate escalation, not a quieter symptom.
 
-## L-13 — An outage takes away more than the thing it breaks, and the second loss is the quiet one
+## L-13 — An outage takes away more than the thing it breaks, and the second loss is the quiet one<a id="l-13"></a>
 
 **Where it came from:** run 26, the day after the 2026-08-10 edge challenge began.
 
@@ -336,7 +336,7 @@ outage — the outage at least announced itself.
 **Prevention check.** After any incident: *what capability did this quietly remove, and is it
 recoverable from a vantage point I already own — without changing what a pass means?*
 
-## L-14 — A defence that filters by "is this a bot" filters out whatever your product is made of
+## L-14 — A defence that filters by "is this a bot" filters out whatever your product is made of<a id="l-14"></a>
 
 **What happened.** Cloudflare Bot Fight Mode was switched on for `justtuned.com` around 2026-08-10
 06:53 UTC. The loop spent three runs (25, 26, 27) treating it as a public-availability outage —
@@ -372,7 +372,7 @@ path we can test returns 403"* was true and was read by three runs as *"every pa
 words that would have prevented a week of misdirection were already available: **say who was refused,
 not just what.**
 
-## L-15 — `git fetch` does not move the branch you are standing on, and a stale base invents findings
+## L-15 — `git fetch` does not move the branch you are standing on, and a stale base invents findings<a id="l-15"></a>
 
 **What happened.** Run 30 ran `git fetch origin master`, watched it report
 `6c63da0..32f8ac2  master -> origin/master`, and read that as "the repo is current." It was current —
@@ -416,7 +416,7 @@ count — 4 where there should have been 5 — which is the same species of too-
 inconsistency that caught it the first time. Add to the rule: when a suite total is unchanged after
 adding tests, that is an impossibility, not a coincidence.
 
-## L-16 — A URL proves a form was submitted, not that anything was published
+## L-16 — A URL proves a form was submitted, not that anything was published<a id="l-16"></a>
 
 **What happened.** The one owner action this loop had been asking for since 2026-08-08 was performed:
 the Show HN was submitted, and a canonical `news.ycombinator.com/item?id=49280269` URL came back. That
@@ -468,7 +468,7 @@ Replace it. And before an instrument's verdict is trusted, confirm each of its i
 obtainable from where it runs — an unobtainable input is not a failing condition, it is no condition
 at all.
 
-## L-17 — A channel can be invalid on its own terms, and that says nothing about the product
+## L-17 — A channel can be invalid on its own terms, and that says nothing about the product<a id="l-17"></a>
 
 **What happened.** For five days this loop's single top blocker was publishing EXP-002, a Show HN.
 The packet was authorized on 2026-08-08, pasted on 2026-08-13, killed at submission, and then held
@@ -530,7 +530,7 @@ allowed here?*
 
 ---
 
-## L-18 — a hardcoded claim about live data is a claim nobody can keep true (2026-08-13, run 35)
+## L-18 — a hardcoded claim about live data is a claim nobody can keep true (2026-08-13, run 35)<a id="l-18"></a>
 
 **What happened.** The landing page headed its demo block *"Live demo — a real feed, right now"*. That
 sentence was a string constant. EXP-005 measured what was underneath it in production: the newest item
@@ -568,7 +568,7 @@ if the answer is *identical*, the suite is measuring the frame and not the pictu
 
 ---
 
-## L-19 — the surface that leaves your site is the one nobody checks (2026-08-13, run 36)
+## L-19 — the surface that leaves your site is the one nobody checks (2026-08-13, run 36)<a id="l-19"></a>
 
 **What happened.** Tracing the agent publication contract before asking for a credential to use it,
 one of eight assertions failed: `/:handle/rss.xml` served an agent's finds with **no indication an
@@ -602,7 +602,7 @@ feed — provenance, authorship, freshness, licence — enumerate the surfaces t
 it stops?** When a route hand-writes its own column list, check it against the renderer's branches:
 an omitted column does not error, it just quietly turns a branch off.
 
-## L-20 — a log nobody can read is not an instrument (2026-08-14, run 37)
+## L-20 — a log nobody can read is not an instrument (2026-08-14, run 37)<a id="l-20"></a>
 
 **What happened.** Spotify ingestion is the only path on Tuned that currently produces items. Its
 half-hourly cron reported success, failure, and how much it captured — to `console.log`, into
@@ -635,7 +635,7 @@ line in a log the operator cannot open, the job is unmonitored, whatever the sou
 like an instrument for as long as it happens to move. Before trusting one, ask what a *broken* system
 would print. If the answer matches what a *healthy quiet* system prints, it was never an instrument.
 
-## L-21 — a credential whose unit is the thing you want to test is a tax on testing (2026-08-14, run 38)
+## L-21 — a credential whose unit is the thing you want to test is a tax on testing (2026-08-14, run 38)<a id="l-21"></a>
 
 The blocker was real: no agent feed could publish without a credential the executor cannot hold. The
 first answer was the obvious one — put that agent's studio token in a repository secret. It would
@@ -666,7 +666,7 @@ the fact that each one is a test rather than a sentence in a document.
 
 ---
 
-## L-22 — a document describing what code does is a claim, and it decays silently (2026-08-15, run 44)
+## L-22 — a document describing what code does is a claim, and it decays silently (2026-08-15, run 44)<a id="l-22"></a>
 
 [`ops/agents/README.md`](agents/README.md) said a remit "is written to `creators.charter` at adoption
 or creation". The reviewer's directive repeated it. It was true of *creation* and false of *adoption*,
@@ -696,7 +696,7 @@ against the implementation at the moment you are about to rely on it, which is e
 are least inclined to. And when the two disagree, fix the one that is wrong about the *desired*
 behaviour, not reflexively the one that is easier to edit.
 
-## L-23 — a validity gate protects the conclusion, not the experiment (2026-08-15, run 45)
+## L-23 — a validity gate protects the conclusion, not the experiment (2026-08-15, run 45)<a id="l-23"></a>
 
 [EXP-007](EXPERIMENTS.md) was pre-registered with an instrument validity gate: if `landing_engage`
 reads 0 on the first complete UTC day while `landing_view` is non-zero, the instrument is broken, no
@@ -729,7 +729,7 @@ instrument moves the question one level up; it does not answer it.
 
 ---
 
-## L-24 — an attempt can be admissible, succeed, and still be ungradeable (2026-08-16, run 46)
+## L-24 — an attempt can be admissible, succeed, and still be ungradeable (2026-08-16, run 46)<a id="l-24"></a>
 
 [L-17](#l-17--a-channel-can-be-invalid-on-its-own-terms-and-that-says-nothing-about-the-product) asks
 whether an attempt was **admissible** — right venue, right form, rules obeyed — so that a flat result
@@ -766,7 +766,7 @@ questions — and no channel is admissible yet, because every Tuned destination 
 freshness condition. Building the instrument before the question is chosen is how you get an
 instrument for the wrong question.
 
-## L-25 — a limitation restated verbatim three runs running is a decision nobody remembers making (2026-08-16, run 47)
+## L-25 — a limitation restated verbatim three runs running is a decision nobody remembers making (2026-08-16, run 47)<a id="l-25"></a>
 
 Runs 44, 45 and 46 each carried the same sentence forward, in nearly the same words: *this executor's
 egress proxy means an agent it drives encounters material at **result level, not page level**.* Each
@@ -802,7 +802,7 @@ when what was true was *one of the executor's two network positions cannot fetch
 
 ---
 
-## L-26 — a deferral is a limitation wearing a schedule, and L-25 did not sweep the file it was written in (2026-08-16, run 48)
+## L-26 — a deferral is a limitation wearing a schedule, and L-25 did not sweep the file it was written in (2026-08-16, run 48)<a id="l-26"></a>
 
 **Known problem.** [DISTRIBUTION.md](DISTRIBUTION.md)'s condition **A5** — *if the attempt works,
 would we see it?* — read **FAILS — no instrument** for two runs. `feed_view` is one site-wide counter
@@ -858,7 +858,7 @@ than merely harder, if it waits?* An instrument that cannot be backfilled always
 
 ---
 
-## L-27 — a gate that prescribes a remedy has already made a diagnosis (2026-08-17, run 49)
+## L-27 — a gate that prescribes a remedy has already made a diagnosis (2026-08-17, run 49)<a id="l-27"></a>
 
 **What happened.** [EXP-007](EXPERIMENTS.md)'s instrument validity gate reads: if
 `landing_engage + landing_engage_bot` is 0 on the first complete UTC day while `landing_view` is
@@ -900,7 +900,7 @@ produces this exact number, and what evidence — obtainable outside the measure
 apart?* If the answer is "nothing else could", say so explicitly, because that is a strong claim and
 writing it down is what makes it checkable.
 
-## L-28 — the check that names a failure mode and only reports it will meet that failure mode green (2026-08-17, run 50)
+## L-28 — the check that names a failure mode and only reports it will meet that failure mode green (2026-08-17, run 50)<a id="l-28"></a>
 
 **What happened.** Run 50 pointed the page-level source reader at three candidate pages for
 [EXP-008](EXPERIMENTS.md)'s threshold 6. Two publishers returned 403 Cloudflare challenges and failed
@@ -918,7 +918,7 @@ instrument so it could not act on it. And the five hints it did carry were conse
 the wording actually served was *"Checking your browser before accessing"*, which matches none of
 them, so the field aimed at the problem read empty as well.
 
-**This is [L-27](#l-27--a-gate-that-prescribes-a-remedy-has-already-made-a-diagnosis) inverted, and
+**This is [L-27](#l-27) inverted, and
 it is worth keeping both.** L-27 is a gate that names one cause and prescribes a remedy for it. This
 is a check that names a cause, prescribes *no* remedy, and calls that restraint. Both leave the
 observable correctly described and the instrument unable to use the description. "Reported, never
@@ -957,7 +957,7 @@ most plausible way this returns green while the thing it certifies is false. If 
 written anywhere in the file — a comment, a reported-only field, a known limitation — it is a live
 defect, not documentation.*
 
-## L-29 — a discriminator that lists files inherits the lister's mental model of the system (2026-08-18, run 51)
+## L-29 — a discriminator that lists files inherits the lister's mental model of the system (2026-08-18, run 51)<a id="l-29"></a>
 
 **What happened.** Run 49 pre-registered a discriminator so that a **0** on [EXP-007](EXPERIMENTS.md)'s
 graded day could be told apart from a broken instrument. Its first part was an identity claim about
@@ -986,7 +986,7 @@ author's own model of the code*. Re-running the commands confirms the files name
 cannot notice a file that was never named. The check looked mechanical and was, underneath,
 an assertion of knowledge about the system, wearing a command line.
 
-**This is not [L-22](#l-22--a-document-describing-what-code-does-is-a-claim-and-it-decays-silently).**
+**This is not [L-22](#l-22).**
 L-22 is documentation going stale against code that moved. Here nothing decayed: the enumeration was
 incomplete on the day it was written, and would have been incomplete even if re-read an hour later.
 
@@ -1005,7 +1005,7 @@ than not mentioning it, and it costs one line.
 then trace what writes it end to end. If the claim enumerates artifacts rather than deriving them,
 widen the net until the enumeration is a **result** of the trace rather than an input to it.*
 
-## L-30 — a length limit enforced by truncation is a fabrication engine with a 201 on it (2026-08-18, run 52)
+## L-30 — a length limit enforced by truncation is a fabrication engine with a 201 on it (2026-08-18, run 52)<a id="l-30"></a>
 
 **What happened.** R-1's `why` line — the agent's public account of why it selected a source — was
 415 characters. `src/operator.ts` bound `(b.why ?? "").slice(0, 280)` straight into the insert and
@@ -1027,7 +1027,7 @@ held open a full cycle for veto — and none of that scrutiny was aimed at the t
 transport was assumed to carry what it was given.
 
 **The general shape.** Silent truncation is the write-path twin of
-[L-28](#l-28--the-check-that-names-a-failure-mode-and-only-reports-it-will-meet-that-failure-mode-green).
+[L-28](#l-28).
 L-28 was a *read* path that observed a failure and declined to act on it. This is a *write* path that
 detected an over-long value — it had to, in order to slice it — and resolved the detection by editing
 the payload instead of reporting it. Both are code that knows something and keeps it to itself. The
@@ -1050,7 +1050,7 @@ turns one defect into a permanent one.
 **Prevention check, asked of any field that reaches a public surface:** *if a caller sends one
 character too many, does anyone find out?*
 
-## L-31 — `innerText` is what a reader sees, `textContent` is what the document says, and provenance lives in the second (2026-08-18, run 52)
+## L-31 — `innerText` is what a reader sees, `textContent` is what the document says, and provenance lives in the second (2026-08-18, run 52)<a id="l-31"></a>
 
 **What happened.** Threshold 5's instrument failed at both viewports on
 `expect(badgeText).toBe("AI agent")` — received `"AI AGENT"`. `.ai-badge` carries
@@ -1074,7 +1074,7 @@ without the other leaves the next run to rediscover the difference from a red bu
 **Prevention check:** *is this assertion about what the page says or about what it looks like? If the
 answer is "both", it needs two assertions.*
 
-## L-32 — an undo inherits the authority of whoever moved the state, so it must record who moved it (2026-08-18, run 53)
+## L-32 — an undo inherits the authority of whoever moved the state, so it must record who moved it (2026-08-18, run 53)<a id="l-32"></a>
 
 **What happened.** Building `retract`/`restore` for the operator plane raised a question that
 building `publish` never had to answer. `retract` is easy to bound: it may touch only items this
@@ -1117,7 +1117,7 @@ name only would present.
 
 ---
 
-## L-33 — a cheap disqualifying check belongs first, whatever the procedure says (2026-08-19, run 54)
+## L-33 — a cheap disqualifying check belongs first, whatever the procedure says (2026-08-19, run 54)<a id="l-33"></a>
 
 `ops/DISTRIBUTION.md` had a five-condition admissibility test and an explicit order for working it:
 A4 (destination freshness), then A5 (arrival instrument and threshold), then **"only then"** A1 (does
@@ -1157,7 +1157,7 @@ that would make this judgement unnecessary — and have I run it?*
 
 ---
 
-## L-34 — a green read is not an answered question, and a prefix is a guess about where the answer is (2026-08-19, run 55)
+## L-34 — a green read is not an answered question, and a prefix is a guess about where the answer is (2026-08-19, run 55)<a id="l-34"></a>
 
 Run 55 opened `github.com/plenaryapp/awesome-rss-feeds` to settle **A1** for the first candidate
 whose subject is a feed. The reading came back with every signal this loop has for *the page was
@@ -1202,7 +1202,7 @@ answer lives, or where it happened to be pointing?*
 
 ---
 
-## L-35 — a capability is not a coverage claim, and "we have that instrument" is a memory, not a check (2026-08-19, run 56)
+## L-35 — a capability is not a coverage claim, and "we have that instrument" is a memory, not a check (2026-08-19, run 56)<a id="l-35"></a>
 
 [Run 48](https://github.com/in-c0/tuned/commit/86cabdd) built arrival attribution: `feed_view:<handle>`
 to name the destination, `arrival:<tag>` to name the attempt that sent someone. It was verified in
@@ -1263,7 +1263,7 @@ contradicted the sentence in the file next to it. The forks were corrected befor
 produced a value, which is the only thing that made the correction legitimate rather than a post-hoc
 edit. **A lesson written down is not a habit acquired**; the check has to be run, not cited.
 
-## L-36 — a campaign tag measures a channel only while the tagged URL exists in one place, and an execution report is a place (2026-08-19, run 57)
+## L-36 — a campaign tag measures a channel only while the tagged URL exists in one place, and an execution report is a place (2026-08-19, run 57)<a id="l-36"></a>
 
 [Run 56](https://github.com/in-c0/tuned/commit/b49a1fa) shipped `arrival_fetch:<tag>` on the RSS route
 so that a listing at a third-party directory could be told apart from background traffic. It chose
@@ -1311,7 +1311,7 @@ URL is supposed to exist?*
 and it is not to lower the standard of proof — run 56's check was correct and worth running. It is to
 separate the two halves in writing, which costs a sentence and preserves both properties.
 
-## L-37 — a loop that runs in the open cannot hold a secret, so its campaign counters need a control rather than a tag (2026-08-20, run 58)
+## L-37 — a loop that runs in the open cannot hold a secret, so its campaign counters need a control rather than a tag (2026-08-20, run 58)<a id="l-37"></a>
 
 [L-36](#l-36--a-campaign-tag-measures-a-channel-only-while-the-tagged-url-exists-in-one-place-and-an-execution-report-is-a-place-2026-08-19-run-57) diagnosed the leak and prescribed a writing rule: never
 print the *joined* tagged URL; name the route and the tag separately. That rule is worth keeping and
@@ -1356,7 +1356,7 @@ partial day read as though it were a rate.
 
 ---
 
-## L-38 — a question asked four times into a file that says "nothing to do" has not been asked (2026-08-20, run 59)
+## L-38 — a question asked four times into a file that says "nothing to do" has not been asked (2026-08-20, run 59)<a id="l-38"></a>
 
 - **Known problem:** get an answer to one owner decision — may the executor submit a feed record to a
   third-party directory in the owner's name — which is the only condition left on the loop's single
@@ -1401,7 +1401,7 @@ partial day read as though it were a rate.
 
 ---
 
-## L-39 — "not urgent" and "not our lever" are different claims, and collapsing them removes a fact the decider needed (2026-08-20, run 60)
+## L-39 — "not urgent" and "not our lever" are different claims, and collapsing them removes a fact the decider needed (2026-08-20, run 60)<a id="l-39"></a>
 
 - **Known problem:** one owner decision (A / B / C) is the last condition on the loop's single
   objective, and one of its own preconditions — A4, `@sportstech`'s ≤72h freshness — expires
@@ -1438,7 +1438,7 @@ partial day read as though it were a rate.
   behave differently?* If yes, that difference is stated in the card. If no, the date is noise and is
   cut.
 
-## L-40 — an authorization is worth nothing until someone has checked the executor can physically perform the act (2026-08-20, run 61)
+## L-40 — an authorization is worth nothing until someone has checked the executor can physically perform the act (2026-08-20, run 61)<a id="l-40"></a>
 
 **What happened.** The owner answered **A** — *"executor may submit"* — at 15:04 UTC, closing a question
 the loop had carried for ~35 hours across six runs. The reviewer scoped the transaction and the executor
@@ -1481,7 +1481,7 @@ is authorized is not the same as the fact that it is gradeable.
 
 ---
 
-## L-41 — a rule written to catch an error does not catch the error in the sentence next to it (2026-08-20, run 62)
+## L-41 — a rule written to catch an error does not catch the error in the sentence next to it (2026-08-20, run 62)<a id="l-41"></a>
 
 **What happened.** Run 61 discovered it could not open an issue at `awesome-rss-feeds`, and correctly
 made that a mandatory stop. It then shipped **A0** — *"before any A1 read, confirm the executor holds
@@ -1538,7 +1538,7 @@ reason at the moment of acting, for the second consecutive run.
 
 ---
 
-## L-42 — a claim about routing goes stale the moment the routing input changes, and nothing re-reads it (2026-08-21, run 65)
+## L-42 — a claim about routing goes stale the moment the routing input changes, and nothing re-reads it (2026-08-21, run 65)<a id="l-42"></a>
 
 **What happened.** [DISTRIBUTION.md](DISTRIBUTION.md)'s A4 row asserted, with a citation to
 [EXP-004](EXPERIMENTS.md), that *"the landing page's demo link resolves to `/ava`, not
@@ -1572,7 +1572,7 @@ it, not only what it currently is — and if the decider is request-time state, 
 with a date, never a property.* Concretely, for anything derived: write the deciding expression next
 to the verdict, so a later run can see at a glance whether the input could have moved.
 
-## L-43 — a single-instance instrument cannot fail the way its second instance would, so generalizing it is how you find out what it was quietly assuming (2026-08-21, run 66)
+## L-43 — a single-instance instrument cannot fail the way its second instance would, so generalizing it is how you find out what it was quietly assuming (2026-08-21, run 66)<a id="l-43"></a>
 
 `qa/exp008-provenance.spec.mjs` had been green on every run since 2026-08-18. It compared the
 **raw XML** of an RSS `<description>` against the dispatched why-line, byte for byte. That
@@ -1608,7 +1608,7 @@ pipeline transforms", the instrument is asserting on an untested code path.* Con
 declaring a single-case instrument green, write down one input it has never seen and check whether
 the assertion would still hold.
 
-## L-44 — a liveness signal needs a scheduler, and "the QA schedule" was three dispatch-only specs (2026-08-24, run 84)
+## L-44 — a liveness signal needs a scheduler, and "the QA schedule" was three dispatch-only specs (2026-08-24, run 84)<a id="l-44"></a>
 
 - **Known problem:** [EXP-009](EXPERIMENTS.md)'s Reading 1, due on the complete UTC day 2026-08-26,
   asks whether the RSS counter writes at all. It grades `feed_fetch_bot:sportstech` **because** —
@@ -1663,7 +1663,7 @@ the assertion would still hold.
   claim.* Concretely: `grep -n "schedule:" -A2 .github/workflows/*.yml` and then grep those files for
   the route. If no line comes back, the word "scheduled" may not appear in the description.
 
-## L-45 — the reachable corpus was never selected on merit, and nobody had checked how far the refusal actually reached (2026-08-24, run 85)
+## L-45 — the reachable corpus was never selected on merit, and nobody had checked how far the refusal actually reached (2026-08-24, run 85)<a id="l-45"></a>
 
 - **Known problem:** run 50 pointed the page-level reader at four hosts carrying on-remit material.
   Taylor & Francis and SAGE returned Cloudflare bot checks; PMC returned a reCAPTCHA interstitial at
@@ -1709,7 +1709,7 @@ the assertion would still hold.
   the class actually dispatched against, and put the number in the sentence.* If the number is under
   five, the sentence says "the N hosts tried so far", never "the hosts".
 
-## L-46 — a visible affordance for a human is not an interface for software, and "the product has RSS" was true at the route and false at the door (2026-08-25, run 86)
+## L-46 — a visible affordance for a human is not an interface for software, and "the product has RSS" was true at the route and false at the door (2026-08-25, run 86)<a id="l-46"></a>
 
 - **Known problem:** Tuned's distribution work has spent five runs reading venue rules. The register
   in [DISTRIBUTION.md](DISTRIBUTION.md) grades every candidate on A1 (do the rules permit it), A3,
@@ -1747,7 +1747,7 @@ the assertion would still hold.
 
 ---
 
-## L-47 — a hold that binds the executor does not bind the reviewer, and the counter does not care which of them printed it (2026-08-25, run 87)
+## L-47 — a hold that binds the executor does not bind the reviewer, and the counter does not care which of them printed it (2026-08-25, run 87)<a id="l-47"></a>
 
 - **Known problem:** every `?src=` tag this loop uses is public source in a public repository, so a
   tagged counter measures *fetches of a tagged URL by anyone who assembled one*, not arrivals from a
@@ -1786,7 +1786,7 @@ the assertion would still hold.
   values are stated exactly — while continuing to name route and tag separately, and recorded the
   divergence rather than silently complying or silently refusing.
 
-## L-48 — "I have no credential" and "my session will not let me" are different failures, and only one of them is someone else's to fix
+## L-48 — "I have no credential" and "my session will not let me" are different failures, and only one of them is someone else's to fix<a id="l-48"></a>
 
 - **Context:** the `awesome-rss-feeds` submission has been carried as an **owner action** since run 61
   on the stated ground that *"this executor holds no identity, token or session at
@@ -1822,7 +1822,7 @@ the assertion would still hold.
   layer that stops it — GitHub, the session, the network, the venue's own rules — and cite the call
   that established it. "Verified three ways" is worth nothing when all three probe the same layer.
 
-## L-49 — the reader could read the label and not the address, and the address was not on the venue's domain (2026-08-27, run 104)
+## L-49 — the reader could read the label and not the address, and the address was not on the venue's domain (2026-08-27, run 104)<a id="l-49"></a>
 
 - **What happened:** `feedle.world` names *"Submit your blog or podcast"* in its site chrome. Run 57
   saw that text. Run 62 tried to open the surface behind it, could not — `source-read.spec.mjs`
@@ -1855,7 +1855,7 @@ the assertion would still hold.
   absent must cite either (a) a link resolution showing no such target exists on the page that would
   carry it, or (b) the venue's own words. A path that 404s is neither.
 
-## L-50 — an owner card that retires itself on the blocked resource's clock is dark during exactly the hours the owner could have acted (2026-08-28, run 107)
+## L-50 — an owner card that retires itself on the blocked resource's clock is dark during exactly the hours the owner could have acted (2026-08-28, run 107)<a id="l-50"></a>
 
 - **What happened:** the `awesome-rss-feeds` submission has been fully authorized since **2026-08-20
   15:04:36 UTC** and blocked only by session scope. Its owner card is gated on
@@ -1891,7 +1891,7 @@ the assertion would still hold.
   still an acceptable outcome ([EXP-008](EXPERIMENTS.md) forbids publishing to hold a window open).
   And not a workaround: the access boundary stays exactly where it is ([L-48](#l-48)).
 
-## L-51 — a fix aimed at one non-human reader does not generalise to the others, and the page still looks finished (2026-08-28, run 108)
+## L-51 — a fix aimed at one non-human reader does not generalise to the others, and the page still looks finished (2026-08-28, run 108)<a id="l-51"></a>
 
 **What happened.** Run 86 found that no page in this product carried `<link rel="alternate">`, so every
 feed reader was told the site has no feed. It shipped that element, wrote [L-46](#l-46) about why a human
@@ -1926,7 +1926,7 @@ consumer is being told something wrong or nothing at all on a surface that matte
 is not that surface, and neither is anything behind a token. And **none of it is measurable here** — no
 counter in this service observes an unfurl, so a fix of this class is a precondition, never evidence.
 
-## L-52 — the ordering everyone agreed to was never a lock, and the thing that caught it was luck (2026-08-31, run 124)
+## L-52 — the ordering everyone agreed to was never a lock, and the thing that caught it was luck (2026-08-31, run 124)<a id="l-52"></a>
 
 **What happened.** Two executor sessions ran cycle 123 concurrently. Nothing detected it, nothing refused
 it, and nothing recorded it as a conflict. What stopped the second session was a **non-fast-forward push
@@ -1956,7 +1956,7 @@ time it is described: **it cannot stop a session that never calls it**, so the p
 `STATUS.md` is the part that is honoured rather than enforced. A guard described as stronger than it is
 would be worse than none, because it would be trusted.
 
-## L-53 — the enumeration of non-human readers stopped at the edge of the document (2026-08-31, run 125)
+## L-53 — the enumeration of non-human readers stopped at the edge of the document (2026-08-31, run 125)<a id="l-53"></a>
 
 **What happened.** [L-51](#l-51) was written 23 runs ago with an explicit prevention check: *"open its
 `<head>` and name, per consumer, what that consumer reads and whether it is there."* Run 108 did exactly
@@ -2004,7 +2004,7 @@ of this class is a **precondition and never evidence** — L-51's ruling, unchan
 whether a named non-human reader is being told something wrong or nothing at all, on a surface that
 matters commercially.
 
-## L-54 — a threshold designed for one venue shape was applied to every venue, and it closed four windows the venues themselves never closed (2026-09-04, run 137)
+## L-54 — a threshold designed for one venue shape was applied to every venue, and it closed four windows the venues themselves never closed (2026-09-04, run 137)<a id="l-54"></a>
 
 **What happened.** [A4](DISTRIBUTION.md) — *"the destination is not stale on arrival"* — was written
 from [L-18](#l-18), a landing page heading its demo *"Live demo — a real feed, right now"* above an
@@ -2059,7 +2059,7 @@ faith is whether it hands you the thing you wanted.** Here it does not.
 
 ---
 
-## L-55 — a counter that cannot separate two explanations was read for nineteen days as though it had (2026-09-05, run 138)
+## L-55 — a counter that cannot separate two explanations was read for nineteen days as though it had (2026-09-05, run 138)<a id="l-55"></a>
 
 [EXP-007](EXPERIMENTS.md) was pre-registered honestly. It named three explanations for **0
 applications** against 50–113 daily landing views, said no counter could then tell them apart, and
@@ -2107,7 +2107,7 @@ cheap, it is available before any deploy, and it is not the question a pre-regis
 asks — pre-registration asks *what will I conclude from each value*, which presumes the values mean
 what you think.
 
-## L-56 — the validator was invisible to CI, so the counter it validates broke it silently (2026-09-05, run 140)
+## L-56 — the validator was invisible to CI, so the counter it validates broke it silently (2026-09-05, run 140)<a id="l-56"></a>
 
 `qa/` is a separate Playwright package with its own manifest, dispatched by hand and deliberately never
 run on push. That is a defensible design — these are experiments, not gates, and running headless
@@ -2176,7 +2176,7 @@ is decoration.**
 
 ---
 
-## L-57 — every counter on the site could say who wrote it except the one that decides the bet (2026-09-06, run 141)
+## L-57 — every counter on the site could say who wrote it except the one that decides the bet (2026-09-06, run 141)<a id="l-57"></a>
 
 **What happened.** `POST /waitlist` writes `application_submit` and `application_invalid`. Both were
 written unsuffixed, always, with no user-agent split and no origin check — alone among every counter
@@ -2191,8 +2191,8 @@ throughout, and a counter that has only ever recorded zero is indistinguishable 
 Every review of the funnel looked at the *value* — which was right — and never at what the value would
 have meant had it moved. **A counter is not validated by being right about nothing.**
 
-**Why it is worse here than at the top of the funnel.** [L-51](#l-51--a-fix-aimed-at-one-non-human-reader-does-not-generalise-to-the-others-and-the-page-still-looks-finished)
-and [L-55](#l-55--a-counter-that-cannot-separate-two-explanations-was-read-for-nineteen-days-as-though-it-had)
+**Why it is worse here than at the top of the funnel.** [L-51](#l-51)
+and [L-55](#l-55)
 are the same defect on `landing_view` and `landing_engage`, and both were caught by disbelief: those
 numbers were suspiciously large or suspiciously zero, so somebody eventually asked what they meant. The
 first `applications: 1` would have been the number this loop has spent sixty days wanting. **Nobody
@@ -2209,9 +2209,9 @@ writes, if it read 1 tomorrow, what would we conclude, and what in the record wo
 conclusion from its opposite?* If the answer is "nothing", the counter is not finished, however long
 it has been correct.
 
-## L-58 — the metric this loop calls activation could be moved by the email that announces a member (2026-09-06, run 142)
+## L-58 — the metric this loop calls activation could be moved by the email that announces a member (2026-09-06, run 142)<a id="l-58"></a>
 
-**What happened.** [L-57](#l-57--every-counter-on-the-site-could-say-who-wrote-it-except-the-one-that-decides-the-bet)
+**What happened.** [L-57](#l-57)
 shipped a prevention check one run earlier — *for each counter this service writes, if it read 1
 tomorrow, what would we conclude, and what in the record would let us tell that conclusion from its
 opposite?* Run 142 asked it of the counters run 141 did not touch. Two failed it, and they were the
@@ -2250,14 +2250,14 @@ first.
 **A second finding, from the mutation pass rather than the audit.** Four of the five mutations were
 refused immediately; dropping the `_bot` half of the desk split was **not** — every assertion in the
 new block sent a browser user-agent, so the mechanism was deletable with the suite green. That is
-[L-56](#l-56--the-validator-was-invisible-to-ci-so-the-counter-it-validates-broke-it-silently)'s shape
+[L-56](#l-56)'s shape
 in a test written by the run that had just cited L-56. Caught before commit only because the mutation
 pass was run at all. **Asserting a split exists is not the same as asserting it splits**; the test has
 to send the input that lands in the other bucket.
 
 ---
 
-## L-59 — a step the register named "next" was declined by five consecutive runs, and no single run's decline recorded that (2026-09-06, run 143)
+## L-59 — a step the register named "next" was declined by five consecutive runs, and no single run's decline recorded that (2026-09-06, run 143)<a id="l-59"></a>
 
 **What happened.** Run 137 closed by naming one item in
 [`ops/DISTRIBUTION.md`](DISTRIBUTION.md): registering `ooh-directory` in `ARRIVAL_TAGS` and
@@ -2292,8 +2292,8 @@ single report is accountable for.
 named next step and count how many consecutive prior runs declined it.* At **two**, the decline needs
 a named trigger. At **three**, the item is done this run or struck from the register.
 
-**Not the lesson.** That the five runs chose wrongly — [L-57](#l-57--every-counter-on-the-site-could-say-who-wrote-it-except-the-one-that-decides-the-bet)
-and [L-58](#l-58--the-metric-this-loop-calls-activation-could-be-moved-by-the-email-that-announces-a-member)
+**Not the lesson.** That the five runs chose wrongly — [L-57](#l-57)
+and [L-58](#l-58)
 are real findings on the counter that decides this bet, and both would have been worth a run. The
 lesson is that "which is more valuable *this run*" was asked five times and "is this item being
 dropped rather than deferred" was asked zero times, and only the second question has an answer that
@@ -2301,7 +2301,7 @@ changes with repetition.
 
 ---
 
-## L-60 — the check that says whether a deploy landed reported failure about a deploy that had landed (2026-09-07, run 144)
+## L-60 — the check that says whether a deploy landed reported failure about a deploy that had landed (2026-09-07, run 144)<a id="l-60"></a>
 
 - **Known problem:** verify that a pushed change is actually serving on justtuned.com, from GitHub's
   network, because the executor's own egress to the site is refused.
@@ -2353,7 +2353,7 @@ changes with repetition.
 
 ---
 
-## L-61 — the instrument sweep was declared finished over the set of counters, and the gap was a route that had none (2026-09-07, run 145)
+## L-61 — the instrument sweep was declared finished over the set of counters, and the gap was a route that had none (2026-09-07, run 145)<a id="l-61"></a>
 
 - **What happened.** Runs 141, 142 and 144 audited every funnel counter for whether it could say who
   wrote it, split the three that could not, and [run 144's report](../ops/STATUS.md) closed on the
@@ -2391,7 +2391,7 @@ changes with repetition.
 
 ---
 
-## L-62 — a hand-written complement goes stale silently, because nothing fails when its parent grows (2026-09-07, run 146)
+## L-62 — a hand-written complement goes stale silently, because nothing fails when its parent grows (2026-09-07, run 146)<a id="l-62"></a>
 
 - **Known problem.** `qa/pulse-instrument.spec.mjs` mirrors the server's `PULSE_COUNTERS` allowlist as
   `ALLOWED`, and that mirror had already gone stale for a day without anything failing
@@ -2428,7 +2428,7 @@ changes with repetition.
   a set?** If it is a complement, the test must compute it. A complement asserted by enumeration is
   a comment with a `const` in front of it.
 
-## L-63 — the loop stopped for seven firings and the only thing that could have noticed was the loop (2026-09-10, run 147)
+## L-63 — the loop stopped for seven firings and the only thing that could have noticed was the loop (2026-09-10, run 147)<a id="l-63"></a>
 
 - **Known problem.** This loop's entire output is a function of its cadence: three firings a day,
   each producing one bounded action. Runs 141–146 built instrument after instrument for the funnel —
@@ -2473,7 +2473,7 @@ changes with repetition.
   go red, and how long would that take?** If the honest answer is *"the next run would notice"*,
   there is no monitor — that is the failure describing itself.
 
-## L-64 — the watchdog measured the fault and assumed the property of its own instrument (2026-09-10, run 148)
+## L-64 — the watchdog measured the fault and assumed the property of its own instrument (2026-09-10, run 148)<a id="l-64"></a>
 
 **What happened.** Run 147 shipped `executor-liveness` with a 20h threshold on the wall-clock age of
 the newest run-lock claim, derived from the executor's 04:00/10:00/22:00 firing cadence: above every
@@ -2525,7 +2525,7 @@ wins when the register holds both an open outage and a healed one) that no test 
 
 ---
 
-## L-65 — "unreachable" is a claim about your call sites, not about the advisory's headline (2026-09-11, run 149)
+## L-65 — "unreachable" is a claim about your call sites, not about the advisory's headline (2026-09-11, run 149)<a id="l-65"></a>
 
 **What happened.** Run 148 read the production audit's one moderate, found three `hono` advisories
 behind it, and triaged them. Two were checked properly — `grep` for `toSSG`, `parseBody` and
@@ -2573,7 +2573,7 @@ asserts nothing (L-64's corollary, on a different axis). The third case exists f
 it fails on a naive fix that rejects any URL containing `#`, which would have destroyed the counter
 it was written to protect.
 
-## L-66 — five counters were built around an action, and nobody asked what the action does (2026-09-11, run 150)
+## L-66 — five counters were built around an action, and nobody asked what the action does (2026-09-11, run 150)<a id="l-66"></a>
 
 **What happened.** Runs 145 and 146 found that the Follow button — the only thing a stranger on a
 Tuned feed page can do — had never been counted, and closed the gap properly: `follow_submit`,
@@ -2611,7 +2611,7 @@ for the one that already can. It existed here, worked, was already instrumented 
 was the thing one of the two open distribution candidates is a directory *of* — and it was styled as
 the least important element on the page.
 
-## L-67 — a gate has a deadline, and a deadline turns two different faults into one reading (2026-09-11, run 151)
+## L-67 — a gate has a deadline, and a deadline turns two different faults into one reading (2026-09-11, run 151)<a id="l-67"></a>
 
 **What happened.** `verify production` waits up to 8 minutes for a pushed commit to be the one
 serving, then fails closed. On 2026-09-11 it failed on `408db69`
@@ -2657,7 +2657,7 @@ everything it had waited for and confident about the one thing it had not. **The
 push, wait, read, then write** — and where the loop cannot wait, the sentence has to say which commit
 was verified and which was not.
 
-## L-68 — a fire-and-forget beacon reports a failure it did not have, and "no request failed" was never the property worth testing
+## L-68 — a fire-and-forget beacon reports a failure it did not have, and "no request failed" was never the property worth testing<a id="l-68"></a>
 
 **2026-09-11, run 152.** Three QA specs ended with `expect(firstPartyFailures).toEqual([])`. On the
 first provenance run of the evening that assertion failed **twelve times** — both viewports, all six
@@ -2695,7 +2695,7 @@ stricter than it was that morning, not looser.**
 
 **When a check asserts the absence of something, ask what a page that does nothing would score.**
 
-## L-69 — an instrument that has not run since the thing it measures was built has not been tested against it
+## L-69 — an instrument that has not run since the thing it measures was built has not been tested against it<a id="l-69"></a>
 
 **2026-09-11, run 152, and it is the timing half of L-68.** `feed_render` entered `src/pages.ts` on
 **2026-09-07** ([`00f635a`](https://github.com/in-c0/tuned/commit/00f635a)). `exp008-provenance.spec.mjs`
@@ -2720,7 +2720,7 @@ looking the moment nobody dispatches it.
 
 ---
 
-## L-70 — a selection rate is not a quality threshold (2026-09-12, run 153)
+## L-70 — a selection rate is not a quality threshold (2026-09-12, run 153)<a id="l-70"></a>
 
 [EXP-013](EXPERIMENTS.md) pre-registered *"selection rate ≤ 25% of screened candidates"* as the
 threshold that would catch a bar too loose to trust with a public feed. The bar's **first** live
@@ -2748,7 +2748,7 @@ inside its own window** — the conservative half of the fork was honoured inste
 publish nothing), because a number invented before any data exists is allowed to be wrong and is not
 allowed to be quietly corrected by the thing it was measuring.
 
-## L-71 — the clause you expect to be the gatekeeper is not the one doing the work (2026-09-12, run 153)
+## L-71 — the clause you expect to be the gatekeeper is not the one doing the work (2026-09-12, run 153)<a id="l-71"></a>
 
 The commit that shipped [the bar](../scripts/lib/agent-scout.mjs) named, in its own header, which
 clause would keep the agent quiet: the full-text encounter and the demand for two families of reported
@@ -2773,7 +2773,7 @@ Two rules fall out, and they are about instrument design rather than about this 
    direction that mattered. Predictions like it are worth writing down precisely because they can then
    be caught — but never worth citing afterwards as though they had been checked.
 
-## L-72 — the same word answers two different questions, and a table is not transferable between them (2026-09-12, run 154)
+## L-72 — the same word answers two different questions, and a table is not transferable between them (2026-09-12, run 154)<a id="l-72"></a>
 
 `STATISTIC_SIGNATURES` was written for the bar, where the question is **does this paper report
 statistics at all**. Run 154 reused it for the quotation clause, where the question is **does this
@@ -2810,7 +2810,7 @@ Three rules:
 
 ---
 
-## L-73 — the clause is defeated by the exact case it was written for, wearing different punctuation (2026-09-13, run 155)
+## L-73 — the clause is defeated by the exact case it was written for, wearing different punctuation (2026-09-13, run 155)<a id="l-73"></a>
 
 Third in three days, and the repetition is the whole lesson.
 [L-71](#l-71--the-clause-you-expect-to-be-the-gatekeeper-is-not-the-one-doing-the-work-2026-09-12-run-153)
@@ -2867,7 +2867,7 @@ Four rules:
 quotation machinery was wrong, three times caught on a dry run before anything was published. The dry
 path is the only reason this is a lesson rather than an incident.
 
-## L-74 — a category that collapses three failures into one name will be believed, and then quoted (2026-09-13, run 156)
+## L-74 — a category that collapses three failures into one name will be believed, and then quoted (2026-09-13, run 156)<a id="l-74"></a>
 
 **What happened.** `length` was one refusal clause covering a sentence too short to be a quotation, a
 sentence the character budget excluded, and a sentence with no terminal punctuation. Run 155 read a log
@@ -2911,7 +2911,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-75 — a watchdog with one source cannot tell "it stopped" from "it stopped reporting" (2026-09-13, run 157)
+## L-75 — a watchdog with one source cannot tell "it stopped" from "it stopped reporting" (2026-09-13, run 157)<a id="l-75"></a>
 
 - **Known problem:** know whether the executor loop is still firing, without asking the loop.
 - **Attempted approach:** `scripts/executor-liveness.mjs`, written at run 147 after a real 66-hour
@@ -2972,7 +2972,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-76 — a procedure filed where a run is not obliged to look has no carrier, and the file it was in was the largest one in the repository (2026-09-14, run 158)
+## L-76 — a procedure filed where a run is not obliged to look has no carrier, and the file it was in was the largest one in the repository (2026-09-14, run 158)<a id="l-76"></a>
 
 - **Known problem:** [L-75](#l-75--a-watchdog-with-one-source-cannot-tell-it-stopped-from-it-stopped-reporting-2026-09-13-run-157)
   closed with the honest admission that *why* runs 155 and 156 skipped step 0 was not established.
@@ -3029,7 +3029,7 @@ beside each wrong line rather than replacing it.
   deploy path was deliberately not built — it would put an unclaimed run's *production deploy* at
   risk to punish a bookkeeping miss. Detection remains `executor liveness`'s `unclaimed-runs`.
 
-## L-77 — the forks with no next action were exactly the forks that keep firing (2026-09-14, run 159)
+## L-77 — the forks with no next action were exactly the forks that keep firing (2026-09-14, run 159)<a id="l-77"></a>
 
 - **Known problem:** [L-17](#l-17) made this loop pre-register a channel's *admissibility* alongside
   its thresholds, after EXP-002 was found unpublishable on the venue's own rules five days into
@@ -3092,7 +3092,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-78 — an obligation conditioned on an event that never happens never fires, and the instrument that checks for emptiness is the one least able to certify it (2026-09-14, run 160)
+## L-78 — an obligation conditioned on an event that never happens never fires, and the instrument that checks for emptiness is the one least able to certify it (2026-09-14, run 160)<a id="l-78"></a>
 
 - **Known problem:** [L-77](#l-77) closed the gap where a *fork* stated a reading and no action. This
   is the same shape one layer out, in an owner-facing artifact rather than an experiment: an
@@ -3142,7 +3142,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-79 — the discriminator L-78 proposed was satisfiable by the one link a challenge page does carry (2026-09-15, run 161)
+## L-79 — the discriminator L-78 proposed was satisfiable by the one link a challenge page does carry (2026-09-15, run 161)<a id="l-79"></a>
 
 - **Known problem:** [L-78](#l-78) established that `source-read`'s 1000-character terseness floor is
   structurally biased against its own null — *nothing is here* renders short by construction, so the
@@ -3190,7 +3190,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-80 — the watchdog measured that runs start and never that one finished, and the run it missed is the one that never reported (2026-09-15, run 162)
+## L-80 — the watchdog measured that runs start and never that one finished, and the run it missed is the one that never reported (2026-09-15, run 162)<a id="l-80"></a>
 
 - **Known problem:** the executor loop must post an execution report to issue #1 every run — the only
   artifact the reviewer reads, and mandatory in [CLAUDE.md](../CLAUDE.md). Nothing checked that one
@@ -3257,7 +3257,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-81 — the route inventory enumerates writers, and the gap it could never see is a table whose only reader is `COUNT(*)` (2026-09-15, run 163)
+## L-81 — the route inventory enumerates writers, and the gap it could never see is a table whose only reader is `COUNT(*)` (2026-09-15, run 163)<a id="l-81"></a>
 
 - **Known problem:** [L-61](#l-61) found `POST /:handle/follow` — the only conversion action on a
   public feed page — writing nothing at all, after four runs had closed on *"no counter on any route
@@ -3317,7 +3317,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-82 — the product published eighty-seven units of value and gave none of them an address (2026-09-15, run 164)
+## L-82 — the product published eighty-seven units of value and gave none of them an address (2026-09-15, run 164)<a id="l-82"></a>
 
 - **What happened:** `items` held **87 rows with `visibility = 'public'`** and the route table had no
   address for any of them. A find was reachable only *inside* `/:handle`, a document that changes
@@ -3370,7 +3370,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-83 — the addresses shipped, and nothing on the site pointed at them (2026-09-16, run 165)
+## L-83 — the addresses shipped, and nothing on the site pointed at them (2026-09-16, run 165)<a id="l-83"></a>
 
 - **What happened:** [L-82](#l-82) closed the defect it named — every published find got a URL and
   `sitemap.xml` grew from 8 entries to 95. For one day that was the *whole* of it: **no page on this
@@ -3411,7 +3411,7 @@ beside each wrong line rather than replacing it.
   unconditionally. **Markup assertions cannot see geometry** — run 164 learned they cannot see CSS
   that stopped being CSS, and this is the same boundary one step further in.
 
-## L-84 — the overflow check compared two numbers that the overflow moves together (2026-09-16, run 166)
+## L-84 — the overflow check compared two numbers that the overflow moves together (2026-09-16, run 166)<a id="l-84"></a>
 
 - **What happened:** production's landing page and its demo feed did not fit a phone, and had not for
   an unknown length of time. Measured at 390px from a browser in Actions on 2026-09-16: **`/` laid
@@ -3459,7 +3459,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-85 — the check measured the defect, printed it in its own artifact, and graded something else (2026-09-16, run 167)
+## L-85 — the check measured the defect, printed it in its own artifact, and graded something else (2026-09-16, run 167)<a id="l-85"></a>
 
 - **What happened:** [L-84](#l-84)'s new spec ran against production, measured 16 public pages at
   390px, and returned **`brokenCount: 0`**. In the same JSON, on the same page, it reported
@@ -3505,7 +3505,7 @@ beside each wrong line rather than replacing it.
   whose selector matches nothing is the same defect as a missing rule ([L-81](#l-81)'s shape in CSS:
   a thing written with no reader).
 
-## L-86 — the change that broke the pull-request gate was merged without passing through it (2026-09-17, run 168)
+## L-86 — the change that broke the pull-request gate was merged without passing through it (2026-09-17, run 168)<a id="l-86"></a>
 
 - **What happened:** `check` runs on `pull_request` and on pushes to `master`. From **2026-09-12** it
   could not be green on **any** pull request carrying a commit. One test in
@@ -3563,7 +3563,7 @@ beside each wrong line rather than replacing it.
   a `pull_request` event, **success**: the first green one since 2026-08-27. Green on `master`
   afterwards would have proved nothing about it.
 
-## L-87 — the checks that read a surface are not the checks a gate runs (2026-09-17, run 169)
+## L-87 — the checks that read a surface are not the checks a gate runs (2026-09-17, run 169)<a id="l-87"></a>
 
 - **What happened:** run 169 changed the shape of an RSS item's `<description>` — from bare text to
   HTML inside an XML text node — and shipped it behind six green gates: `npm run check`, **389**
@@ -3595,7 +3595,7 @@ beside each wrong line rather than replacing it.
   provenance paragraph must name the selector and carry that find's address on the canonical origin —
   so the spec fails if a later run silently drops either, rather than merely tolerating both.
 
-## L-88 — a 404 is not a request failure, so nothing in the repository graded one (2026-09-18, run 170)
+## L-88 — a 404 is not a request failure, so nothing in the repository graded one (2026-09-18, run 170)<a id="l-88"></a>
 
 - **What happened:** run 169's landing bracket recorded exactly one console error — *"Failed to load
   resource: the server responded with a status of 404 ()"* — and could not say **which** resource,
@@ -3645,7 +3645,7 @@ beside each wrong line rather than replacing it.
   history bottoms out on 2026-09-12.** `git log -S` on a shallow clone dates a thing to the
   boundary, not to its origin. Check `.git/shallow` before treating a first appearance as a date.
 
-## L-89 — the assertion found the stylesheet, not the element, and passed however the page was ordered (2026-09-18, run 171)
+## L-89 — the assertion found the stylesheet, not the element, and passed however the page was ordered (2026-09-18, run 171)<a id="l-89"></a>
 
 - **What happened:** run 171 gave the find page a follow block and wrote a test for the one property
   that keeps it on the right side of the doctrine boundary — *the outbound link to the source must
@@ -3680,7 +3680,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-90 — the honesty rule had a scope, and every surface that converts was outside it (2026-09-18, run 172)
+## L-90 — the honesty rule had a scope, and every surface that converts was outside it (2026-09-18, run 172)<a id="l-90"></a>
 
 - **Known problem:** the loop had a written rule against asserting freshness in prose and an
   instrument enforcing it — [L-18](#l-18), `qa/freshness.spec.mjs`, `retiredClaimsStillPresent`,
@@ -3726,7 +3726,7 @@ beside each wrong line rather than replacing it.
 
 ---
 
-## L-91 — the file said which days it reported and never which of them had finished (2026-09-19, run 173)
+## L-91 — the file said which days it reported and never which of them had finished (2026-09-19, run 173)<a id="l-91"></a>
 
 **Every pre-registered reading in this register is defined over *complete* UTC days. Nothing in the
 repository could tell a complete day from a partial one.**
@@ -3796,7 +3796,7 @@ snapshot` probe into the **unsuffixed** `landing_view` that every landing-page r
 nothing red anywhere. Two assertions in `test/metrics.test.ts` now import the real classifier and
 grade both first-party strings. The prose rewording turns them red.
 
-## L-92 — every precondition for being found was built, and nothing ever asked whether it worked (2026-09-19, run 174)
+## L-92 — every precondition for being found was built, and nothing ever asked whether it worked (2026-09-19, run 174)<a id="l-92"></a>
 
 **The site has no pages in the search index. It has never had any.** Measured this run with the
 `site:` operator against a working control, plus an exact-phrase search for a string in the footer of
@@ -3846,7 +3846,7 @@ the state it was written to catch.**
 
 ---
 
-## L-93 — the honesty fix was applied to one of three surfaces, and nothing swept the rest (2026-09-19, run 175)
+## L-93 — the honesty fix was applied to one of three surfaces, and nothing swept the rest (2026-09-19, run 175)<a id="l-93"></a>
 
 **Two public pages promised email from a Worker that has no sender.** `/` told every applicant
 *"you'll hear back by email"*; `/login` told every approved member *"we send you a personal sign-in
@@ -3909,7 +3909,7 @@ whole funnel to be told mail is coming.
 
 ---
 
-## L-94 — the room behind the door was empty, and the check built to read the door could not see into it (2026-09-20, run 176)
+## L-94 — the room behind the door was empty, and the check built to read the door could not see into it (2026-09-20, run 176)<a id="l-94"></a>
 
 **A member who does not own an agent has an empty desk, and no action anywhere on this site could
 change that.** `follows` is the sole source of everything `GET /today` renders, and in all of `src/`
@@ -3980,7 +3980,7 @@ above it, and the defect was not in any stage. It was that stage 5 had no edge i
   — that closes the blind spot, and is recorded here as **not** the check that would have caught this
   defect, since the desk's false sentence promised no email.
 
-## L-95 — a capability that exists on one screen is not offered where the decision is made (2026-09-20, run 177)
+## L-95 — a capability that exists on one screen is not offered where the decision is made (2026-09-20, run 177)<a id="l-95"></a>
 
 **Run 176 built the desk subscription and left it reachable from one place.** `POST /:handle/desk` is
 the only writer of `follows` a member can reach, and the only surface that offered it was the desk's
@@ -4031,7 +4031,7 @@ arrivals land on.
   by copy, and verify with `sha256sum -c` — which is what the procedure already said and what the
   shorthand quietly stopped doing.
 
-## L-96 — a test that seeds its world at `now` cannot see a window (2026-09-20, run 178)
+## L-96 — a test that seeds its world at `now` cannot see a window (2026-09-20, run 178)<a id="l-96"></a>
 
 **The defect.** `GET /today` windows every followed feed's items to `i.created_at > now - 7 days`.
 On the day this was found the five public feeds held **87 public items and not one was inside that
@@ -4082,7 +4082,7 @@ July. **The loop knew the site's data was old and wrote its fixture new.**
 
 ---
 
-## L-97 — a gate with nobody standing at it is an outage, not a safeguard (2026-09-21, run 179)
+## L-97 — a gate with nobody standing at it is an outage, not a safeguard (2026-09-21, run 179)<a id="l-97"></a>
 
 **The finding.** Run 153 read EXP-013's threshold 2 at 25.7% against a 25% bar, called it a failure,
 and took Fork B: `agent-scout.yml` keeps its daily cron and screens, but the `--publish` flag comes
@@ -4140,7 +4140,7 @@ report what it wrote forces every reader downstream to go and look.**
 
 ---
 
-## L-98 — a remedy queued behind an unanswered question is the same stoppage, one level up (2026-09-21, run 180)
+## L-98 — a remedy queued behind an unanswered question is the same stoppage, one level up (2026-09-21, run 180)<a id="l-98"></a>
 
 **What happened.** Run 179 found [L-97](#l-97): publication had been moved behind an attended gate,
 the queue behind it was a workflow artifact no run was obliged to open, and eight consecutive
@@ -4183,7 +4183,7 @@ the code around it does it survive?*
 
 ---
 
-## L-99 — a reading is only as true as the step that feeds it, and "self-correcting" is a claim to test (2026-09-21, run 181)
+## L-99 — a reading is only as true as the step that feeds it, and "self-correcting" is a claim to test (2026-09-21, run 181)<a id="l-99"></a>
 
 **What happened.** Run 180 shipped [`scripts/scout-gate.mjs`](../scripts/scout-gate.mjs) — the
 remedy for [L-97](#l-97) — and put it in `CLAUDE.md`'s read order so a run is obliged to take the
@@ -4234,7 +4234,7 @@ justifying it is true of every case the tests then held. The case that pins it i
 that string, and the registry refuses it. **A guard over a second component is unpinned until a test
 supplies an input the first component accepts and the second does not.**
 
-## L-100 — a disclosure rule applied surface by surface gets finished three times, and the funnel's first screen was last (2026-09-22, run 182)
+## L-100 — a disclosure rule applied surface by surface gets finished three times, and the funnel's first screen was last (2026-09-22, run 182)<a id="l-100"></a>
 
 - **Known problem:** a visitor choosing which feed to open should be told how current each one is.
   Staleness is a fact about the world; a page that declines to mention it is the defect ([L-18](#l-18)).
@@ -4282,7 +4282,7 @@ supplies an input the first component accepts and the second does not.**
 
 ---
 
-## L-101 — the run that writes the lesson generalises along the axis it just worked on, and walks past the literal string (2026-09-22, run 183)
+## L-101 — the run that writes the lesson generalises along the axis it just worked on, and walks past the literal string (2026-09-22, run 183)<a id="l-101"></a>
 
 - **Known problem:** [L-100](#l-100), written the run before this one, set the rule — *a rule applied
   to "the surfaces that do X" is not applied until the set of surfaces is written down somewhere a
@@ -4341,7 +4341,7 @@ supplies an input the first component accepts and the second does not.**
 
 ---
 
-## L-102 — the publisher had a word for its instrument failing and used the word for a quiet week instead (2026-09-22, run 184)
+## L-102 — the publisher had a word for its instrument failing and used the word for a quiet week instead (2026-09-22, run 184)<a id="l-102"></a>
 
 - **Known problem:** [L-97](#l-97) — eight scheduled screens between 2026-09-13 and 2026-09-20 each
   selected ~9 of ~37 candidates and published none, because the screening record is a workflow
@@ -4399,7 +4399,7 @@ supplies an input the first component accepts and the second does not.**
   read as a thin week. That is a harder judgement than a contract violation and is not smuggled into
   this change.
 
-## L-103 — four axes were subtracted from a bucket they were not drawn from, and one of them had been returning a negative number in production for a week (2026-09-23, run 185)
+## L-103 — four axes were subtracted from a bucket they were not drawn from, and one of them had been returning a negative number in production for a week (2026-09-23, run 185)<a id="l-103"></a>
 
 - **Known problem:** none. This was not a known defect, a reviewer directive or the next tidy item
   on a list. It was found by reading `ops/metrics/latest.json` at the start of the run and noticing
@@ -4470,7 +4470,7 @@ supplies an input the first component accepts and the second does not.**
 
 ---
 
-## L-104 — a claim about the evidence, generated from its absence, and the instrument was my own (2026-09-23, run 186)
+## L-104 — a claim about the evidence, generated from its absence, and the instrument was my own (2026-09-23, run 186)<a id="l-104"></a>
 
 **What happened.** Run 186 shipped `scripts/exp013-window.mjs` to grade EXP-013 from the screening
 records, dispatched it, and it printed:
@@ -4523,7 +4523,7 @@ renamed tomorrow reads as absent, and — now — says so, which is the whole of
 
 ---
 
-## L-105 — the guard that stopped the publisher lying about the day went on to end it (2026-09-23, run 187)
+## L-105 — the guard that stopped the publisher lying about the day went on to end it (2026-09-23, run 187)<a id="l-105"></a>
 
 **What happened.** Run 184 found the 2026-09-22 02:40Z screen reporting `search returned 0 candidates
 (hitCount ?)` — a green run, an uploaded record, a clean exit — when Europe PMC had answered 200 with
@@ -4567,7 +4567,7 @@ being read. It is named here so the next run chooses it deliberately instead of 
 
 ---
 
-## L-106 — a threshold that can only be failed from one source and only passed from another, and the fork that made it unfailable-in-the-useful-sense (2026-09-24, run 188)
+## L-106 — a threshold that can only be failed from one source and only passed from another, and the fork that made it unfailable-in-the-useful-sense (2026-09-24, run 188)<a id="l-106"></a>
 
 **What happened.** Run 186 built EXP-013's reading instrument and drew a line through the thresholds:
 1 and 2 are computable from the screening records, and *"3 (provenance on both public surfaces), 4
@@ -4621,7 +4621,7 @@ threshold: run 153's pre-commitment binds this run as it bound 179–187. The ba
 
 ---
 
-## L-107 — every check ever written of the feed asked what the bytes contained, and none of them asked whether it parsed (2026-09-24, run 189)
+## L-107 — every check ever written of the feed asked what the bytes contained, and none of them asked whether it parsed (2026-09-24, run 189)<a id="l-107"></a>
 
 **What happened.** `/<handle>/rss.xml` is the only subscription this funnel can currently complete, and
 the exact URL the pending `awesome-rss-feeds` submission points at. It was covered — `esc` on every
@@ -4666,7 +4666,7 @@ property, not the number, when the number is a side effect of a boundary you did
 
 ---
 
-## L-108 — the reason recorded for the half that was not fixed hardened into a licence for it, and then a test guarded the licence (2026-09-24, run 190)
+## L-108 — the reason recorded for the half that was not fixed hardened into a licence for it, and then a test guarded the licence (2026-09-24, run 190)<a id="l-108"></a>
 
 **What happened.** `SITE_ORIGIN` was introduced (run 86) so that HTML pages could name one canonical
 host out of the three this Worker answers on. Its comment explained the choice and, in the same
@@ -4721,7 +4721,7 @@ property, it is a coincidence with a future.
 
 ---
 
-## L-109 — the fix was scoped to the pages that HAVE the thing, and the page that leads to them was not one of them (2026-09-25, run 191)
+## L-109 — the fix was scoped to the pages that HAVE the thing, and the page that leads to them was not one of them (2026-09-25, run 191)<a id="l-109"></a>
 
 **Problem.** `https://justtuned.com` — the address every canonical, every `og:url`, the sitemap and
 the README name as this site, and therefore the string a person pastes into a feed reader and a
@@ -4790,7 +4790,7 @@ the specification and the code is not meeting it. **(2)** When a header comment 
 "every page" or "all of X", either grade the population or narrow the sentence. Run 191 narrowed
 `socialHead`'s in place rather than deleting it, per [L-108](#l-108).
 
-## L-110 — the fix was made safe by a sentence on a surface the fix's own consumer does not read (2026-09-25, run 192)
+## L-110 — the fix was made safe by a sentence on a surface the fix's own consumer does not read (2026-09-25, run 192)<a id="l-110"></a>
 
 **Problem.** `/` advertised five feeds to a feed reader under five titles that differed only by handle
 — `@sportstech — Tuned`, `@wearables — Tuned`, and so on. Four of the five feeds this site serves had
@@ -4839,7 +4839,7 @@ drops.
 
 ---
 
-## L-111 — the ban list was a transcription of the defects that had been fixed, so it graded those and nothing else (2026-09-25, run 193)
+## L-111 — the ban list was a transcription of the defects that had been fixed, so it graded those and nothing else (2026-09-25, run 193)<a id="l-111"></a>
 
 **Problem.** `/`'s `<meta name="description">` — the search snippet for the one address every
 canonical, every `og:url`, the sitemap and the README name as this site — read *"Tuned — follow
@@ -4891,7 +4891,7 @@ reddened **only** the invariance test, so the class filter alone would have pass
 fix. The set graded must be derived too — mutation 5 planted the claim on a **find page**, a class no
 currency test names, and only the check that reads its paths off `/sitemap.xml` caught it.
 
-## L-112 — the remedy a pre-registration names for one threshold destroyed another threshold's ability to be measured, and the same document held both (2026-09-26, run 194)
+## L-112 — the remedy a pre-registration names for one threshold destroyed another threshold's ability to be measured, and the same document held both (2026-09-26, run 194)<a id="l-112"></a>
 
 **Problem.** EXP-013 asked one question — *can an agent feed publish on a cadence with no person
 selecting?* — and its 14-day window closed **unable to answer it**. Not because the source refused,
@@ -4947,7 +4947,7 @@ person is in the path, and it silently made a person load-bearing at the reading
 
 ---
 
-## L-113 — the rollback was verified on the thing it reverses and never on the readers already holding the link (2026-09-26, run 195)
+## L-113 — the rollback was verified on the thing it reverses and never on the readers already holding the link (2026-09-26, run 195)<a id="l-113"></a>
 
 **Problem.** `agent operator` → `retract` is this loop's undo for a publication, built because the
 operating record's deployment gates require a rollback path for every change and a publication was
@@ -4997,7 +4997,7 @@ until something has looked at it.**
 
 ---
 
-## L-114 — the honest dead end: every surface truthfully said the feed was over, and none of them said where to go next (2026-09-26, run 196)
+## L-114 — the honest dead end: every surface truthfully said the feed was over, and none of them said where to go next (2026-09-26, run 196)<a id="l-114"></a>
 
 **Problem.** `sitemap.xml` advertises one landing page, five feeds and every published find, so what
 search can send this service is overwhelmingly a **find page**, and a shared link is a find page by
@@ -5049,7 +5049,7 @@ deployed site and is the rollback signal.
 
 ---
 
-## L-115 — a check can be exact today because of a fact about the page that nothing pins (2026-09-26, run 196)
+## L-115 — a check can be exact today because of a fact about the page that nothing pins (2026-09-26, run 196)<a id="l-115"></a>
 
 **Problem.** `verify production` went red on [`74803de`](https://github.com/in-c0/tuned/commit/74803de)
 at step 28 — *"a feed card on /sportstech now links to Tuned rather than to its source. Roll back."*
@@ -5130,7 +5130,7 @@ reason on every path it can take, including the paths where it is the thing that
 
 ---
 
-## L-116 — the axis made a reading computable and did not make it interpretable (2026-09-27, run 197)
+## L-116 — the axis made a reading computable and did not make it interpretable (2026-09-27, run 197)<a id="l-116"></a>
 
 - **Known problem:** the one arrival channel this loop can open without anyone's permission is
   search, and find pages are what it can send — `sitemap.xml` advertises 94 of them against one
@@ -5177,7 +5177,7 @@ reason on every path it can take, including the paths where it is the thing that
   pins the three-way partition, the allowlist's host boundaries, the `_bot` split on both axes, and
   that no counter name ever carries the caller-supplied host.
 
-## L-117 — the reading was made computable and then graded on a value the caller sends (2026-09-27, run 198)
+## L-117 — the reading was made computable and then graded on a value the caller sends (2026-09-27, run 198)<a id="l-117"></a>
 
 - **Known problem:** [L-116](#l-116) had just found that `item_view - item_view_onsite` merges a
   crawler and a search arrival into one number, and [EXP-014](EXPERIMENTS.md#exp-014--were-2026-09-26s-517-off-site-find-page-views-a-crawler-or-the-first-search-arrivals-2026-09-27-run-197)
@@ -5231,7 +5231,7 @@ reason on every path it can take, including the paths where it is the thing that
 
 ---
 
-## L-118 — the clause that proved the authors ran something was graded on the subject's vocabulary (2026-09-27, run 199)
+## L-118 — the clause that proved the authors ran something was graded on the subject's vocabulary (2026-09-27, run 199)<a id="l-118"></a>
 
 - **Known problem:** `@sportstech`'s bar must publish "a concrete measured result", so
   `EXCLUDED_PUB_TYPES` refuses Europe PMC's review types and `DESIGN_SIGNATURES` exists to establish
@@ -5286,7 +5286,7 @@ reason on every path it can take, including the paths where it is the thing that
   data points would trade a defect that has published nothing for one that silences the publisher,
   and that is the worse trade.** It is the next candidate, named as such rather than fitted now.
 
-## L-119 — an authorship clause has to be graded on structure, and the first version of it silenced the paper L-118 named (2026-09-27, run 200)
+## L-119 — an authorship clause has to be graded on structure, and the first version of it silenced the paper L-118 named (2026-09-27, run 200)<a id="l-119"></a>
 
 - **Known problem:** the root cause L-118 named and deliberately left open. `DESIGN_SIGNATURES` is
   the clause that establishes *these authors ran a study*, and it is graded on vocabulary the
@@ -5340,7 +5340,7 @@ reason on every path it can take, including the paths where it is the thing that
   mutation results from that point were discarded and re-run. **Mutation-grade after committing,
   never before** (L-... as recorded at run 198, and now twice).
 
-## L-120 — the corroborating counter was named, and naming is not witnessing (2026-09-28, run 201)
+## L-120 — the corroborating counter was named, and naming is not witnessing (2026-09-28, run 201)<a id="l-120"></a>
 
 **The rule that fired, and the half of it that did not exist.** Run 198 wrote L-117 and built a
 guard for it: an experiment graded on a header the caller sends must also name a script-execution
@@ -5387,7 +5387,7 @@ Two things worth keeping from that:
 
 ---
 
-## L-121 — the retry was built on the right principle and pinned to the wrong example (2026-09-28, run 202)
+## L-121 — the retry was built on the right principle and pinned to the wrong example (2026-09-28, run 202)<a id="l-121"></a>
 
 **What happened.** The 02:40Z scheduled screen on 2026-09-28 died **one second in** on `HTTP 503
 from Europe PMC search`, published nothing and uploaded **no `scout-record` artifact at all**
@@ -5439,7 +5439,7 @@ record and the gate reports `ATTEND` without ever saying why.
 
 ---
 
-## L-122 — a fork rule that exists only as prose is graded by whoever happens to read it (2026-09-29, run 203)
+## L-122 — a fork rule that exists only as prose is graded by whoever happens to read it (2026-09-29, run 203)<a id="l-122"></a>
 
 **The situation.** EXP-014's answer is one of six forks whose next actions point in opposite
 directions — Fork B's is registered as outranking *every other candidate available to the loop*,
@@ -5483,7 +5483,7 @@ different runs at different times, and the one that grades it is the one that di
 
 ---
 
-## L-123 — the file every run must read was the one nobody had to maintain (2026-09-29, run 204)
+## L-123 — the file every run must read was the one nobody had to maintain (2026-09-29, run 204)<a id="l-123"></a>
 
 **The situation.** `ops/MILESTONES.md` is **item 3 in the operating card's read order** — every run is
 obliged to open it and take "the nearest active horizon" from it. Today it had not been touched since
@@ -5552,7 +5552,7 @@ vocabulary, so "is anything past due and still open?" is a check and not a disci
 
 ---
 
-## L-124 — the quotation was checked against the damage, not against the source (2026-09-29, run 205)
+## L-124 — the quotation was checked against the damage, not against the source (2026-09-29, run 205)<a id="l-124"></a>
 
 **The situation.** The gate read `ATTEND`, so this run opened the 2026-09-29 scheduled screen's record
 before choosing anything else — which is exactly what [L-97](#l-97) put there. The record's top
@@ -5601,7 +5601,7 @@ was yes, and the assertion had been passing confidently for every item this feed
 
 ---
 
-## L-125 — the outage was recorded as a verdict on the papers it prevented reading (2026-09-30, run 206)
+## L-125 — the outage was recorded as a verdict on the papers it prevented reading (2026-09-30, run 206)<a id="l-125"></a>
 
 **The situation.** The 2026-09-29 scheduled screen
 ([run 36555144773](https://github.com/in-c0/tuned/actions/runs/36555144773)) asked Europe PMC for
@@ -5664,7 +5664,7 @@ innocent-looking name.
 
 ---
 
-## L-126 — the mirror was the superset, and the precedence rule said to delete the difference (2026-09-30, run 207)
+## L-126 — the mirror was the superset, and the precedence rule said to delete the difference (2026-09-30, run 207)<a id="l-126"></a>
 
 **The situation.** Run 143 (2026-09-06) raised a second owner-action card: *may Tuned be suggested to
 `ooh.directory` at all?* — the only ask in this loop that costs the owner **one word** rather than an

@@ -37,7 +37,7 @@ Template:
 - Decision: keep / roll back / iterate / abandon
 ```
 
-## EXP-001 — funnel telemetry baseline (2026-08-06, run 2)
+## EXP-001 — funnel telemetry baseline (2026-08-06, run 2)<a id="exp-001"></a>
 
 - **Hypothesis:** not a product experiment. This is the measurement prerequisite: without it, every
   later experiment's result is unfalsifiable. Logged here because the reviewer's acceptance criteria
@@ -82,7 +82,7 @@ Template:
   The experiment is not failing — it has not begun. Recorded so the window is not mistakenly counted
   from the owner's confirmation timestamp.
 
-## EXP-002 — first distribution smoke test: Show HN to agent operators (2026-08-07, run 9)
+## EXP-002 — first distribution smoke test: Show HN to agent operators (2026-08-07, run 9)<a id="exp-002"></a>
 
 **Pre-registered before publication. Not yet started.** The packet — audience, channel, exact post,
 CTA, tagged URL — is [in issue #1](https://github.com/in-c0/tuned/issues/1) and awaits owner
@@ -214,7 +214,7 @@ No threshold, band or grading rule of EXP-002 is altered.
 
 ---
 
-## EXP-003 — application mechanism test: can a visitor actually apply? (2026-08-08, run 18)
+## EXP-003 — application mechanism test: can a visitor actually apply? (2026-08-08, run 18)<a id="exp-003"></a>
 
 **Pre-registered at 2026-08-08 ~09:35 UTC (19:35 Sydney), before any production reading was taken.**
 Written and committed first on purpose: the whole value of this test is that its pass/fail rule was
@@ -358,7 +358,7 @@ fixed before the answer was known, because the result determines whether the nex
   added now it would measure crawler behaviour at some cost in noise. Deliberately not shipped this
   run so the reading stays attributable.
 
-## EXP-004 — do the public, no-account surfaces the Show HN post promises actually work? (2026-08-08, run 19)
+## EXP-004 — do the public, no-account surfaces the Show HN post promises actually work? (2026-08-08, run 19)<a id="exp-004"></a>
 
 **Pre-registered before any production reading.** Same discipline the reviewer required of EXP-003,
 for the same reason: the criteria below decide the result, and they are fixed here first so they
@@ -650,7 +650,7 @@ been spent. The distribution question is exactly as open as it was on 2026-08-08
 
 ---
 
-## EXP-005 — is the attention Tuned publishes actually recent? (2026-08-13, run 35)
+## EXP-005 — is the attention Tuned publishes actually recent? (2026-08-13, run 35)<a id="exp-005"></a>
 
 **Pre-registered before any production reading, and before any copy is touched.** The threshold below
 is fixed here first so it cannot be relaxed once the measurement is in. Same discipline as EXP-003
@@ -753,7 +753,7 @@ its own merits, not a conversion experiment, and no conversion inference may be 
 `ops/DECISIONS.md`. The instrument stays: `qa/freshness.spec.mjs` is re-runnable against production
 at any time and will fail again the moment the page outruns its data.
 
-## EXP-006 — is the flat queue a quiet member or a dead pipeline? (2026-08-14, run 37)
+## EXP-006 — is the flat queue a quiet member or a dead pipeline? (2026-08-14, run 37)<a id="exp-006"></a>
 
 **Pre-registered before any reading, and before the instrument's first snapshot exists.** The forks
 below are fixed here first so none of them can be selected after the numbers arrive. Same discipline
@@ -891,7 +891,7 @@ liveness check. One arithmetic gap is logged in [METRICS.md](METRICS.md) as a fu
 `cron_run = 30` against 42 expected boundaries — deliberately not investigated under the current hold,
 and gradeable only against a complete UTC day (`cron_run = 48`).
 
-## EXP-007 — is there a human on the other side of the landing page? (2026-08-15, run 43)
+## EXP-007 — is there a human on the other side of the landing page? (2026-08-15, run 43)<a id="exp-007"></a>
 
 **Pre-registered at 2026-08-15 ~04:20 UTC (14:20 Sydney), before the counters it reads existed and
 therefore before any value of them could be known.** Written first on purpose. The forks below each
@@ -1345,7 +1345,7 @@ with a new threshold, before looking.
 
 ---
 
-## EXP-008 — can the operator control plane publish one real agent find? (2026-08-15, run 44)
+## EXP-008 — can the operator control plane publish one real agent find? (2026-08-15, run 44)<a id="exp-008"></a>
 
 **Pre-registered at 2026-08-15 ~10:1x UTC (20:1x Sydney), at adoption, before any operator
 publication exists and therefore before any result of one can be known.** The
@@ -1554,7 +1554,7 @@ table is demand, and nothing in it has ever been read by a person who is not the
 
 ---
 
-## EXP-009 — if a feed listing sent subscribers, would Tuned see them? (2026-08-19, run 56)
+## EXP-009 — if a feed listing sent subscribers, would Tuned see them? (2026-08-19, run 56)<a id="exp-009"></a>
 
 **Pre-registered at 2026-08-19 ~10:15 UTC (20:15 Sydney): before the counters it reads existed,
 before any value of them could be known, and — the part that matters — before any submission to the
@@ -1904,7 +1904,7 @@ without a red build, and `verify production` asserts the same string against the
 **Unchanged:** Reading 1 and Reading 2, their windows, thresholds, counters and all five forks. No
 number in this experiment moved, and nothing here is a result.
 
-## EXP-010 — what does a published-but-never-submitted tagged URL earn on its own? (2026-08-20, run 58)
+## EXP-010 — what does a published-but-never-submitted tagged URL earn on its own? (2026-08-20, run 58)<a id="exp-010"></a>
 
 **Pre-registered at 2026-08-20 ~04:30 UTC (14:30 Sydney): before the graded window opens, before any
 submission to any venue has been authorized, and — the part that makes it a control rather than a
@@ -2188,7 +2188,7 @@ day of that publication. It is not demand, not a subscriber, and not evidence ab
 
 ---
 
-## EXP-011 — is `landing_view` a browser at all? (2026-09-05, run 138)
+## EXP-011 — is `landing_view` a browser at all? (2026-09-05, run 138)<a id="exp-011"></a>
 
 **Pre-registered at 2026-09-04 ~22:20 UTC (2026-09-05 08:20 Sydney): before the counter it reads
 exists, before any value of it can be known, and before the deploy that introduces it.** The ordering
@@ -2755,7 +2755,7 @@ later framing.
 
 ---
 
-## EXP-012 — if ooh.directory listed `/sportstech`, would Tuned see the arrivals? (2026-09-06, run 143)
+## EXP-012 — if ooh.directory listed `/sportstech`, would Tuned see the arrivals? (2026-09-06, run 143)<a id="exp-012"></a>
 
 **Pre-registered before the counter it reads has ever been written, before any submission exists, and
 before A2 has been answered at this venue.** That ordering is [A5](DISTRIBUTION.md)'s and it is the
@@ -3019,7 +3019,7 @@ red was a QA assertion that read a delivered fire-and-forget beacon as a failed 
 
 ---
 
-## EXP-013 — can an agent feed publish on a cadence with no person selecting? (2026-09-12, run 153)
+## EXP-013 — can an agent feed publish on a cadence with no person selecting? (2026-09-12, run 153)<a id="exp-013"></a>
 
 **Pre-registered before the selector has screened a single candidate, in the same commit that ships
 the bar.** That ordering is the whole point and it replaces a guarantee the six hand-made
@@ -3779,7 +3779,7 @@ person. See [L-106](LESSONS.md#l-106).
 
 ---
 
-## EXP-014 — were 2026-09-26's 517 off-site find-page views a crawler, or the first search arrivals? (2026-09-27, run 197)
+## EXP-014 — were 2026-09-26's 517 off-site find-page views a crawler, or the first search arrivals? (2026-09-27, run 197)<a id="exp-014"></a>
 
 **Pre-registered in the same commit that ships the discriminator, before the first whole UTC day it
 can read.** The thresholds below are written against a population that does not exist yet, which is
