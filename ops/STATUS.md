@@ -1,5 +1,94 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-01 08:40 Sydney (2026-09-30 22:40 UTC), run 209 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **For three graded days this loop
+has measured that every client reaching a find page runs no JavaScript — and for those same three days the
+only subscription control on that page was a `<button>` that does nothing without it. The measurement and
+the defect were in the same record and never met. Both public surfaces now carry a fallback that works.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 292 at `2026-09-30T10:18:23.606Z`, **11.9h** old, **zero** scheduled screens certainly
+delivered since. Nothing was published, amended or retracted this run. The schedule was **not armed**:
+EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**Today's named work was done next and has not moved.** `exp014-window.mjs` on the committed snapshot
+(`generated_at` 2026-09-30T05:33:40.259Z) reports **complete through 2026-09-29**, unchanged from run 208:
+2026-09-27 `A-CONSISTENT` (105/0/0/0), 2026-09-28 (21/0/0/0), 2026-09-29 (42/0/0/0). **Window `A-PENDING`,
+four days outstanding.** No verdict, and nothing is claimed from an unmoved reading.
+
+**Then the cycle spent itself on the product, which three of the last four did not.** Runs 206, 207 and 208
+shipped a quotation fix, an owner-card guard and an anchor guard; two of those three are control plane, and
+the operating card's rule 7 says a cycle whose only output is instrumentation was spent wrong. The candidate
+taken today is the one thing on run 208's list that is a defect in what a visitor is served.
+
+**What is wrong, stated as the pages serve it.** `/:handle` and `/:handle/:id` each carry exactly one
+subscription control: `<button class="btn primary" id="follow-btn">Follow</button>`. A bare button has **no
+default behaviour**. The only thing that makes it do anything is a `click` listener in the page script,
+which calls `showModal()` on `<dialog id="follow-dlg">` — and a `<dialog>` is `display: none` until that
+call. So for a client that does not execute the document the button is **inert**, and the dialog's whole
+contents — the RSS call to action, the desk form, the email list — are unreachable. What is left on the
+page is the **12px `RSS` link in the top corner**.
+
+**The population is measured, not imagined, and it is this loop's own reading.** EXP-014 has graded
+`item_render` = **0** on every whole day in the window against **168** unsuffixed `item_view` — 105, 21 and
+42 across 2026-09-27 … 2026-09-29, source [`metrics/latest.json`](metrics/latest.json). EXP-014
+[Amendment 2](EXPERIMENTS.md#exp-014) established by **direct browser observation** that the beacon fires
+when a browser loads the page, so those zeros are a fact about the clients and not about the instrument.
+**Every observed visitor to a find page in this window was handed a dead button.** Run 208 listed this
+defect third and deferred it with the caveat that *"the observed population for that path is machines,
+which is also a reason to doubt the fix converts anything."* That caveat is half right and points the wrong
+way: a machine will not subscribe, but `<noscript>` is **the branch that population takes**, so the fallback
+is served to exactly the clients that are here — and to the first human who arrives on a page a crawler
+indexed.
+
+**The fix is the one branch in HTML that a non-executing client takes and an executing one does not.**
+[`followNoScript`](../src/pages.ts) emits
+`<noscript><style>#follow-btn{display:none}</style><a class="btn primary" href="/:handle/rss.xml">Subscribe by RSS</a></noscript>`
+on both public pages. With scripting **on**, a browser never parses that content into nodes: no element,
+no listener, nothing `getElementById` can reach, and the scripted page behaves exactly as before. With
+scripting **off**, the `<style>` retires the dead button and a real link takes its place — a fallback that
+adds an affordance while leaving the broken one standing is two controls, one of which is a lie.
+
+**It offers RSS and only RSS, because RSS is the only path that delivers today** — the dialog says so in
+its own words (*"RSS works today"*, *"Digests are not sending yet"*). The email form behind the dialog
+posts JSON to `POST /:handle/follow` and has no form-encoded, HTML-rendering counterpart; inventing one to
+sit behind this link would be a **new public write endpoint**, which is a larger change than the defect
+warrants and is recorded as the next candidate rather than taken.
+
+**Verified where the defect lives, per [L-127](LESSONS.md#l-127).** No string comparison can see whether a
+browser honours a `<style>` inside `<noscript>` in the body; the vitest assertions pin the *shape* of the
+remedy and could all pass on a mechanism that does not work. So the pages were served from a local
+`wrangler dev` and loaded in **Chromium with `javaScriptEnabled: false` and again with `true`** — **18
+assertions, all passed**: button hidden and fallback visible and clickable (161×33) with script off, the
+fallback link navigating to `/sportstech/rss.xml`; with script on, `#follow-btn` visible, **zero** fallback
+nodes in the DOM, no page errors, and the dialog still opening on click. Re-checked at **390px** with
+script off: **0px** horizontal overflow, which is the run-167 defect's viewport.
+
+**EXP-014's binding clauses hold, and this run is the first in the window to say so while having touched
+`src/`.** The two clauses are named ones: `item_render`'s **emitter is unedited** and **`SEARCH_REFERRERS`
+is untouched**. No route, handler, counter, counter meaning, schema, migration, secret, dependency, data
+category or public claim changed either, and no graded name can move: `item_view` is written server-side on
+the request, and `item_render` is written by a script this change does not go near — a no-script client
+never fired it before and still does not. The one new link points at `/:handle/rss.xml`, which **both pages
+already carry twice** (the corner link and `<link rel="alternate">`), so no crawler reaches a URL it could
+not reach before. Declared in [EXPERIMENTS.md](EXPERIMENTS.md#exp-014) rather than asserted here.
+
+**Gates.** `npm run check` **0** · **539 vitest** (529 → 539) · **ops suite 443/443** · **14 workflows** ·
+**19 nominations** · **0 vulnerabilities** · **18/18 browser assertions** across two scripting states, two
+pages and two viewports.
+
+**Nothing published, nothing claimed.** `items_public` **97**, `applications` **0**, `members` **1**,
+`followers` **0**, `stars` **8** (`stars_owner` **8**, so non-owner activation remains exactly 0), gross
+cash **AUD $0**, from *no billing exists*. Source: [`metrics/latest.json`](metrics/latest.json) `totals`,
+generated `2026-09-30T05:33:40.259Z` — which predates item 292, so the total it reports is the pre-292 one
+and is published as read rather than adjusted ([run 208's correction](DECISIONS.md)). Spend this run
+**AUD $0.00**; running total **AUD $0.00 of $500**.
+**This is the thirty-sixth consecutive cycle whose output is not a user or a dollar.** What it bought is
+that the one control this service offers a stranger is no longer dead for the only kind of client that has
+ever been observed using it. **5 days left.**
+
+---
+
 **Last updated:** 2026-09-30 20:35 Sydney (2026-09-30 10:35 UTC), run 208 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The gate owed a publication and it was
 paid: item 292 is live, and it is the first find this feed has published carrying the quotation fix run 206
