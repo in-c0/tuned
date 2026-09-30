@@ -5783,3 +5783,58 @@ re-read section to the registration, which is a content change wearing a cleanup
 **This is the sixth obligation this loop has found living only as prose** — L-76, L-97, L-122, L-123,
 L-126 — and the remedy is the one that worked the other five: `scripts/doc-anchors.mjs`, in
 `npm run test:ops` and so in CI, red on the repository exactly as it stood before this run.
+
+## L-128 — the loop measured a population that runs no script, then left its only control behind `showModal()` (2026-10-01, run 209)<a id="l-128"></a>
+
+**The two facts were in the same record, three days apart in the same table, and nothing joined them.**
+
+EXP-014's window graded `item_render` = **0** on 2026-09-27, again on 2026-09-28 and again on 2026-09-29,
+against **168** unsuffixed `item_view`. [Amendment 2](EXPERIMENTS.md#exp-014) had already established by
+direct browser observation that the beacon fires when a browser loads the page, so each of those zeros was
+recorded, correctly and in bold, as *"not one ran the document."* Meanwhile `/:handle` and `/:handle/:id`
+each carried exactly one subscription control — a bare `<button id="follow-btn">` whose only behaviour is a
+`click` listener that calls `showModal()` on a `<dialog>` that is `display: none` until it is called. **A
+client that runs no script gets a button that does nothing**, and the dialog's entire contents — the RSS
+call to action, the desk form, the email list — are unreachable.
+
+So the loop published, three runs running, the exact reading that condemns its own conversion surface, and
+read it only as a fact about *arrivals*. **"Nothing ran the document" is a sentence about the client. It is
+also a sentence about every control on the page that needs the document to run**, and only the first
+reading was ever taken.
+
+**Three things generalise.**
+
+1. **A measurement of how clients behave is also a specification of what the page must do without them.**
+   `item_render` = 0 was filed under *is this traffic real?* — a question about the numerator of an
+   experiment. The same number answers *what does this page do for the clients we actually have?*, which
+   nobody asked. A counter's registered purpose is where a run looks; it is not the limit of what the
+   counter says.
+
+2. **An affordance that needs script fails silently and looks fine in every instrument that is not a
+   browser with script off.** The button renders. It has the right label, the right styling and the right
+   position. Server tests fetch the HTML and find `id="follow-btn"` present — [`feed-render.test.ts`](../test/feed-render.test.ts)
+   asserts exactly that and passes. Browser QA runs with scripting **on**, because that is the default.
+   Every gate this repository owns agreed the control was there, and not one of them could tell that it
+   did nothing.
+
+3. **A "the population is only machines" caveat argues for the fallback, not against it.** Run 208 deferred
+   this defect with the honest note that fixing it might convert nobody, because the observed clients are
+   crawlers. But `<noscript>` is **the branch those clients take**: the fallback is served to precisely the
+   population that has been measured, it is what a search engine indexes on a page whose scripted control
+   it never sees, and it is what the first human arriving from that index finds. The caveat was about who
+   *subscribes*; the defect is about what the page *offers*.
+
+**The remedy is one function and no new endpoint.** `followNoScript()` emits
+`<noscript><style>#follow-btn{display:none}</style><a class="btn primary" href="/:handle/rss.xml">Subscribe by RSS</a></noscript>`.
+It retires the dead button rather than standing a second control beside it, because two controls of which
+one is a lie is not a fallback. It offers RSS and only RSS because RSS is the only path that delivers
+today — the dialog says so itself — and promising more in the fallback than the scripted control delivers
+would be the fabrication this loop's rules forbid in the one place nobody would look for it.
+
+**And it was verified where it lives.** No string comparison can see whether a browser honours a `<style>`
+inside `<noscript>` in the body; the vitest assertions pin the *shape* of the remedy and would pass just as
+happily on a mechanism that does nothing. [L-127](#l-127) had said this a day earlier in different words, so
+the check was Chromium with `javaScriptEnabled: false` and again with `true`, against the served pages:
+button hidden and fallback clickable with script off, **zero** fallback nodes in the DOM with script on,
+dialog still opening, 0px overflow at 390px. **The gate that can see this defect is the only gate worth
+running on it**, and it is now a habit rather than a note: run the check in the condition the defect lives in.

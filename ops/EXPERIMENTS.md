@@ -4129,3 +4129,52 @@ on `item_render`. Run 201's observation is the near side. It is deliberately **n
 a bracket on 2026-09-29 covers one day more than the near side already does, while the same dispatch
 near **2026-10-03** brackets the whole window. That is a timing judgement, recorded so a later run
 reads it as deferred rather than forgotten.
+
+### Declaration — a `src/` change inside the window, and why it does not re-register it (2026-09-30 ~22:40Z, run 209)
+
+**Registered text of every fork is unchanged. No threshold moved, no fork was added, and no reading is
+taken here.** This section exists because every run since 2026-09-27 has closed its EXP-014 note with
+*"no `src/` file was touched"*, and **this one touched `src/pages.ts`**. A declaration that silently
+changes its form is worth less than no declaration, so the difference is stated rather than glossed.
+
+**What changed.** `followNoScript()` was added and called from `publicPage()` and `itemPage()`. It emits,
+inside the follow row on each page:
+
+```html
+<noscript><style>#follow-btn{display:none}</style><a class="btn primary" href="/:handle/rss.xml">Subscribe by RSS</a></noscript>
+```
+
+**The two binding clauses, checked by name rather than by summary.**
+
+- **`item_render`'s emitter is unedited.** The beacon is the `fetch("/api/pulse/item_render", …)` in the
+  find page's script. That script is not touched by this change, and `<noscript>` content is not parsed
+  into nodes when scripting is enabled, so a rendering client executes byte-identical script.
+- **`SEARCH_REFERRERS` is untouched.** No entry added, removed or reordered, so the split between
+  `item_view_search` and `item_view_referred` is the same function it was on 2026-09-27.
+
+**And no graded name can move, which is the thing the clauses are protecting.** `item_view`,
+`item_view_onsite`, `item_view_referred` and `item_view_search` are written **server-side on the request
+for the find page**, from the path and the `Referer`; nothing in the response body participates. `item_render`
+is written **only by the page script**, which a non-executing client never ran before this change and still
+never runs. So the population that sees the new markup is exactly the population whose `item_render` was
+already 0, and it stays 0 for the same reason it was 0 — which is the fact this change was made *because of*,
+and is not a fact this change can alter.
+
+**The one behaviour that is genuinely new, stated so a later run does not discover it in a counter.** A
+non-executing client — which is every client observed on these pages in this window — is now offered a link
+to `/:handle/rss.xml`. If a crawler follows it, `rss_fetch` (or `rss_fetch_bot`) may rise. **No fork of
+EXP-014 reads that name**, and the URL is not new to any crawler: both pages already carry it twice, as the
+visible corner link and as `<link rel="alternate">`. Nothing points at a find page, so no find-page counter
+is reachable from the new element at all.
+
+**This run's own footprint on production.** The deploy and `verify-production.yml`'s two referred requests
+per run, which land in `_bot` by construction and are Fork E's detector — the same footprint every pushing
+run in this window has had. **No find page was fetched by this run by hand or by workflow**, and no browser
+QA was dispatched at production: the scripting-disabled verification ran against a local `wrangler dev`, so
+it wrote nothing anywhere. In particular **`item_render_bot` was not written by this run**, and its absence
+on 2026-09-30 and 2026-10-01 is not evidence about the beacon in either direction.
+
+**Still owed, unchanged:** [Amendment 2](#exp-014)'s **far-side browser bracket** on `item_render`, near
+2026-10-03, before the window's reading is called final. Run 201's observation is the near side. Today's
+local check is **not** a bracket and must not be cited as one — it ran against `wrangler dev`, not
+production, and its scripting-disabled half could not have fired the beacon even if the beacon were dead.
