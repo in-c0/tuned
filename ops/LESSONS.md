@@ -5731,3 +5731,55 @@ it does not grade the history: the run-175/176 contradiction is frozen in an app
 rewriting those heads now would be the retrospective reconstruction this loop's own rules forbid. The
 guard answers only *are the cards all here, and does the count agree*, which is the question 64 runs
 answered wrong.
+
+---
+
+## L-127 — the record's 318 cross-references pointed at nothing, and the first fix for them broke 17 that worked (2026-09-30, run 208)<a id="l-127"></a>
+
+**What was wrong.** Every `ops/LESSONS.md#l-97` in this repository — 203 of them, plus 13 `#exp-011`
+and 102 others, **318 in all** — resolved to no element. GitHub slugs a heading's whole text, so
+`## L-97 — a gate with nobody standing at it …` is `l-97--a-gate-with-nobody-standing-at-it-…`, and a
+bare `#l-97` matches nothing. The browser stays where it is. **A fragment that hits nothing is not an
+error at any layer** — not in git, not in CI, not in the renderer, not in the URL bar — so 318 pointers
+were read as working for as long as they existed.
+
+**Run 207 computed this and could not confirm it**, because this session cannot fetch github.com's HTML.
+It is confirmable: `ops/LESSONS.md` read back through the **repository-scoped contents API** with
+`Accept: application/vnd.github.html` returns GitHub's own rendered HTML, ids and all. That is the
+authoritative reading, and it is available to any run.
+
+**Three habits, and the second is the one that nearly cost more than it bought.**
+
+1. **A derived identifier is a bad target for a permanent pointer.** Nine of the 318 *did* use the full
+   slug and were dead anyway: they were written correctly, then the heading gained
+   `(2026-08-15, run 44)` and the slug moved. Rewriting 318 links to slugs would have bought pointers
+   that break on the next retitling. An explicit `<a id="l-97"></a>` is not derived from the title, so
+   it survives editing — and it makes the convention 203 links already used *true* rather than
+   migrating 203 links to a convention.
+
+2. **Verify the fix against the same authority that proved the defect, not just the defect.** The first
+   version of this fix passed `npm run check`, 529 vitest, 443 ops tests, the new checker, and the
+   repo-wide integration sweep — and was wrong. Written as `… (run 179) <a id="l-97"></a>`, it renamed
+   every anchored heading's **own** permalink to `…-run-179-`, because the anchor element renders no
+   text but **the space before it does**, and GitHub maps spaces to hyphens without trimming. 17 live
+   full-slug links in `NORTH_STAR.md`, `STATUS.md`, `METRICS.md`, `DECISIONS.md` and `EXPERIMENTS.md`
+   pointed at the unsuffixed slugs. It was caught only by pushing to a branch and reading the file back
+   through the renderer — the identical act that had proved the defect four hours earlier. **A commit
+   whose subject is "318 dead pointers" came within one merge of shipping 17 new ones.**
+
+3. **The tidy-looking normalisation in an instrument is where two cases become one.** What hid it was a
+   `.trim()` in this checker's own `slugify`, added because trimming looks obviously right. It agreed
+   with all 128 ids GitHub had rendered — **by luck, since no heading had edge whitespace** — and it was
+   the single transformation that made the spaced and unspaced forms indistinguishable to the only
+   instrument that could have objected. github-slugger does not trim. **An instrument that normalises
+   its input is blind to exactly the defects that live in what it normalised away**, and "it matches the
+   ground truth" does not detect this, because the ground truth had no instance.
+
+**What it does not do.** It does not check whether a pointer goes to the *right* place. A link to the
+wrong lesson is an argument, not a parse, and belongs in a run's report. `#exp-005--re-read-2026-09-11-…`
+resolves and was deliberately left alone: collapsing it to `#exp-005` would silently redirect it from a
+re-read section to the registration, which is a content change wearing a cleanup's clothes.
+
+**This is the sixth obligation this loop has found living only as prose** — L-76, L-97, L-122, L-123,
+L-126 — and the remedy is the one that worked the other five: `scripts/doc-anchors.mjs`, in
+`npm run test:ops` and so in CI, red on the repository exactly as it stood before this run.
