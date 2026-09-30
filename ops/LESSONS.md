@@ -5661,3 +5661,73 @@ verdict names the subject — as here, where `rejected … — HTTP 503` put the
 paper's supposed failing in one sentence. And **check what the failure spent**: a budget consumed by a
 failed attempt silently converts one outage into a second, larger loss with a different and entirely
 innocent-looking name.
+
+---
+
+## L-126 — the mirror was the superset, and the precedence rule said to delete the difference (2026-09-30, run 207)
+
+**The situation.** Run 143 (2026-09-06) raised a second owner-action card: *may Tuned be suggested to
+`ooh.directory` at all?* — the only ask in this loop that costs the owner **one word** rather than an
+account and two minutes. It was written into run 143's own entry in `ops/STATUS.md` and into
+[`ops/DASHBOARD.md` §1](DASHBOARD.md#1-owner-action-required). **It was never appended to
+`ops/STATUS.md` § OWNER ACTION REQUIRED**, the standing card stack that this file's head links from 50
+run-head lines and that every execution report since has named as the place the cards are *"recorded …
+and not re-argued here"*. That section's leading heading read `ONE, and it has no deadline` from run 137
+to run 206. **Nothing had retired card 2** — `DISTRIBUTION.md` still reads **A2 OPEN — never asked**.
+
+**The first lesson, and it is the one that would not have occurred to me. A precedence rule is only safe
+while the authoritative file is the superset.** `DASHBOARD.md` §1 opens *"Mirror of STATUS.md § OWNER
+ACTION REQUIRED. If the two disagree, STATUS is right"*, and the operating card says `DASHBOARD.md` "is
+never a source of truth". Both sentences are correct as written and both are about **which copy wins on a
+value that exists in both.** Neither says anything about a card that exists in only one — and here the
+non-authoritative file held the **extra** card. So the honest application of either rule resolves the
+disagreement by **deleting the thing the owner needed**. The cheap habit: when two records disagree, ask
+whether they disagree about a *value* or about *whether a record exists*. A precedence rule settles the
+first and silently destroys evidence in the second. **Reconcile by union first, then let precedence
+decide the fields.**
+
+**The second lesson: the same number in three prose copies does not drift toward one answer, it
+oscillates, and every reader is sincere.** Read from the 50 run-head lines carrying the anchor, the count
+was **TWO** from run 149 to 175, **ONE** from 176 to 198, and **TWO** again from 199 to 206. Runs 175 and
+176 are consecutive and each states the other's number as settled history of the same fact — run 175:
+*"TWO, unchanged from runs 143-174"*; run 176: *"ONE, unchanged from runs 137-175."* **Neither announced a
+change, because from each one's vantage there wasn't one:** a run that read the section wrote ONE, a run
+that read the mirror or run 143's entry wrote TWO, and the word *"unchanged"* was truthful both times. 57
+runs of drift with no wrong run in it. **A count that appears in three documents needs one computation,
+not three careful readers** — carefulness is exactly what this defect consumed.
+
+**The third lesson, and the uncomfortable one: [L-07](#l-07) is what kept it alive.** *"After two
+unchanged blocker cycles, escalate once and then stop restating it"* is a good rule and it fired
+correctly — the loop stopped restating both cards. **That left the pointer as the owner's only channel.**
+A pointer into a section missing half its content, plus a standing rule against restating that content,
+**silently deletes the escalation** while every report goes on truthfully reporting the count it read. A
+rule that suppresses repetition makes the *destination* of the pointer load-bearing; L-07 is unchanged
+here, but it now has a guard under it. Generalised: **every rule that replaces restating something with
+referring to it converts a content problem into a link problem, and nothing was checking the link.**
+
+**What was done.** Card 2 is restored to `ops/STATUS.md` § OWNER ACTION REQUIRED, **rewritten from
+`SUBMISSION-ooh-directory.md`, EXP-012 and `DISTRIBUTION.md` rather than copied from the mirror** —
+because a mirror is not a source, and rewriting it from the sources is what surfaced the fact the
+four-week-old copy does not carry: **EXP-012's reading falls on t0 + 15 days, so a submission today reads
+2026-10-15, ten days after the final operating date.** This loop cannot grade it under either answer, and
+the card now says so instead of implying otherwise.
+
+**[`scripts/owner-cards.mjs`](../scripts/owner-cards.mjs) makes the obligation execute** — the fifth time
+this loop has found one living only as prose ([L-76](#l-76), [L-97](#l-97), [L-122](#l-122),
+[L-123](#l-123)) and the fifth time the remedy is the same. It fails when the count word in STATUS's head,
+in STATUS's section heading and in DASHBOARD §1's heading are not the same word, **and** when the section
+does not carry that many live cards. It runs in `npm run test:ops`, so in CI.
+
+**A blind spot, measured rather than assumed.** The live-card check counts **headings**, so a card
+hollowed out to a heading with no body under it passes — run 207 built that mutation and it came back
+green. What caught the real incident is the head-vs-section count disagreement; a card removed
+heading-and-all is caught by the count. The blind spot is written into the guard's header rather than
+closed, because closing it means grading whether a card's body is adequate, which is the next paragraph's
+problem.
+
+**What it deliberately does not do, twice over.** It does not judge whether a card is *right*, current or
+well argued — a card is an argument against evidence and belongs in a run's report, not in a parser. And
+it does not grade the history: the run-175/176 contradiction is frozen in an append-only record, and
+rewriting those heads now would be the retrospective reconstruction this loop's own rules forbid. The
+guard answers only *are the cards all here, and does the count agree*, which is the question 64 runs
+answered wrong.

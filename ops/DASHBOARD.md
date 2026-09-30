@@ -1482,11 +1482,24 @@ the card below and it needs no account, no paste and no two minutes — **one wo
 | **What I did not do** | **Nothing was submitted and no venue was contacted.** Registering the tag authorizes no submission, and the commit says so. |
 | **The honest expectation** | The venue tells you in advance that most suggestions are never reviewed: *"Suggesting a blog does not guarantee it will appear on the site."* EXP-012 registers **never-listed** as the *expected* outcome, in which case **nothing is graded** and no conclusion about demand is drawn in either direction. |
 
-**And the thing worth saying plainly alongside both cards.** After this run there is **no distribution
-work left that I can perform**. Every remaining step at every candidate is A0 (an account I do not
-hold) or A2 (an authorship decision that is yours). **29 days remain; `applications` 0, active members
-0, followers 0, AUD $0.** Improving the product further cannot change any of those, because nobody has
-been shown it.
+**And the thing worth saying plainly alongside both cards.** There is **no distribution work left that
+I can perform**. Every remaining step at every candidate is A0 (an account I do not hold) or A2 (an
+authorship decision that is yours). **5 days remain; `applications` 0, active members 0, followers 0,
+AUD $0.** Improving the product further cannot change any of those, because nobody has been shown it.
+
+**Corrected 2026-09-30 (run 207), and the correction is about this file.** Card 2 above had existed
+**only here** since run 143 — it was never appended to
+[STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required), the file that wins when the two
+disagree. So this mirror was the *more complete* record for 64 runs, and the rule at the top of this
+section, applied as written, would have resolved that by deleting the card. It is now carried in
+STATUS.md as well, and [`scripts/owner-cards.mjs`](../scripts/owner-cards.mjs) fails in CI when the two
+files disagree about how many cards there are. [L-126](LESSONS.md).
+
+**One fact restated from the sources, because the copy above predates it.** **EXP-012 will not be graded
+by this loop under either answer.** Its reading falls 14 complete UTC days after the submission
+timestamp, read on day 15 — for a submission today, **2026-10-15**, ten days after the final operating
+date. An `A` is a decision to make a durable listing whose reading falls to whoever operates Tuned next.
+The decision is still worth having; a graded result inside this window is not on offer.
 
 ---
 
@@ -2119,7 +2132,8 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-09-29 08:45 Sydney (2026-09-28 22:45 UTC), run 203. |
+| **Last materially updated** | 2026-09-30 14:35 Sydney (2026-09-30 04:35 UTC), run 207. |
+| **Run** | 207 — **the one thing this loop needs from you that costs a single word had gone missing from the file it is supposed to live in.** You have two outstanding asks. Card 1 needs your GitHub account and two minutes. Card 2 needs **one word** — may Tuned be suggested to `ooh.directory`, a human-curated blog directory, given that our commentary is written by an agent? Card 2 was raised on 6 September and written into **this** file and nowhere authoritative: the file I call the source of truth listed one ask, not two, for 64 runs. Worse, the rule I wrote at the top of section 1 says *"if the two disagree, STATUS is right"* — and here this mirror was the **fuller** record, so following my own rule would have **deleted** the ask instead of restoring it. The count itself drifted for 57 runs, reading TWO, then ONE, then TWO again, each run sincerely writing *"unchanged"* because each was reading a different copy. **Nothing was ever decided against card 2** — the register still reads *A2 open, never asked*. Both cards are now in the authoritative file, rewritten from the source documents rather than copied from here, and a check now fails the build whenever the two files disagree about how many asks are open. **One correction the rewrite turned up:** if you answer `A`, the experiment behind it reads on **15 October**, ten days after I stop — so an `A` makes a durable listing for whoever runs Tuned next, and I will not be reporting a result on it. **No visitors, no applications, no revenue this cycle, and I am not dressing it up.** 5 days left. [L-126](LESSONS.md). |
 | **Run** | 198 — **our only live experiment would have told us "search is sending us people" on the strength of one line of text any robot can type.** The test I registered yesterday decides whether the traffic on our find pages is robots or the first real visitors, and its most consequential outcome — *search works, pour everything into it* — could be triggered by a single fetcher claiming it came from Google. Nothing verifies that claim. The fix uses something we already had: a small signal the page itself sends only when a real browser actually runs it. On 2026-09-26 that signal fired **zero** times while 642 find-page views were recorded, so what is visiting us does not run the page, and one header was all that stood between that and a false answer. **No visitors, no applications and no revenue this cycle, and I am not dressing it up.** 8 days left. |
 | **Run** | 197 — **our own numbers said 517 people from outside Tuned read our finds yesterday, and I could not tell you whether that was people or one robot.** It is the biggest figure this site has ever produced, against zero on each of the two days before. We only ever asked the visitor one question — *did you come from a page on Tuned?* — so a person arriving from Google and a robot that announces nothing at all went into the same pile. The question is now asked three ways, the robot-shaped pile is separate, and I wrote down in advance what each of the three possible answers means. Written up in full at the top of this file. |
 | **Run** | 196 — **a find page or a feed page linked to its own feed and to no other feed on the service, and four of the five have published nothing since July.** So for most arrivals the entire reachable site was one feed with nothing left to subscribe to. Every public page now offers every other feed with its age. Nothing else changed. |

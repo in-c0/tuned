@@ -1,5 +1,113 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-30 14:35 Sydney (2026-09-30 04:35 UTC), run 207 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO — and one of them has never been in this file.** **The section this file's head has linked from 50 run
+entries carried one card. The second — the only owner action in this loop that needs a single word rather
+than an account — existed in full only in `DASHBOARD.md`, the file the operating card calls "never a source
+of truth" and whose own header says this one wins when the two disagree.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 291 at `2026-09-29T10:24:06.456Z`, **17.8h** old, **zero** scheduled screens certainly
+delivered since. Nothing was published, amended or retracted this run. The schedule was **not armed**;
+EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**Today's named work was done next, takes seconds, and has not moved.** `exp014-window.mjs` on the committed
+snapshot (`generated_at` 2026-09-29T23:56:05.378Z) still reports **complete through 2026-09-28**: the 20:40
+UTC snapshot was delivered **3h15m late at 23:55:52Z, four minutes short of the day it would otherwise have
+completed**, and the 00:15 UTC run that exists to capture a whole day had not been delivered when this run
+read. So 2026-09-27 `A-CONSISTENT` (105/0/0/0) and 2026-09-28 `A-CONSISTENT` (21/0/0/0) stand, **window
+`A-PENDING` with five days outstanding**. Nothing is claimed from an unmoved reading.
+
+**Then the cycle went looking, and found the defect in the one output of this loop that requires a human.**
+
+**What is wrong.** Run 143 (2026-09-06) raised a second owner card — *may Tuned be suggested to
+`ooh.directory` at all?* — wrote it into run 143's own entry in this file and into
+[DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), and **never appended it to
+[§ OWNER ACTION REQUIRED](#owner-action-required)**, the standing card stack every execution report since has
+named as the place the cards are *"recorded … and not re-argued here"*. That section's leading heading has
+read **`ONE, and it has no deadline`** since run 137. **Nothing retired card 2:**
+[DISTRIBUTION.md](DISTRIBUTION.md) still reads **A2 OPEN — never asked**, and the packet is intact.
+
+**The number was maintained in three places by prose, and it oscillated.** Read from the 50 run-head lines
+in this file that carry the anchor: **TWO** from run 149 through 175, **ONE** from 176 through 198, **TWO**
+again from 199 through 206. Runs 175 and 176 are consecutive and each states the other's number as the
+settled history of the same fact — run 175: *"TWO, unchanged from runs 143-174"*; run 176: *"ONE, unchanged
+from runs 137-175."* **Neither announced a change, because from each one's vantage there wasn't one.** A run
+that read the section wrote ONE; a run that read the mirror or run 143's entry wrote TWO; and the word
+*"unchanged"* was sincere both times. **57 runs of drift, and no run was wrong at its own desk.**
+
+**Why the usual precedence rule made this worse instead of catching it.** DASHBOARD §1 opens *"Mirror of
+STATUS.md § OWNER ACTION REQUIRED. If the two disagree, STATUS is right"*, and the operating card says
+DASHBOARD "is never a source of truth". **Here the mirror was the superset**, so applying either rule as
+written resolves the disagreement by **deleting the card the owner needs**. A precedence rule is only safe
+while the authoritative file is the superset, and nothing checked that it was.
+
+**What kept it alive for 64 runs is [L-07](LESSONS.md), working exactly as designed.** *"After two unchanged
+blocker cycles, escalate once and then stop restating it."* The loop correctly stopped restating both cards
+— which left the pointer as the owner's only channel. **A pointer into a section missing half its content,
+plus a standing rule against restating that content, silently deletes the escalation** while every report
+truthfully reports the count it read.
+
+**And the card that went missing is the cheap one.** Card 1 needs an account and two minutes. Card 2 needs
+**one word** and is this loop's only open *question*. With every remaining distribution step at **A0** (an
+account this executor does not hold) or **A2** (an authorship decision that is the owner's), those two cards
+are the whole of the commercial surface this loop can still reach — and the one that costs a word was legible
+only in the file designated non-authoritative.
+
+**Restored, not copied.** Card 2 is rewritten in § OWNER ACTION REQUIRED from
+[`SUBMISSION-ooh-directory.md`](SUBMISSION-ooh-directory.md), [EXP-012](EXPERIMENTS.md) and
+[DISTRIBUTION.md](DISTRIBUTION.md), because a mirror is not a source. Rewriting it from the sources surfaced a
+fact the mirror's four-week-old copy does not carry and which changes what an `A` buys: **EXP-012's reading
+falls 14 complete UTC days after t0, read on day 15**, so a submission today reads on **2026-10-15 — ten days
+after the final operating date.** This loop will not grade EXP-012 under either answer, and the card says so.
+The mirror's *"29 days remain"* is corrected to five.
+
+**The obligation now executes.** [`scripts/owner-cards.mjs`](../scripts/owner-cards.mjs) fails when the count
+word in this file's head, the count word in § OWNER ACTION REQUIRED's leading heading and the count word in
+DASHBOARD §1's leading heading are not the same word — **and** when § OWNER ACTION REQUIRED does not carry
+that many live cards. It runs in `npm run test:ops`, so in CI. This is the **fifth** obligation this loop has
+found living only as prose (L-76, L-97, L-122, L-123), and the remedy is the one that worked the other four
+times: make it execute. **What it deliberately does not check is whether a card is *right*, current or well
+argued** — that is an argument against evidence and belongs in a run's report, not in a parser. It answers
+only *are they all here, and does the count agree*, which is the question 64 runs answered wrong.
+**It also does not grade the history above:** the run-175/176 contradiction is frozen in an append-only
+record and correcting it now would be the retrospective reconstruction this loop's own rules forbid.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 427/427** (413 → 427) ·
+**14 workflows** · **18 nominations** · **0 vulnerabilities**. **Four mutations, all files restored
+byte-identical under `sha256sum -c`** — and one of them was not caught, which is reported here rather than
+dropped.
+
+| mutation | what it is | result |
+| --- | --- | --- |
+| **A** | the records **exactly as they stood at [`34e0879`](https://github.com/in-c0/tuned/commit/34e0879)**, the tip when this run began | guard **exit 1**, naming **both** the head/section disagreement (*"the head says TWO … § OWNER ACTION REQUIRED says ONE"*) and the mirror/source one; suite **red** |
+| **B** | card 2's **body** deleted, its `###` heading left standing | **NOT CAUGHT — exit 0.** See below |
+| **B′** | card 2 removed **heading and all**, section heading still claiming TWO | guard **exit 1** — *"says TWO but carries 1 live card heading(s)"* |
+| **C** | `countWord` made case-insensitive, so card bodies' *"one word on issue #1"* can declare a count | **suite red** (1 failure); the guard itself still exits 0 on today's records, because their first heading reads `TWO` either way |
+
+**Mutation A is the load-bearing one: the guard is red on the world as it was when this run began**, and
+would have been red from run 143 onward. **Mutation B is a real limitation and it is now written into the
+guard's own header:** the live-card check counts **headings**, so a card hollowed out to a heading with no
+body passes it. What actually caught this incident is the head/section count disagreement, which is
+mutation A; B′ is the shape that check does catch. A guard whose blind spot is undocumented is the thing
+L-124 is about, so it is documented rather than quietly widened — widening it to judge a card's *body*
+would make it grade whether a card is well written, which is an argument, not a parse.
+
+**No committed `src/` file was touched, so no route, handler, page or behaviour changed** — and no schema,
+migration, counter, counter meaning, secret, dependency, data category or public claim either.
+`item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so **EXP-014's binding clauses hold
+and the window is not re-registered.**
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`followers` **0** · `stars` **8** (`stars_owner` **8**, so non-owner activation remains exactly 0) ·
+gross cash **AUD $0**, from *no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json)
+`totals`, generated `2026-09-29T23:56:05.378Z`. Spend this run **AUD $0.00**; running total
+**AUD $0.00 of $500**.
+**This is the thirty-fourth consecutive cycle whose output is not a user or a dollar, and I am not dressing
+it up.** What it bought is that the owner's own copy of what this loop needs from them is complete in the
+file the loop calls authoritative, five days before it hands that file over. **5 days left.**
+
+---
 **Last updated:** 2026-09-30 08:40 Sydney (2026-09-29 22:40 UTC), run 206 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md).** **Yesterday's upstream outage was not
 merely mislabelled in the record — it had silently spent the cycle's read budget, so an archive having a
@@ -5945,7 +6053,33 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **ONE, and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
+### **TWO, and neither has a deadline.** — card 2 restored to this section 2026-09-30 14:35 Sydney (04:35 UTC), run 207
+
+**Card 2 of 2 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
+was written into run 143's own entry above and into
+[DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), and **never appended here** — so for the 64
+runs from 143 to 206 the file the operating card names canonical, and which DASHBOARD's own header
+defers to, carried one card. Nothing ever retired it: [DISTRIBUTION.md](DISTRIBUTION.md) still reads
+**A2 OPEN — never asked**. Restored below from the packet, [EXP-012](EXPERIMENTS.md) and
+DISTRIBUTION.md rather than copied from the mirror. [L-126](LESSONS.md).
+
+**May Tuned be suggested to `ooh.directory` at all? One word on
+[issue #1](https://github.com/in-c0/tuned/issues/1) settles it.** No account, no paste, no two
+minutes. Full packet: **[ops/SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directory.md)**.
+
+| | |
+| --- | --- |
+| **The question** | ooh.directory is a **human-curated blog directory**. Its FAQ admits link blogs *"only if they include original commentary about each link"* — `/sportstech` meets that on its face, because every item carries a `why` line. **But that commentary is written by an agent.** The page says so with an `AI AGENT` badge, so nothing is concealed from a curator reading it, and the FAQ has no clause about machine-written text either way. **Silence is not permission**, and suggesting an agent-written blog in your name is your call, not mine. That is why [A1 reads PARTIALLY SATISFIED](DISTRIBUTION.md) and **A2 is open**. |
+| **What I need** | **`A`** — proceed, and the packet becomes a paste like card 1. **`N`** — retire it, and `SUBMISSION-ooh-directory.md` is deleted permanently. Either answer is a good outcome; the card standing open is the only bad one. |
+| **What is already closed, so the answer is all that is missing** | **A5.** `arrival:ooh-directory` writes on the exact URL this venue takes — the **front page** `GET /:handle`, not the feed — pinned by five tests, including one that the tag writes **nothing** on `GET /`. [EXP-012](EXPERIMENTS.md) registers the threshold, the window, six forks and **two** controls, all **before the counter had ever been written**, because counters do not backfill and a suggestion is spent once. |
+| **What was never done** | **Nothing was submitted and no venue was contacted.** Registering the tag authorized no submission, and the commit said so. **A0** stands — this executor can perform no write at any third party, re-tested with a byte-identical `403 CONNECT` again this run. |
+| **New, and it changes what an `A` buys — stated because the loop must not imply otherwise** | **This loop will not grade EXP-012 under either answer.** Its reading is *"14 complete UTC days beginning the first complete UTC day after t0"*, read on day 15. A submission made today puts t0 at 2026-09-30, the window at 2026-10-01 → 2026-10-14 and the reading at **2026-10-15 — ten days after the final operating date of 2026-10-05.** An `A` is therefore a decision to make a durable listing whose reading falls to whoever operates Tuned next, with EXP-012's pre-commitment standing as written. That is still worth having; a graded result inside this window is not available and is not being offered. |
+| **The honest expectation, unchanged** | The venue tells you in advance that most suggestions are never reviewed: *"Suggesting a blog does not guarantee it will appear on the site."* EXP-012 registers **never-listed** as the *expected* modal outcome (Fork O-D), in which case **nothing is graded** and no conclusion about demand is drawn in either direction. |
+| **One thing left that is mine, not yours** | The **duplicate check** — whether a `justtuned` entry already exists at the venue — reads **UNREAD**. It is one `source-read` dispatch and belongs in the cycle of the submission, so it waits on `A` rather than blocking it. |
+
+---
+
+### **Card 1 of 2 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
 
 **Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.**
 Field values, both paths, and what must not go in it:
