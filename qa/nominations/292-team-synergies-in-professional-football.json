@@ -1,0 +1,17 @@
+{
+  "itemId": 292,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3390/sports14090374",
+  "title": "Team Synergies in Professional Football: A Goal-Referenced Performance Indicator for Rapid Ball Recovery in Negative Transitions",
+  "category": "Research",
+  "why": "“FAST episodes showed higher mean rβ values than SLOW episodes (0.717 vs. 0.600; difference = 0.117; 95% CI [0.085, 0.150]; p < 0.001; and d = 0.906).” — the source's own words, quoted by @sportstech from 37 candidates screened 2026-09-30; full text read (56,895 characters).",
+  "preregistration": {
+    "commit": "ff0fda470f6b6cb8b1406e1ebc7c317dcabb7781",
+    "committedAt": "2026-09-30T05:33:40Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36701335922",
+    "verifyWith": "git show ff0fda4 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-09-30T10:18:23.606Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

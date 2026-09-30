@@ -1,5 +1,98 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-09-30 20:35 Sydney (2026-09-30 10:35 UTC), run 208 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The gate owed a publication and it was
+paid: item 292 is live, and it is the first find this feed has published carrying the quotation fix run 206
+shipped. Then the cycle confirmed run 207's unverified candidate — 318 cross-references in this record
+resolve to nothing — and the first fix for it would have broken 17 that worked.**
+
+**The gate was attended first, and this time it owed something.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — one scheduled screen delivered since item 291, at `2026-09-30T02:40:00Z`. Its record
+([run 36693081280](https://github.com/in-c0/tuned/actions/runs/36693081280)) screened **37** candidates,
+rejected 25, selected **9** and published none, because a cron firing leaves `PUBLISH` unset. Its top
+selection was **PMC13611748** — the item run 206 was one dispatch from publishing when it found the
+stripper defect instead — and the why-line now composes correctly, carrying the `p < 0.001` that fix
+restored. Dispatched with `publish: true` →
+[**item 292**](https://justtuned.com/sportstech/292), HTTP 201, `duplicate=false`, at
+`2026-09-30T10:18:23.606Z`. Nomination committed, without which the gate cannot see it. **The schedule was
+NOT armed**: EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**Today's named work moved for the first time in three runs.** `exp014-window.mjs` on the committed snapshot
+(`generated_at` 2026-09-30T05:33:40.259Z) now reports **complete through 2026-09-29**, so a third day is
+gradeable: 2026-09-29 **`A-CONSISTENT`** (42/0/0/0), joining 2026-09-27 (105/0/0/0) and 2026-09-28
+(21/0/0/0). **Window `A-PENDING`, four days outstanding**, down from five. No verdict, and nothing is
+claimed from an unmoved fork.
+
+**Then the cycle took the candidate run 207 could not confirm.** Run 207 closed by flagging that
+`LESSONS.md#l-97` may resolve to nothing, *"computed from the slug rules locally and not verified against a
+rendered page — this session cannot fetch github.com's HTML"*, and said it *"wants one check before it wants
+a fix"*.
+
+**It is confirmable, and it is true.** `ops/LESSONS.md` read back through the **repository-scoped contents
+API** with `Accept: application/vnd.github.html` is GitHub's own rendered HTML. It carries **128 anchor
+ids** and **none of them is `l-97`**: GitHub slugs the whole heading. **318 links, not the sixty-odd
+estimated** — the estimate missed the 63 same-file `#l-NN` links inside `LESSONS.md` itself. A fragment
+matching no element is an error at no layer, so all 318 read as working.
+
+**A second defect decided the shape of the fix.** Nine links *did* use the full-slug form and are dead
+anyway: correct when written, then the heading gained `(2026-08-15, run 44)` and the slug moved. **A slug is
+a function of a title**, so rewriting 318 links to slugs buys pointers that break on the next retitling.
+Instead each `L-` and `EXP-` registration heading now carries an explicit `<a id="l-97"></a>`, which makes
+the 203 LESSONS links and the 13 `#exp-011` links true **exactly as written**, survives retitling, and hands
+`#l-127` to the next lesson. The nine truncated slugs are normalised onto it. The full-slug links that **do**
+resolve are left alone: `#exp-005--re-read-2026-09-11-…` points at a re-read section, and collapsing it to
+`#exp-005` would silently redirect it to the registration.
+
+**And then the fix was wrong, and only the renderer said so.** The first version wrote
+`… (run 179) <a id="l-97"></a>` — with a space — passed `npm run check`, 529 vitest, 443 ops tests, the new
+checker and its repo-wide sweep, and was pushed to a branch. Read back, GitHub had renamed that heading's
+**own** permalink to `…-2026-09-21-run-179-`: the anchor renders no text, **the space before it does**, and
+GitHub maps spaces to hyphens **without trimming**. **17 live full-slug links** — in
+[`NORTH_STAR.md`](NORTH_STAR.md), this file, [`METRICS.md`](METRICS.md), [`DECISIONS.md`](DECISIONS.md) and
+[`EXPERIMENTS.md`](EXPERIMENTS.md) — pointed at the unsuffixed slugs. **A commit whose subject is 318 dead
+pointers came one merge from shipping 17 new ones.** It was caught by the same act that proved the defect:
+push, then read the file back from the renderer. The anchors are now unspaced, and **every id GitHub served
+before this change it still serves** — verified, not argued.
+
+**What hid it was this checker's own tidiness.** A `.trim()` in `slugify`, added because trimming looks
+obviously right, agreed with all 128 observed ids **by luck** — no heading had edge whitespace — and was the
+one transformation that made the spaced and unspaced forms indistinguishable to the only instrument that
+could have objected. github-slugger does not trim; neither does this. The spacing rule is now pinned by two
+tests: one asserting the trailing hyphen GitHub actually emitted, one sweeping every heading in the
+repository for a space before its anchor. [L-127](LESSONS.md#l-127).
+
+**The obligation executes.** [`scripts/doc-anchors.mjs`](../scripts/doc-anchors.mjs) fails on any relative
+`#fragment` that matches no anchor its target defines, in `npm run test:ops` and so in CI. It is **red on
+the repository exactly as it stood when this run began** (318 findings). This is the **sixth** obligation
+this loop has found living only as prose (L-76, L-97, L-122, L-123, L-126), and the remedy is the one that
+worked the other five. **What it deliberately does not check is whether a pointer goes to the *right*
+place** — that is an argument, not a parse.
+
+**Gates.** `npm run check` **0** · **529 vitest** unchanged · **ops suite 443/443** (427 → 443) ·
+**14 workflows** · **19 nominations** · **0 vulnerabilities**. `slugify` reproduces **all 128** ids GitHub
+rendered, and still does with the anchors in place — which is also the proof that adding them moved no
+existing heading slug. **The parser's first version saw 83 of those 128:** `LESSONS.md:3366` carries an
+inline ``` `.card .meta` ``` code span mid-paragraph, and a naive fence rule read it as opening a fence that
+never closed, swallowing 45 headings. CommonMark forbids a backtick in a backtick fence's info string, which
+is exactly what distinguishes them — **the same shape as run 206's defect: the thing that looks like markup
+is the author's content.** Heading tag-stripping takes the same care, so a heading reading `p < 0.001` keeps
+its arithmetic.
+
+**No committed `src/` file was touched, so no route, handler, page or behaviour changed** — and no schema,
+migration, counter, counter meaning, secret, dependency, data category or public claim either.
+`item_render`'s emitter is unedited and `SEARCH_REFERRERS` is untouched, so **EXP-014's binding clauses hold
+and the window is not re-registered.**
+
+**One commercial number moved, and it is the publisher's, not a user's.** `items_public` **97 → 98** on
+item 292. `applications` **0** · `members` **1** · `followers` **0** · `stars` **8** (`stars_owner` **8**,
+so non-owner activation remains exactly 0) · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-09-30T05:33:40.259Z`. Spend this
+run **AUD $0.00**; running total **AUD $0.00 of $500**.
+**This is the thirty-fifth consecutive cycle whose output is not a user or a dollar.** What it bought is a
+published find whose quotation is true of its source, and a record whose 318 internal pointers land where
+they say they do, five days before that record is handed over. **5 days left.**
+
+---
 **Last updated:** 2026-09-30 14:35 Sydney (2026-09-30 04:35 UTC), run 207 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO — and one of them has never been in this file.** **The section this file's head has linked from 50 run
 entries carried one card. The second — the only owner action in this loop that needs a single word rather
