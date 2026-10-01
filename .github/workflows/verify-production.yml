@@ -352,21 +352,30 @@ jobs:
           }
           # The button asserted above is INERT without script: its only behaviour is a click
           # listener that calls showModal() on a <dialog>, and a <dialog> is display:none until
-          # that call. EXP-014 has graded `item_render` = 0 on every whole day of its window
-          # against 168 unsuffixed `item_view`, so every client this loop has observed on these
-          # pages runs none of this document — and was handed that dead button (L-128). The
-          # <noscript> fallback is what those clients are served, and the `id="follow-btn"` check
-          # above passes happily on a deploy that has dropped it.
+          # that call, so a client that runs none of this document is handed a dead control
+          # (L-128). The two assertions below are the remedy, and they are SEPARATE because the
+          # remedy now serves two populations rather than one:
           #
-          # Asserted as one exact string rather than in parts, because the three pieces are only
-          # a fallback together: the <style> retires the dead button, the <a> supplies the working
-          # path, and <noscript> is what keeps both invisible to a scripted client. A deploy that
-          # kept two of the three would pass a looser check and still be broken.
-          grep -qF '<noscript><style>#follow-btn{display:none}</style><a class="btn primary" href="/sportstech/rss.xml">Subscribe by RSS</a></noscript>' /tmp/feedpage.html || {
-            echo "::error::/sportstech no longer serves the no-script follow fallback — the page's only conversion control is dead again for the only population ever observed on it. Roll back."
+          #   1. the RSS link, OUTSIDE <noscript>, so every client is served it. Run 209 confined
+          #      it to <noscript> because EXP-014 had graded `item_render` = 0 on every whole day
+          #      then readable; 2026-09-30 graded it 5 with `item_view_onsite` 0, so the scripting
+          #      population is measured to exist and a link it never parses is not an offer to it.
+          #   2. the <noscript> <style>, which still retires the button for the clients it is dead
+          #      for. A deploy keeping either one alone passes a looser check and is still broken,
+          #      so each gets its own failure message naming which half went.
+          #
+          # The href is matched together with `class="btn"` because /sportstech/rss.xml is already
+          # on this page twice — the 12px corner link and <link rel="alternate"> — so a bare grep
+          # for the URL passes on a page offering no such control at all.
+          grep -qF '<a class="btn" href="/sportstech/rss.xml">Subscribe by RSS</a>' /tmp/feedpage.html || {
+            echo "::error::/sportstech no longer serves the RSS subscribe control to every client — the only path that delivers today is behind the dialog again. Roll back."
             exit 1
           }
-          echo "Feed page ships the follow button, \`follow_open\` and the no-script RSS fallback; route answers 403 unauthenticated." >> "$GITHUB_STEP_SUMMARY"
+          grep -qF '<noscript><style>#follow-btn{display:none}</style></noscript>' /tmp/feedpage.html || {
+            echo "::error::/sportstech no longer retires the dead follow button for non-scripting clients — they are offered a control with no behaviour. Roll back."
+            exit 1
+          }
+          echo "Feed page ships the follow button, \`follow_open\`, the always-served RSS control and the no-script button retirement; route answers 403 unauthenticated." >> "$GITHUB_STEP_SUMMARY"
 
       # Shipped in the same commit as the counter rather than a run behind it, which is the whole
       # of the run-138/140 lesson: `landing_render` was live for two days with the only check able
@@ -1064,13 +1073,18 @@ jobs:
           canon=$(grep -o '<link[^>]*rel="canonical"[^>]*>' /tmp/find.html | sed -n '1s/.*href="\([^"]*\)".*/\1/p' || true)
           [ "$canon" = "$find_url" ] \
             || { echo "::error::${path} declares canonical '$canon', expected ${find_url}"; exit 1; }
-          # The find page's follow block, and the half of it a scripted check cannot see. Eighty-
-          # seven of these against five feed pages: this is the page a stranger is most likely to
-          # land on, and its Follow button is the same inert <button> the feed page's is. Same
-          # assertion, same reason (L-128), on the handle this document actually belongs to.
+          # The find page's follow block. Ninety-odd of these against five feed pages: this is the
+          # page a stranger is most likely to land on, it is the surface EXP-014 measured five
+          # rendering, referred arrivals on 2026-09-30, and its Follow button is the same inert
+          # <button> the feed page's is. Both halves of the feed page's pair, same reasons
+          # (L-128, L-129), on the handle this document actually belongs to.
           handle=$(printf '%s' "$path" | cut -d/ -f2)
-          grep -qF "<noscript><style>#follow-btn{display:none}</style><a class=\"btn primary\" href=\"/${handle}/rss.xml\">Subscribe by RSS</a></noscript>" /tmp/find.html || {
-            echo "::error::${path} no longer serves the no-script follow fallback — the most-indexed page on this site offers a dead button to a client that runs no script. Roll back."
+          grep -qF "<a class=\"btn\" href=\"/${handle}/rss.xml\">Subscribe by RSS</a>" /tmp/find.html || {
+            echo "::error::${path} no longer serves the RSS subscribe control to every client — the most-indexed page on this site puts the only path that delivers back behind a dialog. Roll back."
+            exit 1
+          }
+          grep -qF '<noscript><style>#follow-btn{display:none}</style></noscript>' /tmp/find.html || {
+            echo "::error::${path} no longer retires the dead follow button for non-scripting clients — the most-indexed page on this site offers a control with no behaviour. Roll back."
             exit 1
           }
           finds=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml | sed 's/<[^>]*>//g' \

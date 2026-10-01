@@ -3201,3 +3201,56 @@ can decide without knowing whether a workflow ran.
 **No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
 `followers` **0** · `stars` **8** · gross cash **AUD $0**, from *no billing exists*. Source: the same
 snapshot's `totals`.
+
+## The off-site arrival reading, 2026-10-01 (run 210) — the first one that is not zero
+
+Source: [`metrics/latest.json`](metrics/latest.json), `generated_at` 2026-10-01T00:08:58.318Z, complete
+through 2026-09-30. Graded by `scripts/exp014-window.mjs`; EXP-014 **VERDICT B**.
+
+| name, 2026-09-30 | value | what it is |
+| --- | --- | --- |
+| `item_view` | 168 | find-page requests not flagged as a bot by user-agent |
+| `item_view_onsite` | **absent (0)** | **none** arrived from a page on this site |
+| `item_view_referred` | **5** | arrived carrying a `Referer` naming another host |
+| `item_view_search` | **1** | of those five, one host is on the search allowlist |
+| `item_render` | **5** | find-page loads whose script actually ran |
+| `item_view_bot` | 112 | and `item_view_search_bot` 16 — `verify-production.yml`'s own referred requests |
+
+**This is the first day any of the three unsuffixed names moved together.** `item_view_referred` and
+`item_view_search` were created 2026-09-27 and had read 0 on every whole day until this one, so this is the
+first non-zero either has ever held. `item_render` has fired unsuffixed before — 3, 2, 2, 1 on 2026-09-15 …
+2026-09-21 — but always on a day `item_view_onsite` was also non-zero, which is the owner following
+permalinks out of a feed page. **On 2026-09-30 `item_view_onsite` is 0.**
+
+**The publishing rule set at run 198 is satisfied, and it is the reason this may be published at all:**
+neither referrer name may be published as an arrival without `item_render` on the same UTC day. Both are
+present. **What that rule does not establish, stated here so no later run reads more into it than it
+carries:** it binds the two to the same *day*, not to the same *request*. The render beacon posts
+same-origin, so it cannot report how its own page load arrived. Five renders and five referred arrivals is
+consistent with five browser arrivals and equally consistent with two disjoint machine populations. The
+equal counts are suggestive and are not a join. See EXP-014's reading of 2026-10-01 for the full statement.
+
+### The search-index reading is relabelled, not repeated
+
+Re-taken this run by the method of runs 174 and 197:
+
+| query | 2026-09-19 (run 174) | 2026-09-27 (run 197) | **2026-10-01 (run 210)** |
+| --- | --- | --- | --- |
+| `site:hono.dev` — **control** | nine URLs on the domain | nine URLs on the domain | **nine URLs on the domain** |
+| `site:justtuned.com` | 0 pages from the domain | 0 pages from the domain | **0 pages from the domain** |
+
+**Fifteen days, three readings, all zero — and production recorded a search referrer anyway.** From this
+run on, this reading may **not** be published as "Tuned is not indexed" or "the site is not findable by
+search". Both phrasings are now contradicted by `item_view_search` = 1 on 2026-09-30. Its honest statement
+is: **zero pages from the domain in the one search backend this session can query**, alongside evidence
+that some backend it cannot query sent at least one request. This is exactly what EXP-014 Fork B's
+registered reading instructed — *"that reading is about the wrong backend and must be labelled as such
+rather than repeated"* — and the instruction is discharged here.
+
+The earlier caveats stand unchanged and are not weakened: one backend; absence from an index is evidence
+and not proof; it is not a traffic number and not a demand number in either direction.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** ·
+`members_ever_active` **0** · `followers` **0** · `items_public` **98** · `stars` **8** (all 8
+`stars_owner`) · gross cash **AUD $0**, from *no billing exists*. Source: the same snapshot's `totals`.
+An evidenced arrival channel is not demand: nothing has come through it that this service can count.
