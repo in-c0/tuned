@@ -5883,3 +5883,66 @@ this window took the HTML and ran none of it"* — a reading, written as a stand
 population. The next whole day graded `item_render` = 5. The sentence was true when written, load-bearing
 on a design decision, and had no expiry attached to it. A measurement quoted as a premise needs the date
 it was taken carried with it, so the next reader can see whether it still holds rather than inheriting it.
+
+---
+
+## L-130 — the rollback trigger reported two numbers about a page neither selector could count (2026-10-01, run 211)<a id="l-130"></a>
+
+`verify-production.yml`'s referred-arrival step closed with one line, printed green or red, and it is the
+only published description of what a find page serves the arrivals search sends it:
+
+```
+/sportstech/292: HTTP 200 text/html ... 0 sibling find(s), 8 other feed(s)
+```
+
+Both numbers were wrong, in opposite directions, and **each concealed the other.**
+
+- **`n_cards` counted `class="card-permalink"`.** Only the **feed** page's cards carry that class;
+  `siblingCard` has never emitted it. On a find page the count could not exceed **0** whatever the page
+  held — a reported zero that was a property of the selector and not of production.
+- **`n_feeds` counted every site-relative `.card-link`.** On a find page that is the four sibling cards
+  **plus** the directory cards, so the siblings were counted a second time as feeds. The published `8` was
+  4 siblings + 4 feeds.
+
+**The step's own comment states the discrimination the code does not make:** *"an item card and a directory
+card share the `card-link` class and are told apart by where they point."* They are — a find is
+`/handle/id`, a feed is `/handle` — and the grep tested neither shape. A sibling adjacent step
+(`feed-inbound`) does the same discrimination correctly in Python, twenty lines up.
+
+**The cost is not the log line. It is that one real guard could not fail.** `[ "$n_feeds" -ge 1 ]` exists to
+catch a directory block that renders its heading with nothing in it, and **it was satisfied by the sibling
+cards alone** — unfailable while any sibling existed. Measured on really-rendered markup carrying four
+siblings and one feed: emptying the directory block left the old selector reading **4** and green; the new
+one reads **0** and fires. And the sibling block — the anti-orphan edge that is the only route from the page
+search actually lands on into the rest of the feed — had **no assertion at all**, only the count that could
+not move. Deleting it entirely left the old step reporting the same `0 sibling find(s)` and passing.
+
+**Why it survived, and this is the part worth carrying.** The number was *plausible*. "0 siblings" is
+exactly what a one-item feed legitimately shows, so the reading looked like a fact about the feed rather
+than a broken selector, and **run 210 quoted it verbatim into its execution report on issue #1** — a number
+published to the owner that no instrument produced. The hard rule *never publish a number that is not
+sourced* is usually read as a guard against invention. This was not invented; it was **sourced to a
+selector that could not name the thing the label named**, which is the same failure wearing a provenance
+chain.
+
+- **Lesson:** **a count is only as good as the proof that its selector can match a non-zero population.**
+  For every reported number, ask what page it reads, what markup that page really emits, and whether the
+  pattern can ever exceed zero there — and assert the population, never only report it. A number that no
+  assertion depends on is a number nobody has checked.
+- **Also:** when one selector's population is a **superset** of another's, the narrower assertion is
+  unfailable. Two counts over overlapping sets are one count and one lie.
+- **More elegant next attempt:** anchor the selector on the property that distinguishes the population —
+  here the href's *shape* — and pin it against really-rendered markup where a mutation can prove it red.
+  [test/find-inbound.test.ts](../test/find-inbound.test.ts) now renders a find page and asserts the two
+  populations are disjoint, non-empty, and that `card-permalink` appears nowhere on that page class;
+  [scripts/verify-workflow.test.mjs](../scripts/verify-workflow.test.mjs) pins the workflow's agreement
+  with it, so a revert to either broken selector fails CI.
+- **Prevention check:** the find page under test is drawn from a handle the **sitemap** shows has two
+  public finds, so the sibling assertion grades a defect and never a one-item feed. Both new failures say
+  *Roll back*, because this workflow is the rollback trigger.
+
+**This is a family that keeps recurring here.** Run 167's check *"measured the defect, printed it in its own
+artifact, and graded something else"*, and [L-115](#l-115) is the rule about naming the population rather
+than the selector — written after the same `card-link` confusion on the feed page, and cited by this very
+step's comment while the code beneath it did the opposite. The difference this time is that the mis-named
+number reached issue #1.

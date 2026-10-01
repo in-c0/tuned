@@ -1,0 +1,17 @@
+{
+  "itemId": 293,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3390/jfmk11030312",
+  "title": "Association Between Change-of-Direction Performance and Landing Impact Characteristics During a Single-Leg Forward Drop Jump Landing Task in Junior Soccer Players",
+  "category": "Research",
+  "why": "“No significant correlation was observed between 30 m sprint performance and body weight-normalized peak vGRF (ρ = 0.106, p = 0.537).” — the source's own words, quoted by @sportstech from 35 candidates screened 2026-10-01; full text read (37,652 characters).",
+  "preregistration": {
+    "commit": "03f0174e8cfdee35ed76a441566c1fa658b970be",
+    "committedAt": "2026-10-01T05:55:31Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36848864892",
+    "verifyWith": "git show 03f0174 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-10-01T10:24:20.502Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

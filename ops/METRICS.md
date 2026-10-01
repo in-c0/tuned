@@ -3254,3 +3254,40 @@ and not proof; it is not a traffic number and not a demand number in either dire
 `members_ever_active` **0** · `followers` **0** · `items_public` **98** · `stars` **8** (all 8
 `stars_owner`) · gross cash **AUD $0**, from *no billing exists*. Source: the same snapshot's `totals`.
 An evidenced arrival channel is not demand: nothing has come through it that this service can count.
+
+## Correction — 2026-10-01 (run 211): "0 sibling find(s), 8 other feed(s)" was never a reading of the page
+
+`verify-production.yml`'s referred-arrival step closes with one line, and it is the **only published
+description of what a find page serves the arrivals search sends it**. On 2026-09-30 it read, and run 210
+quoted verbatim into its [execution report](https://github.com/in-c0/tuned/issues/1#issuecomment-5924954705):
+
+```
+/sportstech/292: HTTP 200 text/html to a Referer from www.google.com; ... 0 sibling find(s), 8 other feed(s)
+```
+
+**Neither figure was produced by an instrument that could name what its label named.**
+
+| label | what the selector matched | what it could read |
+| --- | --- | --- |
+| *sibling find(s)* | `class="card-permalink"` — emitted only by the **feed** page's cards, never by [`siblingCard`](../src/pages.ts) | **0, and only 0,** on this page class at any population size |
+| *other feed(s)* | every site-relative `class="card-link"` — on a find page that is the siblings **plus** the directory | the **sum** of both populations |
+
+**The true figures for that page are 4 siblings and 4 other feeds**, and `4 + 4` is where the published
+`8` came from. Measured against really-rendered find-page markup carrying 4 siblings and 1 other feed, the
+old pair reads **0 and 5** where the new pair reads **4 and 1**; the directory holds 5 feeds
+(`feeds_human` 1 + `feeds_agent` 4) and excludes the handle whose page it is, giving 4 in production.
+
+**What is withdrawn, and what is not.** The phrase *"0 sibling find(s)"* may **not** be published as a
+reading of production from any run before this correction, and nothing is back-filled — the step did not
+record the true count on any earlier day, so no earlier day's figure can be reconstructed. The rest of
+that step's line stands unaffected: the HTTP status, the content type, the stripped-document hash
+comparison and the three-fetch stability check never depended on either count.
+
+**It was not an invented number.** It was sourced to a selector that could not match the population its
+label named, which is the same failure as invention wearing a provenance chain — the reason the correction
+is recorded here rather than treated as a log-formatting fix. [L-130](LESSONS.md#l-130).
+
+**No commercial metric is restated or claimed by this correction.** It concerns one check's description of
+one page's markup; `applications` **0** · `members` **1** · `followers` **0** · gross cash **AUD $0** are
+unchanged and are sourced to [`metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-10-01T05:55:28.757Z`.

@@ -1506,11 +1506,22 @@ jobs:
           BASE: ${{ steps.vantage.outputs.base }}
         run: |
           set -euo pipefail
-          find_url=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml \
+          finds=$(grep -o '<loc>[^<]*</loc>' /tmp/sitemap.xml \
             | sed 's/<[^>]*>//g' \
-            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; } \
-            | sed -n '1p')
-          [ -n "$find_url" ] || { echo "::error::no find page in the sitemap to grade the referrer discriminator on"; exit 1; }
+            | { grep -E '^https://justtuned\.com/[a-z0-9-]+/[0-9]+$' || true; })
+          [ -n "$finds" ] || { echo "::error::no find page in the sitemap to grade the referrer discriminator on"; exit 1; }
+          # The page is drawn from a handle the SITEMAP shows has at least two public finds, and
+          # that is what makes the sibling assertion below sound rather than flaky: a find page on
+          # a one-item feed renders no `more-finds` block at all and is right not to, so asserting
+          # the block on an arbitrary find would fail on a fact about the feed instead of on a
+          # defect. Derived from the document already fetched — no extra request.
+          multi=$(printf '%s\n' "$finds" \
+            | sed -E 's#^https://justtuned\.com/([a-z0-9-]+)/[0-9]+$#\1#' \
+            | sort | uniq -c | awk '$1 >= 2 { print $2; exit }')
+          [ -n "$multi" ] \
+            || { echo "::error::no feed in the sitemap carries two public finds, so the sibling block cannot be graded on any page here"; exit 1; }
+          find_url=$(printf '%s\n' "$finds" | { grep -E "^https://justtuned\.com/${multi}/[0-9]+$" || true; } | sed -n '1p')
+          [ -n "$find_url" ] || { echo "::error::could not pick a find page for @${multi}"; exit 1; }
           path="${find_url#https://justtuned.com}"
 
           code=$(scripts/prod-http.sh get "${BASE}${path}" /tmp/ref-before.html 'text/html')
@@ -1573,13 +1584,38 @@ jobs:
           # say what it found. The first draft of this step died exactly there, silently, with a
           # bare exit 1 and no message — which is the one failure mode a rollback trigger may not
           # have, because "the guard crashed" and "the site regressed" then look identical.
-          n_cards=$({ grep -o 'class="card-permalink"' /tmp/ref.stripped || true; } | wc -l | tr -d ' ')
-          # The other-feeds block, by the same site-relative-href test steps 28-29 use: an item card
-          # and a directory card share the `card-link` class and are told apart by where they point,
-          # which is L-115's rule about naming the population rather than the selector.
+          # A sibling find and a directory feed share the `card-link` class and are told apart by
+          # WHERE THEY POINT — a find is `/handle/id`, a feed is `/handle`. That is L-115's rule
+          # about naming the population rather than the selector, and until this run neither count
+          # obeyed it on this page class:
+          #
+          #   `n_cards` counted `class="card-permalink"`, which only the FEED page's cards carry.
+          #   `siblingCard` has never emitted it (src/pages.ts), so the number could not exceed 0
+          #   here whatever the page held — a reported zero that was a property of the selector.
+          #
+          #   `n_feeds` counted every site-relative `.card-link`, so each sibling was counted a
+          #   second time as a feed, and the `-ge 1` guard below — written to catch a directory
+          #   block that renders its heading with nothing in it — was satisfied by the siblings
+          #   alone and could not fail while any sibling existed.
+          #
+          # Run 210 published the pair as "0 sibling find(s), 8 other feed(s)" for a page carrying
+          # four siblings and four feeds; 4 + 4 is where the 8 came from. Both selectors are now
+          # anchored on the href's shape, and test/find-inbound.test.ts pins the two populations
+          # against really-rendered markup so the discrimination is checkable in this repository.
+          n_cards=$({ grep -oE 'class="card-link" href="/[A-Za-z0-9_.-]+/[0-9]+"' /tmp/ref.stripped || true; } | wc -l | tr -d ' ')
+          n_feeds=$({ grep -oE 'class="card-link" href="/[A-Za-z0-9_.-]+"' /tmp/ref.stripped || true; } | wc -l | tr -d ' ')
+
+          # The anti-orphan edge, asserted rather than merely reported. `more` is what stops every
+          # sitemap find from being a page a crawler can reach and not leave (src/index.ts), and it
+          # is the only route from the page search actually sends arrivals to into the rest of this
+          # feed. `$multi` was chosen above precisely so a sibling must exist here.
+          grep -q 'class="more-finds"' /tmp/ref.stripped \
+            || { echo "::error::${path} served no more-finds block to a referred visitor, though @${multi} has at least two public finds in the sitemap — the arrival search sends us can reach this find and no other. Roll back."; exit 1; }
+          [ "$n_cards" -ge 1 ] \
+            || { echo "::error::${path} carries a more-finds heading with no sibling find in it. Roll back."; exit 1; }
+
           grep -q 'class="other-feeds"' /tmp/ref.stripped \
             || { echo "::error::${path} served no other-feeds block to a referred visitor — the arrival search sends us would be sealed in one feed. Roll back."; exit 1; }
-          n_feeds=$({ grep -o 'class="card-link" href="/' /tmp/ref.stripped || true; } | wc -l | tr -d ' ')
           [ "$n_feeds" -ge 1 ] \
             || { echo "::error::${path} carries an other-feeds heading with no feed in it. Roll back."; exit 1; }
 

@@ -1,5 +1,98 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-01 20:55 Sydney (2026-10-01 10:55 UTC), run 211 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The gate owed a publication and got
+one: item 293. Then the rollback trigger's only description of what a find page serves a search arrival was
+found to be two numbers neither selector could count — and one of them was published to issue #1 one run
+ago.**
+
+**The gate read ATTEND, and it was attended before anything else was chosen.**
+[`scout-gate.mjs`](../scripts/scout-gate.mjs) reported item 292 at `2026-09-30T10:18:23.606Z`, **23.9h**
+old, with **one** scheduled screen certainly delivered since (`2026-10-01T02:40:00Z`). The latest `agent
+scout` run's record was opened and read — **35 screened · 24 rejected · 9 selected · 2 deferred**, top
+selection `PMC13511510`, quotation verbatim-confirmed against its own abstract, typed
+`research-article/journal article`, not previously published. The record supported it, so
+`agent-scout.yml` was dispatched with `publish: true`:
+[run 36848864892](https://github.com/in-c0/tuned/actions/runs/36848864892) — **HTTP 201, item 293,
+`duplicate=false`**, registered at [`qa/nominations/293-…json`](../qa/nominations/293-association-between-change-of-direction.json).
+The gate now reads **CURRENT**. The schedule was **not armed**: EXP-013's threshold 2 is still unruled and
+run 153's pre-commitment stands. Attending a gate is not removing it.
+
+**The artifact was unreachable and the record was read anyway.** This session's egress proxy answers
+**403 CONNECT** for `productionresultssa4.blob.core.windows.net`, so the `scout-record` zip cannot be
+downloaded here. The record is also printed in full in the job log, which the GitHub API does serve —
+the path `writeNomination`'s own docblock names for *"a run that can read a job log"*. **No access was
+widened**; the reading is sourced to the log of the run named above.
+
+**EXP-014 was re-read and has not moved.** `exp014-window.mjs` on the committed snapshot
+(`generated_at` 2026-10-01T05:55:28.757Z) is still complete through **2026-09-30**: three
+`A-CONSISTENT` days and 2026-09-30 **B**. **VERDICT B stands on one day**, three outstanding
+(2026-10-01 → 10-03). Nothing is claimed from an unmoved reading, and no number here is new.
+
+**Then the cycle spent itself on the one guard that stands between a bad deploy and a rollback.**
+`verify-production.yml`'s referred-arrival step — the only check that describes what a find page serves the
+arrivals search sends it, on the page class that has just received this project's first measured off-site
+arrivals — closed with this line:
+
+```
+/sportstech/292: HTTP 200 text/html ... 0 sibling find(s), 8 other feed(s)
+```
+
+**Both numbers were wrong, in opposite directions, and each concealed the other.** `n_cards` counted
+`class="card-permalink"` — a class only the **feed** page's cards carry, never
+[`siblingCard`](../src/pages.ts) — so on a find page it **could not exceed 0 whatever the page held**.
+`n_feeds` counted every site-relative `.card-link`, which on a find page is the sibling cards **plus** the
+directory cards, so the siblings were counted a second time as feeds. The published **8** is 4 siblings +
+4 feeds. The step's own comment states the discrimination its code never made: *"an item card and a
+directory card share the `card-link` class and are told apart by where they point."*
+
+**The cost is not the log line — it is that one real guard could not fail.** `[ "$n_feeds" -ge 1 ]` exists
+to catch a directory block that renders its heading with nothing in it, and **the sibling cards alone
+satisfied it**. And the sibling block — the anti-orphan edge that is the only route from the page search
+lands on into the rest of the feed — had **no assertion at all**, only the count that could not move.
+
+**Measured on really-rendered markup before pushing, per run 175's practice.** A find page carrying **4
+siblings and 1 other feed** was rendered from the worker and both selector pairs run against it:
+
+| selector | siblings | other feeds |
+| --- | --- | --- |
+| old (`card-permalink`; any `card-link href="/`) | **0** | **5** |
+| new (href shape: `/handle/id`; `/handle`) | **4** | **1** |
+
+And both regressions the step exists to catch were injected into that markup: **deleting the sibling block**
+left the old step reading the same `0` and **green**, while the new one fires; **emptying the directory
+block** left the old selector reading **4** from the siblings and **green**, while the new one reads 0 and
+fires. Both failures say *Roll back*.
+
+**The page under test is now drawn from a handle the sitemap shows has two public finds** — derived from the
+document already fetched, no extra request. Without that, asserting the block would fail on a one-item feed,
+which legitimately renders none. That case is pinned as a test in its own right.
+
+**No `src/` file is touched.** No route, handler, page, counter or counter meaning changed, so EXP-014's
+binding clauses hold and nothing was written to production counters. `src/index.ts` and `src/pages.ts` were
+mutated to prove the new tests red and restored **byte-identical** under `sha256sum -c`, per
+[L-95](LESSONS.md#l-95); the workflow was mutated to prove its own guard non-vacuous and restored the same
+way.
+
+**The number reached the owner, and that is the lesson.** "0 siblings" is exactly what a one-item feed
+legitimately shows, so the reading looked like a fact about production rather than a broken selector, and
+**run 210 quoted it verbatim into its execution report**. The hard rule *never publish a number that is not
+sourced* is usually read as a guard against invention; this was not invented, it was sourced to a selector
+that could not name the thing the label named. [L-130](LESSONS.md#l-130).
+
+**Gates:** `npm run check` **0** · **546 vitest** (543 → 546) · ops suite **445/445** (443 → 445) ·
+`validate-workflows` ok, **14 workflows** · `validate-nominations` **20 valid** · `npm audit --omit=dev`
+**0 vulnerabilities**.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** · `followers`
+**0** · `items_public` **98** · `stars` **8**, all `stars_owner` · gross cash **AUD $0**. Source:
+[`metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-10-01T05:55:28.757Z` — which is
+**before** item 293 was published at 10:24:20Z, so that publication is not in any of these figures and
+no adjusted count is asserted here. **This is the thirty-eighth consecutive cycle whose output is not a user or a dollar.**
+**4 days left.**
+
+---
+
 **Last updated:** 2026-10-01 14:40 Sydney (2026-10-01 04:40 UTC), run 210 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **EXP-014 reached a verdict, and it is
 not the one the window was named for. 2026-09-30 carries `item_view_search` 1 and `item_render` 5 with
