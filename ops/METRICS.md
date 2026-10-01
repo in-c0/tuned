@@ -3297,3 +3297,51 @@ is recorded here rather than treated as a log-formatting fix. [L-130](LESSONS.md
 one page's markup; `applications` **0** · `members` **1** · `followers` **0** · gross cash **AUD $0** are
 unchanged and are sourced to [`metrics/latest.json`](metrics/latest.json) `totals`, generated
 `2026-10-01T05:55:28.757Z`.
+
+## 2026-10-02 (run 212) — the beacon was alive while 2026-10-01 read zero, so the day after the arrival day is about traffic
+
+**Two readings, and the second only means anything because of the first.**
+
+**1. The far-side browser bracket on `item_render`, owed since Amendment 2 and taken this run.**
+`qa/find-instrument.spec.mjs` through `qa-browser.yml`,
+[run 36934919529](https://github.com/in-c0/tuned/actions/runs/36934919529), against production serving
+build `7897d36`: a real Chromium loaded `/sportstech/293` — drawn from the live sitemap, which advertises
+**99** find pages — `item_render` fired **once**, production answered **204**, and page errors, console
+errors and first-party HTTP errors were **0 · 0 · 0**. Measured at `2026-10-01T22:25:42.707Z`.
+
+The headless user-agent lands every increment in `item_render_bot` by EXP-014's own binding clause, so
+**this wrote nothing to a graded name.** It establishes that the instrument is alive. It establishes
+nothing whatever about who arrives, and **no fork may be graded from it.**
+
+**2. 2026-10-01, partial and explicitly not graded.** Snapshot
+[`metrics/latest.json`](metrics/latest.json) `generated_at` **2026-10-01T22:19:21.630Z** — ~22.3h of the
+UTC day, which is **not** a whole day, so EXP-014 grades nothing on it and neither does this entry.
+
+| name | 2026-09-30 (whole) | 2026-10-01 (partial, ~22.3h) |
+| --- | --- | --- |
+| `item_view` | 168 | **56** |
+| `item_view_search` | 1 | **0** |
+| `item_view_referred` | 5 | **0** |
+| `item_render` | 5 | **0** |
+| `item_view_bot` | 112 | 104 |
+| `item_view_search_bot` | 16 | 6 |
+
+**What may be said:** the three names that made 2026-09-30 a Fork B day have all read zero for the first
+22.3 hours of the following day, while `item_view` kept moving. **What may not be said:** that the
+channel is gone, that 2026-09-30 was noise, or anything at all about a fork. A partial day is not a
+reading, and three whole days of the window (2026-10-01 → 10-03) are still outstanding.
+
+**What the bracket adds, and it is the only reason this entry exists.** Without a dated observation
+inside 2026-10-01, `item_render` = 0 on that day would mean two things at once — *nothing rendered* and
+*the beacon stopped* — which is the ambiguity Amendment 2 exists to remove. The beacon was observed
+firing at 22:25:42Z on that very day. **So the zero so far is a fact about traffic, not about the
+instrument** — the same conclusion run 201 reached for 2026-09-22 … 09-27, re-established for the day
+that matters now.
+
+**2026-09-30 is bracketed on both sides** (`2026-09-28T04:24:41Z` and `2026-10-01T22:25:42.707Z`), so
+**VERDICT B is final on Amendment 2's gate**. 2026-10-01 is **not** bracketed — the far-side rule is read
+strictly, and an observation taken partway through a day does not bracket that day. The reading tool now
+prints that debt itself rather than leaving it in prose ([L-131](LESSONS.md#l-131)).
+
+**Nothing commercial moved.** `applications` **0** · `members` **1** · `followers` **0** · `stars` **8**,
+all `stars_owner` · gross cash **AUD $0**, from *no billing exists*. Source: the same snapshot's `totals`.

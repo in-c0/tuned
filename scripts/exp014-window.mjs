@@ -65,6 +65,87 @@ export const NAMES = [
   "item_render_bot",
 ];
 
+/**
+ * Amendment 2's browser brackets on `item_render` — the observations that make a silent beacon
+ * mean "nothing rendered the page" rather than "the counter is dead".
+ *
+ * WHY THIS LIVES IN CODE AND NOT ONLY IN PROSE. Amendment 2 (run 201) imposes a gate on the
+ * reading, not on any fork: *"No day may be graded Fork B or Fork C — both of which require
+ * `item_render` >= 1 — without a dated browser observation of `item_render` bracketing that day,
+ * and a run that grades Fork F must cite one too, because Fork F's whole content is that the
+ * beacon was working and nothing ran the document."* Until this change that gate existed as one
+ * paragraph inside a 4,000-line file, and the debt it created ("still owed: the far-side
+ * bracket") was tracked in an execution report. This file printed `VERDICT B` with no idea the
+ * gate existed, and run 210 published that verdict with only the near-side observation taken.
+ *
+ * That is the same shape as L-76, L-97 and L-123 — an obligation filed where no run is obliged to
+ * read it — and L-130 one run ago is its sibling: a number is only as good as the proof behind
+ * the thing its label names. So the gate is computed here and printed beside the verdict, and a
+ * B, C or F reading that is not bracketed on both sides prints PROVISIONAL rather than silently
+ * reading as final.
+ *
+ * WHAT A BRACKET IS AND IS NOT. Each entry is one dispatch of `qa/find-instrument.spec.mjs`
+ * against production in which a real browser loaded a find page and `item_render` fired and was
+ * accepted. Its user-agent is headless, so by EXP-014's own binding clause every increment lands
+ * in `item_render_bot` and **never** in the unsuffixed names graded above — which is exactly what
+ * makes it dispatchable inside an open window. A bracket establishes that the instrument was
+ * alive. It establishes **nothing** about who arrives, and no fork may be graded from it.
+ *
+ * Entries are append-only and each cites the run whose log carries its `EVIDENCE` line. No entry
+ * may be written from anything but a green run of that spec.
+ */
+export const RENDER_BRACKETS = [
+  {
+    observed_at: "2026-09-28T04:24:41Z",
+    run: "https://github.com/in-c0/tuned/actions/runs/36377540765",
+    find_page: "/sportstech/289",
+    item_render: 1,
+    status: 204,
+    note:
+      "Near-side bracket, taken by run 201 in the same cycle that registered Amendment 2. " +
+      "`observed_at` is that run's `Run browser spec` step completion from the jobs API rather " +
+      "than its EVIDENCE line's own instant — a later instant than the observation, so it can " +
+      "only ever weaken a near-side claim, never strengthen one.",
+  },
+  {
+    observed_at: "2026-10-01T22:25:42.707Z",
+    run: "https://github.com/in-c0/tuned/actions/runs/36934919529",
+    find_page: "/sportstech/293",
+    item_render: 1,
+    status: 204,
+    note: "Far-side bracket, owed since Amendment 2 and taken by run 212 against build 7897d36.",
+  },
+];
+
+/**
+ * The brackets standing either side of one whole UTC day.
+ *
+ * "Bracketing that day" is read strictly: the near side is an observation at or before the day
+ * BEGINS and the far side one at or after it ENDS. An observation taken partway through a day
+ * says the beacon lived at that instant, which is not the same claim as "the beacon lived across
+ * this day" — and the weaker reading is the one that could let a dead-for-six-hours beacon pass
+ * as alive. The strict rule is also what keeps the debt visible: today's far-side observation
+ * brackets 2026-09-30 and does **not** bracket 2026-10-01, which is the honest state.
+ *
+ * @returns {{ near: object|null, far: object|null, bracketed: boolean }}
+ */
+export function bracketFor(day, brackets = RENDER_BRACKETS) {
+  const begins = parseDay(day);
+  const ends = begins + DAY_MS;
+  const sorted = [...brackets].sort((a, b) => Date.parse(a.observed_at) - Date.parse(b.observed_at));
+  const before = sorted.filter((b) => Date.parse(b.observed_at) <= begins);
+  const after = sorted.filter((b) => Date.parse(b.observed_at) >= ends);
+  return {
+    near: before.length ? before[before.length - 1] : null,
+    far: after.length ? after[0] : null,
+    bracketed: before.length > 0 && after.length > 0,
+  };
+}
+
+/** The forks Amendment 2's gate applies to: the two that require a render, and the one defined
+ *  by its absence. Every other fork is read off counters the gate says nothing about. */
+export const BRACKET_GATED_FORKS = ["B", "C", "F"];
+
 /** Fork A's per-day bar and its window-level one, quoted from the registration. */
 export const FORK_A_REFERRED_MAX = 2;
 export const FORK_A_VIEW_FLOOR = 50;
@@ -226,12 +307,20 @@ export function gradeWindow(snapshot, options = {}) {
   const complete = all.filter((day) => day <= through);
   const outstanding = all.filter((day) => day > through);
 
+  const brackets = options.brackets ?? RENDER_BRACKETS;
   const days = complete.map((day) => {
     const counts = countsFor(snapshot, day);
-    return { day, counts, ...gradeDay(counts) };
+    const graded = gradeDay(counts);
+    return { day, counts, ...graded, bracket: bracketFor(day, brackets) };
   });
 
-  const reading = { from, to, through, days, outstanding, forkFDays: [], verdict: null, why: "" };
+  // Computed before any return, so no path out of this function can drop the gate. A day graded
+  // B, C or F without both sides owes an observation; every other fork is silent on it.
+  const bracketOwed = days
+    .filter((d) => BRACKET_GATED_FORKS.includes(d.fork) && !d.bracket.bracketed)
+    .map((d) => ({ day: d.day, fork: d.fork, missing: d.bracket.near ? "far" : d.bracket.far ? "near" : "both" }));
+
+  const reading = { from, to, through, days, outstanding, forkFDays: [], bracketOwed, bracket: null, verdict: null, why: "" };
 
   if (days.length === 0) {
     reading.verdict = "NO-DATA";
@@ -253,6 +342,8 @@ export function gradeWindow(snapshot, options = {}) {
     if (hit) {
       reading.verdict = fork;
       reading.why = `${hit.day} satisfies Fork ${fork} on its own, and Forks B and C are registered over ANY whole day.`;
+      // Amendment 2's gate attaches to the day the verdict rests on, not to the window.
+      reading.bracket = { day: hit.day, ...hit.bracket };
       return reading;
     }
   }
@@ -336,6 +427,33 @@ export function render(reading) {
     lines.push(`              ${d.why}`);
   }
   lines.push("", `  VERDICT ${reading.verdict} — ${reading.why}`);
+
+  // Amendment 2's gate, printed with the verdict rather than left to a reader who knows it is
+  // there. A B or C reading is FINAL only when the day it rests on is bracketed on both sides.
+  if (reading.bracket) {
+    const { day, near, far, bracketed } = reading.bracket;
+    if (bracketed) {
+      lines.push(
+        `  Amendment 2 bracket on ${day}: SATISFIED — item_render observed in a browser at ` +
+          `${near.observed_at} (${near.run}) and ${far.observed_at} (${far.run}).`,
+        `  The verdict is FINAL on this gate. A bracket proves the instrument was alive; it is not an arrival.`
+      );
+    } else {
+      lines.push(
+        `  Amendment 2 bracket on ${day}: NOT SATISFIED — ${near ? "far" : far ? "near" : "both"} side owed.`,
+        `  VERDICT ${reading.verdict} is PROVISIONAL and must not be published as final until one dispatch of`,
+        "  qa/find-instrument.spec.mjs through qa-browser.yml supplies it."
+      );
+    }
+  }
+  if (reading.bracketOwed?.length) {
+    for (const owed of reading.bracketOwed) {
+      lines.push(
+        `  Bracket owed: ${owed.day} graded Fork ${owed.fork} with the ${owed.missing} side missing — ` +
+          "Amendment 2 forbids reading that grade as final."
+      );
+    }
+  }
   if (reading.forkFDays?.length) {
     lines.push(
       `  Fork F on ${reading.forkFDays.join(", ")} — graded under Fork A per Fork F's own next action,`,

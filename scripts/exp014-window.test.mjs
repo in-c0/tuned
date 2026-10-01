@@ -17,6 +17,9 @@ import {
   FORK_A_VIEW_FLOOR,
   FORK_D_VIEW_MAX,
   WINDOW,
+  BRACKET_GATED_FORKS,
+  RENDER_BRACKETS,
+  bracketFor,
   countsFor,
   daysInWindow,
   gradeDay,
@@ -353,5 +356,151 @@ describe("the reading this run actually took, against the snapshot in the reposi
   it("names every counter it reads with countsFor, so an absent row is zero and not undefined", () => {
     const counts = countsFor({ daily: [] }, "2026-09-27");
     for (const value of Object.values(counts)) assert.equal(value, 0);
+  });
+});
+
+describe("Amendment 2's bracket gate — a verdict that rests on item_render must cite a live beacon", () => {
+  // One bracket each side of 2026-09-30, and one taken partway through it. The middle entry is
+  // the whole point of the strict rule: an observation inside a day is not a claim about the day.
+  const BEFORE = { observed_at: "2026-09-29T23:00:00Z", run: "r-before" };
+  const INSIDE = { observed_at: "2026-09-30T12:00:00Z", run: "r-inside" };
+  const AFTER = { observed_at: "2026-10-01T01:00:00Z", run: "r-after" };
+
+  it("brackets a day only when one observation precedes its start and another follows its end", () => {
+    const both = bracketFor("2026-09-30", [BEFORE, AFTER]);
+    assert.equal(both.bracketed, true);
+    assert.equal(both.near.run, "r-before");
+    assert.equal(both.far.run, "r-after");
+  });
+
+  it("does NOT accept an observation taken partway through the day as either side of it", () => {
+    const inside = bracketFor("2026-09-30", [INSIDE]);
+    assert.equal(inside.bracketed, false);
+    assert.equal(inside.near, null, "an observation after the day began is not a near-side bracket");
+    assert.equal(inside.far, null, "an observation before the day ended is not a far-side bracket");
+  });
+
+  it("reports which side is owed, so the debt is nameable rather than just absent", () => {
+    assert.equal(bracketFor("2026-09-30", [BEFORE]).far, null);
+    assert.equal(bracketFor("2026-09-30", [AFTER]).near, null);
+    assert.equal(bracketFor("2026-09-30", []).bracketed, false);
+  });
+
+  it("an observation exactly on a day's boundary counts, at both ends", () => {
+    const edge = bracketFor("2026-09-30", [
+      { observed_at: "2026-09-30T00:00:00Z", run: "start" },
+      { observed_at: "2026-10-01T00:00:00Z", run: "end" },
+    ]);
+    assert.equal(edge.bracketed, true);
+  });
+
+  // The non-vacuity proof. The SAME snapshot that grades Fork B must print PROVISIONAL when the
+  // far-side observation is withheld, or the gate is decoration — which is precisely what this
+  // file contained before run 212: a verdict printed with no notion that the gate existed.
+  const forkBSnapshot = {
+    generated_at: "2026-10-01T06:00:00.000Z",
+    daily: [
+      { day: "2026-09-30", name: "item_view", count: 168 },
+      { day: "2026-09-30", name: "item_view_search", count: 1 },
+      { day: "2026-09-30", name: "item_view_referred", count: 5 },
+      { day: "2026-09-30", name: "item_render", count: 5 },
+      { day: "2026-09-30", name: "item_view_search_bot", count: 16 },
+    ],
+  };
+
+  it("prints a Fork B verdict as FINAL when both sides are on record", () => {
+    const reading = gradeWindow(forkBSnapshot, { from: "2026-09-30", to: "2026-09-30", brackets: [BEFORE, AFTER] });
+    assert.equal(reading.verdict, "B");
+    assert.equal(reading.bracket.bracketed, true);
+    assert.deepEqual(reading.bracketOwed, []);
+    assert.match(render(reading), /Amendment 2 bracket on 2026-09-30: SATISFIED/);
+    assert.match(render(reading), /FINAL on this gate/);
+  });
+
+  it("prints the SAME Fork B verdict as PROVISIONAL when the far-side observation is withheld", () => {
+    const reading = gradeWindow(forkBSnapshot, { from: "2026-09-30", to: "2026-09-30", brackets: [BEFORE] });
+    assert.equal(reading.verdict, "B", "the fork is unchanged — the gate is on publication, not on grading");
+    assert.equal(reading.bracket.bracketed, false);
+    assert.deepEqual(reading.bracketOwed, [{ day: "2026-09-30", fork: "B", missing: "far" }]);
+    const out = render(reading);
+    assert.match(out, /NOT SATISFIED — far side owed/);
+    assert.match(out, /PROVISIONAL and must not be published as final/);
+    assert.doesNotMatch(out, /FINAL on this gate/);
+  });
+
+  it("holds a Fork F day to the same gate, because Fork F's content IS that the beacon was alive", () => {
+    const forkF = {
+      generated_at: "2026-10-01T06:00:00.000Z",
+      daily: [
+        { day: "2026-09-30", name: "item_view", count: 60 },
+        { day: "2026-09-30", name: "item_view_referred", count: 4 },
+        { day: "2026-09-30", name: "item_render", count: 0 },
+        { day: "2026-09-30", name: "item_view_search_bot", count: 16 },
+      ],
+    };
+    const reading = gradeWindow(forkF, { from: "2026-09-30", to: "2026-09-30", brackets: [BEFORE] });
+    assert.equal(reading.days[0].fork, "F");
+    assert.deepEqual(reading.bracketOwed, [{ day: "2026-09-30", fork: "F", missing: "far" }]);
+    assert.match(render(reading), /Bracket owed: 2026-09-30 graded Fork F/);
+    assert.deepEqual(BRACKET_GATED_FORKS, ["B", "C", "F"]);
+  });
+
+  it("leaves a day no fork reads item_render on out of the gate entirely", () => {
+    const forkA = {
+      generated_at: "2026-10-01T06:00:00.000Z",
+      daily: [
+        { day: "2026-09-30", name: "item_view", count: 105 },
+        { day: "2026-09-30", name: "item_view_search_bot", count: 18 },
+      ],
+    };
+    const reading = gradeWindow(forkA, { from: "2026-09-30", to: "2026-09-30", brackets: [] });
+    assert.equal(reading.days[0].fork, "A-CONSISTENT");
+    assert.deepEqual(reading.bracketOwed, [], "Fork A is read off counters the gate says nothing about");
+  });
+
+  it("every committed bracket cites a parseable instant and the run whose log carries its EVIDENCE line", () => {
+    assert.ok(RENDER_BRACKETS.length >= 1);
+    for (const b of RENDER_BRACKETS) {
+      assert.ok(Number.isFinite(Date.parse(b.observed_at)), `unparseable observed_at: ${b.observed_at}`);
+      assert.match(b.run, /^https:\/\/github\.com\/in-c0\/tuned\/actions\/runs\/\d+$/);
+      assert.ok(b.item_render >= 1, "a bracket is an observation of the beacon FIRING");
+      assert.equal(b.status, 204, "and of production accepting it");
+      // A bracket is a reading that was taken, so it cannot be dated ahead of now. Without this
+      // the strict rule above is satisfiable by a date nobody observed — which is the shape the
+      // hard rule "never publish a number that is not sourced" exists to refuse, and the exact
+      // hole a mutation of this record walked through while every other assertion stayed green.
+      assert.ok(
+        Date.parse(b.observed_at) <= Date.now(),
+        `bracket dated in the future: ${b.observed_at} — an observation cannot postdate the run that records it`
+      );
+    }
+  });
+
+  // The gate against the real record, not a fixture. This is what makes the committed brackets
+  // load-bearing: if a later run edits RENDER_BRACKETS so that the day a B/C verdict rests on is
+  // no longer bracketed, the reading must stop calling itself final, and this says so out loud.
+  it("agrees with its own output about the live snapshot — a final verdict and an owed bracket cannot both hold", async () => {
+    const { loadSnapshot } = await import("./metrics-window.mjs");
+    const live = loadSnapshot(path.join(REPO_ROOT, "ops", "metrics", "latest.json"));
+    const reading = gradeWindow(live);
+    const out = render(reading);
+    if (["B", "C"].includes(reading.verdict)) {
+      assert.ok(reading.bracket, "a B/C verdict must carry the gate for the day it rests on");
+      assert.equal(
+        reading.bracket.bracketed,
+        /FINAL on this gate/.test(out),
+        "the printed line and the computed gate must not disagree"
+      );
+      if (reading.bracket.bracketed) {
+        assert.doesNotMatch(out, /PROVISIONAL/);
+      } else {
+        assert.match(out, /PROVISIONAL/);
+      }
+    }
+    for (const day of reading.days) {
+      if (!BRACKET_GATED_FORKS.includes(day.fork)) continue;
+      const owed = reading.bracketOwed.some((o) => o.day === day.day);
+      assert.equal(owed, !day.bracket.bracketed, `${day.day} graded ${day.fork}: debt and bracket disagree`);
+    }
   });
 });

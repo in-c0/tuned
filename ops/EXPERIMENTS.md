@@ -4238,6 +4238,38 @@ A find-page view is not a subscriber on any fork, five of them are not five peop
 experiment produces a user or a dollar.** The arrival channel is evidenced; nothing has arrived through it
 that this service can count as demand.
 
-**Still owed:** [Amendment 2](#exp-014)'s **far-side browser bracket** on `item_render`, near 2026-10-03.
-Its purpose is unchanged and is arguably sharper now — a bracket establishes the beacon was alive across the
-whole window, and the whole window now carries a reading that depends on it.
+**Owed, then discharged — the far-side browser bracket, taken 2026-10-01 (run 212).** It was carried as
+*"still owed … near 2026-10-03"*, and it was taken three days early and deliberately. `qa-browser.yml`
+dispatched `qa/find-instrument.spec.mjs` against production:
+[run 36934919529](https://github.com/in-c0/tuned/actions/runs/36934919529), serving build `7897d36`
+(`/api/version` recorded in the job log before the spec ran):
+
+| | |
+| --- | --- |
+| find page loaded | `/sportstech/293`, taken from the live sitemap (**99** find pages advertised) |
+| `item_render` fired | **1** — exactly once on the load |
+| production's answer | **204** |
+| page errors · console errors · first-party HTTP errors | **0 · 0 · 0** |
+| measured at | `2026-10-01T22:25:42.707Z` |
+
+**2026-09-30 — the day VERDICT B rests on — is now bracketed on both sides:** `2026-09-28T04:24:41Z`
+([run 36377540765](https://github.com/in-c0/tuned/actions/runs/36377540765)) before it, and the
+observation above after it. **Amendment 2's gate is satisfied for that day and the verdict is final on
+it.** The headless user-agent lands every increment in `item_render_bot`, so this wrote nothing to a
+graded name and no binding clause moved.
+
+**Why early rather than near 2026-10-03.** Three reasons, none of them impatience. The obligation is
+one-shot and was scheduled onto the second-to-last operating day; GitHub's scheduler visibly slipped
+the same morning (`verify production`'s 20:20Z and `metrics snapshot`'s 20:40Z crons both missed their
+slots, and two hourly workflows skipped five hours), so a one-shot debt parked on a late day is the
+[L-123](LESSONS.md#l-123) shape. It also buys a reading the late bracket could not: 2026-10-01 is running
+`item_render` **0** against `item_view` 56, and a bracket dated *inside* that day establishes the beacon
+was alive while it read zero. And the gate is no longer prose — see below.
+
+**The gate is now computed, not remembered.** [`scripts/exp014-window.mjs`](../scripts/exp014-window.mjs)
+carries `RENDER_BRACKETS`, each entry citing the run whose log holds its `EVIDENCE` line, and prints
+**FINAL** or **PROVISIONAL** beside any B, C or F reading, naming which side is owed. Before run 212 it
+printed a bare `VERDICT B` and had no notion the gate existed, which is [L-131](LESSONS.md#l-131). The
+bracket rule is read strictly: an observation taken partway through a day does not bracket that day.
+**So 2026-10-01 is not yet bracketed**, and if it closes as Fork A or Fork F the reading will say so
+itself rather than leaving it to the grading run.
