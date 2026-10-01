@@ -5838,3 +5838,48 @@ the check was Chromium with `javaScriptEnabled: false` and again with `true`, ag
 button hidden and fallback clickable with script off, **zero** fallback nodes in the DOM with script on,
 dialog still opening, 0px overflow at 390px. **The gate that can see this defect is the only gate worth
 running on it**, and it is now a habit rather than a note: run the check in the condition the defect lives in.
+
+## L-129 — the guard on "what the reading says today" became a requirement that it never change (2026-10-01, run 210)<a id="l-129"></a>
+
+`scripts/exp014-window.test.mjs` carried this line, under a comment promising to *"assert only what
+cannot change about a day that has closed"*:
+
+```js
+assert.ok(!["B", "C"].includes(reading.verdict) || first === undefined);
+```
+
+It says the window's verdict is never Fork B and never Fork C. **Forks B and C are the two conclusions
+EXP-014 was built to be able to reach.** The test passed on every run from the day it was written until
+2026-09-30 produced `item_view_search` = 1 and `item_render` = 5, and then it went red — not because
+anything broke, but because **the experiment concluded.** A tripwire that fires on success.
+
+**The reasoning error is specific and worth naming, because it looks like care.** The author checked that
+2026-09-27 graded `A-CONSISTENT` and inferred the window could not be B or C. But Forks B and C are
+registered over **any** whole day — `gradeWindow` says so in its own verdict string — so a later day
+settles the window while the first day's grade stands untouched. The guard generalised from one day's
+grade to the window's, which is the one inference this experiment's register forbids.
+
+**Why it survived.** Its failure mode is invisible while the null holds. For four days it was indistinguishable
+from a correct guard, because the verdict genuinely was `A-PENDING` and the assertion genuinely passed. It
+could only ever be wrong on the single day it mattered — the first real arrival in the project's history —
+and on that day its instruction to the run reading it is *"your measurement is wrong, suppress it."*
+
+**This is [L-108](#l-108)'s shape on an experiment instead of on copy.** There, a guard written against
+silent copy edits became, once the copy was ruled wrong elsewhere, a requirement that the defect stay.
+Here, a guard written against a mis-graded window became a requirement that the window never grade. Both
+are a snapshot of a correct present tense frozen into an invariant about the future.
+
+**The rule.** A test over a *reading* must pin what the reading is **derived from** — that a verdict is
+sourced to a day that earns it, that a counter named is a counter read — and never **which value it came
+out at**, unless that value is a property of a closed input that cannot move. Ask of every assertion about
+a live measurement: *what observation would make this red, and is that observation a defect or a result?*
+If the answer is "a result", the assertion is backwards. The replacement here keeps the first clause (the
+closed day's counts, which cannot change) and replaces the second with the invariant that actually holds:
+a B or C verdict names a day satisfying that fork on its own.
+
+**The same shape, one run earlier, in prose rather than in an assertion.** Run 209's `followNoScript`
+docblock justified confining the RSS link to `<noscript>` with *"every observed visitor to a find page in
+this window took the HTML and ran none of it"* — a reading, written as a standing fact about the
+population. The next whole day graded `item_render` = 5. The sentence was true when written, load-bearing
+on a design decision, and had no expiry attached to it. A measurement quoted as a premise needs the date
+it was taken carried with it, so the next reader can see whether it still holds rather than inheriting it.

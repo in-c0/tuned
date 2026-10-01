@@ -317,7 +317,7 @@ describe("A and D cannot be concluded early; B, C and F can", () => {
 });
 
 describe("the reading this run actually took, against the snapshot in the repository", () => {
-  it("grades 2026-09-27 as consistent with Fork A and the window as A-PENDING", async () => {
+  it("grades 2026-09-27 as consistent with Fork A and sources any B/C verdict to a day that earns it", async () => {
     const { loadSnapshot } = await import("./metrics-window.mjs");
     const live = loadSnapshot(path.join(REPO_ROOT, "ops", "metrics", "latest.json"));
     const reading = gradeWindow(live);
@@ -332,7 +332,21 @@ describe("the reading this run actually took, against the snapshot in the reposi
       assert.equal(first.counts.item_view_search_bot, 18);
       assert.equal(first.fork, "A-CONSISTENT");
     }
-    assert.ok(!["B", "C"].includes(reading.verdict) || first === undefined);
+    // NOT "the verdict is never B or C", which is what stood here until run 210 and was wrong
+    // about this experiment's own register. Forks B and C trip on ANY whole day, so a later day
+    // can settle the window while 2026-09-27 stays Fork-A-consistent — which is exactly what
+    // 2026-09-30 did (item_view_search 1, item_render 5). That clause turned a guard on today's
+    // reading into a requirement that the experiment never reach one of its registered
+    // conclusions, and it would have reddened on the first real arrival in the project's history.
+    // See L-129. What IS invariant is that a B or C verdict is sourced to a day that satisfies
+    // that fork on its own, rather than inferred from the window as a whole.
+    if (["B", "C"].includes(reading.verdict)) {
+      assert.ok(
+        reading.days.some((d) => d.fork === reading.verdict),
+        `verdict ${reading.verdict} with no day graded ${reading.verdict}`
+      );
+      assert.match(reading.why, /satisfies Fork [BC] on its own/);
+    }
     assert.match(render(reading), /EXP-014 — window 2026-09-27 → 2026-10-03/);
   });
 

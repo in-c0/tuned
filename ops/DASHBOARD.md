@@ -18,6 +18,53 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 | What is being tested? | [§6](#6-current-experiment) | [EXPERIMENTS.md](EXPERIMENTS.md) |
 | What did we learn? | [§7](#7-latest-three-lessons) | [LESSONS.md](LESSONS.md) |
 
+> # **For the first time, somebody outside Tuned opened one of our finds in a real browser — and one of them arrived from a search engine. Five page loads. That is the whole story, and I am not going to inflate it.**
+>
+> **What we have been waiting to see.** Every find this site publishes has its own web address. For
+> weeks the only things asking for those addresses were robots: they take the page and run none of
+> it. We can tell the difference, because a real browser quietly reports back that it actually ran
+> the page, and a robot never does.
+>
+> **On 30 September that report came back five times.** On the same day, five requests arrived
+> carrying a note saying which website sent them — and **one of those websites was a search engine.**
+> None of the five came from clicking around inside Tuned, which rules out the one person already
+> here: you. On the three days before, every one of those numbers was zero.
+>
+> **I checked it was not us.** Our own browser test last ran on 28 September, and by design it is
+> labelled as automated, so it cannot land in the human column at all. The post-deploy check is
+> labelled the same way. Nothing we run accounts for these five.
+>
+> **What I cannot tell you**, and it matters: our instrument records "this page was run" and "this
+> visitor came from somewhere" as two separate daily tallies, not joined to the same visit. Five and
+> five on one day is *consistent with* five people arriving from links — and also consistent with one
+> robot that happens to run pages plus a separate fetcher sending the notes. **I cannot prove which**,
+> and I have written that limitation down next to the result rather than leaving it for later.
+>
+> **The strange part worth your attention.** For fifteen days I have searched for `justtuned.com` on
+> the one search service I can reach, and it has returned **zero pages from our domain** every single
+> time — including today. Yet the site recorded a visitor from a search engine. So the honest version
+> of that finding is **"we are absent from the one index I can check"**, not "we are not on Google".
+> I had been writing the stronger sentence, and I have corrected it everywhere it appears.
+>
+> **What I changed because of it.** Yesterday I fixed the subscribe button for visitors whose browser
+> runs no code, and I deliberately left the normal case alone — because our measurement said there
+> *were* no normal visitors. **The next day's measurement said there are.** For them, the only
+> subscription that actually works today, RSS, was two clicks deep: open a panel, then find the link.
+> Both public pages now show **Subscribe by RSS** directly, to everybody, with the dead button still
+> hidden from the browsers it is dead for. Checked in a real browser, at phone and desktop width,
+> with code on and off: eight for eight, nothing overflowing, and the link really does hand back a
+> working feed.
+>
+> **And a test was holding the answer shut.** I had written a check asserting our experiment's verdict
+> is *never* "search is sending people" — a sentence that was true every day until the day it wasn't.
+> It went red the moment the experiment actually concluded. A tripwire that fires on success. Fixed,
+> and written up, because that is a mistake I could easily make again.
+>
+> **Nothing here is a customer.** Applications **0**, subscribers **0**, cash **AUD $0**. Five page
+> loads is not demand, and an arrival channel with nothing coming through it is not revenue. What
+> changed is that, for the first time, there is something outside this building to point at.
+> **4 days left.**
+
 > # **Yesterday our own numbers said 517 people from outside Tuned read our finds. That was the biggest figure this site has ever produced, and I cannot tell you whether it was people or one robot.**
 >
 > **What the number is.** Every published find on Tuned has its own web address, and we count how
@@ -1933,18 +1980,28 @@ Full reading and caveats in [METRICS.md](METRICS.md).
 has taken its **first reading**; **EXP-012** (ooh.directory arrivals) still awaits one.
 
 - **EXP-014 — were 2026-09-26's 517 off-site find-page views a robot, or the first search arrivals?
-  OPEN. Reading 1 taken 2026-09-29 (run 203): the window's first whole day is `A-CONSISTENT`, the
-  window is `A-PENDING`.** Canonical: [EXPERIMENTS.md](EXPERIMENTS.md) · [METRICS.md](METRICS.md).
-  Window 2026-09-27 → 2026-10-03, whole UTC days, and only **2026-09-27** is on disk complete. On it:
-  `item_view` **105**, `item_view_search` **0**, `item_view_referred` **0**, `item_render` **0**,
-  `item_view_search_bot` **18**. **All 105 requests arrived with no usable `Referer` and not one ran
-  the page's script** — the robot explanation's population, described. It is **not graded**: Fork A
-  quantifies over every whole day and **six remain**. Forks B, C and F need a referrer and none
-  arrived; Fork E is excluded outright by the 18. **105 requests that executed no JavaScript are not
-  105 people, and no arrival is claimed.** Run 203 also gave the six forks a grader
-  ([`scripts/exp014-window.mjs`](../scripts/exp014-window.mjs)), which found that **Forks A and F
-  overlap** — harmless, because Fork F's own next action is to grade such a day under Fork A.
-  [L-122](LESSONS.md#l-122).
+  GRADED 2026-10-01 (run 210): VERDICT FORK B — some index is sending people.** Canonical:
+  [EXPERIMENTS.md](EXPERIMENTS.md) · [METRICS.md](METRICS.md). Window 2026-09-27 → 2026-10-03, whole
+  UTC days. The first three days all graded `A-CONSISTENT` (`item_view` 105 / 21 / 42, every other
+  name **0**). **2026-09-30 broke it:** `item_view` **168**, `item_view_search` **1**,
+  `item_view_referred` **5**, `item_render` **5**, `item_view_onsite` **0**. Fork B requires a search
+  referrer **and** a page that actually ran, on the same whole day, and both are there. **Fork A is
+  dead and cannot return** — it quantified over *every* whole day. The three outstanding days can add
+  to the reading, not undo it.
+  **Ruled out before it was read:** our own browser test has not run since 2026-09-28 and its headless
+  label puts every increment in the robot column by construction; the post-deploy check is labelled the
+  same way (`item_view_search_bot` **16** that day). It is not the owner either — `item_render` has
+  fired before, but always on a day `item_view_onsite` was non-zero too, and that is **0** here.
+  **The limitation, published with the verdict:** Fork B binds its two halves to the same **day**, not
+  the same **request**. The render beacon posts same-origin, so it cannot say how its own page load
+  arrived. Five and five is consistent with five browser arrivals **and** with two disjoint machine
+  populations; the equal counts are suggestive and **are not a join**. Not grounds to re-grade — the
+  requirement predates every day in the window — and the per-request join is deliberately **not** built
+  inside an open window. **Fork B's own next action was discharged:** `site:justtuned.com` still returns
+  **0 pages** on the one backend this session can query, fifteen days and three readings running, so
+  that reading is now labelled *about that backend* rather than restated as "not indexed".
+  **No fork of this experiment produces a user or a dollar**, and none is claimed: `followers` 0,
+  `applications` 0. [L-129](LESSONS.md#l-129).
 
 - **EXP-013 — can an agent feed publish on a cadence with no person selecting? CLOSED, GRADED
   2026-09-26 (run 194): FAILED on its bar, and the headline question is UNANSWERABLE from this
@@ -2116,6 +2173,7 @@ mistake → why → evidence → lesson → next attempt → prevention check.
 
 | # | Lesson | More elegant next attempt |
 | --- | --- | --- |
+| **L-129** | **I wrote a test asserting our experiment could never reach one of its own conclusions, and it went red the day it did.** The experiment decides whether find-page traffic is robots or real arrivals. A guard I added asserted the verdict is *never* "search is sending people" and never "somebody linked to us" — the two answers the whole thing exists to be able to give. It passed for four days and failed the moment 30 September produced the evidence. The reasoning error: the first day of the window graded consistent-with-robots, and I generalised that to the window, when the register says those two forks trip on **any** single day. Replaced with the invariant that actually holds — a verdict of that kind must name the day that earns it. | **Ask of every assertion about a live measurement: what observation turns this red, and is that observation a defect or a result?** If it is a result, the assertion is backwards. A test over a reading must pin what the reading is *derived from*, never which value it came out at. Same shape as [L-108](LESSONS.md#l-108), on an experiment instead of on page copy — and one run earlier the same mistake appeared in prose, when a measurement ("every visitor runs no script") was quoted as a standing fact and was contradicted the next day. A measurement used as a premise needs the date it was taken carried with it. |
 | **L-128** | **We measured, three days running, that nothing reaching our pages runs any code — and left the one Follow button on those pages depending on code to work.** Every published find has its own page, and our own instrument says that on 2026-09-27, -28 and -29 not a single visitor to one of them executed the page's script (168 requests, zero executions). On those same pages the only way to subscribe was a **Follow** button whose entire behaviour lives in that script, opening a panel that is invisible until the script opens it. **So every visitor we have ever observed was shown a button that does nothing**, and the panel behind it — RSS, the desk, the email list — could not be reached at all. Both public pages now serve a real "Subscribe by RSS" link to anyone whose browser is not running the script, and hide the dead button from them. Nothing changes for a visitor whose browser does run it. | **A reading about who is visiting is also a reading about what the page must do without them.** The zero was filed under *is this traffic real?* and read only as an answer to that. The same number says *what does this page do for the clients we actually have?*, and nobody asked. Every check we own agreed the button was present — server tests find it in the HTML, browser checks run with scripting on by default — and none of them could tell it did nothing. The fix was verified in the one condition that can see the fault: a real browser with scripting switched off. |
 | **L-127** | **318 cross-references inside our own written record pointed at nothing, and the first attempt to fix them would have broken 17 that worked.** The operating record links to itself constantly — *see lesson 97*, *see experiment 11*. GitHub builds those targets from the full heading text, so the short form every file used matched no heading at all. A link that matches nothing is not an error anywhere: the page simply does not move, so all 318 read as working. Each lesson and experiment now carries an explicit permanent marker, which also survives the next retitling. | **Verify the fix against the same authority that proved the defect, not only the defect.** The first version passed every local gate and was wrong: a single space before the new marker renamed 126 headings' own links, killing 17 that had been fine. It was caught only by pushing and reading the page back from GitHub — the identical act that had found the original fault four hours earlier. |
 | **L-126** | **The one thing this loop needs from you that costs a single word had gone missing from the file it is supposed to live in.** A second owner question was raised on 2026-09-06 and written into the summary file — the one that says it is never authoritative — but never into the authoritative list. That list said *ONE* for 64 runs, and the rule against repeating a blocked item meant nobody restated the missing one. | **A precedence rule is only safe while the authoritative copy is the superset.** *If they disagree, the canonical file wins* resolves a missing record by deleting it. The count is now checked by a script in every build, across all three places it is written. |
@@ -2132,7 +2190,8 @@ rather than more control plane?* — is the one run 138 had to answer, and the a
 
 | | |
 | --- | --- |
-| **Last materially updated** | 2026-10-01 08:40 Sydney (2026-09-30 22:40 UTC), run 209. |
+| **Last materially updated** | 2026-10-01 14:40 Sydney (2026-10-01 04:40 UTC), run 210. |
+| **Run** | 210 — **the first outside visitors we can point at, and one of them came from a search engine.** On 30 September five find-page loads reported back that a real browser had actually run the page, five requests arrived naming the website that sent them, and one of those was a search engine — against zero on each of the three days before, and with **none** of them coming from clicking around inside Tuned. I checked it is not us: our own browser test last ran on 28 September and is labelled as automated by design, so it cannot land in the human column at all. **What I cannot prove** is that those are the same five visits — the page-was-run tally and the where-you-came-from tally are separate daily counts, so five and five is consistent with five people **and** with two different robots. That limitation is written down beside the result, not left for a later run. Meanwhile the search service I can reach still returns **zero pages** for our domain, fifteen days running, so that finding is now stated as *"absent from the one index I can check"* rather than *"not indexed"* — I had been writing the stronger sentence. **Because of this I reversed yesterday's own reasoning:** I had left the normal subscribe path alone on the grounds that no normal visitors existed, and the next day's numbers said they do, so **Subscribe by RSS** is now shown directly on both public pages to everyone instead of sitting two clicks inside a panel. Verified in a real browser at phone and desktop width with code on and off — eight for eight, nothing overflowing, and the link hands back a working feed. **Also: a test I had written was asserting this experiment's verdict could never be "search is sending people", and it went red the instant the experiment concluded — a tripwire that fires on success.** **Applications 0 · subscribers 0 · cash AUD $0.** Five page loads is not demand. 4 days left. [L-129](LESSONS.md#l-129). |
 | **Run** | 209 — **every visitor our instruments have ever seen on a find page was shown a Follow button that does nothing.** Each published find has its own page, and the **Follow** button on it is the only way this service offers a stranger to subscribe. Its entire behaviour lives in the page's script: it opens a panel that stays invisible until the script opens it. Our own measurement says that on **2026-09-27, -28 and -29** not one visitor to those pages ran the script — **168 requests, zero executions** — and we had already confirmed, by loading a page in a real browser, that the measurement itself works. So the button was dead for every visitor we have a record of, and the panel behind it — RSS, the morning desk, the email list — was unreachable. Both public pages now serve a working **Subscribe by RSS** link to anyone whose browser is not running the script, and hide the dead button from them. **A visitor whose browser does run the script sees no change at all** — that content is in a part of the page such a browser never reads. Checked in a real browser with scripting switched off and switched on, on a desktop and a phone-sized screen: 18 assertions, all passed. **No number moves today**, and none can: nothing here is a visitor, a subscriber or a dollar. [L-128](LESSONS.md#l-128). |
 | **Run** | 208 — **the robot published a find, and then I found that 318 cross-references inside my own written record point at nothing.** First, the good part: the agent's scheduled screen read 37 papers and released the best one, **find 292** on team coordination in professional football, and its reason line is a sentence quoted word for word from the paper — the first find published since I fixed the bug that was silently deleting a p-value from exactly those quotations. Then the housekeeping, which turned out to matter more than it sounds. Throughout these files I cross-reference my own numbered lessons — *"see L-97"* — as clickable links. **None of them worked.** GitHub builds a link target out of a heading's entire text, so a short link like `#l-97` lands nowhere and the page simply doesn't move; nothing anywhere reports an error, which is why 318 of them looked fine for months. Yesterday I suspected this and couldn't check it, because this session can't load github.com. It can: GitHub will hand back its own rendered version of a file through its API, and that settled it in one read. Every lesson and experiment now carries a permanent, short target, so the links are correct as written and stay correct if I ever retitle a heading, and a check now fails the build on any internal link that points at nothing. **The part worth your attention is that my first attempt at this fix was wrong and passed every test I had.** One stray space in the wrong place renamed all 126 headings' own link targets, which would have broken 17 links that *did* work — swapping 318 broken pointers for 17 new ones, in the change whose entire purpose was broken pointers. Nothing local caught it. What caught it was pushing to a branch and reading the file back from GitHub exactly as I had to prove the original problem — and the reason my own checker stayed silent is that I had made it tidy up whitespace before comparing, which is precisely the difference between the broken version and the working one. **No visitors, no applications, no revenue this cycle, and I am not dressing it up.** 5 days left. [L-127](LESSONS.md#l-127). |
 | **Run** | 207 — **the one thing this loop needs from you that costs a single word had gone missing from the file it is supposed to live in.** You have two outstanding asks. Card 1 needs your GitHub account and two minutes. Card 2 needs **one word** — may Tuned be suggested to `ooh.directory`, a human-curated blog directory, given that our commentary is written by an agent? Card 2 was raised on 6 September and written into **this** file and nowhere authoritative: the file I call the source of truth listed one ask, not two, for 64 runs. Worse, the rule I wrote at the top of section 1 says *"if the two disagree, STATUS is right"* — and here this mirror was the **fuller** record, so following my own rule would have **deleted** the ask instead of restoring it. The count itself drifted for 57 runs, reading TWO, then ONE, then TWO again, each run sincerely writing *"unchanged"* because each was reading a different copy. **Nothing was ever decided against card 2** — the register still reads *A2 open, never asked*. Both cards are now in the authoritative file, rewritten from the source documents rather than copied from here, and a check now fails the build whenever the two files disagree about how many asks are open. **One correction the rewrite turned up:** if you answer `A`, the experiment behind it reads on **15 October**, ten days after I stop — so an `A` makes a durable listing for whoever runs Tuned next, and I will not be reporting a result on it. **No visitors, no applications, no revenue this cycle, and I am not dressing it up.** 5 days left. [L-126](LESSONS.md). |

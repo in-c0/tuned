@@ -1,28 +1,29 @@
-// The subscription control, for the clients that are actually walking these pages.
+// The subscription control, for every client that walks these pages — not only for one of them.
 //
-// Both public surfaces — `/:handle` and `/:handle/:id` — carry exactly one subscription control,
-// and on both it is `<button id="follow-btn">`. A bare button has no default behaviour; the only
-// thing that makes it do anything is a `click` listener in the page script, which calls
-// `showModal()` on `<dialog id="follow-dlg">`. A dialog is `display: none` until that call. So for
-// a client that does not execute the document, the button is inert and the dialog's entire
-// contents — the RSS call to action, the desk form, the email list — are unreachable.
+// Both public surfaces — `/:handle` and `/:handle/:id` — carry a `<button id="follow-btn">` whose
+// only behaviour is a `click` listener in the page script, calling `showModal()` on
+// `<dialog id="follow-dlg">`. A dialog is `display: none` until that call, so for a client that does
+// not execute the document the button is inert and the dialog's entire contents — the RSS call to
+// action, the desk form, the email list — are unreachable. Run 209 fixed that with a `<noscript>`
+// block that retired the dead button and carried an RSS link in its place.
 //
-// That client is not a hypothetical. EXP-014's window has graded `item_render` = 0 on every whole
-// UTC day read so far, against 168 unsuffixed `item_view` (105 / 21 / 42 across 2026-09-27 …
-// 2026-09-29, ops/metrics/latest.json), and Amendment 2 established by direct browser observation
-// that the beacon fires when a browser loads the page. The zeros are a fact about the clients, not
-// about the instrument: every observed visitor to a find page in that window was handed a dead
-// button.
+// What changed, and why these assertions moved with it. Run 209 confined the link to `<noscript>` on
+// the strength of a reading: EXP-014 had graded `item_render` = 0 on every whole UTC day in its
+// window, so the observed population ran none of the document and a scripted client needed nothing.
+// The next whole day graded `item_render` = 5, with `item_view_onsite` = 0 and
+// `item_view_referred` = 5 (ops/metrics/latest.json, EXP-014 Fork B): five loads that ran the page,
+// none of them an internal click. For that population the only path that delivers today was two
+// interactions deep — open the dialog, then take RSS — behind a 12px corner link.
 //
-// What these tests pin is the shape of the remedy rather than its prose. The fallback must be
-// inside `<noscript>`, because that is the one branch an executing client never parses into nodes
-// — which is what makes the scripted page unchanged. It must RETIRE the dead button rather than
-// sit beside it. And it must point at the path that actually delivers today, which is RSS: the
-// dialog says "RSS works today" and "Digests are not sending yet" in its own words, so a fallback
-// leading anywhere else would promise more than the control it replaces.
+// So the contract pinned here is now two-part, and the second half is what these tests gained:
+//   1. `<noscript>` still RETIRES the dead button, because it is still inert without script.
+//   2. The RSS control is server-rendered OUTSIDE `<noscript>`, so every client is served it.
+// It must point at the path that actually delivers, which is RSS: the dialog says "RSS works today"
+// and "Digests are not sending yet" in its own words. And it must be an `<a href>` rather than a
+// `<button>` — the whole defect was a control with no default behaviour.
 //
-// What they deliberately do not assert is that a browser with scripting disabled honours a
-// `<style>` inside `<noscript>` in the body. No string comparison can see that; it was verified in
+// What these tests deliberately do not assert is that a browser with scripting disabled honours a
+// `<style>` inside `<noscript>` in the body. No string comparison can see that; it is verified in
 // Chromium with `javaScriptEnabled: false` against the served documents, and the reading is in the
 // run's execution report. This file is the regression guard, not the proof of the mechanism.
 
@@ -91,6 +92,18 @@ function fallback(html: string): string {
   return m ? m[0] : "";
 }
 
+/** An `<a>` carrying `.btn` and the feed's RSS URL. Deliberately narrow: that URL is already on
+ *  both pages twice — the 12px corner link and `<link rel="alternate">` — so a bare `toContain` on
+ *  the href passes on a page that offers no such control at all. */
+const rssControl = /<a class="btn"[^>]*href="\/sportstech\/rss\.xml"[^>]*>[^<]*<\/a>/;
+
+/** The document as a scripting client effectively sees it: `<noscript>` contents are never parsed
+ *  into nodes by such a client, so anything asserted about what IT is served must be found with
+ *  that block removed. */
+function scripted(html: string): string {
+  return html.replace(/<noscript>[\s\S]*?<\/noscript>/g, "");
+}
+
 describe.each([
   ["the find page", (id: number) => `/sportstech/${id}`],
   ["the feed page", () => "/sportstech"],
@@ -102,11 +115,31 @@ describe.each([
     expect(fallback(html), "no <noscript> block on a page whose only control needs script").not.toBe("");
   });
 
+  it("serves the RSS control to every client, not only to one inside <noscript>", async () => {
+    const id = await seed("sportstech");
+    const html = await get(path(id));
+
+    // Outside the fallback is the whole point: a link confined to <noscript> is never parsed into
+    // nodes by a scripting client, and 2026-09-30 measured five find-page loads that ran the
+    // document. Matched off the page with the <noscript> block REMOVED, so this cannot be satisfied
+    // by run 209's version of the same link.
+    expect(scripted(html)).toMatch(rssControl);
+  });
+
   it("points it at RSS, the path that delivers today", async () => {
     const id = await seed("sportstech");
-    const block = fallback(await get(path(id)));
 
-    expect(block).toContain('href="/sportstech/rss.xml"');
+    expect(scripted(await get(path(id)))).toContain('href="/sportstech/rss.xml"');
+  });
+
+  it("makes it a link and not another button with no default behaviour", async () => {
+    const id = await seed("sportstech");
+    const m = scripted(await get(path(id))).match(rssControl);
+
+    // The defect being fixed was a control that does nothing until script binds it. A <button>
+    // here would reproduce it exactly, one element over.
+    expect(m, "no <a class=\"btn\"> pointing at the feed's RSS URL").not.toBeNull();
+    expect(m![0].startsWith("<a ")).toBe(true);
   });
 
   it("retires the dead button instead of sitting next to it", async () => {

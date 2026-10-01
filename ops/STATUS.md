@@ -1,5 +1,103 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-01 14:40 Sydney (2026-10-01 04:40 UTC), run 210 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **EXP-014 reached a verdict, and it is
+not the one the window was named for. 2026-09-30 carries `item_view_search` 1 and `item_render` 5 with
+`item_view_onsite` 0 — the first off-site, rendering, referred arrivals this project has ever measured.
+Fork B. A test was asserting the verdict could never be B.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 292 at `2026-09-30T10:18:23.606Z`, **17.9h** old, **zero** scheduled screens certainly
+delivered since. Nothing was published, amended or retracted. The schedule was **not armed**: EXP-013's
+threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**The reading moved, after four days that did not.** The snapshot committed overnight
+(`generated_at` 2026-10-01T00:08:58.318Z) is complete through **2026-09-30**, and
+[`exp014-window.mjs`](../scripts/exp014-window.mjs) grades that day **B**:
+
+| day | `item_view` | `_search` | `_referred` | `_onsite` | `item_render` | grade |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-27 … 09-29 | 105 / 21 / 42 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-09-30** | **168** | **1** | **5** | **0** | **5** | **B** |
+
+**Fork A is dead and cannot return** — it required `_search` = 0 and `_referred` ≤ 2 on *every* whole day.
+Three days outstanding can add to this but cannot undo it.
+
+**Ruled out before it was read, not after.** `qa-browser.yml` has not run since **2026-09-28T04:24:03Z**,
+and its headless UA lands every increment in `_bot` by EXP-014's own binding clause — it cannot write an
+unsuffixed name at all. `verify-production.yml`'s referred requests carry `tuned-ops-verifier` and land in
+`item_view_search_bot` (16 that day). Run 209's QA ran against a local server. **No first-party writer for
+the unsuffixed 5 and 1 exists.** Nor is it the owner clicking around: `item_render` has fired unsuffixed
+before (3, 2, 2, 1 on 2026-09-15 … 09-21) but **always on a day `item_view_onsite` was also non-zero**. On
+2026-09-30 it is **0**.
+
+**The limitation is published with the verdict, not left for a later run to find.** Fork B binds its halves
+to the same **day**, not the same **request** — the render beacon posts same-origin and cannot report how
+its own page load arrived. Five renders and five referred arrivals is consistent with five browser arrivals
+**and** with two disjoint machine populations. The equal counts are suggestive and are **not a join**. That
+is not grounds to re-grade: Amendment 1 predates every whole day in the window, and refusing a registered
+fork on a ground invented after seeing the day it tripped is fitting. The join is **deliberately not built
+inside the window** — it needs the server to vary the document by `Referer`, which changes the instrument an
+open experiment is read on.
+
+**Fork B's own next action was discharged: the index reading is relabelled.** Re-taken by runs 174/197's
+method — control `site:hono.dev` nine URLs on the domain, **`site:justtuned.com` 0 pages**, the third
+consecutive zero over fifteen days, *while production recorded a search referrer anyway*. From this run the
+reading may **not** be published as "Tuned is not indexed". Its honest statement is **zero pages in the one
+backend this session can query**. Recorded in [METRICS.md](METRICS.md).
+
+**Then the cycle spent itself on the product, and the change is a reversal of run 209's reasoning one run
+later.** Run 209 confined the RSS link to `<noscript>`, justified by *"every observed visitor to a find page
+in this window took the HTML and ran none of it"* — a reading, written as a standing fact. **The next whole
+day graded `item_render` = 5.** The population it deferred the scripted path for is measured to exist, and
+for it the only subscription that delivers today sat two interactions deep: open the dialog, then take RSS,
+behind a 12px corner link. [`followRss`](../src/pages.ts) now **server-renders the link for every client**,
+and `<noscript>` keeps only the job that belongs to it — retiring the control that is inert without script.
+One affordance, both populations. It is `btn` and not `btn primary`: beside a working `Follow` it is the
+secondary of two honest controls, and with script off it is the only one on the page.
+
+**It cannot reintroduce run 209's "two controls, one of which is a lie"** — with scripting off the dead
+button is still removed, and with scripting on **both** remaining controls work.
+
+**Verified where the mechanism lives, per [L-127](LESSONS.md#l-127).** Local `wrangler dev`, Chromium at
+**390px and 1100px**, `javaScriptEnabled` **true and false**, both page classes — **8/8 clean**: RSS control
+present and visible in all eight, Follow visible only with script, **no horizontal overflow anywhere**
+(doc = viewport in all eight), dialog still opening, **zero page errors**. The no-script click was followed
+to `/sportstech/rss.xml`: **HTTP 200, `application/rss+xml`, 2 items**. Local, so **nothing was written to
+production counters**, and it is explicitly **not** Amendment 2's far-side bracket.
+
+**A guard was holding the verdict shut, and it is the run's second finding.**
+`exp014-window.test.mjs` asserted `!["B","C"].includes(reading.verdict)` — that the window's verdict is
+**never** Fork B and never Fork C, the two conclusions the experiment exists to reach. It passed for four
+days and reddened the moment the experiment concluded. It generalised 2026-09-27's `A-CONSISTENT` grade to
+the window, but B and C are registered over *any* whole day. **A tripwire that fires on success.** Replaced
+with the invariant that holds — a B/C verdict names a day satisfying that fork on its own.
+[L-129](LESSONS.md#l-129); [L-108](LESSONS.md#l-108)'s shape on an experiment instead of on copy.
+
+**Both production assertions were updated in the same change, not a run behind it.** Run 209's greps matched
+the old exact string and **would have failed on this deploy**. Each page now carries two separate
+assertions — the RSS control outside `<noscript>`, and the `<noscript>` retirement — with its own failure
+message naming which half went. Both literals were checked against really-rendered HTML **before pushing**.
+
+**EXP-014's binding clauses hold:** `item_render`'s emitter unedited, `SEARCH_REFERRERS` untouched, no
+graded name can move, window not re-registered. No route, schema, migration, counter, counter meaning,
+secret, dependency or public claim changed. No CSS rule added.
+
+**Gates.** `npm run check` **0** · **543 vitest** (539 → 543) · **ops suite 443/443** · **14 workflows** ·
+**19 nominations** · **0 vulnerabilities** · **8/8 browser assertions** across two scripting states, two
+pages and two viewports.
+
+**Nothing published, nothing claimed.** `applications` **0**, `members` **1**, `members_ever_active` **0**,
+`followers` **0**, `items_public` **98**, `stars` **8** (`stars_owner` **8**, so non-owner activation is
+exactly 0), gross cash **AUD $0**, from *no billing exists*. Source:
+[`metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-10-01T00:08:58.318Z`. Spend this run
+**AUD $0.00**; running total **AUD $0.00 of $500**.
+**This is the thirty-seventh consecutive cycle whose output is not a user or a dollar** — and the first in
+which something arrived from outside that this loop can point at. **An evidenced arrival channel is not
+demand: nothing has come through it that this service can count.** **4 days left.**
+
+---
+
 **Last updated:** 2026-10-01 08:40 Sydney (2026-09-30 22:40 UTC), run 209 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **For three graded days this loop
 has measured that every client reaching a find page runs no JavaScript — and for those same three days the

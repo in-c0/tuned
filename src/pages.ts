@@ -767,47 +767,59 @@ function deskOption(handle: string, from: "feed" | "find", viewer: FeedViewer | 
         form("Add to my desk", "primary", false);
 }
 
-/** The subscription path a client that runs no script can actually take.
+/** The subscription control, rendered for every client rather than only for one of them.
  *
- *  **The defect.** Both public surfaces offer exactly one subscription control, and on both it is a
- *  bare `<button id="follow-btn">` whose only behaviour is a `click` listener in the page script,
- *  opening a `<dialog id="follow-dlg">` that is `display: none` until `showModal()` is called on it.
- *  A client that does not execute the document therefore gets a button that does nothing at all,
- *  and the only remaining affordance on the page is the 12px `RSS` link in the top corner. The
- *  dialog's whole content — the RSS call to action, the desk form, the email list — is unreachable.
+ *  **The defect this started as.** Both public surfaces offer exactly one subscription control, and
+ *  on both it is a bare `<button id="follow-btn">` whose only behaviour is a `click` listener in the
+ *  page script, opening a `<dialog id="follow-dlg">` that is `display: none` until `showModal()` is
+ *  called on it. A client that does not execute the document gets a button that does nothing, and
+ *  the dialog's whole content — the RSS call to action, the desk form, the email list — is
+ *  unreachable. Run 209 shipped that fix: a `<noscript>` block retiring the dead button and putting
+ *  an RSS link in its place.
  *
- *  **The population is not hypothetical.** EXP-014's window has graded `item_render` = 0 on every
- *  whole UTC day read so far, against 168 unsuffixed `item_view` across 2026-09-27 … 2026-09-29
- *  (105 / 21 / 42; source [`ops/metrics/latest.json`](../ops/metrics/latest.json)). Amendment 2
- *  established by direct browser observation that the beacon is alive, so those zeros are a fact
- *  about the clients: every observed visitor to a find page in this window took the HTML and ran
- *  none of it. Each one was offered a dead button.
+ *  **Why the link is no longer inside `<noscript>`.** Run 209 put it there deliberately, so the
+ *  scripted page stayed byte-identical, and justified confining it with a measurement: EXP-014 had
+ *  graded `item_render` = 0 on every whole UTC day in its window, so *"every observed visitor to a
+ *  find page in this window took the HTML and ran none of it."* **The next whole day contradicted
+ *  that.** 2026-09-30 graded `item_render` = **5** against `item_view_onsite` = **0** and
+ *  `item_view_referred` = **5** — five find-page loads that ran the document, none of them a click
+ *  from inside this site (source [`ops/metrics/latest.json`](../ops/metrics/latest.json), EXP-014
+ *  Fork B). The population run 209 deferred this for is measured to exist, and for it the only path
+ *  that delivers was two interactions deep: open the dialog, then take the RSS link. The 12px corner
+ *  link was the rest of the offer.
  *
- *  **Why `<noscript>` and not a CSS or class-on-`<html>` dance.** It is the one branch in HTML that
- *  a non-executing client takes and an executing one does not: with scripting enabled the element's
- *  contents are never parsed into nodes, so `getElementById` cannot see them, no listener changes,
- *  and the scripted page is byte-identical to what it rendered before this function existed. The
- *  `<style>` removes the dead button rather than leaving two controls side by side, one of which is
- *  a lie — a fallback that adds a second affordance without retiring the broken one is not a fix.
+ *  So the link is server-rendered for everyone and `<noscript>` keeps only the job that genuinely
+ *  belongs to it — retiring the control that is inert without script. One affordance serves both
+ *  populations, which is also why this cannot reintroduce run 209's "two controls, one of which is a
+ *  lie": with scripting off the dead button is still removed, and with scripting on **both** remaining
+ *  controls work.
  *
- *  **It offers RSS and only RSS, because RSS is the only path that delivers today.** The dialog
- *  says so in its own words ("RSS works today", "Digests are not sending yet"), so a fallback that
- *  led anywhere else would promise more than the scripted path does. The email form behind the
+ *  **It offers RSS and only RSS, because RSS is the only path that delivers today.** The dialog says
+ *  so in its own words ("RSS works today", "Digests are not sending yet"). The email form behind the
  *  dialog posts JSON to `POST /:handle/follow` and has no form-encoded, HTML-rendering counterpart;
- *  inventing one to sit behind this link would be a new public write endpoint, which is a larger
- *  change than the defect warrants. The desk form inside the dialog already degrades correctly and
- *  is still unreachable, because the dialog is.
+ *  inventing one to sit behind this link would be a new public write endpoint, a larger change than
+ *  this warrants.
+ *
+ *  **`btn` and not `btn primary`.** Beside a working `Follow` it is the secondary of two honest
+ *  controls — `Follow` opens everything, including the desk option a signed-in member needs — and two
+ *  primaries competing would misstate that. With scripting off it becomes the only control on the
+ *  page, visible and labelled, which beats a primary that does nothing.
  *
  *  **No counter moves and no crawl surface is added.** `item_render`'s emitter is unedited and
  *  `SEARCH_REFERRERS` is untouched, so EXP-014's binding clauses hold and its window is not
- *  re-registered. The href is `/:handle/rss.xml`, which both pages already carry twice — once as
- *  the visible corner link and once as `<link rel="alternate">` — so no crawler reaches a URL it
- *  could not reach before. No CSS rule is added to `CSS`, `FEED_CSS` or `FIND_CSS` either: the
- *  `<a>` inherits `.btn` and lays out as a flex item of the row that held the button. */
-function followNoScript(handle: string): string {
+ *  re-registered. This link is deliberately **not** wired to `find_follow_rss` or `follow_rss`,
+ *  whose published definition is a click on the RSS option *inside the dialog*; widening either to a
+ *  second control would change what a running number means without changing its name. It is
+ *  unmeasured on the same terms as the corner RSS link that has always been unmeasured, and the
+ *  honest downstream signal for a subscription that actually happened is `feed_fetch:<handle>`, a
+ *  poll by a reader. The href is `/:handle/rss.xml`, which both pages already carry twice — the
+ *  corner link and `<link rel="alternate">` — so no crawler reaches a URL it could not reach before,
+ *  and no CSS rule is added: the `<a>` inherits `.btn` and lays out as a flex item of the row that
+ *  held the button. */
+function followRss(handle: string): string {
   return (
-    `<noscript><style>#follow-btn{display:none}</style>` +
-    `<a class="btn primary" href="/${esc(handle)}/rss.xml">Subscribe by RSS</a></noscript>`
+    `<a class="btn" href="/${esc(handle)}/rss.xml">Subscribe by RSS</a>` +
+    `<noscript><style>#follow-btn{display:none}</style></noscript>`
   );
 }
 
@@ -1022,7 +1034,7 @@ export function publicPage(creator: Creator, items: Item[], viewer: FeedViewer |
       ${latest ? `<div class="presence" data-latest="${esc(latest)}"><span class="dot"></span><span class="ptext"></span></div>` : ""}
     </div>
     <div class="head-actions">
-      <button class="btn primary" id="follow-btn">Follow</button>${followNoScript(creator.handle)}
+      <button class="btn primary" id="follow-btn">Follow</button>${followRss(creator.handle)}
     </div>
   </div>
   ${breakdown(items)}
@@ -1365,7 +1377,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[], viewer: Fee
         <b>Follow @${esc(creator.handle)}</b>
         <span>Every find like this one, as it is published${lastPublishedClause(creator.handle, feedLatest)} No account, nothing to apply for.</span>
       </div>
-      <button class="btn primary" id="follow-btn" data-feed="/${esc(creator.handle)}">Follow</button>${followNoScript(creator.handle)}
+      <button class="btn primary" id="follow-btn" data-feed="/${esc(creator.handle)}">Follow</button>${followRss(creator.handle)}
     </div>
     ${
       more.length

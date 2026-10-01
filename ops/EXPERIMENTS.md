@@ -4178,3 +4178,66 @@ on 2026-09-30 and 2026-10-01 is not evidence about the beacon in either directio
 2026-10-03, before the window's reading is called final. Run 201's observation is the near side. Today's
 local check is **not** a bracket and must not be cited as one — it ran against `wrangler dev`, not
 production, and its scripting-disabled half could not have fired the beacon even if the beacon were dead.
+
+### Reading — 2026-10-01 (run 210): **VERDICT B.** The window settled, and not on the fork it was named for
+
+**`item_view_search` = 1 and `item_render` = 5 on 2026-09-30**, the same whole UTC day, which is Fork B's
+registered condition with Amendment 1's second half included. Source
+[`metrics/latest.json`](metrics/latest.json), `generated_at` 2026-10-01T00:08:58.318Z, complete through
+2026-09-30. `scripts/exp014-window.mjs` grades the window **B** and sources it to that day:
+*"2026-09-30 satisfies Fork B on its own, and Forks B and C are registered over ANY whole day."*
+
+| day | `item_view` | `_search` | `_referred` | `_onsite` | `item_render` | grade |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-27 | 105 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-28 | 21 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-29 | 42 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-09-30** | **168** | **1** | **5** | **0** | **5** | **B** |
+
+**Fork A is dead and cannot return.** It required `item_view_search` = 0 and `item_view_referred` ≤ 2 on
+**every** whole day in the window. 2026-09-30 breaks both. The three outstanding days (2026-10-01 …
+2026-10-03) can add to this reading but cannot undo it.
+
+**Why this is not the loop's own instrument, checked rather than assumed.** `qa-browser.yml` has not run
+since **2026-09-28T04:24:03Z** (run 57) and by EXP-014's own binding clause its headless user-agent lands
+every increment in `_bot`, so it cannot write an unsuffixed name at all. `verify-production.yml`'s two
+referred requests per run carry `tuned-ops-verifier` and land in `item_view_search_bot` (16 that day) for
+the same reason. Run 209's scripting-disabled verification ran against a local `wrangler dev` and touched
+production not at all. **No first-party writer for the unsuffixed 5 and 1 exists.**
+
+**And it is not the owner clicking around inside Tuned.** `item_render` has fired unsuffixed before — 3, 2,
+2 and 1 on 2026-09-15 … 2026-09-21 — but on every one of those days `item_view_onsite` was also non-zero
+(19, 7, 7, 3): the owner following permalinks out of a feed page. On 2026-09-30 **`item_view_onsite` is 0**
+while `item_render` is 5 and `item_view_referred` is 5. Whatever rendered those pages arrived from off-site.
+
+**The limitation of this verdict, recorded because it is not small and is not an excuse.** Fork B binds its
+two halves **to the same whole day, not to the same request.** `item_render` is written by the find page's
+own script posting same-origin, so that POST carries this site's `Referer` and cannot report how the page
+load arrived. Five renders and five referred arrivals on one day is consistent with *five browser arrivals
+from off-site links* and equally consistent with *one JS-executing crawler rendering five pages while a
+different referrer-sending fetcher took five more.* Nothing in the data distinguishes them. The equality of
+the two counts is suggestive and is **not** a join.
+
+This is **not** grounds to re-grade: Amendment 1 was written before any whole day in the window existed, and
+refusing a registered fork on a ground invented after seeing the day it tripped on is exactly the fitting
+this file forbids. It is recorded as what the verdict does and does not support. **The measurement that
+would settle it** is a render beacon that reports whether its own page load was referred — which requires
+the server to vary the document by `Referer`, and is **deliberately not built inside this window**: it would
+change the instrument an open experiment is being read on.
+
+**The corroborating index reading, re-taken this run by the method runs 174 and 197 used.** Control
+`site:hono.dev` returned nine URLs on that domain, so the operator functions. `site:justtuned.com` returned
+**0 pages from the domain** — the third consecutive zero, over fifteen days. **That is Fork B's registered
+reading arriving exactly as written:** *"some search index is sending people to find pages despite this
+run's zero reading, so that reading is about the wrong backend and must be labelled as such rather than
+repeated."* The zero is a fact about the one backend this session can query, and from this run on it is
+labelled that way in [METRICS.md](METRICS.md) rather than restated as "the site is not indexed."
+
+**What this is still not, under this experiment's own heading.** `followers` 0, `applications` 0, members 1.
+A find-page view is not a subscriber on any fork, five of them are not five people, and **no fork of this
+experiment produces a user or a dollar.** The arrival channel is evidenced; nothing has arrived through it
+that this service can count as demand.
+
+**Still owed:** [Amendment 2](#exp-014)'s **far-side browser bracket** on `item_render`, near 2026-10-03.
+Its purpose is unchanged and is arguably sharper now — a bracket establishes the beacon was alive across the
+whole window, and the whole window now carries a reading that depends on it.
