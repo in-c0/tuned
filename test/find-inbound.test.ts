@@ -487,3 +487,93 @@ describe("the permalink is reachable by something other than a mouse", () => {
     expect(labels).toContain("Permalink: A title with &quot;quotes&quot; &amp; an ampersand");
   });
 });
+
+// The two `.card-link` populations on a find page, and why a check has to tell them apart.
+//
+// `verify production`'s referred-arrival step reports a find page as "N sibling find(s), M other
+// feed(s)" — the pair run 210 published as "0 sibling find(s), 8 other feed(s)" for a page that in
+// fact carried four of each. Both numbers came from selectors that cannot name those populations:
+// siblings were counted by `class="card-permalink"`, a class only the FEED page's cards carry, so
+// the count could not exceed 0 on this page class whatever the page held; and the feed count
+// matched every site-relative `.card-link`, so the four siblings were counted a second time as
+// feeds — 4 + 4 = the 8 that was published.
+//
+// The discrimination the step's own comment claims, and now makes: a sibling find points at
+// `/handle/id`, a directory feed at `/handle`. These helpers are the grep from that step,
+// expressed against really-rendered markup, so the selector is checkable here and not only in a
+// workflow nothing in this repository runs.
+function siblingFindHrefs(html: string): string[] {
+  return [...html.matchAll(/<a class="card-link" href="(\/[A-Za-z0-9_.-]+\/[0-9]+)"/g)].map((m) => m[1]);
+}
+
+function directoryFeedHrefs(html: string): string[] {
+  return [...html.matchAll(/<a class="card-link" href="(\/[A-Za-z0-9_.-]+)"/g)].map((m) => m[1]);
+}
+
+describe("a find page's siblings and the feed directory are separable populations", () => {
+  it("renders sibling finds that carry no card-permalink, so counting that class here counts nothing", async () => {
+    const id = await creator("sportstech", "Sports Tech");
+    const first = await item(id, { title: "First find", url: "https://a.example/1" });
+    await item(id, { title: "Second find", url: "https://b.example/2" });
+    await item(id, { title: "Third find", url: "https://c.example/3" });
+
+    const html = await (await get(`/sportstech/${first}`)).text();
+
+    // The block is there and populated — this is the anti-orphan edge, not decoration.
+    expect(html).toContain('class="more-finds"');
+    expect(siblingFindHrefs(html).length).toBeGreaterThanOrEqual(1);
+    // And the class the old check counted appears nowhere on this page class, at any population
+    // size. This is the assertion that makes "0 siblings" a property of the selector.
+    expect(permalinks(html)).toHaveLength(0);
+    expect(html).not.toContain("card-permalink");
+  });
+
+  it("tells the sibling finds apart from the directory feeds by where they point", async () => {
+    const mine = await creator("sportstech", "Sports Tech");
+    const other = await creator("wearables", "Wearables");
+    const first = await item(mine, { title: "First find", url: "https://a.example/1" });
+    await item(mine, { title: "Second find", url: "https://b.example/2" });
+    await item(other, { title: "Elsewhere", url: "https://d.example/4" });
+
+    const html = await (await get(`/sportstech/${first}`)).text();
+
+    const siblings = siblingFindHrefs(html);
+    const feeds = directoryFeedHrefs(html);
+
+    // One sibling: the same feed's other public find. Never the item in front of the reader.
+    expect(siblings).toEqual([`/sportstech/${await secondIdOf(mine, first)}`]);
+    // One feed: the directory excludes the handle whose page this is.
+    expect(feeds).toEqual(["/wearables"]);
+    // The two selectors are disjoint, which is the whole property: neither count can absorb the
+    // other, so an empty directory block can no longer be hidden by a populated sibling block.
+    expect(siblings.some((h) => feeds.includes(h))).toBe(false);
+  });
+
+  it("renders no more-finds block on a one-item feed, so the block may only be asserted where a sibling exists", async () => {
+    const mine = await creator("sportstech", "Sports Tech");
+    const other = await creator("wearables", "Wearables");
+    const only = await item(mine, { title: "The only find" });
+    await item(other, { title: "Elsewhere" });
+
+    const html = await (await get(`/sportstech/${only}`)).text();
+
+    // A legitimate zero. A check that asserted the block on an arbitrary find page would fail
+    // here on a fact about the feed rather than on a defect, which is why `verify production`
+    // derives its page from a handle the sitemap shows has two.
+    expect(html).not.toContain('class="more-finds"');
+    expect(siblingFindHrefs(html)).toHaveLength(0);
+    // The directory block is still there, and still counted.
+    expect(html).toContain('class="other-feeds"');
+    expect(directoryFeedHrefs(html)).toEqual(["/wearables"]);
+  });
+});
+
+/** The id of the creator's other public find, read back rather than assumed from insertion order. */
+async function secondIdOf(creatorId: number, excludeId: number): Promise<number> {
+  const row = await DB.prepare(
+    "SELECT id FROM items WHERE creator_id = ? AND id != ? AND visibility = 'public' ORDER BY created_at DESC LIMIT 1"
+  )
+    .bind(creatorId, excludeId)
+    .first<{ id: number }>();
+  return row!.id;
+}
