@@ -3283,6 +3283,12 @@ record the true count on any earlier day, so no earlier day's figure can be reco
 that step's line stands unaffected: the HTTP status, the content type, the stripped-document hash
 comparison and the three-fetch stability check never depended on either count.
 
+**Confirmed on production after the fix.** [`verify production` 36853484195](https://github.com/in-c0/tuned/actions/runs/36853484195),
+step 30, at `84b3d39`: `/ava/116: ... 4 sibling find(s), 4 other feed(s)`. The step's page selection now
+requires a handle with two public finds, so the page it grades moved from `/sportstech/292` to `/ava/116` —
+a find page of the same shape, on a feed of the same directory. **4 and 4 is the reading, and it is the
+first one this step has produced that its selectors could have produced.**
+
 **It was not an invented number.** It was sourced to a selector that could not match the population its
 label named, which is the same failure as invention wearing a provenance chain — the reason the correction
 is recorded here rather than treated as a log-formatting fix. [L-130](LESSONS.md#l-130).

@@ -64,6 +64,22 @@ left the old step reading the same `0` and **green**, while the new one fires; *
 block** left the old selector reading **4** from the siblings and **green**, while the new one reads 0 and
 fires. Both failures say *Roll back*.
 
+**And the fix is confirmed against live production, not only against a local render.**
+[`verify production` 36853484195](https://github.com/in-c0/tuned/actions/runs/36853484195) — **success at
+`84b3d39`**, step 5 (*"Wait for the expected commit to be serving"*) passed, so the deployed Worker is this
+commit. **30 of 31 steps passed; the one skipped is *Public availability*, which fires only when the site
+is NOT serving.** Step 30 now reports:
+
+```
+/ava/116: HTTP 200 text/html to a Referer from www.google.com; Tuned's own markup identical to the
+unreferred document (f5c442159798), 4 sibling find(s), 4 other feed(s)
+```
+
+**4 and 4** — the figures predicted for this page class before the push, read off production. The page
+under test moved from `/sportstech/292` to `/ava/116` because the selection now picks the first handle the
+sitemap shows with two finds rather than the first find in the file; both are find pages of the same shape
+and the discriminator comparison is unaffected (`ref-before`/`ref`/`ref-after` all `30263/27092B,3s`).
+
 **The page under test is now drawn from a handle the sitemap shows has two public finds** — derived from the
 document already fetched, no extra request. Without that, asserting the block would fail on a one-item feed,
 which legitimately renders none. That case is pinned as a test in its own right.
