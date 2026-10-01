@@ -1,5 +1,84 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-02 09:05 Sydney (2026-10-01 23:05 UTC), run 212 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The bracket this experiment has been
+owed since 2026-09-28 was taken three days early, and the gate it satisfies turned out to be a sentence no
+tool in the repository could read.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 293 at `2026-10-01T10:24:20.502Z`, **11.8h** old, **zero** scheduled screens certainly
+delivered since. Nothing published, amended or retracted. The schedule was **not armed**: EXP-013's
+threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**The snapshot was stale and was refreshed rather than read.** The `metrics snapshot` 20:40Z cron had not
+fired — nor had `verify production`'s 20:20Z, and two hourly workflows skipped five hours. GitHub's
+scheduler is best-effort and visibly slipped this morning. Dispatched manually:
+[run 36934316560](https://github.com/in-c0/tuned/actions/runs/36934316560), `generated_at`
+**2026-10-01T22:19:21.630Z**.
+
+**Amendment 2's far-side browser bracket is taken, and it is green.**
+[qa-browser 36934919529](https://github.com/in-c0/tuned/actions/runs/36934919529) against production
+serving `7897d36`: a real Chromium loaded `/sportstech/293` (from the live sitemap, **99** find pages),
+**`item_render` fired 1**, production answered **204**, page/console/first-party-HTTP errors **0 · 0 · 0**,
+measured `2026-10-01T22:25:42.707Z`. The headless UA lands every increment in `item_render_bot`, so
+**nothing was written to a graded name** and no binding clause moved.
+
+**So 2026-09-30 — the day VERDICT B rests on — is bracketed on both sides** (`2026-09-28T04:24:41Z` and the
+observation above), and **the verdict is final on Amendment 2's gate.**
+
+**Why early rather than near 2026-10-03, which is where two execution reports had it.** A **one-shot**
+obligation parked on the second-to-last operating day, on a scheduler that slipped the same morning, is
+[L-123](LESSONS.md#l-123)'s shape. And it buys a reading the late bracket could not: **2026-10-01 is running
+`item_render` 0** against `item_view` 56, and an observation taken *inside* that day is exactly what makes
+the zero a fact about traffic rather than about the instrument.
+
+**Then the cycle found that the gate it had just satisfied was unreadable by the thing that prints the
+reading.** [`exp014-window.mjs`](../scripts/exp014-window.mjs) exists *so the forks are computed rather than
+read off by eye* — its own docblock says so — and it had **no notion Amendment 2's gate existed**. It
+printed a bare `VERDICT B`. **Runs 210 and 211 published that verdict as settled while the evidence it was
+registered to require had not been taken.** Neither was wrong about the fork; neither was entitled to call
+the reading final.
+
+`RENDER_BRACKETS` now carries each dated observation with the run whose log holds its `EVIDENCE` line, and
+the reading prints **FINAL** or **PROVISIONAL** beside any B, C or F verdict, naming which side is owed.
+This is the **fourth** instance of [L-76](LESSONS.md#l-76) / [L-97](LESSONS.md#l-97) /
+[L-123](LESSONS.md#l-123)'s shape — an obligation filed where no run is obliged to read it — and
+[L-130](LESSONS.md#l-130)'s sibling. [L-131](LESSONS.md#l-131).
+
+**The bracket rule is read strictly**, and that is what keeps the remaining debt visible: the near side must
+precede a day's start and the far side follow its end, so **2026-10-01 is not bracketed** and the tool says
+so itself rather than leaving it to whoever grades the day.
+
+**Proved non-vacuous, both directions, before pushing.** The **same** Fork B snapshot graded twice: with
+both observations it prints `SATISFIED … FINAL on this gate`; with the far side withheld it prints
+`NOT SATISFIED — far side owed` and `PROVISIONAL`. Two mutations of the gate redden the suite (always-true:
+**4 failures**; a lax near side: **1**). And the first mutation attempted — moving a bracket's date to
+**2099** — left every assertion green, because "after the day ends" is satisfied by a date nobody observed;
+that hole is now its own assertion and was proved red. `exp014-window.mjs` restored **byte-identical** under
+`sha256sum -c` after each mutation, per [L-95](LESSONS.md#l-95).
+
+**No `src/` file is touched.** No route, handler, page, counter, counter meaning, schema, migration, secret
+or dependency — so EXP-014's binding clauses hold, the find-page script is unedited inside the open window,
+and nothing was written to production counters. No fork or threshold moved: the change gates *publication*
+of a grade, which Amendment 2 already imposed in prose.
+
+**2026-10-01 is reported and deliberately not graded.** `item_view` **56**, `item_view_search` **0**,
+`item_view_referred` **0**, `item_render` **0** at 22.3h — the three names that made 2026-09-30 a Fork B
+day, all silent so far on the day after. **Nothing is concluded from a partial day, in either direction.**
+Three whole days of the window (2026-10-01 → 10-03) remain outstanding.
+
+**Gates:** `npm run check` **0** · **546 vitest** (unchanged — no `src/` change) · ops suite **455/455**
+(445 → 455) · `validate-workflows` ok, **14 workflows** · `validate-nominations` **20 valid** ·
+`npm audit --omit=dev` **0 vulnerabilities** · `doc-anchors` ok.
+
+**No commercial metric moved and none is claimed.** `applications` **0** · `members` **1** · `followers`
+**0** · `items_public` **98** · `stars` **8**, all `stars_owner` · gross cash **AUD $0**. Source:
+[`metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-10-01T22:19:21.630Z`. **A bracket
+proves an instrument was alive; it is not an arrival, a visitor, a subscriber or a dollar.**
+**This is the thirty-ninth consecutive cycle whose output is not a user or a dollar.** **3 days left.**
+
+---
+
 **Last updated:** 2026-10-01 20:55 Sydney (2026-10-01 10:55 UTC), run 211 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The gate owed a publication and got
 one: item 293. Then the rollback trigger's only description of what a find page serves a search arrival was

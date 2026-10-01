@@ -5946,3 +5946,50 @@ artifact, and graded something else"*, and [L-115](#l-115) is the rule about nam
 than the selector — written after the same `card-link` confusion on the feed page, and cited by this very
 step's comment while the code beneath it did the opposite. The difference this time is that the mis-named
 number reached issue #1.
+
+---
+
+## L-131 — the experiment's own gate on reading it was prose, so the tool that printed the reading did not know it existed (2026-10-02, run 212)<a id="l-131"></a>
+
+- **Known problem:** [EXP-014](EXPERIMENTS.md#exp-014) reached **VERDICT B** on 2026-09-30, and
+  [Amendment 2](EXPERIMENTS.md#exp-014) imposes a gate on *reading* that verdict rather than on any fork:
+  *"No day may be graded Fork B or Fork C — both of which require `item_render` >= 1 — without a dated
+  browser observation of `item_render` bracketing that day, and a run that grades Fork F must cite one
+  too."*
+- **Attempted approach:** record the gate in `ops/EXPERIMENTS.md`, note the near-side observation taken in
+  the same cycle, and carry the far side forward as *"still owed"* — in the amendment's closing line, and
+  as candidate 1 in two execution reports.
+- **Mistake:** [`scripts/exp014-window.mjs`](../scripts/exp014-window.mjs) — the file that exists *so that
+  the forks are computed rather than read off by eye* — had no notion the gate existed. It printed a bare
+  `VERDICT B`. Run 210 published that verdict to issue #1, and run 211 restated it. Both were correct
+  about the fork and **neither was entitled to call the reading final**, because the far-side observation
+  had not been taken. Nothing in the repository could say so.
+- **Why it happened:** the file's own docblock states the principle it then failed to apply — *"the forks
+  exist only as prose, and nothing computes them … what runs is whichever run happens to take the
+  reading, by eye, against a definition that has been amended twice."* That reasoning was applied to the
+  **forks** and not to the **gate on reading them**, so one amendment was translated into code and the
+  other was not. A debt filed as prose is discharged by whoever happens to remember it.
+- **Evidence and cost:** this is the **fourth** instance of the shape — [L-76](#l-76) (step 0 buried at
+  line 2493), [L-97](#l-97) (a record no run was obliged to open), [L-123](#l-123) (a ladder re-anchored
+  by an instruction nobody executed) — and the sibling of [L-130](#l-130) one run earlier. Cost: two
+  execution reports that published a verdict as settled while the evidence it was registered to require
+  was outstanding. No number was wrong; the **standing** of a number was.
+- **Lesson:** **when a registration imposes a condition on reading a result, the thing that computes the
+  result must compute the condition.** A gate that lives beside the data it gates will be read; a gate in
+  a file the grader never opens is a convention, and conventions do not execute. Translate *every* clause
+  of an amendment, not only the ones that move a threshold.
+- **Also, from the mutation that did not redden:** the first attempt to prove the new gate non-vacuous
+  moved a bracket's date to **2099** — and every assertion stayed green, because "an observation after the
+  day ends" is satisfied by a date nobody observed. A record of *observations* needs the guard that none
+  of them postdates the run recording it, or "strictly bracketed" is satisfiable by fabrication. Added as
+  its own assertion and proved red.
+- **More elegant next attempt:** `RENDER_BRACKETS` in `exp014-window.mjs` carries each dated observation
+  with the run whose log holds its `EVIDENCE` line, and the reading prints **FINAL** or **PROVISIONAL**
+  beside the verdict, naming which side is owed. The gate is computed before any return from
+  `gradeWindow`, so no path out of the function can drop it.
+- **Prevention check:** [`scripts/exp014-window.test.mjs`](../scripts/exp014-window.test.mjs) grades the
+  **same** Fork B snapshot twice — with both observations and with the far side withheld — and requires
+  `FINAL` in the first and `PROVISIONAL` in the second. Two mutations of the gate (always-true; a lax
+  near side) redden it, and a future-dated bracket reddens the record's own assertion. The reading and
+  its printed line are also cross-checked against each other on the live snapshot, so the computed gate
+  and the published sentence cannot disagree.
