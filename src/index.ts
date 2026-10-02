@@ -6,7 +6,7 @@ import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connection } from "./spotify";
-import { count, countBy, countEach, memberActive, isBot, snapshot, wroteNewRow } from "./metrics";
+import { count, countBy, countEach, memberActive, isBot, recordReferrer, snapshot, wroteNewRow } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
 import { keyMatches, keyConfigured } from "./keys";
 import { RESERVED_HANDLES, ownerHandle, ownerMemberId } from "./handles";
@@ -1556,6 +1556,14 @@ app.get("/:handle/:id", async (c) => {
   //                              browser that stripped the header.
   //   item_view_search[_bot]     axis: the subset of THAT whose host is an allowlisted search
   //                              engine. A strict subset of `_referred`, never summed with it.
+  //   referrer_days              NOT a counter and not an axis: one row per (day, host, bot) in a
+  //                              table of its own, naming the host. The two axes above say
+  //                              *somebody linked to us* and *it was one of thirteen allowlisted
+  //                              engines*; on 2026-09-30 they read 5 and 1, so four off-site
+  //                              arrivals came from a host in neither set and nothing recorded
+  //                              what it was — `refHost` was computed right here and discarded.
+  //                              `recordReferrer` holds the cap that makes a caller-controlled
+  //                              value safe to store, and the reason it may not be a counter name.
   //
   // Both carry the `_bot` split, because both are read by comparison against one side of it, and
   // L-103 is the record of what a merged axis does to such a reading: five of seven days negative.
@@ -1565,8 +1573,12 @@ app.get("/:handle/:id", async (c) => {
   // absent under `rel=noreferrer`, a privacy setting or an https-to-http downgrade, so a genuine
   // search arrival can land off both axes and neither can invent one. And the header is
   // caller-controlled, so it is also forgeable — which is why the host is matched against a fixed
-  // allowlist and never interpolated into a counter name.
+  // allowlist and never interpolated into a counter name. That last clause used to stand alone and
+  // read as *nothing stores the host*; from 2026-10-02 `referrer_days` does, so it is narrowed here
+  // rather than left to read as a guarantee: no counter NAME is ever caller-controlled, and the
+  // host reaches a bound table as a parameter instead.
   const refHost = offsiteReferrerHost(c);
+  if (refHost) track(c, recordReferrer(c.env.DB, refHost, suffix === "_bot"));
   track(
     c,
     countEach(c.env.DB, [

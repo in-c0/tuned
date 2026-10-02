@@ -1,5 +1,78 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-02 15:10 Sydney (2026-10-02 04:10 UTC), run 213 — **[OWNER ACTION REQUIRED](#owner-action-required):
+TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The one arrival channel this project
+has evidence of could not be named, because the axis built to classify it discarded the thing that
+identifies it.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 293 at `2026-10-01T10:24:20.502Z`, **17.8h** old, **zero** scheduled screens certainly
+delivered since. Nothing published, amended or retracted. The schedule was **not armed**: EXP-013's
+threshold 2 is still unruled and run 153's pre-commitment stands.
+
+**Run 212's candidate 1 was discharged on the snapshot that landed overnight** (`generated_at`
+**2026-10-02T00:07:59.631Z**, complete through 2026-10-01). **2026-10-01 grades `A-CONSISTENT`:**
+`item_view` **56** with `item_view_search`, `item_view_referred` and `item_render` all **0**. **VERDICT B
+stands, FINAL on Amendment 2's gate, and still rests on one day of five.** Because run 212's bracket was
+taken *inside* 2026-10-01 at 22:25:42Z, that zero is a fact about **traffic** and not about the instrument
+— which is exactly what the early bracket was for. Two whole days outstanding (2026-10-02, 10-03).
+
+**Then the cycle went to Fork B's registered next action and found it had never been executable.** Its
+text is *"this is the first evidenced arrival channel that needs nobody's permission, and it **outranks
+every other candidate available to the loop**"*. Runs 210, 211 and 212 each carried it as a candidate and
+none executed it. On the Fork B day `item_view_referred` read **5** against `item_view_search`'s **1** — so
+**four off-site arrivals came from a host matching none of the thirteen allowlisted engines**, and
+[`offsiteReferrerHost()`](../src/index.ts) computed that host, used it for two booleans and **threw it
+away**. No row anywhere in this service recorded what it was. **A channel that cannot be named cannot be
+pursued**, and two of the five referred arrivals this project has ever recorded are permanently
+unattributable. [L-132](LESSONS.md#l-132).
+
+**Why the omission was reasonable, which is the part worth carrying.** The host was deliberately kept out
+of `metric_days.name` for a real reason recorded in three places: a counter name assembled from a
+caller-controlled header hands any client unbounded control over the set of counter names. **That rule is
+not relaxed** — `metric_days` still receives only fixed strings. What went wrong is that a constraint on
+one **storage shape** was carried as a constraint on the **value**, so *where could this be stored safely?*
+was never asked. A counter name cannot be bounded; a table with a cardinality cap can.
+
+**`referrer_days (day, host, bot, count)` — and the cap is the justification, not a detail.**
+`referrerBucket` admits only DNS-shaped hosts of ≤ 100 characters, and at most **24** distinct hosts per
+`(day, bot)`; every further one increments the reserved bucket `~over`, so **a client forging ten thousand
+referrers writes 25 rows per flag, not ten thousand.** `~over` non-zero is how a reader tells *no further
+hosts* from *we stopped recording them*. Budgeted **per bot flag**, so a crawler flood cannot spend the
+human side's, and an already-admitted host **keeps counting after the cap binds** — without that, the one
+referrer worth reading freezes at whatever it held when a flood arrived, invisibly. **The host only** —
+never the path, the query or the full `Referer` URL.
+
+**Bounded against a hostile caller rather than the happy path, and proved.** 500 forged hosts produce
+**≤ 25** rows with every arrival still counted; the human budget survives a 200-host crawler flood; neither
+reserved bucket can be forged; the full URL never reaches the table even when sent. **Six mutations redden
+the suite** — cap removed (1), cap shared across the bot flag (1), sanitising removed (2), bot flag dropped
+(1), full URL stored (5), route not recording at all (4). The first per-flag assertion attempted was too
+weak to see a shared cap and was strengthened until it reddened. `src/metrics.ts` and `src/index.ts`
+restored **byte-identical** under `sha256sum -c` after every mutation, per [L-95](LESSONS.md#l-95).
+
+**A `src/` change inside EXP-014's open window, declared rather than assumed.** `item_render`'s emitter is
+**unedited** (`src/pages.ts` byte-identical — no page, script or markup touched); **`SEARCH_REFERRERS` is
+untouched**; no find page was fetched by this loop and no `Referer` sent to one. **The graded names are
+asserted unmoved**: `item_view`, `item_view_referred` and `item_view_search` read exactly what the route
+wrote before the table existed, and no `metric_days` name contains a referrer host. It adds a **new**
+record and redefines **no** existing one, so no day of the window is readable under two contracts
+([L-103](LESSONS.md#l-103)). **Still not the per-request join** — that stays deferred until the window
+closes on 2026-10-03, because it varies the document by `Referer`.
+
+**No privacy-policy change, and the judgement is recorded rather than assumed.** No new category of
+personal information: aggregate per-day counts, no visitor identifier, no cookie, no IP, no user-agent
+string, and strictly less than the Cloudflare request logs the policy already discloses. Terms and privacy
+are an owner boundary, so the text is untouched and the judgement is **flagged for owner review** instead
+of being decided unilaterally in either direction.
+
+**The honest expectation, published with the instrument.** The record is **empty** until something
+arrives, and the day after the only arrivals this project has measured read zero on all three names.
+**Naming a channel is not an arrival, a visitor, a subscriber or a dollar.**
+
+**Gates:** `npm run check` **0** · **561 vitest** (546 → 561) · ops suite **455/455** · 14 workflows ·
+20 nominations · **0** vulnerabilities · `doc-anchors`, `owner-cards`, `milestone-horizons` ok
+
 **Last updated:** 2026-10-02 09:05 Sydney (2026-10-01 23:05 UTC), run 212 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The bracket this experiment has been
 owed since 2026-09-28 was taken three days early, and the gate it satisfies turned out to be a sentence no

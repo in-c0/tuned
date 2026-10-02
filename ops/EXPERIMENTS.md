@@ -4273,3 +4273,66 @@ printed a bare `VERDICT B` and had no notion the gate existed, which is [L-131](
 bracket rule is read strictly: an observation taken partway through a day does not bracket that day.
 **So 2026-10-01 is not yet bracketed**, and if it closes as Fork A or Fork F the reading will say so
 itself rather than leaving it to the grading run.
+
+### Reading 3 — 2026-10-01 closed, and it is the fifth day rather than a second Fork B (2026-10-02 ~04:20Z, run 213)
+
+**Registered text of every fork is unchanged. No threshold moved and no amendment is made here.**
+
+`exp014-window.mjs` on the snapshot committed overnight (`generated_at` **2026-10-02T00:07:59.631Z**,
+complete through **2026-10-01**):
+
+| day | `item_view` | `_search` | `_referred` | `_onsite` | `item_render` | grade |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-27 | 105 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-28 | 21 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-29 | 42 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-09-30** | **168** | **1** | **5** | **0** | **5** | **B** |
+| 2026-10-01 | 56 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+
+**VERDICT B stands and is FINAL on Amendment 2's gate**, unchanged from run 212. It still rests on
+**one** day of five. 2026-10-02 and 2026-10-03 remain outstanding.
+
+**What the closed day adds, and what it does not.** It cannot undo Fork B — B is registered over *any*
+whole day, and run 210 recorded that when it graded. What it does is price the channel: the day after
+the only arrivals this project has measured, all three names that produced them read **zero** while
+`item_view` kept moving at 56. Because the beacon was observed firing in a browser at
+`2026-10-01T22:25:42.707Z` (run 212's far-side bracket, taken inside that very day), **the zero is a
+fact about traffic and not about the instrument.** One day in five, and no evidence of a rate.
+
+**Fork B's registered next action is therefore acted on rather than restated.** Its text —
+*"this is the first evidenced arrival channel that needs nobody's permission, and it outranks every
+other candidate available to the loop"* — had been carried as a candidate by runs 210, 211 and 212
+without being executable, for the reason recorded as [L-132](LESSONS.md#l-132): **four of the five
+referred arrivals came from a host matching none of the thirteen allowlisted engines, and nothing in
+this service recorded which host it was.** A channel that cannot be named cannot be pursued.
+
+### Declaration — the second `src/` change inside the window, and why it does not re-register it (2026-10-02 ~04:30Z, run 213)
+
+`referrer_days` is added, and the find-page handler writes to it. **The window is not re-registered**
+and no fork, threshold, counter or counter meaning moves. The clauses are checked **by name** rather
+than by summary, as run 209's declaration established:
+
+- **`item_render`'s emitter is unedited.** `FIND_JS` is not touched by this change — no page, no
+  script and no markup is touched at all. `src/pages.ts` is byte-identical.
+- **`SEARCH_REFERRERS` is untouched.** No entry added, removed or reordered, so the split between
+  `item_view_search` and `item_view_referred` is the same split on every day of the window. The new
+  table deliberately does **not** consult it: it records the host whether or not the allowlist matches,
+  which is the entire point.
+- **No fetch of any find page by this loop under a non-bot user-agent**, and **no `Referer` sent to a
+  find page** except `verify-production.yml`'s own step. Every request in this run's verification went
+  to a local workerd, never to production.
+- **The graded names are unmoved**, and that is asserted rather than claimed: `test/referrer-record.test.ts`
+  pins `item_view`, `item_view_referred` and `item_view_search` at exactly the values the route wrote
+  before the table existed, and pins that no `metric_days` name contains a referrer host.
+
+**Why it is admissible at all, when run 209's was argued down to a `<noscript>` block.** This adds a
+**new** record and redefines **no** existing one. Every name EXP-014 grades reads the same before and
+after, on the same requests, so no day of the window is readable under two contracts — which is the
+failure [L-103](LESSONS.md#l-103) was written for. The remaining two days of the window are graded on
+the same four names as the first five.
+
+**And it is deliberately not the per-request join.** That change — a render beacon reporting whether
+its own page load was referred — would convert Fork B from *"a day on which both happened"* into
+*"an arrival that did both"*, and it stays deferred until the window closes on 2026-10-03, because it
+requires the server to vary the document by `Referer` and that changes the instrument an open
+experiment is read on. Recording the host of a request alters no response.
