@@ -119,3 +119,36 @@ candidate.**
   next demand or revenue experiment (NORTH_STAR rule 7, LESSONS L-08). If a cycle's only output is
   a dashboard update, that cycle was spent wrong.
 - **After two unchanged blocker cycles, escalate once and then stop restating it** (LESSONS L-07).
+
+---
+
+## After the final operating date — 2026-10-05 Australia/Sydney
+
+**The routine keeps firing after the mission ends.** Its cron is `0 4,10,22 * * *` UTC and nothing in
+this repository disables it; the first firing outside the operating period is `2026-10-05T22:00Z`
+(09:00 Sydney on 2026-10-06). The standing prompt says to *"make no changes and post a final
+closeout report"* — **`final` means once.** Three a day, forever, on the owner's control issue is not
+a closeout, it is the thing the closeout was supposed to end.
+
+So a run that fires after the final operating date does exactly this:
+
+1. **Read issue #1 and look for the marker `<!-- tuned-closeout -->`.**
+2. **If a comment carries it, the closeout is already posted. Post nothing, commit nothing, claim
+   nothing, dispatch nothing — and stop.** A reply saying "already closed out" is itself a comment
+   and is not exempt.
+3. **If no comment carries it, post the closeout report once, carrying that marker on its own first
+   line**, and stop. This is the one post-date comment and therefore the one post-date lock claim.
+
+**Why claiming matters here, and why step 2 says to claim nothing.** `scripts/executor-liveness.mjs`
+reads the claims register hourly and now knows this date: silence whose newest claim belongs to a
+cycle on or before `2026-10-05` is the verdict **`stood-down`**, green and quiet, instead of `stale`
+paging the owner about a shutdown announced in three documents. **A post-date run that claims the lock
+with nothing to do defeats that** — it keeps the register fresh, so the watchdog can never reach the
+verdict, and when the routine is eventually disabled the alarm fires then instead. Step 0's rule is
+unchanged and is the whole of it: claim before a mutation, and a run with no mutation to make has
+nothing to claim.
+
+**The two halves are one change and shipping either alone makes things worse.** Without the
+watchdog's stand-down verdict, "post once and stop" converts three comments a day into an hourly red
+job and a false `stale` alarm forever. Without "post once and stop", the watchdog stays green by
+being fed claims from runs whose only output is a duplicate comment. See LESSONS L-134.

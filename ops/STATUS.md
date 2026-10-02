@@ -1,5 +1,94 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-03 09:40 Sydney (2026-10-02 22:40 UTC), run 215 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **Three documents state the date
+this loop stops and no mechanism knew it, so the only watchdog watching the loop was going to page the
+owner about a shutdown announced seven weeks in advance — and then stay red forever.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 296 at `2026-10-02T10:15:23.798Z`, **12h** old, **zero** scheduled screens certainly
+delivered since. Nothing published, amended or retracted. The schedule was **not armed**: EXP-013's
+threshold 2 is still unruled, run 153's pre-commitment stands, and **owner card 3 is the open question
+with three days on its clock.**
+
+**Run 214's candidate 1 was not available, and it is not claimed as done.** EXP-014's outstanding days
+are 2026-10-02 and 2026-10-03. At the start of this run the UTC day **2026-10-02 still had 1h46m to
+run**, and the newest snapshot (`generated_at` `2026-10-02T05:38:21.591Z`) is complete only through
+2026-10-01. `metrics-snapshot.yml`'s `15 0 * * *` cron captures the closed day at `2026-10-03T00:15Z`,
+so **the reading belongs to the next run.** No partial day was graded and no grade moved.
+
+**So the cycle took the last thing that can only be done now: what this project does after 2026-10-05.**
+`grep -rn "2026-10-05"` over `scripts/`, `.github/` and `src/` returned **one comment in an unrelated
+script.** The final operating date is written in [MILESTONES.md](MILESTONES.md)'s reference dates, in
+[BRIEF-2026-08-06.md](BRIEF-2026-08-06.md) and in the routine prompt — and **no mechanism in this
+repository knew it.** Two were therefore going to be wrong about it on their own schedules, in opposite
+directions, **and each one's obvious fix makes the other worse.** [L-134](LESSONS.md#l-134).
+
+**One: the watchdog would have paged the owner about a planned shutdown, then stayed red forever.**
+[`executor-liveness.mjs`](../scripts/executor-liveness.mjs) reads the claims register hourly and a
+planned stand-down is the same input to it as a crashed routine. From roughly 2026-10-06 it posts *"the
+loop is down, check that the routine is enabled and firing"* on issue #1 and **fails the job every hour
+for as long as the repository exists.** The comment is one false alarm; **the permanent red is the real
+cost** — it is the only watchdog on the loop, and red forever carries the information of no watchdog at
+all. Run 147 built it arguing that paging on a blip trains the owner to ignore the alarm; paging forever
+on a planned stop finishes that job.
+
+**Two: the routine's cron does not stop either.** Its prompt says to *"make no changes and post a final
+closeout report"*, and read literally by every firing that is **three comments a day, forever, on the
+owner's control issue** — the thing a closeout is supposed to end. **The prompt's own word is *final*.**
+
+**Both halves shipped as one change, because either alone is a regression.** "Post once and stop"
+without the stand-down verdict converts comment spam into a permanent false alarm. The stand-down verdict
+without "post once and stop" is fed fresh claims by runs whose only output is a duplicate comment, so it
+never reaches its own verdict. **One fact, three readers:** `FINAL_OPERATING_DAY` and `STAND_DOWN_AFTER`
+in the watchdog; a fourth verdict **`stood-down`**, green and quiet; and a `CLAUDE.md` section binding a
+post-date run to post the closeout **once**, keyed on a `<!-- tuned-closeout -->` marker that a run
+making no changes can still read, and to claim nothing when it has nothing to mutate.
+
+**The design turns on reading the cycle label rather than the claim's clock, and that is not a detail.**
+Scheduled runs here are delivered **1.6h–4.5h late** on every firing since 2026-08-26, and the last
+in-period firing is `2026-10-05T10:00Z` — **three hours before the day ends in Sydney.** So the final
+run's timestamp is *more likely than not* to land after the boundary, and a wall-clock test would have
+restored the exact false alarm it was written to remove, through the same delivery lag that had already
+broken one threshold in that file. `defaultCycle()` labels every claim with its Sydney date and firing
+window, so a `w20` run delivered any time before 08:00 Sydney next morning is still `w20`. **The cycle is
+what the date means; `at` is when the runner got around to it.**
+
+**It fails towards alarming, in every direction a reader would want to check.** A real 30h outage
+*inside* the operating period still reports `stale` — the `now`-past-the-boundary condition is what stops
+a date from silencing this file for the loop's last three working days. An **unreadable cycle alarms**,
+because it means the period was not *established* and a suppression is never granted on an unestablished
+fact. A claim from a cycle **after** the final day **restores full watching**, so extending the mission
+needs remembering in one place rather than two. And the stand-down **does not** suppress the abandonment
+verdict: a final run that claimed and never released left its closeout report in doubt, which is a
+finding about the last thing this loop did rather than about the silence after it.
+
+**What was deliberately not done: the routine's own schedule was not touched.** Disabling or rewriting
+the trigger is a change outside this repository, made by a session no human is watching, so it is
+**reported rather than performed**. **Nothing in `src/`, no schema, no route, no counter, no workflow, no
+dependency, no privacy or terms text.** EXP-014's window is open until 2026-10-03 and **no binding clause
+moved**: no graded name was written by this loop, `SEARCH_REFERRERS` is untouched, no find page was
+fetched and no `Referer` sent to one.
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file
+touched) · ops suite **468/468** (455 → 468) · 14 workflows · **21** nominations · **0** vulnerabilities ·
+`doc-anchors`, `owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok
+
+**Eight mutations redden the new suite, and the sixth is the one worth recording:** `plannedGap` ignoring
+where the gap ends **survived the first draft**, so a condition no test could reach was one line from
+shipping unasserted. The fixture that reaches it — a 30h in-period outage that had already closed, read
+after the boundary, on a widened lookback — was written only after the mutation passed. The DST-sensitive
+constant is **recomputed from the IANA database** rather than trusted: Sydney enters AEDT on 2026-10-04,
+and a hand conversion at +10:00 would be three hours late, long enough to cover the final firing and
+short enough that no verdict test would notice. [L-95](LESSONS.md#l-95).
+
+**A watchdog that stops lying is not a user and not a dollar.** `applications` **0** · `members` **1** ·
+`followers` **0** · `items_public` **99** · gross cash **AUD $0**, from *no billing exists*. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated `2026-10-02T05:38:21.591Z`. **This is
+the forty-first consecutive cycle whose output is not a user or a dollar, and I am not dressing it up.**
+
+---
+
 **Last updated:** 2026-10-02 21:35 Sydney (2026-10-02 11:35 UTC), run 214 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE — card 3 is new, and it is the first card this stack has ever carried with a deadline.** **The
 one thing on this project that expires rather than merely waits was being carried as a next candidate

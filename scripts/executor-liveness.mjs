@@ -187,6 +187,50 @@ export const ABANDON_WATCH_FROM = "2026-09-15T04:03:07.863Z";
 // under the threshold's slack and well over any plausible runner skew, so it separates
 // "clocks disagree slightly" from "this timestamp is wrong", which is a corrupt register
 // and must fail rather than be treated as the freshest possible claim.
+// THE ONE FACT THIS WATCHDOG DID NOT KNOW: THE LOOP IS SUPPOSED TO STOP.
+//
+// `ops/MILESTONES.md`, `ops/BRIEF-2026-08-06.md` and the routine prompt all state the same
+// thing — the executor's final operating date is 2026-10-05 Australia/Sydney, after which it
+// makes no changes. Nothing in `scripts/`, `.github/` or `src/` knew it. So every verdict
+// above treats the planned end of the mission exactly as it treats a crashed routine, and
+// from roughly 2026-10-06 this file would have:
+//
+//   * posted `stale` on issue #1 — "the loop is down, check that the routine is enabled and
+//     firing" — about a shutdown announced in three documents and in the owner's own brief;
+//   * failed the job every hour, for as long as the repository exists, so the Actions tab is
+//     permanently red and a genuinely new fault is indistinguishable from the shutdown.
+//
+// The second cost is the larger one and it is the reason this is not cosmetic. A watchdog
+// that is red forever has the same information content as no watchdog, and this is the only
+// one that watches the loop. Run 147 built it on the argument that paging on a blip trains
+// the owner to ignore the alarm; paging forever on a planned stop finishes that job.
+//
+// WHY THE PERIOD TEST READS THE CYCLE LABEL AND NOT THE CLAIM'S CLOCK. Scheduled runs in
+// this repository are delivered 1.6h-4.5h late (MEASURED_LAG_HOURS in the test file), and
+// the last in-period firing is 2026-10-05T10:00Z — three hours before the day ends in
+// Sydney. So the final run's wall-clock claim is more likely than not to land *after* the
+// instant below, and a pure wall-clock test would restore the false alarm it exists to
+// remove, through the same delivery lag that has already broken one threshold here.
+//
+// `defaultCycle()` in scripts/lib/run-claim.mjs labels every claim with its Sydney date and
+// firing window — `2026-10-05/w20` — derived in `Australia/Sydney` from the clock at claim
+// time. A w20 run delivered any time before 08:00 Sydney the next morning still labels
+// itself w20 of the previous day, so the label survives a lag that the instant cannot. The
+// cycle is what the mission's own date means; `at` is only when the runner got around to it.
+//
+// WHY A CLAIM WHOSE CYCLE WILL NOT PARSE IS NOT IN-PERIOD. This is the only test in the file
+// whose TRUE answer silences an alarm, so its failure direction is the opposite of every
+// other one here: an unreadable cycle means the period cannot be ESTABLISHED, and an alarm
+// is never suppressed on a fact that was not established. A malformed register alarms.
+export const FINAL_OPERATING_DAY = "2026-10-05";
+
+// The first instant after the final operating day, in the timezone the mission is stated
+// in. Australia/Sydney enters AEDT (UTC+11) on 2026-10-04 — the first Sunday in October —
+// so the final day ends at 2026-10-06T00:00+11:00 and not at +10:00. Hand-converting a
+// local date across a DST boundary is how this constant would be quietly three hours wrong,
+// so the test suite recomputes it from the IANA database rather than trusting this line.
+export const STAND_DOWN_AFTER = "2026-10-05T13:00:00.000Z";
+
 export const CLOCK_SKEW_MS = 5 * 60_000;
 
 const HOUR_MS = 3_600_000;
@@ -307,6 +351,25 @@ export function executorActivity(repoRoot, { fromMs, toMs, ref = "origin/master"
   };
 }
 
+/** The Sydney date half of a cycle label (`2026-10-05/w20` -> `2026-10-05`), or `null` when
+ *  the record carries no label this function can read. */
+function cycleDay(record) {
+  const cycle = typeof record?.cycle === "string" ? record.cycle.trim() : "";
+  const match = /^(\d{4}-\d{2}-\d{2})\/w\d{2}$/.exec(cycle);
+  return match ? match[1] : null;
+}
+
+/** Did this claim belong to the mission's operating period? Compares the cycle label's date
+ *  to FINAL_OPERATING_DAY as strings, which is exact for ISO dates and needs no clock.
+ *
+ *  `false` for a claim with no readable cycle, deliberately — see the header above
+ *  FINAL_OPERATING_DAY. This is the one predicate here whose true answer suppresses an
+ *  alarm, so it fails towards alarming. */
+function inOperatingPeriod(record, finalDay) {
+  const day = cycleDay(record);
+  return day !== null && day <= finalDay;
+}
+
 /**
  * Pure verdict over an already-parsed register. Every non-`live` outcome is a failure;
  * `reason` distinguishes them so the alarm can say which one without re-deriving it.
@@ -325,6 +388,8 @@ export function evaluateLiveness(
     gapWatchFromMs = Date.parse(GAP_WATCH_FROM),
     abandonLookbackMs = DEFAULT_ABANDON_LOOKBACK_HOURS * HOUR_MS,
     abandonWatchFromMs = Date.parse(ABANDON_WATCH_FROM),
+    standDownAfterMs = Date.parse(STAND_DOWN_AFTER),
+    finalOperatingDay = FINAL_OPERATING_DAY,
     activityIn = () => null,
   } = {},
 ) {
@@ -357,6 +422,31 @@ export function evaluateLiveness(
   const ageMs = now - newest.at;
   const gap = findMissedRuns(timed, { now, maxGapMs, gapLookbackMs, gapWatchFromMs });
 
+  // THE PLANNED STAND-DOWN IS THE SILENCE THAT BRACKETS THE FINAL OPERATING DAY, and it has
+  // two shapes for the same reason every other verdict here does: the outage may be open or
+  // it may have ended.
+  //
+  //   open    the newest claim is an in-period run and the day is over. Nothing further is
+  //           expected, so the age is not a fault however large it grows.
+  //   closed  a gap that starts in-period and ends after the day. Only reachable if the loop
+  //           RESUMES — the owner extends the mission, or a run fires unexpectedly — and
+  //           without it the first thing this watchdog would do on a restart is report the
+  //           planned shutdown as a 15-day outage, which is a false alarm at the one moment
+  //           the owner is paying attention again.
+  //
+  // BOTH CONDITIONS ARE REQUIRED AND THE SECOND IS THE LOAD-BEARING ONE. `now` past the
+  // instant is what stops this from silencing a real outage *inside* the operating period:
+  // without it, a 30h silence on 2026-10-03 would be suppressed on the strength of its
+  // newest claim's cycle alone, and this file would have spent its last three operating days
+  // unable to report the thing it was built for. Tested in both directions.
+  const dayIsOver = now >= standDownAfterMs;
+  const standDown = dayIsOver && inOperatingPeriod(newest.record, finalOperatingDay);
+  const plannedGap =
+    gap !== null &&
+    dayIsOver &&
+    inOperatingPeriod(gap.fromRecord, finalOperatingDay) &&
+    Date.parse(gap.to) >= standDownAfterMs;
+
   /** When the silence a claim is followed by actually begins.
    *
    *  NOT the claim itself, and the difference is a number the alarm would otherwise
@@ -388,7 +478,7 @@ export function evaluateLiveness(
   // Each shape asks the second source about its OWN interval — the open silence runs from
   // the newest claim to now, the closed gap between its two endpoints — and a `ran` answer
   // only changes the name. `ok` stays false on every branch below.
-  if (ageMs > maxAgeMs) {
+  if (ageMs > maxAgeMs && !standDown) {
     const activity = ran(activityIn, releasedAt(newest.record), now);
     return {
       ...common,
@@ -435,7 +525,7 @@ export function evaluateLiveness(
   if (abandoned) {
     return { ...common, ok: false, reason: "abandoned-run", abandoned, alarmKey: abandoned.at };
   }
-  if (gap) {
+  if (gap && !plannedGap) {
     const activity = ran(activityIn, releasedAt(gap.fromRecord), Date.parse(gap.to));
     return {
       ...common,
@@ -443,6 +533,20 @@ export function evaluateLiveness(
       reason: activity ? "unclaimed-runs" : "missed-runs",
       activity,
       alarmKey: gap.from,
+    };
+  }
+  // BELOW THE ABANDONMENT VERDICTS, WHICH THE STAND-DOWN DOES NOT SUPPRESS AND MUST NOT. A
+  // final run that claimed and never released is a run whose closeout report is in doubt,
+  // and that is a finding about the last thing this loop ever did rather than about the
+  // silence after it. Its own 48h lookback retires it; a date does not get to.
+  if (standDown || plannedGap) {
+    return {
+      ...common,
+      ok: true,
+      reason: "stood-down",
+      standDownAfter: new Date(standDownAfterMs).toISOString(),
+      finalOperatingDay,
+      alarmKey: null,
     };
   }
   return { ...common, ok: true, reason: "live", alarmKey: null };
@@ -601,6 +705,10 @@ function appendOutputs(verdict) {
     `holder=${verdict.holder ?? ""}`,
     `cycle=${verdict.cycle ?? ""}`,
     `claims_last_48h=${verdict.claimsLast48h ?? ""}`,
+    // So a reader of a quiet green run can tell "the loop is firing" from "the loop
+    // finished the mission", which `ok=true` alone does not distinguish.
+    `stand_down_after=${verdict.standDownAfter ?? ""}`,
+    `final_operating_day=${verdict.finalOperatingDay ?? ""}`,
     `gap_from=${verdict.gap?.from ?? ""}`,
     `gap_to=${verdict.gap?.to ?? ""}`,
     `gap_hours=${verdict.gap?.gapHours ?? ""}`,
@@ -644,6 +752,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const abandonLookbackMs =
     Number(flags["abandon-lookback-hours"] ?? DEFAULT_ABANDON_LOOKBACK_HOURS) * HOUR_MS;
   const abandonWatchFromMs = Date.parse(flags["abandon-watch-from"] ?? ABANDON_WATCH_FROM);
+  const standDownAfterMs = Date.parse(flags["stand-down-after"] ?? STAND_DOWN_AFTER);
+  const finalOperatingDay = flags["final-operating-day"] ?? FINAL_OPERATING_DAY;
   const now = flags.now ? Date.parse(flags.now) : Date.now();
   const activityRef = flags["activity-ref"] ?? `${remote}/master`;
   const opts = {
@@ -655,6 +765,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     gapWatchFromMs,
     abandonLookbackMs,
     abandonWatchFromMs,
+    standDownAfterMs,
+    finalOperatingDay,
     activityIn: (fromMs, toMs) => executorActivity(repoRoot, { fromMs, toMs, ref: activityRef }),
   };
 
@@ -689,6 +801,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 
   if (flags.json) {
     console.log(JSON.stringify(verdict, null, 2));
+  } else if (verdict.reason === "stood-down") {
+    // Not `LIVE`, because it is not, and a watchdog that prints the wrong word on its last
+    // verdict is the kind of thing a future reader has to re-derive from the source.
+    console.log(
+      `STOOD DOWN  ${verdict.resource} — the final operating day ` +
+        `${verdict.finalOperatingDay} ended at ${verdict.standDownAfter}; newest claim ` +
+        `${verdict.newestAt} (cycle ${verdict.cycle}, ${verdict.ageHours}h ago) is an ` +
+        `in-period run, so this silence is the planned end of the mission and not an ` +
+        `outage. A claim from a later cycle restores normal watching.`,
+    );
   } else if (verdict.ok) {
     console.log(
       `LIVE  ${verdict.resource} — newest claim ${verdict.newestAt} ` +
