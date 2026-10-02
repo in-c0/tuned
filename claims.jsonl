@@ -172,3 +172,4 @@
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-10-02/w08","holder":"vm:508","nonce":"31657ed9-9914-439d-a9b3-f0c1660aa08c","at":"2026-10-01T22:13:29.023Z","ttlSeconds":5400}
 {"v":1,"event":"release","resource":"executor","cycle":"2026-10-02/w08","holder":"vm:508","nonce":"31657ed9-9914-439d-a9b3-f0c1660aa08c","at":"2026-10-01T22:42:42.390Z","outcome":"completed"}
 {"v":1,"event":"claim","resource":"executor","cycle":"2026-10-02/w14","holder":"vm:644","nonce":"7e82b6ff-29de-4a86-b51b-3f92d275152d","at":"2026-10-02T04:14:21.794Z","ttlSeconds":5400}
+{"v":1,"event":"release","resource":"executor","cycle":"2026-10-02/w14","holder":"vm:644","nonce":"7e82b6ff-29de-4a86-b51b-3f92d275152d","at":"2026-10-02T04:46:20.101Z","outcome":"completed"}
