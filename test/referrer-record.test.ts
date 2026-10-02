@@ -241,6 +241,9 @@ describe("what referrerBucket admits", () => {
   });
 
   it("sends anything not DNS-shaped to ~invalid rather than storing it", () => {
+    // Deliberately no `/etc/passwd`-style fixture here: the property under test is only that a
+    // slash makes a string non-DNS-shaped, and the realistic traversal path a reader might reach
+    // for trips GitGuardian's generic-password detector and reddens the PR for nothing.
     for (const bad of [
       "localhost",
       "[::1]",
@@ -248,7 +251,7 @@ describe("what referrerBucket admits", () => {
       "ex%00ample.com",
       "-leading.example.com",
       "a".repeat(101) + ".com",
-      "evil.com/../../etc/passwd",
+      "evil.com/a/b",
       "a.com?x=1",
     ]) {
       expect(referrerBucket(bad)).toBe(REFERRER_INVALID);
