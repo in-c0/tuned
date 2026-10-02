@@ -24,7 +24,9 @@ import {
   DEFAULT_GAP_LOOKBACK_HOURS,
   DEFAULT_MAX_AGE_HOURS,
   DEFAULT_MAX_GAP_HOURS,
+  FINAL_OPERATING_DAY,
   GAP_WATCH_FROM,
+  STAND_DOWN_AFTER,
   evaluateLiveness,
 } from "./executor-liveness.mjs";
 
@@ -909,5 +911,222 @@ describe("executorActivity reads real commits and ignores what is not a session"
       ref: "refs/heads/no-such-ref-exists-here",
     });
     assert.equal(a, null);
+  });
+});
+
+describe("the loop is supposed to stop, and the watchdog now knows the date", () => {
+  // Every fixture here is built from the real shape of the end of the mission: the last
+  // in-period firing is the 10:00Z cron on 2026-10-05, which `defaultCycle()` labels
+  // `2026-10-05/w20`, and the first firing after the operating period is 2026-10-05T22:00Z,
+  // labelled `2026-10-06/w08`.
+  const FINAL = (iso, extra = {}) =>
+    claimRecord(iso, { cycle: "2026-10-05/w20", holder: "routine-run-final", ...extra });
+
+  it("recomputes the stand-down instant from the IANA database rather than trusting it", () => {
+    // The constant is a hand-written UTC instant for a LOCAL end-of-day that falls one day
+    // after Australia/Sydney enters AEDT (first Sunday in October, 2026-10-04). Converted
+    // at +10:00 instead of +11:00 it is three hours late, which is exactly long enough to
+    // cover the final firing and short enough that no test of the verdict would notice.
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Australia/Sydney",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+        .formatToParts(new Date(Date.parse(STAND_DOWN_AFTER)))
+        .map((part) => [part.type, part.value]),
+    );
+    // Midnight opening the day AFTER the final operating day: the first instant that is no
+    // longer inside it.
+    assert.equal(`${parts.year}-${parts.month}-${parts.day}`, "2026-10-06");
+    assert.equal(`${Number(parts.hour) % 24}:${parts.minute}`, "0:00");
+
+    // And the instant one millisecond earlier is still the final operating day, which is
+    // what makes it the boundary rather than merely a nearby midnight.
+    const before = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Australia/Sydney",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(Date.parse(STAND_DOWN_AFTER) - 1));
+    assert.equal(before, FINAL_OPERATING_DAY);
+  });
+
+  it("does not call the planned end of the mission an outage", () => {
+    // 2026-10-07, two days after the loop was always going to stop. Before this verdict
+    // existed the same register read `stale`, and the workflow posted "the loop is down,
+    // check that the routine is enabled and firing" on issue #1.
+    const v = verdict([FINAL("2026-10-05T10:04:11.000Z")], "2026-10-07T12:35:00.000Z");
+    assert.equal(v.reason, "stood-down");
+    assert.equal(v.ok, true);
+    assert.equal(v.alarmKey, null);
+    assert.equal(v.finalOperatingDay, FINAL_OPERATING_DAY);
+    // The age is reported, not hidden: 50h of silence is a true reading, and the verdict's
+    // claim is about what it MEANS, not about how long it has been.
+    assert.ok(v.ageHours > 50, `age was ${v.ageHours}h`);
+  });
+
+  it("stays quiet however long the repository outlives the loop", () => {
+    // The cost this verdict exists to remove is not one comment, it is an hourly red job
+    // for as long as the repository exists.
+    for (const now of ["2026-10-06T00:35:00.000Z", "2026-11-01T00:35:00.000Z", "2027-06-01T00:35:00.000Z"]) {
+      const v = verdict([FINAL("2026-10-05T10:04:11.000Z")], now);
+      assert.equal(v.reason, "stood-down", `at ${now}`);
+      assert.equal(v.ok, true, `at ${now}`);
+    }
+  });
+
+  it("survives the delivery lag that a wall-clock test would not", () => {
+    // THE CASE THAT DECIDED THE DESIGN. The last in-period firing is 2026-10-05T10:00Z and
+    // the operating day ends at 13:00Z, so at the lag this repository has measured on every
+    // firing since 2026-08-26 the final claim lands AFTER the boundary. A test on `at`
+    // would read "this claim is already post-period", resume full watching, and restore the
+    // false alarm. The cycle label is unmoved, because a w20 run delivered before 08:00
+    // Sydney the next morning is still w20.
+    for (const lagHours of [MEASURED_LAG_HOURS.since.min, MEASURED_LAG_HOURS.since.median, MEASURED_LAG_HOURS.since.max]) {
+      const claimAt = new Date(Date.parse("2026-10-05T10:00:00.000Z") + lagHours * HOUR).toISOString();
+      assert.ok(Date.parse(claimAt) > Date.parse(STAND_DOWN_AFTER) - 3 * HOUR, "fixture sanity");
+      const v = verdict([FINAL(claimAt)], "2026-10-07T12:35:00.000Z");
+      assert.equal(v.reason, "stood-down", `lag ${lagHours}h`);
+    }
+    // Explicitly: the 4.48h case puts the claim past the boundary instant itself, and it is
+    // still the final in-period run.
+    const late = new Date(Date.parse("2026-10-05T10:00:00.000Z") + 4.48 * HOUR).toISOString();
+    assert.ok(Date.parse(late) > Date.parse(STAND_DOWN_AFTER), "the worst measured lag crosses the boundary");
+    assert.equal(verdict([FINAL(late)], "2026-10-07T12:35:00.000Z").reason, "stood-down");
+  });
+
+  it("still reports an outage INSIDE the operating period", () => {
+    // The failure that would matter most: a date-shaped suppression that reads the cycle
+    // label alone would have silenced this watchdog for the loop's last three working days.
+    const v = verdict(
+      [claimRecord("2026-10-03T04:05:00.000Z", { cycle: "2026-10-03/w14" })],
+      "2026-10-04T12:35:00.000Z",
+    );
+    assert.equal(v.reason, "stale");
+    assert.equal(v.ok, false);
+    assert.equal(v.alarmKey, "2026-10-03T04:05:00.000Z");
+  });
+
+  it("resumes full watching for a loop that is operating past its final date", () => {
+    // If the owner extends the mission, the thing being watched exists again and the
+    // watchdog must not be retired by a date that has been overtaken.
+    const v = verdict(
+      [FINAL("2026-10-05T10:04:11.000Z"), claimRecord("2026-10-09T04:05:00.000Z", { cycle: "2026-10-09/w14", nonce: "n-2" })],
+      "2026-10-10T12:35:00.000Z",
+    );
+    assert.equal(v.reason, "stale");
+    assert.equal(v.ok, false);
+  });
+
+  it("does not report the stand-down as a missed-runs gap when the loop resumes", () => {
+    // The closed shape. Without it the first verdict after a restart inside the gap
+    // lookback announces the planned shutdown as an outage.
+    const v = verdict(
+      [FINAL("2026-10-05T10:04:11.000Z"), claimRecord("2026-10-06T22:05:00.000Z", { cycle: "2026-10-07/w08", nonce: "n-2" })],
+      "2026-10-07T00:35:00.000Z",
+      { gapWatchFromMs: Date.parse("2026-01-01T00:00:00.000Z") },
+    );
+    assert.equal(v.reason, "stood-down");
+    assert.equal(v.ok, true);
+    // The gap itself is still carried in the verdict and in the workflow outputs — the fact
+    // is never deleted, only named correctly.
+    assert.ok(v.gap, "the gap is still reported");
+    assert.ok(v.gap.gapHours > 20, `gap was ${v.gap?.gapHours}h`);
+  });
+
+  it("still reports a gap that lies wholly after the operating period", () => {
+    // A restarted loop that then goes down again is a real outage with a real owner action.
+    const v = verdict(
+      [
+        claimRecord("2026-10-08T04:05:00.000Z", { cycle: "2026-10-08/w14", nonce: "n-2" }),
+        claimRecord("2026-10-09T10:05:00.000Z", { cycle: "2026-10-09/w20", nonce: "n-3" }),
+      ],
+      "2026-10-09T12:35:00.000Z",
+      { gapWatchFromMs: Date.parse("2026-01-01T00:00:00.000Z") },
+    );
+    assert.equal(v.reason, "missed-runs");
+    assert.equal(v.ok, false);
+  });
+
+  it("still reports a real in-period outage that had already ended", () => {
+    // THE CONDITION THAT ONLY THIS FIXTURE REACHES, and it was unasserted until a mutation
+    // that deleted it passed the whole suite. `plannedGap` is a claim about the silence that
+    // BRACKETS the boundary; a 30h outage that opened and closed on 2026-10-02/03 is a real
+    // one, and the date it happens to be read on does not convert it into a planned stop.
+    //
+    // Reaching it needs the loop to have resumed past its final day — otherwise the open
+    // shape answers first — and a lookback wide enough to still admit the older gap, which
+    // is why the register is this long and `gapLookbackMs` is widened. The default 48h
+    // window retires the gap before this branch can be reached in production; the condition
+    // is kept because it states the rule, and it is asserted here rather than trusted.
+    const records = [
+      claimRecord("2026-10-02T04:05:00.000Z", { cycle: "2026-10-02/w14", nonce: "n-a" }),
+      claimRecord("2026-10-03T10:05:00.000Z", { cycle: "2026-10-03/w20", nonce: "n-b" }),
+      claimRecord("2026-10-04T04:05:00.000Z", { cycle: "2026-10-04/w14", nonce: "n-c" }),
+      claimRecord("2026-10-04T22:05:00.000Z", { cycle: "2026-10-05/w08", nonce: "n-d" }),
+      claimRecord("2026-10-05T10:05:00.000Z", { cycle: "2026-10-05/w20", nonce: "n-e" }),
+      claimRecord("2026-10-05T22:05:00.000Z", { cycle: "2026-10-06/w08", nonce: "n-f" }),
+    ];
+    const v = verdict(records, "2026-10-06T00:35:00.000Z", {
+      gapLookbackMs: 30 * 24 * HOUR,
+      gapWatchFromMs: Date.parse("2026-01-01T00:00:00.000Z"),
+    });
+    assert.equal(v.reason, "missed-runs");
+    assert.equal(v.ok, false);
+    // The gap it found is the in-period one, and it ends before the boundary — which is the
+    // property the suppression must test and the mutation dropped.
+    assert.equal(v.gap.from, "2026-10-02T04:05:00.000Z");
+    assert.equal(v.gap.to, "2026-10-03T10:05:00.000Z");
+    assert.ok(Date.parse(v.gap.to) < Date.parse(STAND_DOWN_AFTER), "the gap closes in-period");
+  });
+
+  it("does not suppress an abandoned final run", () => {
+    // The stand-down is a claim about SILENCE. A final run that claimed and never released
+    // left its closeout report in doubt, and that finding belongs to the last thing the
+    // loop did rather than to the quiet afterwards. Its own 48h lookback retires it.
+    const v = verdict(
+      [FINAL("2026-10-05T10:04:11.000Z", { ttlSeconds: 5400 })],
+      "2026-10-05T14:35:00.000Z",
+      { abandonWatchFromMs: Date.parse("2026-01-01T00:00:00.000Z") },
+    );
+    assert.equal(v.reason, "abandoned-run");
+    assert.equal(v.ok, false);
+  });
+
+  it("alarms when the newest claim's cycle cannot be read", () => {
+    // The only predicate here whose TRUE answer silences an alarm, so it fails towards
+    // alarming: an unreadable cycle means the operating period was not established, and a
+    // suppression is never granted on an unestablished fact.
+    for (const cycle of ["", "2026-10-05", "garbage", "2026-10-05/w", null, undefined]) {
+      const v = verdict([FINAL("2026-10-05T10:04:11.000Z", { cycle })], "2026-10-07T12:35:00.000Z");
+      assert.equal(v.reason, "stale", `cycle ${JSON.stringify(cycle)}`);
+      assert.equal(v.ok, false, `cycle ${JSON.stringify(cycle)}`);
+    }
+  });
+
+  it("alarms when the newest claim is from a cycle after the final operating day", () => {
+    // The post-period firing at 2026-10-05T22:00Z is `2026-10-06/w08`. A loop still running
+    // then is being watched, whatever the date says.
+    const v = verdict(
+      [claimRecord("2026-10-05T22:05:00.000Z", { cycle: "2026-10-06/w08" })],
+      "2026-10-07T12:35:00.000Z",
+    );
+    assert.equal(v.reason, "stale");
+    assert.equal(v.ok, false);
+  });
+
+  it("is inert for every verdict this suite already asserts", () => {
+    // The whole suite above runs with `now` in September, before the boundary, so nothing
+    // here can reach the new branch. Asserted rather than assumed, because a suppression
+    // that leaked backwards would disable the watchdog for the period it was built for.
+    assert.ok(
+      Date.parse("2026-09-30T00:00:00.000Z") < Date.parse(STAND_DOWN_AFTER),
+      "the existing fixtures predate the boundary",
+    );
   });
 });

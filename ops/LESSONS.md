@@ -5994,6 +5994,70 @@ number reached issue #1.
   its printed line are also cross-checked against each other on the live snapshot, so the computed gate
   and the published sentence cannot disagree.
 
+## L-134 — three documents stated the loop's final operating date and no mechanism knew it, so the only watchdog that watches the loop was going to page the owner about a shutdown announced in advance (2026-10-03, run 215)<a id="l-134"></a>
+
+- **Known problem:** the executor's final operating date is **2026-10-05 Australia/Sydney**, after which
+  it makes no changes. It is written in [MILESTONES.md](MILESTONES.md)'s reference dates, in
+  [BRIEF-2026-08-06.md](BRIEF-2026-08-06.md), and in the routine prompt. `grep -rn "2026-10-05"` over
+  `scripts/`, `.github/` and `src/` returned **one comment**, in an unrelated script. **No mechanism in
+  this repository knew the date.**
+- **Attempted approach:** nothing — the date had never been treated as a fact a mechanism could need. Each
+  piece of machinery was built correctly against the loop as a thing that runs, and the end of the mission
+  was carried only in prose addressed to people.
+- **Mistake:** two mechanisms were therefore going to be wrong about it on their own schedules, in
+  opposite directions, **and each one's obvious fix makes the other worse.**
+  - [`executor-liveness.mjs`](../scripts/executor-liveness.mjs) reads the claims register hourly and
+    alarms on silence. A planned stand-down and a crashed routine are the same input to it, so from
+    roughly 2026-10-06 it posts *"the loop is down, check that the routine is enabled and firing"* on
+    issue #1 and **fails the job every hour for as long as the repository exists.** The comment is one
+    false alarm; the permanent red is the real cost, because it is the only watchdog on the loop and a red
+    forever carries the same information as no watchdog at all.
+  - The routine's cron does not stop either. Its prompt says to *"make no changes and post a final
+    closeout report"*, and read literally by every firing that is **three comments a day, forever, on the
+    owner's control issue** — the thing a closeout is supposed to end. The prompt's own word is *final*.
+- **Evidence and cost:** the harm is entirely in the owner's attention, which is the currency this
+  product's doctrine is about, and it compounds rather than expires: every month after the mission adds
+  ~90 duplicate comments and ~720 red workflow runs. It is also **the last fixable moment** — after
+  2026-10-05 no run exists to repair either half ([L-26](#l-26)).
+- **Lesson:** **a date that governs a mechanism's behaviour is a fact the mechanism has to hold, not a
+  sentence in a document the mechanism's readers happen to have read.** This is
+  [L-76](#l-76)/[L-97](#l-97)/[L-123](#l-123)/[L-131](#l-131)/[L-133](#l-133) in its seventh shape, and
+  the new part is the direction: the previous six were obligations filed where no *run* was obliged to
+  read them, and this is a fact filed where no *script* could read it at all. The mechanical question to
+  ask of any durable fact — **which running thing would behave differently if it knew this, and can it?**
+  And the second half, which is what made this one intervention rather than two: **when two mechanisms
+  disagree about the same unheld fact, fixing one of them alone is not a partial fix, it is a
+  regression.** "Post once and stop" without the stand-down verdict converts comment spam into a
+  permanent false alarm; the stand-down verdict without "post once and stop" is fed fresh claims by runs
+  whose only output is a duplicate comment, so it never reaches its own verdict.
+- **More elegant next attempt:** one fact, three readers. `FINAL_OPERATING_DAY` and `STAND_DOWN_AFTER` in
+  the watchdog; a fourth verdict **`stood-down`** — green and quiet — for silence whose newest claim
+  belongs to a cycle on or before the final day; and a `CLAUDE.md` section binding post-date runs to post
+  the closeout **once**, keyed on a `<!-- tuned-closeout -->` marker a run that makes no changes can still
+  read, and to claim nothing when they have nothing to mutate.
+- **The sharp sub-lesson, because it decided the design:** the period test reads the **cycle label**, not
+  the claim's wall clock. Scheduled runs here are delivered **1.6h–4.5h late** on every firing since
+  2026-08-26, and the last in-period firing is `2026-10-05T10:00Z` — three hours before the day ends in
+  Sydney. So the final run's timestamp is *more likely than not* to land after the boundary, and a
+  wall-clock test would have restored the exact false alarm it was written to remove, through the same
+  delivery lag that had already broken one threshold in this file. `defaultCycle()` labels every claim
+  with its Sydney date and firing window, so a w20 run delivered any time before 08:00 Sydney next
+  morning is still w20. **The cycle is what the date means; `at` is when the runner got around to it.**
+- **Prevention check:** [`executor-liveness.test.mjs`](../scripts/executor-liveness.test.mjs) (+13, 53 →
+  66) asserts the suppression in both directions, because this is the first predicate in that file whose
+  *true* answer silences an alarm. It stays quiet at 2026-10-06, 2026-11-01 and 2027-06-01; it still
+  reports a 30h outage **inside** the operating period; it resumes full watching for a loop operating past
+  its final date; it does not suppress an abandoned final run or a real in-period gap that had already
+  closed; an unreadable cycle alarms rather than being granted the suppression; and the DST-sensitive
+  constant is **recomputed from the IANA database** instead of trusted, since Sydney enters AEDT on
+  2026-10-04 and a hand conversion at +10:00 would be three hours late — long enough to cover the final
+  firing and short enough that no verdict test would notice. **Eight mutations redden it**: stale guard
+  removed (3), `dayIsOver` dropped so the date alone silences (17), unreadable cycle counted as in-period
+  (1), wall-clock test substituted for the cycle label (2), closed-gap guard removed (1), `plannedGap`
+  ignoring where the gap ends (1), the constant converted at AEST (1), the verdict never returned (4). The
+  sixth survived the first suite and the fixture that reaches it was written only after the mutation
+  passed — a condition no test could redden was one line from shipping unasserted ([L-95](#l-95)).
+
 ## L-133 — "next candidate" is addressed to a party, so L-07's instruction to stop restating a blocker silently deletes any item whose party has stopped reading (2026-10-02, run 214)<a id="l-133"></a>
 
 - **Known problem:** `@sportstech` publishes only while a run dispatches `agent-scout.yml` with
