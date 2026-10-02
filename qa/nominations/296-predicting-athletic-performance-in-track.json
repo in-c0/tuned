@@ -1,0 +1,17 @@
+{
+  "itemId": 296,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3389/fphys.2026.1912453",
+  "title": "Predicting athletic performance in track and field athletes based on wearable physiological and psychological indicators: an interpretable machine learning study",
+  "category": "Research",
+  "why": "“SHAP identified the ordinal competitive-level code as the largest single contribution (23.4%), followed by lagged physiological and self-efficacy features.” — the source's own words, quoted by @sportstech from 35 candidates screened 2026-10-02.",
+  "preregistration": {
+    "commit": "b4176e87eb5290cf8fe445be4e01cd8d85d5d50b",
+    "committedAt": "2026-10-02T05:38:21Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/36994390610",
+    "verifyWith": "git show b4176e8 -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-10-02T10:15:23.798Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

@@ -5994,6 +5994,57 @@ number reached issue #1.
   its printed line are also cross-checked against each other on the live snapshot, so the computed gate
   and the published sentence cannot disagree.
 
+## L-133 — "next candidate" is addressed to a party, so L-07's instruction to stop restating a blocker silently deletes any item whose party has stopped reading (2026-10-02, run 214)<a id="l-133"></a>
+
+- **Known problem:** `@sportstech` publishes only while a run dispatches `agent-scout.yml` with
+  `publish: true`, and this executor stops on **2026-10-05**. From 2026-10-06 the daily cron keeps
+  screening, keeps selecting, and discards every selection — [L-97](#l-97)'s eight-screens-nothing-published
+  state, except permanent, and the end of the only mechanism this project has for issue #1's third
+  commercial item.
+- **Attempted approach:** runs 195, 196 and 197 each recorded it, accurately and in their own words, as
+  **next candidate 3**: *"the N days left, and what happens on the N+1th … the dated consequence of
+  leaving the schedule question unruled — **the reviewer's to weigh, not mine to act on**."* Every cycle
+  after did the same. Nothing was ever wrong in any of those sentences.
+- **Mistake:** **no reviewer directive has been posted since 2026-09-01.** The item was addressed, run
+  after run, to a party that had stopped reading — so it was not deferred, it was dropped, and the drop
+  looked exactly like an orderly queue. Run 197 *named this in the same report that committed it*:
+  *"punting it to an absent reviewer has the same effect as dropping it."* It then punted it four more
+  times. **Six cycles, nineteen days, and the window closes in three.**
+- **Why the mistake was reasonable:** deferring to the reviewer is correct on the merits. Arming an
+  unattended publisher against a failed quality threshold is exactly the judgement a run should not make
+  for itself, and run 153's pre-commitment says so. **The error was never the deferral — it was the
+  address.** And [L-07](#l-07) actively protects it: *"after two unchanged blocker cycles, escalate once
+  and then stop restating it"* is the right rule for a blocker whose owner is reading, and it is an
+  instruction to go quiet about an item whose owner is not. The rule and the mistake are the same
+  sentence.
+- **Evidence and cost:** the owner card stack is the one carrier the owner demonstrably reads, and
+  [`owner-cards.mjs`](../scripts/owner-cards.mjs) was built at run 207 precisely because a card that
+  never reached it went unseen for 64 runs. **This item was never in that stack.** Cost: a decision that
+  expires rather than waits spent nineteen of its twenty-two available days as a line addressed to nobody,
+  and it is now a three-day decision instead of a three-week one.
+- **Lesson:** **a carried item names a party, and carrying it is only honest while that party is still
+  answering — so re-check the reader, not just the reasoning.** The mechanical form: for every item you
+  carry forward, ask *who is this addressed to, and when did they last respond?* If the answer is "nobody,
+  for N cycles", the item is not deferred and must be re-addressed to a party who acts — or dropped out
+  loud. **"Not mine to act on" is a complete sentence only when somebody else's is.** The sharpest tell is
+  the one present here: a run that writes down *this is being dropped by inaction* and then takes no
+  action on that sentence has produced the finding and not the fix.
+- **More elegant next attempt:** this cycle moved it to **owner card 3** with a dated decision (`ARM` /
+  `QUIET`), the first card in that stack to carry a deadline. The card discloses, rather than argues
+  around, that EXP-013's threshold 2 was **never met** and is **not** being re-specified to obtain a yes —
+  a run re-grading its own failed threshold after seeing the screen is marking its own homework — so an
+  `ARM` is recorded as the owner knowingly overriding an unmet pre-registration. **Generalisable guard:**
+  an item whose deadline falls after the actor's own last operating day belongs in the human's carrier
+  the first cycle it is noticed, not the last.
+- **Secondary finding, recorded because it changes what the card can ask for:** this run tried to prepare
+  the arming change as an unmerged owner-only commit — `CLAUDE.md`'s *"prepare the smallest reviewable
+  change and request only that step from the owner"* — and **the session's permission layer refused the
+  edit as a security weakening.** The refusal is correct on its face and was **not routed around** in any
+  form: the edit would enable an unattended agent to publish to production against a failed threshold.
+  The consequence is narrow and worth carrying — **where a decision's implementation is itself a control
+  change, the owner's act cannot be reduced to a merge click, and the card must ask for the edit instead
+  of pre-staging it.**
+
 ## L-132 — the one arrival channel this project has evidence of could not be named, because the axis built to classify it discarded the thing that identifies it (2026-10-02, run 213)<a id="l-132"></a>
 
 - **Known problem:** [EXP-014](EXPERIMENTS.md#exp-014) graded **VERDICT FORK B** on 2026-09-30 — the
