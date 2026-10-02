@@ -107,6 +107,29 @@ CREATE TABLE IF NOT EXISTS metric_days (
   PRIMARY KEY (day, name)
 );
 
+-- One row per (day, referring host, bot flag) for an off-site find-page arrival (added
+-- 2026-10-02, run 213). Additive and also created lazily by src/metrics.ts. The HOST only --
+-- never the path, never the query, never the full Referer URL: a host is a property of the
+-- linking site, not of the visitor, and it is the one part of that header that cannot carry
+-- personal data. No visitor identifier, IP, user-agent string or content.
+--
+-- It exists because item_view_referred and item_view_search could say an arrival came from
+-- off-site and whether the host was one of thirteen allowlisted engines, and nothing recorded
+-- which host it was. On 2026-09-30 they read 5 and 1 -- four arrivals from a host in neither
+-- set, and EXP-014's Fork B next action is about a channel that could not be named.
+--
+-- `host` is the one caller-controlled VALUE this service stores, which is why it is a table and
+-- not a counter name: src/metrics.ts admits only DNS-shaped hosts of <= 100 chars and at most
+-- REFERRER_HOSTS_PER_DAY distinct ones per (day, bot), collapsing the rest into the reserved
+-- bucket `~over`. A real hostname cannot contain `~`, so neither reserved bucket can be forged.
+CREATE TABLE IF NOT EXISTS referrer_days (
+  day TEXT NOT NULL,                    -- UTC YYYY-MM-DD
+  host TEXT NOT NULL,                   -- a DNS hostname, or `~over` / `~invalid`
+  bot INTEGER NOT NULL DEFAULT 0,       -- same user-agent heuristic as the _bot counters
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, host, bot)
+);
+
 -- One row per member per active day. Same data category the service already stores in
 -- `reads` and `members.last_desk_at`; this exists so return/retention history is no
 -- longer overwritten and D1/D7 return becomes computable.

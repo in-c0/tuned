@@ -5993,3 +5993,55 @@ number reached issue #1.
   near side) redden it, and a future-dated bracket reddens the record's own assertion. The reading and
   its printed line are also cross-checked against each other on the live snapshot, so the computed gate
   and the published sentence cannot disagree.
+
+## L-132 — the one arrival channel this project has evidence of could not be named, because the axis built to classify it discarded the thing that identifies it (2026-10-02, run 213)<a id="l-132"></a>
+
+- **Known problem:** [EXP-014](EXPERIMENTS.md#exp-014) graded **VERDICT FORK B** on 2026-09-30 — the
+  first off-site arrivals this project has ever measured. Fork B's registered next action is
+  *"this is the first evidenced arrival channel that needs nobody's permission, and it **outranks every
+  other candidate available to the loop**"*; Fork C's is *"stop treating 'no inbound link' as a standing
+  fact."*
+- **Attempted approach:** run 197 split the referrer axis into `item_view_referred` (the `Referer` named
+  an off-site host) and `item_view_search` (that host matched one of thirteen allowlisted engines). Both
+  were correct, both were pre-registered before any day in the window existed, and together they are what
+  made Fork B computable at all.
+- **Mistake:** on the Fork B day those two read **5** and **1**. **Four** of the five off-site arrivals
+  came from a host in neither set — and `offsiteReferrerHost()` computed that host, used it for two
+  boolean decisions, and **threw it away**. No row anywhere in this service recorded what it was. The
+  channel the project's only graded verdict calls its highest-value candidate was *measured and
+  unnameable*, and three cycles (210, 211, 212) passed between the grade and anyone noticing — each
+  of them restating Fork B's next action in its own candidate list while the action stayed impossible.
+- **Why the mistake was reasonable:** the axis was built to answer *is this a crawler or a person*, which
+  it does, and the host was deliberately kept out of `metric_days.name` for a real reason recorded in
+  three places: a counter name assembled from a caller-controlled header hands any client unbounded
+  control over the set of counter names. That reasoning is sound and is **not** relaxed here. What went
+  wrong is that a constraint on **one storage shape** was carried as a constraint on **the value**, so
+  the question *where could this be stored safely?* was never asked. A classification that discards the
+  identity of what it classified can confirm an arrival and can never act on it.
+- **Evidence and cost:** two of the five referred arrivals this project has recorded are permanently
+  unattributable, and nothing is back-filled — no earlier day's referring host is recoverable from
+  anything this service stored. The cost is not a wrong number; it is that the next action of the one
+  experiment that reached a verdict was **unexecutable for three cycles** and read as merely deferred.
+- **Lesson:** **when a counter exists to classify a caller-supplied value, ask separately whether the
+  value itself must be recorded — and answer it by finding a bounded place to put it, not by declining.**
+  "Forgeable" and "unbounded" are objections to a *shape*: a counter name cannot be bounded, a table with
+  a cardinality cap can. A fork whose next action names a channel is unexecutable unless something
+  records which channel it was.
+- **More elegant next attempt:** `referrer_days (day, host, bot, count)`, written on exactly the requests
+  that write `item_view_referred`. The host reaches it as a bound parameter and never as a name, so
+  `metric_days` still receives only fixed strings. Two properties make a caller-controlled value safe to
+  store, and they are the whole justification: only DNS-shaped hosts of ≤ 100 characters are admitted, and
+  at most 24 distinct hosts per `(day, bot)` — every further one increments the reserved bucket `~over`,
+  so a client forging ten thousand referrers writes **25 rows, not ten thousand**. `~over` being non-zero
+  is how a reader tells *no further hosts* from *we stopped recording them*. The cap is budgeted per bot
+  flag so a crawler flood cannot spend the human side's, and an already-admitted host keeps counting after
+  the cap binds — without that, the one referrer worth reading freezes at whatever it held when a flood
+  arrived, invisibly.
+- **Prevention check:** [`test/referrer-record.test.ts`](../test/referrer-record.test.ts) (+15) asserts the
+  bound against a hostile caller rather than the happy path: 500 forged hosts produce ≤ 25 rows with every
+  arrival still counted, the human budget survives a 200-host crawler flood, an admitted host keeps
+  counting past the cap, neither reserved bucket can be forged, and the full `Referer` URL never reaches
+  the table even when one is sent. Six mutations redden it — cap removed, cap shared across the bot flag,
+  sanitising removed, bot flag dropped, full URL stored, route not recording at all. It also pins that
+  `item_view`, `item_view_referred` and `item_view_search` are **unmoved**, because they are the names
+  EXP-014 is graded on and this change lands inside its open window.
