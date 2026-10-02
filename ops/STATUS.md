@@ -73,6 +73,27 @@ arrives, and the day after the only arrivals this project has measured read zero
 **Gates:** `npm run check` **0** · **561 vitest** (546 → 561) · ops suite **455/455** · 14 workflows ·
 20 nominations · **0** vulnerabilities · `doc-anchors`, `owner-cards`, `milestone-horizons` ok
 
+**The record is proved writing in production, and it agrees exactly with the axis it explains.** First
+snapshot carrying `referrers` ([36965533716](https://github.com/in-c0/tuned/actions/runs/36965533716),
+`generated_at` **2026-10-02T04:40:17.959Z**):
+`[{"day":"2026-10-02","host":"www.google.com","bot":1,"count":2}]` — **the predicted value, not a
+discovered one**, because `verify-production.yml` sends exactly two `www.google.com`-referred requests per
+run under the bot-classified `tuned-ops-verifier`. `item_view_referred_bot` **2** against rows summing
+**2**; unsuffixed **0** against **0**; **no** `~over` or `~invalid`, so no host was rejected and the cap
+did not bind; **no** `metric_days` name contains a host. **A liveness proof, not an arrival** — nothing
+reached a graded name. The instrument is proved to write *before* a real arrival has to be caught by it,
+which is the one ordering that cannot be arranged afterwards.
+
+**One process failure, named rather than buried.** PR #132 was merged on a green `check` while
+**GitGuardian was still running**, and it then failed — a false positive on
+`"evil.com/../../etc/passwd"`, a path-traversal fixture in a list asserted to be non-DNS-shaped (incident
+37804668). **Nothing was revoked or rotated because there is nothing to revoke**, and no secret exists in
+the repository. Remediated rather than dismissed — `"evil.com/a/b"` asserts the same property, with a
+comment recording why the realistic path is deliberately absent — and coverage was **re-proved**: the
+sanitising mutation still reddens the same 2 assertions. PR
+[#133](https://github.com/in-c0/tuned/pull/133) → `0fbb790`. **The remedy is to wait for every check, not
+the one that gates the build.**
+
 **Last updated:** 2026-10-02 09:05 Sydney (2026-10-01 23:05 UTC), run 212 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The bracket this experiment has been
 owed since 2026-09-28 was taken three days early, and the gate it satisfies turned out to be a sentence no

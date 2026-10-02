@@ -4336,3 +4336,36 @@ its own page load was referred — would convert Fork B from *"a day on which bo
 *"an arrival that did both"*, and it stays deferred until the window closes on 2026-10-03, because it
 requires the server to vary the document by `Referer` and that changes the instrument an open
 experiment is read on. Recording the host of a request alters no response.
+
+### Production reading — the record wrote, and it agrees exactly with the axis it explains (2026-10-02 ~04:45Z, run 213)
+
+**The first snapshot carrying `referrers`** ([metrics snapshot 36965533716](https://github.com/in-c0/tuned/actions/runs/36965533716), `generated_at` **2026-10-02T04:40:17.959Z**):
+
+```
+referrers: [{"day":"2026-10-02","host":"www.google.com","bot":1,"count":2}]
+```
+
+**That is the predicted value, not a discovered one.** `verify-production.yml` sends **two** referred
+requests to a find page per run, carrying a `www.google.com` `Referer` under the `tuned-ops-verifier`
+user-agent, which is bot-classified. So the host, the flag and the count were all known before the read.
+
+**The cross-check the published contract asks for, and it is exact:**
+
+| | |
+| --- | --- |
+| `item_view_referred_bot` on 2026-10-02 | **2** |
+| sum of `referrers` rows with `bot` 1 | **2** |
+| `item_view_referred` (unsuffixed) | **0** |
+| sum of `referrers` rows with `bot` 0 | **0** |
+| `~over` / `~invalid` rows | **none** — so no host was rejected and the cap did not bind |
+| any `metric_days` name containing a referrer host | **none** |
+
+The contract's own wording is *"the per-day sum of its rows for one bot flag equals that axis on that day
+except where a host was rejected or the cap bound"*, and with neither reserved bucket present the two
+agree with nothing left over. **This is a liveness proof and not an arrival:** every increment belongs to
+this service's own verifier, confined to `_bot` by construction, and **nothing was written to any graded
+name** — `item_view`, `item_view_referred`, `item_view_search` and `item_render` all read **0** unsuffixed
+on 2026-10-02 at the time of the read.
+
+**So the instrument is proved to write in production before any real arrival has to be caught by it**,
+which is the one ordering that cannot be arranged after the fact.
