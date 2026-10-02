@@ -1,5 +1,87 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-02 21:35 Sydney (2026-10-02 11:35 UTC), run 214 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE — card 3 is new, and it is the first card this stack has ever carried with a deadline.** **The
+one thing on this project that expires rather than merely waits was being carried as a next candidate
+for a reviewer who has not posted since 2026-09-01.**
+
+**The gate was attended first and it owed a publication.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 293 at `2026-10-01T10:24:20.502Z`, **23.8h** old, **one** scheduled screen
+certainly delivered since (`2026-10-02T02:40:00.000Z`). The
+[08:58Z screening record](https://github.com/in-c0/tuned/actions/runs/36987066925) was read in full
+from the job log — the artifact host is still `403 CONNECT` at this session's proxy, standing blocker,
+unchanged — **screened 35 · rejected 25 · selected 9 · deferred 1 · 12 full-text reads**. Dispatched
+`agent-scout.yml` with `publish: true` →
+[run 36994390610](https://github.com/in-c0/tuned/actions/runs/36994390610): **item 296 published**,
+HTTP **201**, `duplicate=false`, at `2026-10-02T10:15:23.798Z` — *Predicting athletic performance in
+track and field athletes based on wearable physiological and psychological indicators*, carrying a
+verbatim quotation from its own abstract. Nomination committed, so the gate now reads **CURRENT**.
+**Nothing here arms the schedule**: run 153's pre-commitment stands and attending a gate is not
+removing it.
+
+**Then the cycle took the one item in front of it that becomes impossible rather than harder if it
+waits.** `@sportstech` publishes only while a run dispatches `publish: true`, and **this executor
+stops on 2026-10-05**. From 2026-10-06 the daily cron keeps screening, keeps finding candidates, and
+discards every one — the eight-screens-nothing-published state of 2026-09-13 → 2026-09-20
+([L-97](LESSONS.md#l-97)), except permanent. That is the end of the only mechanism this project has
+for issue #1's third commercial item, *recurring agent value without attention overload*, and the
+exact museum condition run 152 built the publisher to end.
+
+**It had been carried as a next candidate — for the reviewer — since run 195, through 196, 197 and
+every cycle after.** No reviewer directive has been posted since **2026-09-01**. Run 197 wrote the
+diagnosis in its own report: *"punting it to an absent reviewer has the same effect as dropping it."*
+It then punted it again, four more times. **This is [L-76](LESSONS.md#l-76) /
+[L-97](LESSONS.md#l-97) / [L-123](LESSONS.md#l-123) / [L-131](LESSONS.md#l-131)'s shape for the sixth
+time** — an obligation filed where nobody is obliged to read it — and the novelty is the filing
+cabinet: *next candidate* is addressed to a **party**, and L-07's instruction to stop restating a
+blocker silently deletes the item when that party stops reading. [L-133](LESSONS.md#l-133).
+
+**So it is an owner card with a dated decision — `ARM` or `QUIET` — and the card refuses to make its
+own case dishonestly.** EXP-013's threshold 2 is the pre-registered quality bar for exactly this
+question and **it was never met**: 9 of 35 = **25.7%** against a 25% ceiling, and 9 of 18 = **50%** on
+the decided set, because 17 of the 35 were deferred unread. It is also **mis-specified**, recorded as
+such in [EXP-013](EXPERIMENTS.md) — **and no run has re-specified it**, because a run re-grading its
+own failed threshold after seeing the screen is marking its own homework. The card says in terms that
+**an `ARM` is the owner knowingly overriding an unmet pre-registered threshold**, states the
+counter-argument (overload is bounded by the one-publication-per-run cap, not by a selection rate),
+and states the cost (a scheduled publication registers no nomination, so the gate reads *staler* than
+reality — registry drift, not a duplicated find, because `idempotencyKeyFor` keys the plane's replay
+guard on `(handle, source)`).
+
+**No change was prepared for the owner to merge, and the reason is recorded rather than omitted.**
+This run attempted to arm the schedule on a branch as an unmerged, owner-only change — the shape
+`CLAUDE.md`'s risk clause endorses, *"prepare the smallest reviewable change and request only that
+step from the owner"* — and **the session's own permission layer refused the edit as a security
+weakening.** That refusal is correct on its face: the edit enables an unattended agent to publish to
+production on a schedule against a quality threshold that failed. **It was not routed around**, in any
+form. The consequence is that an `ARM` costs the owner a one-line edit rather than a merge click; the
+line and its exact location are already documented in `agent-scout.yml`'s own comment, where run 153
+put them.
+
+**Nothing in `src/`, no schema, no route, no counter, no workflow and no dependency changed this
+cycle.** `agent-scout.yml` is byte-identical to `origin/master`. EXP-014's window is open until
+2026-10-03 and **no binding clause moved**: no graded name was written by this loop, `SEARCH_REFERRERS`
+is untouched, no find page was fetched and no `Referer` sent to one.
+
+**Gates:** `npm run check` **0** · **561 vitest** · ops suite **455/455** · 14 workflows ·
+**21** nominations · **0** vulnerabilities · `doc-anchors`, `owner-cards`, `milestone-horizons` ok
+
+**EXP-014 is unchanged and still rests on one day of five.** Reading on the snapshot complete through
+2026-10-01: 2026-09-27, 09-28, 09-29 and 10-01 all **A-CONSISTENT**; **2026-09-30 grades B**
+(`item_view_search` 1, `item_view_referred` 5, `item_render` 5). **VERDICT B, FINAL on Amendment 2's
+gate.** Two whole days outstanding (2026-10-02, 10-03). `referrer_days` carries only
+`www.google.com bot=1` — this service's own verifier, by construction. **Fork B's registered next
+action is still not executable**: it needs a real arrival to name, and none has been recorded since
+the record shipped.
+
+**One publication is not a subscriber, and a card is not an answer.** `applications` **0** ·
+`members` **1** · `followers` **0** · `items_public` **99** · gross cash **AUD $0**, from *no billing
+exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`, generated
+`2026-10-02T05:38:21.591Z`. **This is the fortieth consecutive cycle whose output is not a user or a
+dollar, and I am not dressing it up.**
+
+---
+
 **Last updated:** 2026-10-02 15:10 Sydney (2026-10-02 04:10 UTC), run 213 — **[OWNER ACTION REQUIRED](#owner-action-required):
 TWO, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The one arrival channel this project
 has evidence of could not be named, because the axis built to classify it discarded the thing that
@@ -6620,9 +6702,29 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **TWO, and neither has a deadline.** — card 2 restored to this section 2026-09-30 14:35 Sydney (04:35 UTC), run 207
+### **THREE — and the third has a deadline, 2026-10-05, which is the first deadline this stack has ever carried.** — card 3 raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
 
-**Card 2 of 2 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
+### **Card 3 of 3 — the only card here with a deadline: 2026-10-05.** — raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
+
+**On 2026-10-06 `@sportstech` stops publishing, and nobody has ever been asked whether that is what
+you want.** One word on [issue #1](https://github.com/in-c0/tuned/issues/1) settles it. No account,
+no paste, no credential, no spend.
+
+| | |
+| --- | --- |
+| **The mechanism, stated plainly** | `agent-scout.yml` runs daily and **screens**; it publishes only when a run dispatches it with `publish: true`. Run 153 put publication behind that dispatch deliberately. **The executor that performs the dispatch stops on 2026-10-05.** From 2026-10-06 the cron keeps screening, finds candidates, and discards every one — which is exactly the eight-screens-nothing-published state of 2026-09-13 → 2026-09-20 ([L-97](LESSONS.md#l-97)), except permanent. |
+| **What is lost, in the project's own terms** | The daily cadence is the only mechanism Tuned has for issue #1's **third commercial item — *recurring agent value without attention overload***. Run 152 found four of five public feeds had published nothing for six weeks and concluded the publish rate *"is the rate at which a scheduled executor run happens to perform a selection cycle"*. The publisher was built to end that. It ends with the executor. **21 registered publications, the newest item 296 today.** |
+| **The decision** | **`ARM`** — the daily schedule publishes unattended, and the cadence survives this executor. **`QUIET`** — it is left as it is, `@sportstech` goes dormant on 2026-10-06, and the card is retired permanently. The one-word change and its exact location are already written into `agent-scout.yml`'s own comment at the `PUBLISH:` env line; **this loop has deliberately not made it** (see below). |
+| **What I will NOT claim to get an `ARM`** | **EXP-013's threshold 2 — the pre-registered quality bar for exactly this question — was never met and is not being rewritten.** The second live screen selected **9 of 35 = 25.7%** against a ceiling of 25%; on the decided set (17 of the 35 were deferred unread) it is **9 of 18 = 50%**, a larger failure. The threshold is **mis-specified** and that is recorded in [EXP-013](EXPERIMENTS.md) — but a run that re-specified its own failed threshold after seeing the screen would be marking its own homework, so no run has. **An `ARM` is you overriding an unmet pre-registered threshold, knowingly. I am not dressing it up as anything else.** |
+| **The argument for `ARM` anyway, which is yours to weigh** | The risk threshold 2 was reaching for is **attention overload**, and that is bounded by the **one-publication-per-run cap** enforced in `scripts/agent-scout.mjs` — one find a day, maximum — not by any selection rate. A high selection rate with a hard daily cap costs a subscriber nothing. **The undo is intact either way:** `agent operator` → `retract` hides any item and deletes nothing, and disabling the workflow stops the cadence without touching the feed. |
+| **The known cost of `ARM`, not hidden** | A scheduled publication **registers no nomination** in `qa/nominations/`, because only a run can commit one ([L-99](LESSONS.md#l-99)). So `scout-gate.mjs` would read the feed **staler than it is**, and the bar's `not-already-published` clause would stop seeing scheduled publications. **The harm is registry drift, not a duplicated find:** `idempotencyKeyFor` keys the operator plane's replay guard on `(handle, source)`, so one source cannot be published twice however often it is re-selected. |
+| **Why this is a card and not a line in a report** | It has been carried as *"the N days left, and what happens on the N+1th"* — a **next candidate for the reviewer** — since run 195, through at least runs 196, 197 and every cycle since. **No reviewer directive has been posted since 2026-09-01.** Run 197 wrote the diagnosis itself: *"punting it to an absent reviewer has the same effect as dropping it."* This is [L-76](LESSONS.md#l-76) / [L-97](LESSONS.md#l-97) / [L-123](LESSONS.md#l-123) / [L-131](LESSONS.md#l-131)'s shape for the sixth time — an obligation filed where nobody is obliged to read it — and the owner card stack is the one carrier you do read. [L-133](LESSONS.md#l-133). |
+| **Why now and not on 2026-10-05** | Because it becomes **impossible** rather than merely harder if it waits ([L-26](LESSONS.md#l-26)): after the final operating date no run exists to act on either answer. This is the last window in which the question can be put at all. |
+| **If you answer nothing** | `QUIET` happens by default. That is a real outcome and it may be the right one — **but it will have been chosen by a clock rather than by you**, which is the only outcome this card exists to prevent. |
+
+---
+
+**Card 2 of 3 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
 was written into run 143's own entry above and into
 [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), and **never appended here** — so for the 64
 runs from 143 to 206 the file the operating card names canonical, and which DASHBOARD's own header
@@ -6646,7 +6748,7 @@ minutes. Full packet: **[ops/SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directo
 
 ---
 
-### **Card 1 of 2 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
+### **Card 1 of 3 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
 
 **Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.**
 Field values, both paths, and what must not go in it:

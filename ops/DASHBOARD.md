@@ -1609,9 +1609,26 @@ one is stale** — see [Freshness](#8-last-materially-updated-and-freshness).
 **Mirror of [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required). If the two
 disagree, STATUS is right.**
 
+### **THREE now, and the new one is the only card here that expires.** — card 3 raised 2026-10-02 21:35 Sydney (run 214)
+
+**Card 3 of 3 — deadline 2026-10-05. On 2026-10-06 `@sportstech` stops publishing, and nobody has
+ever been asked whether that is what you want.** `agent-scout.yml` screens daily but publishes only
+when a run dispatches it; **the executor that dispatches stops on 2026-10-05.** One word on
+[issue #1](https://github.com/in-c0/tuned/issues/1) settles it — **`ARM`** (the schedule publishes
+unattended, the cadence survives) or **`QUIET`** (the feed goes dormant, card retired).
+
+**Read the full card in [STATUS.md § OWNER ACTION REQUIRED](STATUS.md#owner-action-required) before
+answering `ARM`.** The short version of what it discloses: **EXP-013's threshold 2, the pre-registered
+quality bar for exactly this question, was never met** (9 of 35 = 25.7% against a 25% ceiling; 9 of 18
+= 50% on the decided set) and is **not** being rewritten to get a yes. An `ARM` is a knowing override.
+The counter-argument, also in full there: attention overload is bounded by the **one-publication-per-run
+cap**, not by a selection rate, and `retract` plus workflow-disable keep the undo intact either way.
+
+---
+
 ### **TWO now, and the new one is a question rather than a chore.** — raised 2026-09-06 20:20 Sydney (run 143)
 
-**Card 2 of 2 — new. May Tuned be suggested to `ooh.directory` at all?** This is **not** a repeat of
+**Card 2 of 3 — May Tuned be suggested to `ooh.directory` at all?** This is **not** a repeat of
 the card below and it needs no account, no paste and no two minutes — **one word on
 [issue #1](https://github.com/in-c0/tuned/issues/1) settles it.** Full packet:
 **[SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directory.md)**.
