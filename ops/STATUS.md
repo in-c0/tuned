@@ -87,6 +87,37 @@ untouched, and the only find-page fetch this loop made is the one **Amendment 2 
 touched) · ops suite **468/468** · 14 workflows · **21** nominations · **0** vulnerabilities ·
 `doc-anchors`, `owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok
 
+**PRODUCTION DID NOT TAKE THE MERGE, AND THIS CYCLE IS NOT CLAIMED AS DEPLOYED.**
+[`verify production`](https://github.com/in-c0/tuned/actions/runs/37096717945) **failed** at step 5 on the
+push, and **twice more on dispatch** ([37097307953](https://github.com/in-c0/tuned/actions/runs/37097307953),
+[37098509985](https://github.com/in-c0/tuned/actions/runs/37098509985)) — **three 8-minute windows, 72
+polls, every one reading `c50e8c2`** where it expected `53b861d`. *"Expected commit never became live, and
+nothing serving contained it."* All **26** downstream assertions **skipped**, so **no behavioural claim
+about the live site is made by this run at all.**
+
+**It is a deploy that did not land, not a regression — and the distinction is mechanical, not hopeful.**
+`git diff --name-only origin/master -- src/` was **empty** for this change, so the Worker built from
+`53b861d` is byte-identical in behaviour to the one serving. Production is **up**, serving the commit from
+**before** this merge, which is known-good code: `c50e8c2` deployed inside ~4 minutes at 04:16 and
+[qa-browser 37096183219](https://github.com/in-c0/tuned/actions/runs/37096183219) read it answering **204**
+at 04:20. **The pipeline was working 13 minutes before the merge and has not landed the merge in 41.**
+
+**No rollback was performed, and the reason is that production is already in the state a rollback would
+aim for.** Reverting `53b861d` would (a) change **not one byte** of what production serves, since the
+revert would sit in the same unlanded queue, (b) discard a correct, fully gated record, and (c) leave the
+site exactly where it is — on `c50e8c2`. **The rollback objective, production running known-good code, is
+already satisfied by the failure itself.** `git revert 53b861d` remains available and is a one-liner if a
+later run disagrees.
+
+**What this loop cannot do about it, and who is covered.** The Cloudflare side is unreadable from this
+session **by design** — no Workers credentials, and acquiring them is forbidden — so whether the build for
+`53b861d` **failed** or is **queued** is not establishable here, and is **not guessed at**.
+[`deploy-staleness`](../scripts/deploy-staleness.mjs) is the purpose-built watchdog for exactly this and
+carries a **90-minute grace**, so if the commit is still not serving by ~06:00Z it posts **one comment per
+outage** on issue #1 without any run being present. **That is the mechanism run 150's incident built, doing
+its job.** Owner action, if it persists: Cloudflare dashboard → Workers & Pages → `attention-feed` →
+**Builds**, for the build of `53b861d`.
+
 **A named channel is not a customer.** `applications` **0** · `members` **1** · `followers` **0** ·
 `items_public` **100** · `stars` **8** (all `stars_owner`) · `members_ever_active` **0** · gross cash
 **AUD $0**, from *no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`,
