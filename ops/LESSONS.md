@@ -6160,3 +6160,43 @@ number reached issue #1.
   sanitising removed, bot flag dropped, full URL stored, route not recording at all. It also pins that
   `item_view`, `item_view_referred` and `item_view_search` are **unmoved**, because they are the names
   EXP-014 is graded on and this change lands inside its open window.
+
+## L-135 — a deferral whose release condition is another machine's schedule is a bet, and this repository already held the odds (2026-10-03, run 216)<a id="l-135"></a>
+
+- **Known problem:** EXP-014's window runs 2026-09-27 → 2026-10-03 and 2026-10-02 had just closed. A
+  whole UTC day may only be graded from a snapshot that covers all of it.
+- **Attempted approach:** run 215 declined to grade the partial day — correctly — and recorded the
+  release condition as a forecast: *"`metrics-snapshot.yml`'s `15 0 * * *` cron captures the closed day at
+  `2026-10-03T00:15Z`, so **the reading belongs to the next run**."* The next run was this one.
+- **Mistake:** **availability was inferred from a cron's nominal time and from nothing else.** At
+  `04:16Z` — **4h01m past** that nominal time — the `15 0 * * *` run had not fired at all. The newest
+  committed snapshot was the **other** cron, `40 20 * * *`, delivered **3h18m late** with `generated_at`
+  `2026-10-02T23:58:16.139Z` — **1m44s short of the very day it was supposed to close.** A run that took
+  the forecast at face value would have graded a 99.88%-complete day as whole, or deferred 2026-10-02 for
+  a third consecutive cycle with two operating days left.
+- **Why it happened:** the scheduler's record was held as a fact about **the executor's own firing** and
+  not as a fact about **every cron in the same file.** Run 215's own report states the lateness —
+  *"delivered 1.6h–4.5h late on every firing since 2026-08-26"* — and spends four paragraphs using it to
+  reject a wall-clock test in the watchdog, two paragraphs before predicting a different cron would be
+  punctual. **The same number, applied in one place and not in the adjacent one.**
+- **Evidence and cost:** [metrics snapshot 37095987390](https://github.com/in-c0/tuned/actions/runs/37095987390)
+  — one `workflow_dispatch`, 18 seconds — produced `generated_at` `2026-10-03T04:16:35.046Z` and
+  [`c50e8c2`](https://github.com/in-c0/tuned/commit/c50e8c2), complete through 2026-10-02. That day grades
+  **Fork B**, the window's second, and retires the *"rests on one day of five"* caveat every execution
+  report has carried since run 210. **The cost of having waited instead would have been the reading
+  itself**, on a window that closes the same day.
+- **Lesson:** **a deferral whose release condition is another machine's schedule is not a plan, it is a
+  bet — and when the producer is dispatchable, settling the bet yourself is cheaper than holding it.**
+  Two mechanical rules: (1) **re-derive availability from the artifact's own `generated_at`**, never from
+  the schedule that was supposed to produce it, and never from a previous run's forecast of it; (2) when
+  the producer takes `workflow_dispatch` and is idempotent, **dispatch it** — "wait for the cron and read"
+  is strictly worse than "dispatch the producer and read" at equal cost.
+- **More elegant next attempt:** a run handing a reading forward should name the **artifact property** that
+  releases it (*"gradeable once a snapshot's `generated_at` is at or after `2026-10-03T00:00Z`"*) rather than
+  the job expected to produce it. The first is checkable in one command; the second is a forecast about
+  infrastructure, and this loop has never once been right about that timing.
+- **Prevention check:** `exp014-window.mjs` already prints `snapshot complete through <day>` from the
+  snapshot's own `generated_at`, and that line — not a previous report's sentence — is what a grading run
+  reads. The tool was never wrong; it was simply not run before the forecast was believed. Every
+  outstanding-reading candidate in an execution report from here states the artifact condition, so the next
+  run can settle it in one command instead of estimating a cron.

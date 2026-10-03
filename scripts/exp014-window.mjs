@@ -115,6 +115,18 @@ export const RENDER_BRACKETS = [
     status: 204,
     note: "Far-side bracket, owed since Amendment 2 and taken by run 212 against build 7897d36.",
   },
+  {
+    observed_at: "2026-10-03T04:20:31.523Z",
+    run: "https://github.com/in-c0/tuned/actions/runs/37096183219",
+    find_page: "/sportstech/296",
+    item_render: 1,
+    status: 204,
+    note:
+      "Far-side bracket for 2026-10-02, the window's SECOND Fork B day, taken by run 216 against " +
+      "build c50e8c2 within four and a half hours of that day closing. The entry above is its " +
+      "near side and was already on record, so the pair was completed by one dispatch rather " +
+      "than two. `observed_at` is the spec's own EVIDENCE instant, not the step's completion.",
+  },
 ];
 
 /**
