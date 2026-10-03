@@ -1,5 +1,93 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-03 20:45 Sydney (2026-10-03 10:45 UTC), run 217 — **[OWNER ACTION REQUIRED](#owner-action-required):
+FOUR, and the newest one is an outage.** **`master` has not reached production for six hours, the repository is now
+mechanically excluded as the cause, and the watchdog built to tell you about exactly this had not fired in
+five of its own scheduled hours.**
+
+**The gate was attended first and it owed a publication.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**ATTEND** — item 296 at `2026-10-02T10:15:23.798Z`, 24h old, **one** scheduled screen certainly delivered since
+(`2026-10-03T02:40:00Z`). That screen's record was read **in full from the job log** of
+[agent scout 37110015404](https://github.com/in-c0/tuned/actions/runs/37110015404) — the artifact blob host is
+still `403 CONNECT` at this session's proxy, standing blocker, unchanged — and it supported publishing:
+screened **35**, rejected **26**, selected **9**, **12** full-text reads, top selection typed
+`research-article/journal article` with **4** statistic families on a 37,123-character body.
+[One dispatch with `publish: true`](https://github.com/in-c0/tuned/actions/runs/37115773915): **item 297,
+HTTP 201, `duplicate=false`, `2026-10-03T10:15:34.311Z`.** Nomination committed here, so the gate now reads
+**CURRENT** and `validate-nominations` reads **22**. **The schedule was not armed:** EXP-013's threshold 2 is
+still unruled and run 153's pre-commitment stands — that question is **owner card 3**, with two days on its clock.
+
+**This find carries the bar's own why-line and not the source's words, and that is the publisher's rule working
+rather than failing.** The abstract offered **exactly one** candidate sentence and it was **136 characters over
+the 252-character budget**, so `selectQuotation` refused all of it and the log says which clause refused it.
+*No quote is a reason, never an absence* — item 296's line was a quotation, item 297's is the screen's own
+disclosure of design terms and statistic families. Nothing was paraphrased and nothing was composed about the
+paper's content.
+
+**Then the cycle took the one thing in front of it that is getting worse: production has not taken a commit
+since 04:16 UTC.** Run 216 established the shape — four `verify production` runs, two commits, every one of
+72 polls reading `c50e8c2` — and called it an owner/auth boundary. **This run did not restate it. It narrowed
+it, and then it made the owner's own carrier say so.**
+
+**One: the repository is excluded as the cause, mechanically and not hopefully.** A **fresh shallow clone** of
+`master`'s tip `d45e9cb` was given the exact Workers Builds command — `npm ci && npm run check` — and it exits
+**0**: `npm ci` **0**, `build-info` + `wrangler types` + `tsc --noEmit` **0**, in a clone with no local state,
+no generated `worker-configuration.d.ts` and 1 commit of history. **That is run 1's test, which on 2026-08-06
+exited 2 and found the real defect** (`TS2688`, the gitignored generated type) — the same probe pointed at the
+same question now answers the other way. So *whatever* is wrong is on the Cloudflare side of the push: a stuck
+queue, a disconnected Git integration, or a build failing for a reason the build command does not reproduce.
+**Which of those three it is remains unreadable from here, and is still not guessed at.**
+
+**Two: the watchdog that exists for this had not raised it, because an hourly cron is not an hourly cron.**
+[`deploy-staleness.yml`](../.github/workflows/deploy-staleness.yml) asks for `5 * * * *` and carries a
+**90-minute grace**, so `53b861d`'s alarm came due at about **05:59Z**. Its last delivered run before this one
+was **05:08Z** — 39 minutes inside the grace, so correctly silent — and between that run and this one
+**zero of five** requested firings were delivered. Its five prior deliveries sit **4.5h–6.5h** apart
+(06:56, 13:47, 19:10, 23:42, 05:08). **The grace period is 90 minutes; the detection interval is the delivery
+interval, and that is about five hours.** [L-136](LESSONS.md#l-136).
+
+**So it was dispatched, and it is the one that now speaks to the owner without a run present.**
+[deploy staleness 37115906442](https://github.com/in-c0/tuned/actions/runs/37115906442), `workflow_dispatch`,
+12 seconds: verdict **`stale`** · serving **`c50e8c2`** (`2026-10-03T04:16:35Z`) · oldest commit not live
+**`d45e9cb`** (`2026-10-03T05:26:38Z`) · **4.84h** undeployed · **4 commits behind** · grace **90 minutes**.
+It posted its alarm — [comment 5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197),
+`10:17:18Z`, one per outage keyed on `d45e9cb` — and **failed its own job**, so the Actions list is now red
+about a production that is behind, which it was not at 10:14.
+
+**Three: production is up, and it is writable.** The strongest evidence is not a probe written for the purpose:
+**the operator plane accepted a write at `10:15:34.311Z` and returned 201** on the build that is serving.
+`deploy-staleness` separately read `/api/version` at 10:17 and got a parseable stamp. **Nothing about the live
+site is degraded — it is old, not broken**, and no behavioural claim beyond those two reads is made by this run.
+
+**No rollback, for the third report running, and the reason has not changed.** Production serves `c50e8c2`,
+which is the state *before* the undeployed commits; `git diff --name-only origin/master -- src/` is **empty**
+across all four of them, so nothing served differs by a byte from what a revert would aim at. A revert would
+join the same unlanded queue. **The rollback objective is already satisfied by the failure.**
+
+**What is new in this cycle is therefore not the finding but its carrier.** [L-07](LESSONS.md#l-07) says to
+escalate once after two unchanged blocker cycles and then stop restating — and [L-133](LESSONS.md#l-133) is
+this repository's own record of what "escalate" has to mean here: an obligation filed where nobody is obliged
+to read it is dropped, however truthfully each report repeats it. Run 216 wrote the blocker into a report and
+a commit message. **This run writes it into the owner card stack, which is the one place that is read**, with
+the exact dashboard path, what to look for, and what each answer implies. **That is the escalation. From the
+next run this blocker is not restated in prose — the card carries it until it is cleared.**
+
+**Nothing in `src/`, no schema, no route, no counter, no workflow, no dependency, no privacy or terms text.**
+The only product-surface act this run performed is the publication the gate owed, through the plane's own
+route, under the bar committed at `d45e9cb`.
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **468/468** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **FOUR, agreed in head, section and mirror**, `milestone-horizons` ok.
+
+**A published find is not a customer either.** `applications` **0** · `members` **1** · `followers` **0** ·
+`items_public` **100** · `stars` **8** (all `stars_owner`) · `members_ever_active` **0** · gross cash
+**AUD $0**, from *no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`,
+generated `2026-10-03T05:19:34.043Z` — item 297 is not in it and will read **101** on the next snapshot.
+**This is the forty-third consecutive cycle whose output is not a user or a dollar.**
+
+---
+
 **Last updated:** 2026-10-03 15:40 Sydney (2026-10-03 04:40 UTC), run 216 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The arrival channel this project
 spent six cycles unable to name has a name — `www.google.com` — and Fork B is no longer a single day.**
@@ -6925,9 +7013,28 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **THREE — and the third has a deadline, 2026-10-05, which is the first deadline this stack has ever carried.** — card 3 raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
+### **FOUR — and the newest is an outage rather than a decision: nothing has reached production since 04:16 UTC today, and the Cloudflare dashboard is the only place the cause is readable.** — card 4 raised 2026-10-03 20:45 Sydney (10:45 UTC), run 217
 
-### **Card 3 of 3 — the only card here with a deadline: 2026-10-05.** — raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
+### **Card 4 of 4 — ACTION REQUIRED · HIGH. Read one Cloudflare page. ~2 minutes. No spend, no credential to install, nothing to configure.** — raised 2026-10-03 20:45 Sydney (10:45 UTC), run 217
+
+**Cloudflare dashboard → Workers & Pages → `attention-feed` → Builds, and read the most recent build.**
+That page says which of three things is happening, and this session can read none of them.
+
+| | |
+| --- | --- |
+| **What is true, stated before what is asked** | **The site is up and is not broken.** It is serving [`c50e8c2`](https://github.com/in-c0/tuned/commit/c50e8c2), deployed `2026-10-03T04:16:35Z`, which is known-good code. `master` is **4 commits ahead** of it and the oldest of them, [`d45e9cb`](https://github.com/in-c0/tuned/commit/d45e9cb), has been undeployed for **4.84h** against a 90-minute grace. **Old, not degraded:** the operator plane accepted a write and returned **201** at `10:15:34Z` on the serving build, and `/api/version` answered with a parseable stamp at `10:17Z`. |
+| **What is asked** | Open that Builds page and read the most recent build for `53b861d`, `c98f5f2` or `d45e9cb`. **Then one comment on [issue #1](https://github.com/in-c0/tuned/issues/1) with what it says** — "no build was created", "build failed with X", or "build queued/in progress" are each a different fault with a different fix, and they are indistinguishable from outside Cloudflare. |
+| **Why it cannot be done here, and was not worked around** | The executor holds **no Cloudflare credential by design** — the Git-based pipeline exists precisely so it never does ([D-2026-08-06](DECISIONS.md)) — and this session's egress proxy answers `403 CONNECT` for `justtuned.com`, re-tested this run. The operating card forbids widening access to reach a blocked resource, and nothing was widened. |
+| **What has already been ruled out, so the page is the first unread thing** | **The repository is not the cause.** A fresh shallow clone of `d45e9cb` was given the exact Workers Builds command — `npm ci && npm run check` — and exits **0** with no local state and no generated types. That is run 1's probe, which exited **2** on 2026-08-06 and found the real defect then; it answers the other way now. **The pipeline also worked 13 minutes before the first failure**: `c50e8c2` deployed in ~4 minutes. |
+| **What has been tried from this side** | **Five `verify production` runs across three commits** ([37096717945](https://github.com/in-c0/tuned/actions/runs/37096717945), [37097307953](https://github.com/in-c0/tuned/actions/runs/37097307953), [37098509985](https://github.com/in-c0/tuned/actions/runs/37098509985), [37099176265](https://github.com/in-c0/tuned/actions/runs/37099176265), [37115730271](https://github.com/in-c0/tuned/actions/runs/37115730271)), each polling for a full window, every poll reading `c50e8c2`. **Three further pushes did not clear it**, which is the remedy that cleared the 2026-08-12 dropped build — so "the next push fixes it" has already been falsified three times. |
+| **Why there is no rollback to consider** | `git diff --name-only origin/master -- src/` is **empty** for all four undeployed commits, so a revert would change not one byte of what is served and would join the same unlanded queue. Production is already in the state a rollback aims for. |
+| **The deadline, and why it is real** | **2026-10-05** is this executor's final operating date. Until this is cleared **every code change this loop ships cannot reach production** — the two operating days left are ops-only by force, not by choice. After 2026-10-05 the loop is gone and this page is the only reader left. |
+| **What you do not need to do** | Nothing needs to be deployed, reverted, re-pushed or re-run by you. If the page shows a failed build, paste the error and the next run fixes the repository; if it shows no build at all, the Git integration needs reconnecting (branch `master`, build `npm ci && npm run check`, deploy `npx wrangler deploy`) — the same four fields as 2026-08-06. |
+| **How you will know it cleared** | `deploy staleness` posts **one comment per outage** and this one is already posted ([5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197)); the next successful deploy makes the check green with no comment. **Its detection interval is about five hours, not the hour it asks for** ([L-136](LESSONS.md#l-136)), so silence from it is not yet evidence of health. |
+
+---
+
+### **Card 3 of 4 — the only card here with a deadline: 2026-10-05.** — raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
 
 **On 2026-10-06 `@sportstech` stops publishing, and nobody has ever been asked whether that is what
 you want.** One word on [issue #1](https://github.com/in-c0/tuned/issues/1) settles it. No account,
@@ -6947,7 +7054,7 @@ no paste, no credential, no spend.
 
 ---
 
-**Card 2 of 3 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
+**Card 2 of 4 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
 was written into run 143's own entry above and into
 [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), and **never appended here** — so for the 64
 runs from 143 to 206 the file the operating card names canonical, and which DASHBOARD's own header
@@ -6971,7 +7078,7 @@ minutes. Full packet: **[ops/SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directo
 
 ---
 
-### **Card 1 of 3 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
+### **Card 1 of 4 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
 
 **Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.**
 Field values, both paths, and what must not go in it:

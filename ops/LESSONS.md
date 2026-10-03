@@ -6200,3 +6200,51 @@ number reached issue #1.
   reads. The tool was never wrong; it was simply not run before the forecast was believed. Every
   outstanding-reading candidate in an execution report from here states the artifact condition, so the next
   run can settle it in one command instead of estimating a cron.
+
+## L-136 — a watchdog's grace period says when the question becomes fair, not when it gets asked; here the asking interval is five hours (2026-10-03, run 217)<a id="l-136"></a>
+
+- **Known problem:** run 216 ended a cycle with production four commits behind `master` and no way to read
+  the Cloudflare side. The run was about to end, and the owner needed to learn about the outage from
+  something other than a run.
+- **Attempted approach:** hand the duty to [`deploy-staleness`](../scripts/deploy-staleness.mjs), which is the
+  watchdog built for exactly this after run 150's incident. Run 216's report states the handover in terms of
+  its grace: *"carries a 90-minute grace, so once its grace expires it posts one comment per outage on issue
+  #1 without any run being present … that is the mechanism run 150's incident built, doing its job."*
+  **No new instrument was added, which was the right call.** The coverage claim was the wrong one.
+- **Mistake:** **the grace period was read as a detection latency.** `53b861d`'s alarm came due at about
+  `05:59Z`. The watchdog's last delivered run before this cycle was `05:08Z` — 39 minutes inside the grace, so
+  correctly silent — and **between that run and run 217 at `10:17Z`, zero of five requested hourly firings were
+  delivered.** The outage went unalarmed for **4h18m past due**, and the alarm that eventually posted was posted
+  because a run dispatched the workflow by hand. **Had run 217 not dispatched it, the only mechanism standing
+  between a six-hour deploy outage and an absent owner would have been the next lucky firing.**
+- **Why it happened:** `5 * * * *` was treated as the rate the job runs at. It is the rate the job is
+  *requested* at. The file's own header says scheduled runs here *"have arrived 1.6h–4.5h late on every firing
+  since 2026-08-26, which costs detection speed here and cannot change the verdict"* — which is **true about
+  lateness and silent about skipping**, and skipping is what happens: the five deliveries before this cycle sit
+  **4.5h–6.5h apart** (06:56, 13:47, 19:10, 23:42, 05:08), so roughly **five of every six firings never arrive.**
+  This is [L-135](#l-135)'s shape for the second time in two cycles and in the same file pair — a number this
+  repository already holds, applied in one place and not in the adjacent one. L-135 applied it to a *producer*
+  (`metrics-snapshot.yml`, dispatch it rather than wait); the identical correction for a *watchdog* was not drawn,
+  one cycle later, by the run that wrote L-135.
+- **Evidence and cost:** [deploy staleness 37115906442](https://github.com/in-c0/tuned/actions/runs/37115906442),
+  `workflow_dispatch`, 12 seconds — verdict `stale`, serving `c50e8c2` (`04:16:35Z`), oldest commit not live
+  `d45e9cb` (`05:26:38Z`), **4.84h**, **4 commits behind** — alarm
+  [5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197) posted `10:17:18Z` and the job
+  failed, which is the Actions list going red about a production that was already behind at 10:14. **The cost
+  paid was 4h18m of unalarmed outage inside the loop's last three operating days.** No cost was paid in false
+  alarms: the `alarm_key` dedupe means a dispatch during a healthy pipeline is a green 12-second no-op.
+- **Lesson:** **a grace period is a statement about when a question becomes fair to ask, and tells you nothing
+  about when it will next be asked.** A watchdog's real detection interval is `grace + (interval between
+  *delivered* firings)`, and on this infrastructure the second term is about five hours, not one. Two mechanical
+  rules follow: (1) **a run that hands a duty to a scheduled watchdog dispatches it once before ending** — it is
+  idempotent, deduped and seconds long, so it converts "it will notice within the hour" into "it has noticed";
+  (2) **a cron-fed watchdog's silence is never evidence of health** inside its delivery interval, and a report
+  that reads silence as coverage should name the last *delivered* run, not the schedule.
+- **More elegant next attempt:** state coverage as an observation rather than a schedule — *"last delivered
+  check `05:08Z`, verdict ok"* — which is one API read, instead of *"it runs hourly, so it is covered"*, which
+  is a forecast about infrastructure this loop has never once been right about.
+- **Prevention check:** this is written as a rule for a run and not as a new mechanism, deliberately. The guard
+  that would enforce it — a workflow watching the watchdog — needs the same scheduler to deliver it, so it
+  inherits the defect it is meant to catch, and [L-08](#l-08) plus the operating card's rule 7 rule out another
+  control-plane layer for a problem a one-line dispatch solves. **The dispatch is already in this run's
+  record and is the cheapest step in it.**
