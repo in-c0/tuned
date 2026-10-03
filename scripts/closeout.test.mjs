@@ -130,6 +130,37 @@ describe("closeout report (ops/CLOSEOUT.md)", () => {
     );
   });
 
+  it("keeps the card's dedup test on FIRST-LINE position, not on presence in the body", () => {
+    // THE DEFECT THIS CLOSES, found by run 218 against its own freshly posted report. CLAUDE.md
+    // step 1 originally said to "look for the marker" and step 2 "if a comment carries it".
+    // Execution reports DESCRIBE this mechanism, so they necessarily quote the marker in prose:
+    // scanning all 334 comments on issue #1 found it in run 215's report and run 218's, mid-body,
+    // and neither is a closeout. A post-date run doing a substring search would match run 215's
+    // comment from 2026-10-02, conclude the closeout was already posted, post nothing and stop —
+    // and the closeout would never be posted at all. The marker is a dedup key, so a false
+    // positive on it does not duplicate the artifact, it DISCARDS it, silently and permanently,
+    // on the one day no run is permitted to fix anything.
+    //
+    // This is a prose guard and says so. Whether a procedure is correctly written is an argument a
+    // parser cannot grade — the same limit owner-cards.mjs states about judging a card's body. What
+    // is checkable is that the two phrases carrying the distinction are still in the file, which is
+    // what stops a later edit tidying them away without noticing they are the mechanism.
+    const card = read(CARD_PATH);
+    assert.match(
+      card,
+      /FIRST LINE/,
+      "CLAUDE.md's post-date step 1 must require the marker be a comment's FIRST LINE. Searching " +
+        "for presence anywhere in the body matches every execution report that discusses the " +
+        "mechanism, and a false positive here discards the closeout rather than duplicating it.",
+    );
+    assert.match(
+      card,
+      /not presence anywhere in the body/,
+      "the card must say explicitly that presence in the body is NOT the test — the naive reading " +
+        "is the one a run arrives at by default, and it is the reading that loses the artifact.",
+    );
+  });
+
   it("hands over the cohort table two files promised by name, rather than a summary", () => {
     const body = read(CLOSEOUT_PATH);
     assert.match(

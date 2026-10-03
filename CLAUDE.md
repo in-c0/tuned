@@ -132,11 +132,17 @@ a closeout, it is the thing the closeout was supposed to end.
 
 So a run that fires after the final operating date does exactly this:
 
-1. **Read issue #1 and look for the marker `<!-- tuned-closeout -->`.**
-2. **If a comment carries it, the closeout is already posted. Post nothing, commit nothing, claim
+1. **Read issue #1 and look for a comment whose FIRST LINE is exactly `<!-- tuned-closeout -->`.**
+   **The test is first-line position, not presence anywhere in the body** — and that distinction is
+   load-bearing rather than pedantic. Execution reports *describe this mechanism*, so they quote the
+   marker in their prose: run 215's report and run 218's each contain it mid-body, neither is a
+   closeout, and a substring search finds both. A run that searched for presence would conclude the
+   closeout was already posted, post nothing, and **the closeout would never be posted at all** —
+   the one failure that silently discards the whole artifact. See LESSONS L-138.
+2. **If such a comment exists, the closeout is already posted. Post nothing, commit nothing, claim
    nothing, dispatch nothing — and stop.** A reply saying "already closed out" is itself a comment
    and is not exempt.
-3. **If no comment carries it, post the contents of [`ops/CLOSEOUT.md`](ops/CLOSEOUT.md) verbatim as
+3. **If no such comment exists, post the contents of [`ops/CLOSEOUT.md`](ops/CLOSEOUT.md) verbatim as
    one comment**, and stop. It already begins with that marker on its own first line, and it was
    written and gated on 2026-10-04 precisely because a post-date run cannot verify anything it
    writes. **Do not re-derive its figures, rewrite it or append to it** — every number in it is

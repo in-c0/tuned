@@ -6335,6 +6335,30 @@ marker is not line 1, if the two files spell the marker differently, if the body
 if it stops naming its snapshot and `generated_at` stamp, if `CLAUDE.md` stops pointing at it, or if the
 promised cohort table goes. Each of the seven was broken and observed to redden before shipping.
 
+**CORRECTION, same run, and it was found in this run's own freshly posted report: the dedup predicate
+as written would have discarded the artifact it protects.** `CLAUDE.md` step 1 said to *"look for the
+marker"* and step 2 *"if a comment carries it"* — a **presence** test. But an execution report
+*describes this mechanism*, so it quotes the marker in its prose. A scan of all **334** comments on
+issue #1 found the literal marker in **two**: run 215's report, which introduced the mechanism, and run
+218's, which shipped the file. **Neither is a closeout, and a substring search matches both.** A
+post-date run reading the card literally would have matched run 215's comment from 2026-10-02,
+concluded the closeout was already posted, posted nothing and stopped — **so the closeout would never
+have been posted at all.**
+
+**The asymmetry is what makes it severe rather than untidy.** A dedup key's false *negative* duplicates
+the artifact — the harm the marker exists to prevent, and a visible one. Its false *positive*
+**discards** the artifact, silently, with no comment anywhere to show it happened, on the one day no run
+is permitted to fix anything. **The two errors are not comparable, and the mechanism had been built
+with only the loud one in mind.** Step 1 now requires the marker be a comment's **first line** and says
+in terms that presence in the body is not the test, naming both offending reports so a later editor
+cannot mistake the clause for pedantry.
+
+**The general shape, which is worth more than this instance: a marker that a document must explain is a
+marker the explanation will match.** Any dedup key, sentinel or stop-token carried in prose that the
+same corpus discusses needs a predicate anchored to *position or structure*, never to presence — and the
+test to run before trusting one is **"does the mechanism's own documentation match it?"** Here the answer
+was yes, twice, and the search took one command.
+
 - **Prevention check:** what makes it a mechanism and not a resolution is that the figures are **stamped to
   one snapshot reading** rather than compared against the live one. A test asserting they equal today's
   `ops/metrics/latest.json` would let a twice-daily automated snapshot commit redden `master` with no human

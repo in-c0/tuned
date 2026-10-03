@@ -67,11 +67,30 @@ comparing the figures to the *live* snapshot was **not** written: a twice-daily 
 then redden `master` with no human change, and after 2026-10-05 nobody is left to clear it — that is
 [L-134](LESSONS.md#l-134)'s own trap pointed the wrong way, declined on run 216's ground.
 
+**CORRECTION, same cycle, and it was found in this run's own freshly posted report: the dedup predicate
+as written would have discarded the artifact it protects.** [CLAUDE.md](../CLAUDE.md) step 1 said to
+*"look for the marker"* and step 2 *"if a comment carries it"* — a **presence** test. But an execution
+report *describes this mechanism*, so it quotes the marker in prose. A scan of **all 334** comments on
+issue #1 found the literal marker in **two** — [run 215's report](https://github.com/in-c0/tuned/issues/1#issuecomment-5962572001)
+and [run 218's](https://github.com/in-c0/tuned/issues/1#issuecomment-5974166118) — **neither of which
+is a closeout.** A post-date run reading the card literally would have matched run 215's comment from
+2026-10-02, posted nothing, and **the closeout would never have been posted at all.**
+
+**The asymmetry is why this outranked everything else left in the cycle.** A dedup key's false
+*negative* duplicates the artifact — visible, and exactly the harm the marker exists to prevent. Its
+false *positive* **discards** it: silently, with no comment anywhere to show it happened, on the one day
+no run is permitted to fix anything. **The mechanism had been built with only the loud error in mind.**
+Step 1 now requires a comment whose **first line** is the marker, says in terms that presence in the
+body is not the test, and names both offending reports so the clause cannot later be read as pedantry.
+An eighth test asserts those phrases survive editing — a **prose guard, labelled as one**, since
+whether a procedure is correctly written is an argument a parser cannot grade. **General rule: a marker
+a document must explain is a marker the explanation will match.** [L-138](LESSONS.md#l-138).
+
 **Nothing in `src/`, no schema, no route, no counter, no workflow, no dependency, no privacy or terms text, and
 no product-surface act at all this cycle** — the gate owed nothing, so nothing was published.
 
 **Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
-ops suite **475/475** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
+ops suite **476/476** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
 `owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
 
 ---
