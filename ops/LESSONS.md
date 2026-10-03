@@ -6248,3 +6248,52 @@ number reached issue #1.
   inherits the defect it is meant to catch, and [L-08](#l-08) plus the operating card's rule 7 rule out another
   control-plane layer for a problem a one-line dispatch solves. **The dispatch is already in this run's
   record and is the cheapest step in it.**
+
+## L-137 — I put a human in front of a condition that was about to clear itself, and called the cheap remedy falsified one paragraph before it worked (2026-10-03, run 217)<a id="l-137"></a>
+
+- **Known problem:** production had not taken a commit since `04:16Z`. Run 216 established it across four
+  failed checks and two commits and filed it as an owner/auth boundary; this run confirmed it at six hours,
+  four commits behind, with the Cloudflare side unreadable from here by design.
+- **Attempted approach:** escalate it the way [L-133](#l-133) says escalation has to work in this project —
+  out of a report nobody is obliged to read and into **owner card 4**, ACTION REQUIRED · HIGH, asking for two
+  minutes on one Cloudflare Builds page, mirrored in DASHBOARD §1, with a phone notification. The reasoning
+  was explicit in the card: *"three further pushes did not clear it, so 'the next push fixes it' has already
+  been falsified three times."*
+- **Mistake:** **the push carrying that card deployed in 29 seconds.**
+  [verify production 37116713056](https://github.com/in-c0/tuned/actions/runs/37116713056) on
+  [`e8d9af2`](https://github.com/in-c0/tuned/commit/e8d9af2) satisfied its wait step at `10:32:18Z` — **47
+  minutes** after the card went up — and the serving build contains all three stranded commits. A human was
+  asked to diagnose a condition that **stopped being true while the request was in flight**, and the sentence
+  that justified not waiting was a forecast dressed as a result: *falsified* is a word about a hypothesis
+  tested under control, and **nothing about this was under control.** `n = 3` on a cause this session cannot
+  read is not a refutation.
+- **Why it happened:** the same error [L-135](#l-135) was written for two cycles ago and
+  [L-136](#l-136) one paragraph ago in this very cycle — **treating infrastructure behaviour as inferable from
+  a handful of observations, in a repository whose own record says it is not.** Run 216's *"until it is cleared
+  every later run of this loop will also fail to deploy"* is the same sentence shape. **Three cycles, three
+  wrong forecasts about the same class of machine.** What made this one costlier than the other two is that it
+  was the first to spend the owner's attention rather than a run's own time.
+- **Evidence and cost:** raised `10:45` Sydney, cleared `11:32`; alarm comment
+  [5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197) at `10:17:18Z` and a phone
+  notification after it, **both superseded within the hour.** The cost is **one unnecessary interruption of the
+  owner on the third-to-last operating day**, plus the risk — not realised, because the recovery was caught in
+  the same run — that they would have opened the dashboard looking for a fault that was no longer there. **What
+  limited the damage was a row the card did carry:** *"How you will know it cleared"*, naming the watchdog's own
+  green as the signal. It was the card's **last** row.
+- **Lesson:** **two rules, and the second is the cheap one.** (1) **A card that asks a human to act on a machine
+  condition the machine can re-test must put that test in its FIRST row**, with the condition under which the
+  card retires itself — card 4 had the right row in the wrong place, and the ordering is the whole fix. (2)
+  **Never state a forecast about infrastructure as a finding.** *"Three pushes did not deploy"* is an observation
+  and belongs in a report; *"the push remedy is falsified"* is a prediction about an unreadable system and belongs
+  nowhere. Say the observation, give its size, and name what is not established.
+- **More elegant next attempt:** **try the loop's own cheapest remedy before spending the owner's attention,
+  when that remedy is already scheduled to happen anyway.** This run was always going to push within the hour,
+  and the documented recovery for a dropped Workers build is *the next real push*. Pushing first and raising the
+  card only on a *fifth* failure would have cost nothing, and would have produced either no card at all — the
+  actual outcome — or one with five failures and a working build behind it. **Escalate after the free attempt,
+  not before it.**
+- **Prevention check:** written as a rule for a run, not a mechanism. `deploy-staleness` already dedupes and
+  already goes green on its own, so the machine half of this was never the gap; the gap is the human-facing
+  card, and whether a card's first row is a liveness test is an argument a parser cannot grade
+  ([owner-cards.mjs](../scripts/owner-cards.mjs) says as much about judging a card's body). **The checkable
+  habit is the ordering**: open a card on a self-clearing condition and the first row names the one-step test.

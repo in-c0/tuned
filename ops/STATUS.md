@@ -1,9 +1,10 @@
 # Tuned — STATUS
 
-**Last updated:** 2026-10-03 20:45 Sydney (2026-10-03 10:45 UTC), run 217 — **[OWNER ACTION REQUIRED](#owner-action-required):
-FOUR, and the newest one is an outage.** **`master` has not reached production for six hours, the repository is now
-mechanically excluded as the cause, and the watchdog built to tell you about exactly this had not fired in
-five of its own scheduled hours.**
+**Last updated:** 2026-10-03 21:40 Sydney (2026-10-03 11:40 UTC), run 217 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged — a fourth card was raised and cleared inside this run.** **A 6h16m deploy outage ended on this
+run's own push, 47 minutes after the card asking the owner to diagnose it went up; the repository was mechanically
+excluded as the cause, and the watchdog built to report the outage had delivered zero of its five scheduled hours
+while it ran.**
 
 **The gate was attended first and it owed a publication.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
 **ATTEND** — item 296 at `2026-10-02T10:15:23.798Z`, 24h old, **one** scheduled screen certainly delivered since
@@ -75,6 +76,33 @@ next run this blocker is not restated in prose — the card carries it until it 
 **Nothing in `src/`, no schema, no route, no counter, no workflow, no dependency, no privacy or terms text.**
 The only product-surface act this run performed is the publication the gate owed, through the plane's own
 route, under the bar committed at `d45e9cb`.
+
+**CORRECTION, same cycle, and it goes against this run's own headline: the outage is over, and nothing the owner
+did ended it.** The push carrying everything above —
+[`e8d9af2`](https://github.com/in-c0/tuned/commit/e8d9af2), `10:31:49Z` — **deployed in 29 seconds.**
+[verify production 37116713056](https://github.com/in-c0/tuned/actions/runs/37116713056) satisfied its wait step at
+`10:32:18Z` and then passed **25 of 26** downstream assertions with one skipped, which is the first green
+`verify production` on a push since `4776aff`. **The serving build contains every commit the outage had stranded**
+— `53b861d`, `c98f5f2`, `d45e9cb` — so **production is behind by nothing.** The outage ran `04:16Z → 10:32Z`,
+**6h16m**, and between `05:26Z` and `10:31Z` the Cloudflare side resumed **on its own**: no setting was touched,
+no build retried, no revert made, and **which of a drained queue or a resolved incident it was is still not
+readable here and still not guessed at.**
+
+**So owner card 4 was retired in the run that raised it, and the reason is a mistake worth naming.** The card
+asked a human to go and read a page about a condition that was *about to stop being true*, and its own text
+argued the recovery away: *"three further pushes did not clear it, so 'the next push fixes it' has already been
+falsified three times."* **The fourth push cleared it.** Run 216's *"until it is cleared every later run of this
+loop will also fail to deploy"* was the same shape. **Both were forecasts about infrastructure, and this
+repository has now been wrong about that three cycles running** — [L-135](LESSONS.md#l-135) was written about
+exactly this two cycles ago. [L-137](LESSONS.md#l-137). The alarm comment
+[5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197) and the notification that followed
+it are **superseded; the retired card says so where the owner will read it.**
+
+**Two findings survive the recovery intact, and they are what this cycle actually bought.** `npm ci && npm run
+check` **exits 0 on a fresh shallow clone** of `master`'s tip, so the repository was never the cause of a
+six-hour outage and is not a suspect in the next one. And `deploy-staleness` left that **real** outage unalarmed
+for **4h18m past due** because an hourly cron delivered **zero of five** firings — [L-136](LESSONS.md#l-136) is a
+statement about detection latency, and a pipeline recovering does not touch it.
 
 **Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
 ops suite **468/468** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
@@ -7013,28 +7041,9 @@ Reading 1 is still due on the complete UTC day **2026-08-26**, and **Fork I-B mu
 
 ## OWNER ACTION REQUIRED
 
-### **FOUR — and the newest is an outage rather than a decision: nothing has reached production since 04:16 UTC today, and the Cloudflare dashboard is the only place the cause is readable.** — card 4 raised 2026-10-03 20:45 Sydney (10:45 UTC), run 217
+### **THREE — and a fourth was opened and cleared inside the same run: the deploy outage recovered without any owner action, and there is nothing for you to do about it.** — card 3 raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214 · card 4 raised and cleared 2026-10-03, run 217
 
-### **Card 4 of 4 — ACTION REQUIRED · HIGH. Read one Cloudflare page. ~2 minutes. No spend, no credential to install, nothing to configure.** — raised 2026-10-03 20:45 Sydney (10:45 UTC), run 217
-
-**Cloudflare dashboard → Workers & Pages → `attention-feed` → Builds, and read the most recent build.**
-That page says which of three things is happening, and this session can read none of them.
-
-| | |
-| --- | --- |
-| **What is true, stated before what is asked** | **The site is up and is not broken.** It is serving [`c50e8c2`](https://github.com/in-c0/tuned/commit/c50e8c2), deployed `2026-10-03T04:16:35Z`, which is known-good code. `master` is **4 commits ahead** of it and the oldest of them, [`d45e9cb`](https://github.com/in-c0/tuned/commit/d45e9cb), has been undeployed for **4.84h** against a 90-minute grace. **Old, not degraded:** the operator plane accepted a write and returned **201** at `10:15:34Z` on the serving build, and `/api/version` answered with a parseable stamp at `10:17Z`. |
-| **What is asked** | Open that Builds page and read the most recent build for `53b861d`, `c98f5f2` or `d45e9cb`. **Then one comment on [issue #1](https://github.com/in-c0/tuned/issues/1) with what it says** — "no build was created", "build failed with X", or "build queued/in progress" are each a different fault with a different fix, and they are indistinguishable from outside Cloudflare. |
-| **Why it cannot be done here, and was not worked around** | The executor holds **no Cloudflare credential by design** — the Git-based pipeline exists precisely so it never does ([D-2026-08-06](DECISIONS.md)) — and this session's egress proxy answers `403 CONNECT` for `justtuned.com`, re-tested this run. The operating card forbids widening access to reach a blocked resource, and nothing was widened. |
-| **What has already been ruled out, so the page is the first unread thing** | **The repository is not the cause.** A fresh shallow clone of `d45e9cb` was given the exact Workers Builds command — `npm ci && npm run check` — and exits **0** with no local state and no generated types. That is run 1's probe, which exited **2** on 2026-08-06 and found the real defect then; it answers the other way now. **The pipeline also worked 13 minutes before the first failure**: `c50e8c2` deployed in ~4 minutes. |
-| **What has been tried from this side** | **Five `verify production` runs across three commits** ([37096717945](https://github.com/in-c0/tuned/actions/runs/37096717945), [37097307953](https://github.com/in-c0/tuned/actions/runs/37097307953), [37098509985](https://github.com/in-c0/tuned/actions/runs/37098509985), [37099176265](https://github.com/in-c0/tuned/actions/runs/37099176265), [37115730271](https://github.com/in-c0/tuned/actions/runs/37115730271)), each polling for a full window, every poll reading `c50e8c2`. **Three further pushes did not clear it**, which is the remedy that cleared the 2026-08-12 dropped build — so "the next push fixes it" has already been falsified three times. |
-| **Why there is no rollback to consider** | `git diff --name-only origin/master -- src/` is **empty** for all four undeployed commits, so a revert would change not one byte of what is served and would join the same unlanded queue. Production is already in the state a rollback aims for. |
-| **The deadline, and why it is real** | **2026-10-05** is this executor's final operating date. Until this is cleared **every code change this loop ships cannot reach production** — the two operating days left are ops-only by force, not by choice. After 2026-10-05 the loop is gone and this page is the only reader left. |
-| **What you do not need to do** | Nothing needs to be deployed, reverted, re-pushed or re-run by you. If the page shows a failed build, paste the error and the next run fixes the repository; if it shows no build at all, the Git integration needs reconnecting (branch `master`, build `npm ci && npm run check`, deploy `npx wrangler deploy`) — the same four fields as 2026-08-06. |
-| **How you will know it cleared** | `deploy staleness` posts **one comment per outage** and this one is already posted ([5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197)); the next successful deploy makes the check green with no comment. **Its detection interval is about five hours, not the hour it asks for** ([L-136](LESSONS.md#l-136)), so silence from it is not yet evidence of health. |
-
----
-
-### **Card 3 of 4 — the only card here with a deadline: 2026-10-05.** — raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
+### **Card 3 of 3 — the only card here with a deadline: 2026-10-05.** — raised 2026-10-02 21:35 Sydney (11:35 UTC), run 214
 
 **On 2026-10-06 `@sportstech` stops publishing, and nobody has ever been asked whether that is what
 you want.** One word on [issue #1](https://github.com/in-c0/tuned/issues/1) settles it. No account,
@@ -7054,7 +7063,7 @@ no paste, no credential, no spend.
 
 ---
 
-**Card 2 of 4 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
+**Card 2 of 3 — raised 2026-09-06 20:20 Sydney (run 143), and it has never been in this section.** It
 was written into run 143's own entry above and into
 [DASHBOARD.md §1](DASHBOARD.md#1-owner-action-required), and **never appended here** — so for the 64
 runs from 143 to 206 the file the operating card names canonical, and which DASHBOARD's own header
@@ -7078,7 +7087,7 @@ minutes. Full packet: **[ops/SUBMISSION-ooh-directory.md](SUBMISSION-ooh-directo
 
 ---
 
-### **Card 1 of 4 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
+### **Card 1 of 3 — and it has no deadline.** — raised 2026-09-04 20:35 Sydney (10:35 UTC), run 137
 
 **Submit `/sportstech` to `plenaryapp/awesome-rss-feeds`, whenever you next have two minutes.**
 Field values, both paths, and what must not go in it:
@@ -7124,6 +7133,20 @@ that is no longer admissible.
 **Kept below, and no longer the live card — the `awesome-rss-feeds` submission card as written at run
 107.** Every reading in it was true when written, and it is the exact card that resumes when A4 is next
 satisfied. **Its A4 row is now expired — do not act on it without a fresh production read.**
+
+### **ACTION REQUIRED · HIGH — read one Cloudflare page.** *(CLEARED 2026-10-03 10:32:18Z — the outage recovered on the next push, with no owner action taken and none needed)*
+
+**Raised at 20:45 Sydney and cleared at 21:32 Sydney, inside the same run.** The card asked the owner to read Cloudflare → Workers & Pages → `attention-feed` → Builds and report which of three faults it showed. **Then the push carrying the card deployed in 29 seconds.** [verify production 37116713056](https://github.com/in-c0/tuned/actions/runs/37116713056) on [`e8d9af2`](https://github.com/in-c0/tuned/commit/e8d9af2): step 5 satisfied at `10:32:18Z`, **25 of 26 downstream assertions passed and one skipped**, and the serving build **contains every commit the outage had stranded** — `53b861d`, `c98f5f2`, `d45e9cb`. **Production is not behind by anything.**
+
+**Nothing the owner did cleared it, and nothing this loop did either beyond pushing.** No Cloudflare setting was touched (no credential exists here), no revert was made, no build was retried. Between `05:26Z` and `10:31Z` the Cloudflare side resumed on its own — a drained queue or a resolved incident; **which of those it was is still not readable from this session, and is still not guessed at.** The outage ran `04:16Z → 10:32Z`, **6h16m**, stranding three commits, none of which changed a byte of `src/`.
+
+**The card was wrong in the one direction a card must not be: it asked a human for something that was about to stop being true.** Its own text said *"three further pushes did not clear it, so 'the next push fixes it' has already been falsified three times"* — and the fourth push cleared it. Run 216 had written the same shape as a prediction: *"until it is cleared every later run of this loop will also fail to deploy."* **Both sentences were forecasts about infrastructure, and this repository has now been wrong about that three cycles running.** [L-137](LESSONS.md#l-137).
+
+**What is preserved from it.** The diagnostic the card rested on stands and is the useful part: `npm ci && npm run check` — the exact Workers Builds command — **exits 0 on a fresh shallow clone** of `master`'s tip, so the repository was never the cause. **And the watchdog finding stands independently of the recovery:** `deploy-staleness` left a real 6h16m outage unalarmed for **4h18m past due** because its hourly cron delivered **zero of five** firings, which is [L-136](LESSONS.md#l-136) and is not undone by the pipeline recovering.
+
+**What the owner should do about the alarm comment.** [Comment 5968183197](https://github.com/in-c0/tuned/issues/1#issuecomment-5968183197) and the phone notification that followed it are **superseded — please ignore both.** The next `deploy-staleness` run reads green on its own; one per outage means it will not repeat.
+
+---
 
 ### **ACTION REQUIRED · HIGH — open one issue at a public GitHub repository. ~2 minutes. No spend, no credential to install, nothing to configure.** *(RETIRED 2026-08-31 04:14:13 UTC — A4 lapsed unused)*
 
