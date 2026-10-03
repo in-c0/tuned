@@ -87,11 +87,16 @@ untouched, and the only find-page fetch this loop made is the one **Amendment 2 
 touched) · ops suite **468/468** · 14 workflows · **21** nominations · **0** vulnerabilities ·
 `doc-anchors`, `owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok
 
-**PRODUCTION DID NOT TAKE THE MERGE, AND THIS CYCLE IS NOT CLAIMED AS DEPLOYED.**
+**PRODUCTION IS NOT DEPLOYING `master` AT ALL, AND THIS CYCLE IS NOT CLAIMED AS DEPLOYED.**
 [`verify production`](https://github.com/in-c0/tuned/actions/runs/37096717945) **failed** at step 5 on the
 push, and **twice more on dispatch** ([37097307953](https://github.com/in-c0/tuned/actions/runs/37097307953),
 [37098509985](https://github.com/in-c0/tuned/actions/runs/37098509985)) — **three 8-minute windows, 72
-polls, every one reading `c50e8c2`** where it expected `53b861d`. *"Expected commit never became live, and
+polls, every one reading `c50e8c2`** where it expected `53b861d`. **A fourth run then failed on a
+DIFFERENT commit** — [37099176265](https://github.com/in-c0/tuned/actions/runs/37099176265) on
+[`c98f5f2`](https://github.com/in-c0/tuned/commit/c98f5f2), the ops commit recording this very finding,
+pushed at 05:14 and never served either. **Four runs, two commits, 04:29 → 05:22, production pinned on
+`c50e8c2` throughout.** That moves the reading from *this commit did not land* to **`master` is not
+deploying**, which is a different and larger statement. *"Expected commit never became live, and
 nothing serving contained it."* All **26** downstream assertions **skipped**, so **no behavioural claim
 about the live site is made by this run at all.**
 
@@ -113,10 +118,12 @@ later run disagrees.
 session **by design** — no Workers credentials, and acquiring them is forbidden — so whether the build for
 `53b861d` **failed** or is **queued** is not establishable here, and is **not guessed at**.
 [`deploy-staleness`](../scripts/deploy-staleness.mjs) is the purpose-built watchdog for exactly this and
-carries a **90-minute grace**, so if the commit is still not serving by ~06:00Z it posts **one comment per
+carries a **90-minute grace**, so once its grace expires it posts **one comment per
 outage** on issue #1 without any run being present. **That is the mechanism run 150's incident built, doing
-its job.** Owner action, if it persists: Cloudflare dashboard → Workers & Pages → `attention-feed` →
-**Builds**, for the build of `53b861d`.
+its job.** **OWNER ACTION — an auth boundary and a mandatory stop condition, not something this loop can
+work around:** Cloudflare dashboard → Workers & Pages → `attention-feed` → **Builds**, and read the most
+recent build for `53b861d` / `c98f5f2`. Until it is cleared, **every later run of this loop will also fail
+to deploy**, with two operating days left.
 
 **A named channel is not a customer.** `applications` **0** · `members` **1** · `followers` **0** ·
 `items_public` **100** · `stars` **8** (all `stars_owner`) · `members_ever_active` **0** · gross cash
