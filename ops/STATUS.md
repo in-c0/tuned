@@ -1,5 +1,101 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-03 15:40 Sydney (2026-10-03 04:40 UTC), run 216 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The arrival channel this project
+spent six cycles unable to name has a name — `www.google.com` — and Fork B is no longer a single day.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 296 at `2026-10-02T10:15:23.798Z`, **18h** old, **zero** scheduled screens certainly
+delivered since. Nothing published, amended or retracted. The schedule was **not armed**: EXP-013's
+threshold 2 is still unruled, run 153's pre-commitment stands, and **owner card 3 now has two days on its
+clock.**
+
+**Run 215's candidate 1 was executable, but not on the snapshot it predicted — so the snapshot was
+dispatched.** Run 215 recorded that `metrics-snapshot.yml`'s `15 0 * * *` cron *"captures the closed day …
+so the reading belongs to the next run"*. At `04:16Z` — **4h01m past that cron's nominal time** — it had
+not fired, and the newest committed snapshot was the **`40 20 * * *`** cron delivered **3h18m late** at
+`generated_at` `2026-10-02T23:58:16.139Z`, **1m44s short of the very day it was supposed to close.**
+Grading on it would have called a **99.88%-complete** day whole; deferring would have been the third
+consecutive cycle on a window that closes today. One `workflow_dispatch` —
+[37095987390](https://github.com/in-c0/tuned/actions/runs/37095987390) →
+[`c50e8c2`](https://github.com/in-c0/tuned/commit/c50e8c2), **18 seconds** — settled it.
+**A deferral whose release condition is another machine's schedule is a bet, and this repository already
+held the odds.** [L-135](LESSONS.md#l-135).
+
+**2026-10-02 grades Fork B. It is the window's second, and the caveat every report has carried since run
+210 is retired.** `item_view` **1** · `item_view_search` **1** · `item_view_referred` **1** ·
+`item_render` **1** · `item_view_onsite` **absent**. **VERDICT B is unchanged and still final on
+2026-09-30 — what changed is that it no longer rests on one day of five but on two of six**, two days
+apart, with the same shape. 2026-10-03 is the single day still outstanding, and its snapshot condition is
+stated rather than forecast: **gradeable once a snapshot's `generated_at` is at or after
+`2026-10-04T00:00Z`.**
+
+**Amendment 2's bracket on that day was owed and is closed, with one dispatch instead of two.** Run 212's
+far-side observation for 2026-09-30 (`2026-10-01T22:25:42.707Z`) is **also 2026-10-02's near side**, so
+only the far side was missing. [qa-browser 37096183219](https://github.com/in-c0/tuned/actions/runs/37096183219)
+against build `c50e8c2`: `item_render` **1**, production **204**, page / console / first-party-HTTP errors
+**0 / 0 / 0**, `/sportstech/296` from a live sitemap of **100** find pages, `measured_at`
+**2026-10-03T04:20:31.523Z** — 4h20m after the day ended. The reading printed *"Bracket owed: 2026-10-02
+graded Fork B with the far side missing"* before that entry and does not after; **nothing else in the
+reading moves.** The headless user-agent lands every increment in `_bot`, so no graded name was written.
+
+**Then Fork B's registered next action, discharged rather than carried a seventh cycle.** Its text is
+*"the first evidenced arrival channel that needs nobody's permission, and it **outranks every other
+candidate available to the loop**"*. Runs 210–212 carried it unexecutable; run 213 built `referrer_days`
+so it could be executed; 214 and 215 carried it blocked on a row that had not arrived. **The row arrived
+on the first day the table existed:**
+
+```
+referrers 2026-10-02: www.google.com bot=1 count=12 · www.google.com bot=0 count=1 · www.justtuned.com bot=1 count=1
+```
+
+**`www.google.com`, not bot-flagged, one request — the first non-bot off-site referring host on record
+anywhere in this service.** The contract's cross-check is **exact on both flags**: referred `_bot` **13**
+against rows summing **13**, unsuffixed **1** against **1**, no `~over` and no `~invalid`, and the bot
+side is accounted for by run id — `verify-production.yml` ran **six** times that day at two referred
+requests each. `www.justtuned.com` is a crawler that resolved the `www` subdomain and is not an
+allowlisted engine, which is exactly why `item_view_search_bot` reads **12** against the referred **13**.
+
+**What this does not establish is stated before what it does.** **The owner is not excluded.** Tuned has
+exactly **one** member, and an owner who searches for their own site and clicks the result writes
+precisely these four names with `item_view_onsite` at zero; nothing this service stores can tell that
+from a stranger's arrival. A JS-executing crawler that declines to declare itself *and* presents a Google
+`Referer` is not excluded either. What **is** excluded is a first-party automated writer:
+`qa-browser.yml` **did not run at all** on 2026-10-02, and is `_bot` by construction regardless; no other
+caller in this repository fetches a find page. **The honest claim is one rendering browser reaching a find
+page from Google search, on the second day that shape has appeared.** It is not a visitor count, not a
+person established, not a subscriber and not a dollar. **Conversion on it was zero** — no follow, no RSS
+click, no desk follow, no application, no star, no login.
+
+**It settles one standing reading against its own evidence for the second time.** `site:justtuned.com` has
+returned **0 pages** on three readings over fifteen days while production has now recorded a
+Google-referred rendering arrival on **two separate days**. Run 212's relabelling — *"zero pages in the one
+backend this session can query"* — is confirmed, and the original phrasing *"Tuned is not indexed"* stays
+withdrawn.
+
+**No guard was added, and the one that suggested itself is why.** Failing `test:ops` when a B/C/F day's
+bracket is owed would be **red on data rather than on code** — a twice-daily automated snapshot commit
+could redden `check` on `master` with no human change, and after 2026-10-05 nobody is left to clear it.
+That is [L-134](LESSONS.md#l-134)'s shape pointed the other way. The bracket mechanism was already proved
+non-vacuous in both directions by run 212's tests, so **non-vacuity here is the before/after reading.**
+
+**Nothing in `src/`, no schema, no route, no counter, no workflow, no dependency, no privacy or terms
+text.** EXP-014's binding clauses hold by name: `item_render`'s emitter unedited, `SEARCH_REFERRERS`
+untouched, and the only find-page fetch this loop made is the one **Amendment 2 requires**.
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file
+touched) · ops suite **468/468** · 14 workflows · **21** nominations · **0** vulnerabilities ·
+`doc-anchors`, `owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok
+
+**A named channel is not a customer.** `applications` **0** · `members` **1** · `followers` **0** ·
+`items_public` **100** · `stars` **8** (all `stars_owner`) · `members_ever_active` **0** · gross cash
+**AUD $0**, from *no billing exists*. Source: [`ops/metrics/latest.json`](metrics/latest.json) `totals`,
+generated `2026-10-03T04:16:35.046Z`. **This is the forty-second consecutive cycle whose output is not a
+user or a dollar, and I am not dressing it up** — what it is instead is the first cycle in which this
+project can say *where* an arrival came from.
+
+---
+
 **Last updated:** 2026-10-03 09:40 Sydney (2026-10-02 22:40 UTC), run 215 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **Three documents state the date
 this loop stops and no mechanism knew it, so the only watchdog watching the loop was going to page the

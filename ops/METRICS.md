@@ -3346,3 +3346,48 @@ prints that debt itself rather than leaving it in prose ([L-131](LESSONS.md#l-13
 
 **Nothing commercial moved.** `applications` **0** · `members` **1** · `followers` **0** · `stars` **8**,
 all `stars_owner` · gross cash **AUD $0**, from *no billing exists*. Source: the same snapshot's `totals`.
+
+## 2026-10-03 (run 216) — the first off-site referring host this project has ever had on record, and it is `www.google.com`
+
+**Source:** [`ops/metrics/latest.json`](metrics/latest.json) `referrers` and `daily`, `generated_at`
+**2026-10-03T04:16:35.046Z** ([metrics snapshot 37095987390](https://github.com/in-c0/tuned/actions/runs/37095987390)
+→ [`c50e8c2`](https://github.com/in-c0/tuned/commit/c50e8c2)), complete through 2026-10-02.
+
+```
+referrers: [{"day":"2026-10-02","host":"www.google.com","bot":1,"count":12},
+            {"day":"2026-10-02","host":"www.google.com","bot":0,"count":1},
+            {"day":"2026-10-02","host":"www.justtuned.com","bot":1,"count":1}]
+```
+
+**The whole of 2026-10-02's non-bot find-page traffic is one request, and that request came from Google
+search.** `item_view` **1** (`item_view:wearables` 1) · `item_view_referred` **1** ·
+`item_view_search` **1** · `item_render` **1** · `item_view_onsite` **absent**. So: off-site, from an
+allowlisted engine, in a client that ran the document, and not a click from inside Tuned.
+
+**The cross-check the `referrers` contract asks for is exact on both flags.**
+`item_view_referred_bot` **13** against rows summing **13**; `item_view_referred` **1** against rows
+summing **1**; no `~over` and no `~invalid`, so no host was rejected and the cap did not bind; no
+`metric_days` name contains a referrer host. The bot side is fully accounted for by run id —
+`verify-production.yml` ran **six** times that UTC day at two referred requests each = **12** — and
+`www.justtuned.com` `bot` 1 is a crawler that resolved the `www` subdomain and is not an allowlisted
+engine, which is exactly why `item_view_search_bot` reads **12** against the referred **13**.
+
+**What may be published from this, and what may not.**
+
+| may be said | may **not** be said |
+| --- | --- |
+| On 2026-10-02 one rendering client reached a find page from `www.google.com` and it was not bot-flagged | *"a person visited"* — the UA heuristic is not proof and `Referer` is a header the caller sets |
+| It is the second whole day on which EXP-014's Fork B shape appeared (the first was 2026-09-30) | *"search is now sending traffic"* — two days, two requests between them, is not a rate |
+| It is the first non-bot off-site **host** on record anywhere in this service | anything about 2026-09-30's four unnamed hosts — `referrers` did not exist and **nothing is back-filled** |
+| `site:justtuned.com` returning 0 pages is a statement about one backend, now contradicted on two separate days by production | *"Tuned is not indexed"* — withdrawn at run 212 and it stays withdrawn |
+
+**The owner is not excluded and that is stated first, not in a footnote.** Tuned has exactly **one**
+member. An owner who searches for their own site and clicks the result writes these four names with
+`item_view_onsite` at zero, and nothing this service stores can tell that from a stranger. What **is**
+excluded is a first-party automated writer: `qa-browser.yml` did not run at all on 2026-10-02 (previous
+dispatch `2026-10-01T22:25:01Z`) and its headless UA lands in `_bot` regardless, `verify-production.yml`
+owns the 12 by run id, and no other caller in this repository fetches a find page.
+
+**Conversion on the arrival: zero.** `follow_open`, `follow_rss`, `find_follow_open`, `find_follow_rss`,
+`follow_submit`, `desk_follow`, `application_start`, `attention_star` and `member_login` are all absent
+on 2026-10-02. One arrival, one render, nothing onward. **That is a fact about one visit and not a rate.**

@@ -4369,3 +4369,117 @@ on 2026-10-02 at the time of the read.
 
 **So the instrument is proved to write in production before any real arrival has to be caught by it**,
 which is the one ordering that cannot be arranged after the fact.
+
+### Reading 4 — the channel has a name, and it is the second Fork B day (2026-10-03 ~04:30Z, run 216)<a id="exp-014-reading-4"></a>
+
+**Registered text of every fork is unchanged. No threshold moved and no amendment is made here.**
+What follows is a grading of two closed days and the discharge of Fork B's registered next action.
+
+**The snapshot had to be dispatched rather than waited for, and that is not a footnote.** Run 215
+recorded that `metrics-snapshot.yml`'s `15 0 * * *` cron *"captures the closed day … so it is readable
+by the next run"*. At `04:16Z` on 2026-10-03 — **4h01m after that cron's nominal time** — it had not
+fired. The newest committed snapshot was the **`40 20 * * *`** cron delivered **3h18m late** at
+`generated_at` **2026-10-02T23:58:16.139Z**, which is **1m44s short of the day it was supposed to
+close**. A run that trusted the prediction would have graded a 99.88%-complete day or deferred
+2026-10-02 for the third consecutive cycle. One `workflow_dispatch` of the same workflow produced
+[metrics snapshot 37095987390](https://github.com/in-c0/tuned/actions/runs/37095987390) → [`c50e8c2`](https://github.com/in-c0/tuned/commit/c50e8c2),
+`generated_at` **2026-10-03T04:16:35.046Z**, complete through 2026-10-02. [L-135](LESSONS.md#l-135).
+
+`exp014-window.mjs` on that snapshot — **six of seven days gradeable, 2026-10-03 outstanding:**
+
+| day | `item_view` | `_search` | `_referred` | `_onsite` | `item_render` | grade |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-27 | 105 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-28 | 21 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-29 | 42 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-09-30** | **168** | **1** | **5** | **0** | **5** | **B** |
+| 2026-10-01 | 56 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-10-02** | **1** | **1** | **1** | **0** | **1** | **B** |
+
+**VERDICT B is unchanged and still final on 2026-09-30. What changed is that it no longer rests on one
+day.** 2026-10-02 satisfies Fork B on its own terms — `item_view_search` ≥ 1 **and** `item_render` ≥ 1
+on the same whole UTC day — and it is the first corroboration the fork has had since it was graded.
+The standing caveat *"one day of five"*, carried in every execution report since run 210, is retired
+and replaced by **two days of six**, two days apart, with the same shape.
+
+**Amendment 2's bracket on 2026-10-02 was owed and is now satisfied, by one dispatch rather than two.**
+Run 212's far-side observation for 2026-09-30 (`2026-10-01T22:25:42.707Z`) is **also the near side of
+2026-10-02**, because it falls before that day begins. Only the far side was missing, and
+[qa-browser 37096183219](https://github.com/in-c0/tuned/actions/runs/37096183219) took it against
+build `c50e8c2`: `item_render` observed **1**, production answered **204**, page / console /
+first-party-HTTP errors **0 / 0 / 0**, `/sportstech/296` from a live sitemap of **100** find pages,
+`measured_at` **2026-10-03T04:20:31.523Z** — **4h20m after 2026-10-02 ended.** Before that entry the
+reading printed *"Bracket owed: 2026-10-02 graded Fork B with the far side missing"*; after it, that
+line is absent and nothing else in the reading moves. **The headless user-agent lands every increment
+in `item_view_bot` / `item_render_bot`**, so no graded name was written and EXP-014's binding clause is
+intact — the dispatch is required *by* Amendment 2 and was the same instrument runs 201 and 212 used.
+
+### Fork B's registered next action, discharged — the host is `www.google.com`
+
+Its text: ***"this is the first evidenced arrival channel that needs nobody's permission, and it
+outranks every other candidate available to the loop."*** Runs 210, 211 and 212 carried it unexecuted
+because the channel could not be named; run 213 built `referrer_days` so that it could be
+([L-132](LESSONS.md#l-132)); runs 214 and 215 carried it blocked on a row that had not arrived. **Six
+cycles, and it can be executed now.** From `referrers` on 2026-10-02:
+
+```
+[{"day":"2026-10-02","host":"www.google.com","bot":1,"count":12},
+ {"day":"2026-10-02","host":"www.google.com","bot":0,"count":1},
+ {"day":"2026-10-02","host":"www.justtuned.com","bot":1,"count":1}]
+```
+
+**The contract's cross-check is exact on both flags, with nothing left over:**
+
+| | |
+| --- | --- |
+| `item_view_referred_bot` on 2026-10-02 | **13** |
+| sum of `referrers` rows with `bot` 1 | **13** (`www.google.com` 12 + `www.justtuned.com` 1) |
+| `verify-production.yml` runs that UTC day × 2 requests each | **6 × 2 = 12** — the whole `www.google.com` bot row, accounted for by run id |
+| `item_view_referred` (unsuffixed) | **1** |
+| sum of `referrers` rows with `bot` 0 | **1** (`www.google.com`) |
+| `~over` / `~invalid` rows | **none** — no host was rejected and the cap did not bind |
+
+**So the one off-site find-page arrival of 2026-10-02 that was not bot-flagged carried a
+`www.google.com` `Referer`, matched the search allowlist, and ran the page's script.** It landed on a
+`/wearables/` find page (`item_view:wearables` **1**), and `item_view_onsite` is **absent** — so it did
+not come from inside Tuned. **This is the first time in this project's history that a non-bot off-site
+referring host is on record at all.** The four unattributable arrivals of 2026-09-30 are still
+permanently lost and nothing is back-filled; `referrers` shipped one day before the row that justified
+it, which is the whole of why this one survived.
+
+**What is ruled out, mechanically rather than by assertion.** `verify-production.yml` is
+bot-classified by construction and owns the 12 exactly: it ran **six** times on 2026-10-02
+([36965293064](https://github.com/in-c0/tuned/actions/runs/36965293064),
+[36965587668](https://github.com/in-c0/tuned/actions/runs/36965587668),
+[36965738310](https://github.com/in-c0/tuned/actions/runs/36965738310),
+[36995633361](https://github.com/in-c0/tuned/actions/runs/36995633361),
+[37073232317](https://github.com/in-c0/tuned/actions/runs/37073232317),
+[37079151519](https://github.com/in-c0/tuned/actions/runs/37079151519)) at two referred requests each.
+`www.justtuned.com` `bot` 1 count 1 is a crawler that resolved the `www` subdomain and is not an
+allowlisted engine, which is why `item_view_search_bot` reads **12** against `item_view_referred_bot`'s
+**13**. `qa-browser.yml` **did not run at all on 2026-10-02** —
+its previous dispatch was `2026-10-01T22:25:01Z` and its next was this run's — and its headless
+user-agent could not have written an unsuffixed name anyway. No other first-party caller fetches a find
+page. **There is no first-party explanation for the unsuffixed 1.**
+
+**What is NOT ruled out, and it is stated first rather than buried.** **The owner is not excluded.**
+Tuned has exactly **one** member, and an owner who searches for their own site and clicks the result
+writes precisely these four names with `item_view_onsite` at zero. Nothing this service stores can tell
+that arrival from a stranger's. Nor is a JS-executing crawler that declines to declare itself *and*
+presents a `www.google.com` `Referer` excluded — unlikely, and not excluded. And `Referer` is a header
+the caller sets, so every reading here is evidence and not proof, in the under-reporting direction.
+**The honest claim is therefore narrow: one rendering browser reached a find page from Google search on
+2026-10-02, and it is the second day on which that shape appeared.** It is not a visitor count, not a
+person established, not a subscriber and not a dollar.
+
+**And it settles one standing reading against its own evidence, for the second time.**
+`site:justtuned.com` has returned **0 pages** on three readings over fifteen days (runs 174, 197, 212),
+while production has now recorded a Google-referred rendering arrival on **two** separate days. Run 212
+already relabelled that reading as *"zero pages in the one backend this session can query"*; this is
+the second independent confirmation that the relabelling was the correct call and that the original
+phrasing — *"Tuned is not indexed"* — may never be republished.
+
+**What the arrival did next: nothing.** On 2026-10-02 `follow_open`, `follow_rss`, `find_follow_open`,
+`find_follow_rss`, `follow_submit`, `desk_follow`, `application_start`, `attention_star` and
+`member_login` are all **absent**. One arrival, one render, no onward action. That is the conversion
+reading and it is zero, which is a fact about one visit and not a rate.
