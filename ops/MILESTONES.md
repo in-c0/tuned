@@ -284,8 +284,14 @@ the ladder above feeds the 1-week horizon rather than this one.*
 - **Status:** **not started.** *Note: this horizon extends past the 2026-10-05 autonomous operating
   date — the executor will have closed out; this is the owner's to carry.*
 - **Blocker:** everything above.
-- **Next action:** at closeout, hand over an honest cohort table rather than a summary.
-- **Last evidence-linked update:** none yet — no cohort exists.
+- **Next action:** **DISCHARGED 2026-10-04 (run 218).** The cohort table is handed over in
+  [CLOSEOUT.md](CLOSEOUT.md) § 2, and it is honest by being empty: `members_total` **1**,
+  `members_ever_active` **0**, week-1 and week-4 return **0**, renewals **0** — *no billing exists*.
+  What it hands over that a summary would have lost: **the retention instrument is deployed and
+  silent, not missing**, so whoever carries this horizon needs arrivals rather than measurement.
+  [`scripts/closeout.test.mjs`](../scripts/closeout.test.mjs) fails `check` if the table is removed.
+- **Last evidence-linked update:** 2026-10-04 — [`ops/metrics/latest.json`](metrics/latest.json)
+  `totals` and `retention`, `generated_at` 2026-10-03T05:19:34.043Z. **No cohort exists.**
 
 ## 6 months — by 2027-02-08
 

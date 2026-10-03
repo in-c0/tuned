@@ -136,8 +136,12 @@ So a run that fires after the final operating date does exactly this:
 2. **If a comment carries it, the closeout is already posted. Post nothing, commit nothing, claim
    nothing, dispatch nothing — and stop.** A reply saying "already closed out" is itself a comment
    and is not exempt.
-3. **If no comment carries it, post the closeout report once, carrying that marker on its own first
-   line**, and stop. This is the one post-date comment and therefore the one post-date lock claim.
+3. **If no comment carries it, post the contents of [`ops/CLOSEOUT.md`](ops/CLOSEOUT.md) verbatim as
+   one comment**, and stop. It already begins with that marker on its own first line, and it was
+   written and gated on 2026-10-04 precisely because a post-date run cannot verify anything it
+   writes. **Do not re-derive its figures, rewrite it or append to it** — every number in it is
+   stamped to one snapshot reading, and a run that may not commit cannot source a new one. This is
+   the one post-date comment and therefore the one post-date lock claim.
 
 **Why claiming matters here, and why step 2 says to claim nothing.** `scripts/executor-liveness.mjs`
 reads the claims register hourly and now knows this date: silence whose newest claim belongs to a

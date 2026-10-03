@@ -6297,3 +6297,49 @@ number reached issue #1.
   card, and whether a card's first row is a liveness test is an argument a parser cannot grade
   ([owner-cards.mjs](../scripts/owner-cards.mjs) says as much about judging a card's body). **The checkable
   habit is the ordering**: open a card on a self-clearing condition and the first row names the one-step test.
+
+## L-138 — the one deliverable whose only possible author was forbidden to write it, and why two correct runs both declined it (2026-10-04, run 218)<a id="l-138"></a>
+
+**What happened.** Three files promised a closeout — [MILESTONES.md](MILESTONES.md)'s reference dates, its
+3-month horizon (*"at closeout, hand over an honest cohort table rather than a summary"*) and
+[DASHBOARD.md](DASHBOARD.md)'s mirror of it — and for the whole 60-day window no such document existed. Runs
+216 and 217 both named writing it as a next candidate, and **both declined it**, in favour of a reading tied
+to a day that had just closed.
+
+**Neither decision was wrong on its own terms, and that is the whole finding.** A one-shot reading on a
+closing window genuinely outranks a document with no deadline attached to it: defer the reading and the
+evidence is gone, defer the document and it is still there tomorrow. The closeout therefore **lost every
+tiebreak it was ever in** — and it would have lost the last one too, except that there was no tomorrow left
+to lose it to. [L-26](LESSONS.md#l-26)'s shape, arrived at from the other direction: not *becomes harder*,
+but **becomes impossible, on a date three documents already named.**
+
+**The asymmetry that makes it sharper than ordinary deferral.** [CLAUDE.md](../CLAUDE.md) binds a run firing
+after 2026-10-05 to make no changes — no commit, no claim, no dispatch. So the closeout's **only possible
+author is a run that is forbidden to author it.** A post-date run would have had to compose it live from
+3,000-line `ops/` files, with no ability to run one check on one number, against a hard rule that no
+published number may be unsourced. "A later run will write it" was not a deferral to a worse time; it was a
+deferral to a run with **no capability to do it at all.**
+
+**And it is [L-133](LESSONS.md#l-133) for the seventh time, with the twist that the party was in scope.**
+Every earlier instance of this failure addressed an obligation to a party that had stopped reading — an
+absent reviewer, an unread artifact, a section nobody is obliged to reach. This one was addressed to *the
+next run of this loop*, which **is** obliged to read `CLAUDE.md` and the previous report, and it was still
+dropped twice. **An obligation with a reader but no release condition is as droppable as one with no
+reader**, because every cycle it is correctly outranked by something that has one.
+
+**The remedy, and what it deliberately is not.** `ops/CLOSEOUT.md` is committed while a run can still gate
+it, carrying the `<!-- tuned-closeout -->` dedup marker on its own first line, and `CLAUDE.md`'s post-date
+step 3 now says to post **that file's contents verbatim** and forbids re-deriving its figures.
+[`scripts/closeout.test.mjs`](../scripts/closeout.test.mjs) fails `check` if the file is missing, if the
+marker is not line 1, if the two files spell the marker differently, if the body exceeds a GitHub comment,
+if it stops naming its snapshot and `generated_at` stamp, if `CLAUDE.md` stops pointing at it, or if the
+promised cohort table goes. Each of the seven was broken and observed to redden before shipping.
+
+- **Prevention check:** what makes it a mechanism and not a resolution is that the figures are **stamped to
+  one snapshot reading** rather than compared against the live one. A test asserting they equal today's
+  `ops/metrics/latest.json` would let a twice-daily automated snapshot commit redden `master` with no human
+  change — **red on data, not on code** — and after 2026-10-05 nobody is left to clear it. That is
+  [L-134](LESSONS.md#l-134)'s own trap pointed the wrong way, and run 216 declined the same construction for
+  the same reason. **The general rule: when a deliverable's deadline is the date your own authority ends,
+  it has no tiebreak left to win — build it on the first cycle that notices, and give what remains a release
+  condition instead of a priority.**

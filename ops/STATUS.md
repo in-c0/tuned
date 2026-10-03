@@ -1,5 +1,81 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-04 09:15 Sydney (2026-10-03 22:15 UTC), run 218 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The closeout exists. It was the one
+deliverable in this project whose only possible author was a run that is forbidden to write it, and two correct
+runs had already declined it.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 297 at `2026-10-03T10:15:34.311Z`, **12h** old, **zero** scheduled screens certainly
+delivered since. Nothing published, amended or retracted. **The schedule was not armed:** EXP-013's threshold 2
+is still unruled and run 153's pre-commitment stands — owner card 3, now with **one day** on its clock.
+
+**Run 217's candidate 1 was not available to this run, and the reason is the clock rather than a judgement.**
+EXP-014's last outstanding day, 2026-10-03, grades on a snapshot whose `generated_at` is at or after
+`2026-10-04T00:00Z`. This run fired at **`22:15Z` on 2026-10-03** — **before the UTC day it would grade had
+closed at all.** Stated as the artifact's own property and not as a forecast ([L-135](LESSONS.md#l-135)); the
+newest snapshot is `2026-10-03T05:19:34.043Z`, complete through 2026-10-02. **Nothing was graded on a partial
+day and no grade moved.** The next run settles it with one `metrics-snapshot.yml` dispatch.
+
+**So the cycle took the one thing that becomes impossible rather than merely harder.** Three files promised a
+closeout — [MILESTONES.md](MILESTONES.md)'s reference dates, its 3-month horizon (*"at closeout, hand over an
+honest cohort table rather than a summary"*) and [DASHBOARD.md](DASHBOARD.md)'s mirror — and **none existed.**
+Runs 216 and 217 both named it a next candidate and **both declined it**, each correctly preferring a reading
+tied to a day that had just closed. **A document with no deadline loses every tiebreak it is ever in**, and
+this one had one more tiebreak left to lose.
+
+**The asymmetry is what makes it this run's action and not the next one's.** [CLAUDE.md](../CLAUDE.md) binds any
+run firing after 2026-10-05 to make no changes — no commit, no claim, no dispatch. **The closeout's only
+possible author is therefore a run that is forbidden to author it.** A post-date run would have composed it
+live from 3,000-line `ops/` files, with no ability to run one check on one number, against the hard rule that
+no published number is unsourced. *"A later run will write it"* was not a deferral to a worse time but to a run
+with **no capability to do it at all.** [L-138](LESSONS.md#l-138).
+
+**[`ops/CLOSEOUT.md`](CLOSEOUT.md) — 18,267 characters, written to be posted rather than summarised.** It
+carries the `<!-- tuned-closeout -->` dedup marker on its **own first line**, so the posted comment holds it
+where the post-date search needs it, and `CLAUDE.md`'s post-date step 3 now names the file and **forbids
+re-deriving its figures**. Nine sections: the commercial result · the cohort table two files promised · what
+exists and works in production · what was actually learned · every milestone grade · the three open owner cards
+· **what keeps running after this loop stops** · what to do first if someone picks Tuned up · where the record
+lives.
+
+**The commercial result is stated without softening, because that is the result.** Gross cash **AUD $0** ·
+`applications` **0** · `members` **1**, the owner · `members_ever_active` **0** · `followers` **0** ·
+`items_public` **100** (reads **101** next snapshot; item 297 postdates it) · `stars` **8** / `skips` **33**,
+**all of them `_owner`** — the subtraction for non-owner attention is exact and it is **zero**. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `totals` and `retention`, generated
+**`2026-10-03T05:19:34.043Z`**, complete through 2026-10-02. **Forty-fourth consecutive cycle whose output is
+not a user or a dollar.**
+
+**The cohort table is handed over empty rather than replaced by a sentence, and the empty table says more.**
+`members_total` 1 · week-1 and week-4 return 0 · renewals 0, *no billing exists*. What it preserves is the
+distinction: **the instrument that would observe retention is deployed and silent, not missing** — retention
+became computable at `feb6c4f` and has recorded nothing since — so the next operator needs **arrivals, not
+measurement**. MILESTONES' 3-month next action is marked **DISCHARGED** against it.
+
+**One unsourced figure was caught in the draft and corrected before the commit.** It read *"~60 counter
+families"*; the snapshot's own `daily` array holds **38** distinct counter names, **69** counting per-feed and
+per-tag splits. The hard rule binds the closeout harder than any other report, because **it is the one report
+nobody can post a correction to.**
+
+**The guard is structural, and the omission is deliberate.**
+[`scripts/closeout.test.mjs`](../scripts/closeout.test.mjs) fails `check` if the file is gone, if the marker is
+not line 1, if `CLAUDE.md` and the file spell the marker differently, if the body outgrows a GitHub comment
+(bound 60,000 against the 65,536 limit), if it stops naming its snapshot and stamp, if the card stops pointing
+at it, or if the cohort table goes. **All seven were broken and observed to redden before shipping.** A test
+comparing the figures to the *live* snapshot was **not** written: a twice-daily automated snapshot commit could
+then redden `master` with no human change, and after 2026-10-05 nobody is left to clear it — that is
+[L-134](LESSONS.md#l-134)'s own trap pointed the wrong way, declined on run 216's ground.
+
+**Nothing in `src/`, no schema, no route, no counter, no workflow, no dependency, no privacy or terms text, and
+no product-surface act at all this cycle** — the gate owed nothing, so nothing was published.
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **475/475** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
+
+---
+
 **Last updated:** 2026-10-03 21:40 Sydney (2026-10-03 11:40 UTC), run 217 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged — a fourth card was raised and cleared inside this run.** **A 6h16m deploy outage ended on this
 run's own push, 47 minutes after the card asking the owner to diagnose it went up; the repository was mechanically
