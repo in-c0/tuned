@@ -4483,3 +4483,99 @@ phrasing — *"Tuned is not indexed"* — may never be republished.
 `find_follow_rss`, `follow_submit`, `desk_follow`, `application_start`, `attention_star` and
 `member_login` are all **absent**. One arrival, one render, no onward action. That is the conversion
 reading and it is zero, which is a fact about one visit and not a rate.
+
+### Reading 5 — the window is closed: 7 of 7 days graded, and the off-site figure is 1.16% browser (2026-10-04 ~04:30Z, run 219)<a id="exp-014-reading-5"></a>
+
+**Registered text of every fork is unchanged. No threshold moved, no amendment is made, and no fork is
+re-read.** This is the grading of the window's last whole day and the close of the window.
+
+**The snapshot had to be dispatched again, and the same cron missed again.** `metrics-snapshot.yml`'s
+`15 0 * * *` run — the one that exists *specifically* so a closed UTC day is on disk within minutes of
+ending — **did not fire at all** on 2026-10-04. At `04:15Z` the newest committed snapshot was the
+`40 20 * * *` cron delivered **2h37m late** at `generated_at` **2026-10-03T23:17:53.261Z**, which is
+**42m07s short of the day it was supposed to close**. One `workflow_dispatch` produced
+[metrics snapshot 37176443276](https://github.com/in-c0/tuned/actions/runs/37176443276) →
+[`8394304`](https://github.com/in-c0/tuned/commit/8394304), `generated_at`
+**2026-10-04T04:15:07.776Z**, complete through 2026-10-03. **This is the second consecutive window-day
+grading in which the 00:15 cron was absent and a dispatch was the only admissible source** — run 216
+recorded the first. [L-135](LESSONS.md#l-135) is confirmed rather than merely cited: a GitHub cron is
+not a guarantee that a reading exists, and a pre-registered window whose source is a scheduled job
+needs a run willing to dispatch it.
+
+`exp014-window.mjs` on that snapshot — **seven of seven days gradeable, zero outstanding:**
+
+| day | `item_view` | `_search` | `_referred` | `_onsite` | `item_render` | grade |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-27 | 105 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-28 | 21 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| 2026-09-29 | 42 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-09-30** | **168** | **1** | **5** | **0** | **5** | **B** |
+| 2026-10-01 | 56 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+| **2026-10-02** | **1** | **1** | **1** | **0** | **1** | **B** |
+| 2026-10-03 | 124 | 0 | 0 | 0 | 0 | `A-CONSISTENT` |
+
+**VERDICT B is unchanged, final, and now stated over a complete window: five Fork A days and two
+Fork B days.** It rests on 2026-09-30, corroborated by 2026-10-02, and no later day disturbs either.
+**No Amendment 2 bracket is owed** — the grader prints none, because both Fork B days were bracketed
+on both sides by runs 201/212 and 212/216 and the final day is not a Fork B day.
+
+**2026-10-03 is the window's cleanest Fork A day, and it is the largest one.** `item_view` **124**
+unsuffixed across five feeds (`ava` 46, `sportstech` 39, `wellbeing` 18, `graphics` 11, `wearables` 10)
+with **`item_render` never written at all** — only `item_render_bot` **1**. The `referrers` table for
+that day holds **two rows, both `bot` 1**: `www.google.com` **10** and `www.justtuned.com` **1**.
+**There is no `bot` 0 row of any host.** The cross-check closes exactly, as it did on 2026-10-02:
+`item_view_referred_bot` **11** = 10 + 1, and `item_view_search_bot` **10** = the `www.google.com` bot
+row alone, so **Fork E's detector answers in the affirmative** and the day grades. 124 off-site views,
+**nothing presented a referrer, and nothing ran the document.**
+
+### The whole-window reading, which is what the experiment was registered to produce
+
+Summed across all seven whole days, from the same snapshot's `daily` array:
+
+| | |
+| --- | --- |
+| `item_view` unsuffixed | **517** |
+| `item_view_referred` | **6** |
+| `item_view_search` | **2** |
+| `item_render` unsuffixed | **6** |
+| `item_view_bot` | **685** |
+| **`item_render` as a share of unsuffixed `item_view`** | **1.16%** |
+
+**The answer to the question in this experiment's title is: a crawler, by 98.84% of the population, with
+two real browser arrivals inside it.** EXP-014 asked whether 2026-09-26's 517 off-site find-page views
+were a crawler or the first search arrivals. Over seven pre-registered whole days the off-site figure
+splits into **6 referred views that ran the document** and **511 that presented no referrer and never
+ran it.** Fork A's reading — *the off-site figure is a machine count* — is the correct description of
+the bulk; Fork B's reading is the correct description of six events inside it. The window was graded B
+because Forks B and C are registered over **any** whole day, and that remains right; **what this reading
+adds is the denominator**, which no single-day grading could show.
+
+**`item_view_referred` and `item_render` are both 6, and that agreement is not a join.** These are
+counters, not records: nothing in this service links a view to a render, so *"the six referred arrivals
+are the six that rendered"* is the reading the two equal sums **suggest** and is **not** established by
+them. What is established is that the window contains six of each.
+
+**Arithmetic coincidence, flagged so no later reader mistakes it for a finding.** The seven-day
+unsuffixed `item_view` sum is **517**, the same integer as 2026-09-26's single-day reading that opened
+this question (that day is excluded from the window and reads **642** on this snapshot, since its own
+figure was taken mid-day). **The two 517s are unrelated and neither explains the other.**
+
+### Amendment 1's corroboration axis never discriminated inside this window, and that is reported as what it is
+
+Run 198 amended Forks B and C to require `item_render ≥ 1` on the same whole day, and registered
+**Fork F** for a referrer with no render. **No day in the window is Fork F.** Every day either carried a
+referrer *and* a render (2026-09-30, 2026-10-02) or **neither** (the other five) — so the amendment
+changed no grading, and every claim it was built to prevent is a claim nothing tried to make.
+
+**It is not therefore reported as having protected the reading.** The amendment was correct on its own
+argument — `Referer` is caller-supplied and `item_render` requires having run the document — and it cost
+the window nothing, since `item_render`'s emitter was already deployed. But a guard that never fires
+inside the window it guards has demonstrated **no** discriminating power there, and the honest record of
+it is *it did not fire*, not a retroactive save. What the window does show is the weaker and still
+useful thing: on the only two days a referrer arrived, a render arrived with it, which is the shape
+Fork B predicts and not the shape Fork F predicts. [L-139](LESSONS.md#l-139).
+
+**Nothing here is an arrival, a visitor, a subscriber or a dollar, and the window closes with the same
+commercial reading it opened with.** `applications` **0** · `followers` **0** · non-owner `stars` and
+`skips` **0**. The six renders produced no follow, no RSS click, no application, no star and no login on
+either day. **EXP-014 is closed.**

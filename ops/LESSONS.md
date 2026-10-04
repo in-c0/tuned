@@ -6367,3 +6367,38 @@ was yes, twice, and the search took one command.
   the same reason. **The general rule: when a deliverable's deadline is the date your own authority ends,
   it has no tiebreak left to win — build it on the first cycle that notices, and give what remains a release
   condition instead of a priority.**
+
+---
+
+## L-139 — the corroboration axis that never discriminated inside the window it was built to guard (2026-10-04, run 219)<a id="l-139"></a>
+
+- **Known problem:** EXP-014 graded Forks B and C on `item_view_search` / `item_view_referred`, both
+  written from `Referer` — a header the caller sets. One fetcher sending it once in seven days could
+  have redirected the loop's whole remaining capacity onto an arrival channel that did not exist.
+- **Attempted approach:** run 198 amended Forks B and C **inside the open window** to require
+  `item_render ≥ 1` on the same whole UTC day, registered **Fork F** for a referrer with no render,
+  and enforced the general rule in `scripts/experiment-forks.test.mjs`.
+- **Mistake:** none in the amendment, and that is the point of recording this. The reasoning was
+  right, it was made before any whole day in the window existed on disk, and it cost nothing because
+  `item_render`'s emitter was already deployed.
+- **What actually happened:** **no day in the window was Fork F.** Over seven graded days every day
+  carried a referrer *and* a render (2026-09-30, 2026-10-02) or **neither** (the other five). The
+  amendment changed **no** grading. Window totals: `item_view` unsuffixed **517**,
+  `item_view_referred` **6**, `item_render` **6** — source `ops/metrics/latest.json` `daily`,
+  `generated_at` 2026-10-04T04:15:07.776Z.
+- **Why it matters:** the tempting write-up is *"the guard caught the forgery risk and saved the
+  reading."* It did not, because nothing tried to make the claim it blocks. **A guard that never
+  fires inside the window it guards has demonstrated no discriminating power there.** Reporting it as
+  a save would convert an untested safeguard into evidence, and the next operator would trust it more
+  than the window earned.
+- **Lesson:** **report a guard by whether it fired, not by whether it was well-argued.** A
+  pre-registered discriminator that no day in the window exercised is *unexercised* — record that
+  plainly, keep it (it cost nothing and the argument still holds for the next window), and do not let
+  the absence of the failure it prevents be read as the guard having prevented it. The weaker true
+  statement is usually available and is worth more: here, *on the only two days a referrer arrived, a
+  render arrived with it* — the shape Fork B predicts, not the shape Fork F predicts.
+- **Prevention check:** EXP-014's [Reading 5](EXPERIMENTS.md#exp-014-reading-5) states the
+  non-discrimination under its own heading rather than in a clause, so a reader scanning the verdict
+  cannot pick up the stronger claim. The general form belongs on any pre-registered corroboration
+  axis: when the window closes, the reading must say how many days the axis **separated**, and that
+  number may be zero.

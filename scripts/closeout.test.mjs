@@ -60,8 +60,20 @@ const MARKER = "<!-- tuned-closeout -->";
 const MAX_COMMENT_CHARS = 60000;
 
 // The snapshot every figure in the report is read from, and the stamp that pins which reading.
+//
+// Deliberately a literal and not a read of ops/metrics/latest.json. Comparing the report against the
+// live snapshot would let a twice-daily automated snapshot commit redden master with no human change
+// -- red on data, not on code -- and after 2026-10-05 nobody is left to clear it (L-134's trap pointed
+// the wrong way; declined on that ground by runs 216 and 218). The cost of the literal is that
+// re-stamping the report is a two-file edit, and that is the intended friction: a run that moves the
+// stamp has to say so here, in the guard, rather than let the figures drift quietly.
+//
+// Moved 2026-10-03T05:19:34.043Z -> 2026-10-04T04:15:07.776Z by run 219, when EXP-014's window closed
+// and the newer snapshot turned the report's one predicted figure (items_public, written 100 with
+// "reads 101 on the next snapshot") into an observed 101. Every other figure in the report was
+// re-checked against the new reading and none of them moved.
 const SOURCE_FILE = "ops/metrics/latest.json";
-const SOURCE_STAMP = "2026-10-03T05:19:34.043Z";
+const SOURCE_STAMP = "2026-10-04T04:15:07.776Z";
 
 const read = (p) => fs.readFileSync(p, "utf8");
 

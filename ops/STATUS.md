@@ -1,5 +1,77 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-04 15:30 Sydney (2026-10-04 04:30 UTC), run 219 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3 is now hours from its deadline.**
+**EXP-014 is CLOSED: 7 of 7 days graded, and the off-site find-page figure is 1.16% browser.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read
+**CURRENT** — item 297 at `2026-10-03T10:15:34.311Z`, **18h** old, **zero** scheduled screens certainly
+delivered since. Nothing published, amended or retracted. **The schedule was not armed:** EXP-013's threshold
+2 is still unruled and run 153's pre-commitment stands — owner card 3, now with **hours** on its clock.
+
+**The one reading this loop had left became available at `00:00Z` and this run took it.** EXP-014's last
+outstanding day, 2026-10-03, grades on a snapshot whose `generated_at` is at or after `2026-10-04T00:00Z`.
+Run 218 fired at `22:15Z` on 2026-10-03 and correctly declined it — the UTC day had not closed. **This is the
+last pre-registered experiment window this loop can still grade**, and it is now graded.
+
+**The `15 0 * * *` snapshot cron did not fire, for the second consecutive window grading.** At `04:14Z` the
+newest committed snapshot was the `40 20 * * *` cron delivered **2h37m late** at `2026-10-03T23:17:53.261Z` —
+**42m06s short of the day it was supposed to close.** One `workflow_dispatch` →
+[metrics snapshot 37176443276](https://github.com/in-c0/tuned/actions/runs/37176443276) →
+[`8394304`](https://github.com/in-c0/tuned/commit/8394304), `generated_at` **2026-10-04T04:15:07.776Z**,
+complete through 2026-10-03. **[L-135](LESSONS.md#l-135) confirmed by instance, not merely cited.** The
+dispatch was checked against EXP-014's binding clauses *before* it was sent: a dispatch does probe production,
+but `scripts/prod-http.sh` declares `uptime` and classifies as bot, and its writes land on the **2026-10-04**
+row, which EXP-014 does not grade. **No graded name could be written and none was.**
+
+**VERDICT B is unchanged and FINAL, now stated over a complete window: five `A-CONSISTENT` days and two
+Fork B days.** No Amendment 2 bracket is owed — the grader prints none, and the final day is not a Fork B day.
+**2026-10-03 is the window's cleanest and largest Fork A day:** `item_view` **124** unsuffixed across five
+feeds, `item_render` **never written at all** (`item_render_bot` 1 only), and `referrers` holding **two rows,
+both `bot` 1** — cross-checking exactly to `item_view_referred_bot` **11** and `item_view_search_bot` **10**,
+with **no `bot` 0 row of any host.**
+
+**The denominator is the finding, and no single-day grading could produce it.** Over the seven days:
+`item_view` unsuffixed **517** · `item_view_referred` **6** · `item_view_search` **2** · `item_render` **6** ·
+`item_view_bot` **685** — **`item_render` is 1.16% of unsuffixed `item_view`.** So the off-site figure is a
+**machine count with two browser arrivals inside it**; **511** views presented no referrer and coincided with
+no render. `item_view_referred` and `item_render` are both **6**, and that agreement is **suggestive and not a
+join** — these are counters and nothing links a view to a render. Source:
+[`ops/metrics/latest.json`](metrics/latest.json) `daily`, `generated_at` `2026-10-04T04:15:07.776Z`.
+**Arithmetic coincidence, flagged so it is never read as a finding:** that 517 is the same integer as
+2026-09-26's single-day reading which opened the question. The two are unrelated.
+
+**Amendment 1's corroboration axis is reported as unexercised rather than as a save.** **No day in the window
+was Fork F** — every day carried a referrer *and* a render, or neither — so the `item_render` requirement run
+198 added inside the window **changed no grading.** It was well-argued, cost nothing and is kept; but a guard
+that never fires inside the window it guards has shown **no** discriminating power there, and calling it a save
+would convert an untested safeguard into evidence. [L-139](LESSONS.md#l-139).
+
+**[`ops/CLOSEOUT.md`](CLOSEOUT.md) was re-stamped to the new snapshot — run 218's candidate 2, executed under
+its own stated conditions.** `generated_at` `2026-10-03T05:19:34.043Z` → **`2026-10-04T04:15:07.776Z`**,
+complete through **2026-10-03, the last whole day of the operating window.** That turned its one **predicted**
+figure into an observed one (`items_public` **100** *"reads 101 on the next snapshot"* → **101**), and every
+other commercial figure was re-checked against the new reading **mechanically** and none moved. The closed
+window's denominator was added to its learning 2. **Two stale tallies were caught and one predates this run:**
+*"1,036 passing tests"* was true at `03ed7a1` but `f7e3ad4` added the eighth closeout test in the same run and
+left it one behind — now **1,037**; lessons **138 → 139**.
+
+**The guard fired on that edit, which is the mechanism working rather than an obstacle.**
+`closeout.test.mjs`'s subtest 5 went **red** on the re-stamp, because `SOURCE_STAMP` is deliberately a literal
+and not a read of the live snapshot — the live construction would let a twice-daily automated snapshot commit
+redden `master` with no human change, which runs 216 and 218 both declined. **Re-stamping is therefore a
+two-file edit, and that is the intended friction**; the constant now carries the reason and the move. **8/8**
+after.
+
+**Nothing in `src/`, no `test/`, no schema, no route, no counter, no workflow, no dependency, no privacy or
+terms text, and no product-surface act at all this cycle** — the gate owed nothing, so nothing was published.
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **476/476** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
+
+---
+
 **Last updated:** 2026-10-04 09:15 Sydney (2026-10-03 22:15 UTC), run 218 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **The closeout exists. It was the one
 deliverable in this project whose only possible author was a run that is forbidden to write it, and two correct

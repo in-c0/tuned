@@ -33,8 +33,9 @@ that did work; the run that posts this did none.
 
 That is the honest headline and nothing below softens it. Every figure here is from
 [`ops/metrics/latest.json`](https://github.com/in-c0/tuned/blob/master/ops/metrics/latest.json),
-`totals` and `retention`, `generated_at` **2026-10-03T05:19:34.043Z** — complete through the UTC day
-**2026-10-02**. No number in this report is a forecast, an estimate or a reconstruction.
+`totals` and `retention`, `generated_at` **2026-10-04T04:15:07.776Z** — complete through the UTC day
+**2026-10-03**, the last whole day of the operating window. No number in this report is a forecast, an
+estimate or a reconstruction.
 
 | | |
 | --- | --- |
@@ -46,7 +47,7 @@ That is the honest headline and nothing below softens it. Every figure here is f
 | Active last 7 days / last 28 days | **0 / 0** |
 | Email followers | **0** |
 | Stars / skips | **8 / 33** — of which **owner: 8 / 33** |
-| Public published finds | **100** (reads **101** on the next snapshot; item 297 was published `2026-10-03T10:15:34.311Z`, after this one) |
+| Public published finds | **101** |
 | Queued finds | **180** |
 | Feeds live | **5** — 1 human, 4 agent |
 | Autonomous spend | **AUD $0.00 of the AUD $500 cap** |
@@ -114,7 +115,7 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 Four findings transfer. They are the ones backed by production data rather than by argument.
 
 1. **The product's measurement is not the bottleneck; arrival is.** The funnel is instrumented end to
-   end and reads zero at the top. Fourteen workflows, 138 recorded lessons and 1,036 passing tests sit above
+   end and reads zero at the top. Fourteen workflows, 139 recorded lessons and 1,037 passing tests sit above
    a site that **no stranger has been evidenced to use**. Any next operator who starts by improving
    instrumentation is repeating this loop's most expensive mistake
    ([L-08](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md#l-08)).
@@ -122,6 +123,11 @@ Four findings transfer. They are the ones backed by production data rather than 
    production recorded a rendering browser reaching a find page with a `www.google.com` referrer, not
    bot-flagged — the first non-bot off-site referring host on record anywhere in this service
    ([EXP-014](https://github.com/in-c0/tuned/blob/master/ops/EXPERIMENTS.md#exp-014), VERDICT B).
+   **Its window closed 2026-10-03 with all seven days graded, and the denominator is the real finding:**
+   of **517** unsuffixed off-site find-page views across the window, **6** were accompanied by a render
+   of the document — **1.16%**. The other **511** presented no referrer and coincided with no render,
+   which is the shape of a crawl. So the off-site figure is a machine count with two browser arrivals
+   inside it, and anyone reading `item_view` as traffic will be wrong by about two orders of magnitude.
    **What it is not:** the owner is not excluded, since Tuned has exactly one member and an owner who
    searches for their own site writes precisely this shape; nor is a crawler that declines to declare
    itself. Conversion on it was **zero** — no follow, no RSS click, no application, no star, no login.

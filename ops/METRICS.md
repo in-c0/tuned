@@ -3391,3 +3391,52 @@ owns the 12 by run id, and no other caller in this repository fetches a find pag
 **Conversion on the arrival: zero.** `follow_open`, `follow_rss`, `find_follow_open`, `find_follow_rss`,
 `follow_submit`, `desk_follow`, `application_start`, `attention_star` and `member_login` are all absent
 on 2026-10-02. One arrival, one render, nothing onward. **That is a fact about one visit and not a rate.**
+
+---
+
+## 2026-10-04 (run 219) — EXP-014's window closed: the off-site find-page figure is 1.16% browser, and the denominator is the finding
+
+**Source for every figure below:** [`ops/metrics/latest.json`](metrics/latest.json) `daily`,
+`generated_at` **2026-10-04T04:15:07.776Z**, complete through the UTC day **2026-10-03**, committed
+[`8394304`](https://github.com/in-c0/tuned/commit/8394304) by
+[metrics snapshot 37176443276](https://github.com/in-c0/tuned/actions/runs/37176443276) (a
+`workflow_dispatch` — the `15 0 * * *` cron did not fire, for the second consecutive window grading).
+
+**The last whole day of [EXP-014](EXPERIMENTS.md#exp-014)'s pre-registered window graded
+`A-CONSISTENT`, and it is the cleanest Fork A day in the window.** 2026-10-03: `item_view` **124**
+unsuffixed across five feeds (`ava` 46, `sportstech` 39, `wellbeing` 18, `graphics` 11, `wearables` 10),
+`item_view_search` and `item_view_referred` and `item_view_onsite` all **absent**, and **`item_render`
+never written at all** — only `item_render_bot` **1**. The `referrers` table for the day holds **two
+rows, both `bot` 1** (`www.google.com` 10, `www.justtuned.com` 1), summing to `item_view_referred_bot`
+**11** exactly, with `item_view_search_bot` **10** accounted for by the `www.google.com` bot row alone.
+**No `bot` 0 row of any host exists for that day.**
+
+**The window's seven-day totals, which is the number no single-day reading could produce:**
+
+| | |
+| --- | --- |
+| `item_view` unsuffixed, 2026-09-27 → 2026-10-03 | **517** |
+| `item_view_referred` | **6** |
+| `item_view_search` | **2** |
+| `item_render` unsuffixed | **6** |
+| `item_view_bot` | **685** |
+| **`item_render` as a share of unsuffixed `item_view`** | **1.16%** |
+
+**What may now be published about the off-site find-page figure, and what still may not:**
+
+| Established | Still not established |
+| --- | --- |
+| Over seven pre-registered whole days, **6 of 517** unsuffixed off-site find-page views were accompanied by a render of the document | that those 6 views *are* the 6 renders — these are counters, not records, and **nothing joins a view to a render** |
+| **511** views presented no usable `Referer` and coincided with no render — the shape of a crawl | a visitor count, a session count or a person. `item_view` is a request counter |
+| `item_view_referred` is the arrival axis and the remainder is the machine count (withdrawn reading of run 197 stands withdrawn, L-116) | any arrival claim for 2026-09-16 → 2026-09-26, which remains **withdrawn and un-backfilled** |
+| **Zero Fork F days**: every day carried a referrer *and* a render, or neither | that Amendment 1's `item_render` requirement **discriminated** anything here — it did not fire once ([L-139](LESSONS.md#l-139)) |
+
+**The 517 coincidence, flagged so it is never read as a finding.** The seven-day unsuffixed `item_view`
+sum is **517**, numerically identical to 2026-09-26's single-day reading that opened the question. That
+day is excluded from the window and reads **642** on this snapshot. **The two integers are unrelated and
+neither explains the other.**
+
+**No commercial metric moved.** `applications` **0** · `members` **1** · `followers` **0** ·
+`items_public` **101** · `stars` **8** / `skips` **33**, **all** `_owner` · `members_ever_active` **0** ·
+`active_last_7d` **0** · gross cash **AUD $0**, from *no billing exists*. The window's six renders
+produced **no** follow, RSS click, application, star or login on either day they occurred.
