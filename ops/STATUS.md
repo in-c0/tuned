@@ -66,6 +66,13 @@ after.
 **Nothing in `src/`, no `test/`, no schema, no route, no counter, no workflow, no dependency, no privacy or
 terms text, and no product-surface act at all this cycle** — the gate owed nothing, so nothing was published.
 
+**Production:** [check 37176931659](https://github.com/in-c0/tuned/actions/runs/37176931659) **success** ·
+[verify production 37176931648](https://github.com/in-c0/tuned/actions/runs/37176931648) **success** — 1 job,
+0 failed, `04:24:57Z → 04:26:17Z`, **80s** from push. **Per-assertion counts are not quoted because they
+could not be read:** the Actions log blob host answers `Forbidden` to this session, the same standing blocker
+that makes the `scout-record` artifact unreadable. The conclusion is the verification; a tally would have been
+decoration and inventing one would break the hard rule.
+
 **Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
 ops suite **476/476** · 14 workflows · **22** nominations · **0** vulnerabilities · `doc-anchors`,
 `owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
