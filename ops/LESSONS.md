@@ -6442,3 +6442,53 @@ was yes, twice, and the search took one command.
   the one tool every run is told to consult no longer points only at the resource that 403s. The
   distinction between a blocked transport and an unavailable fact is stated in `ops/STATUS.md`'s
   standing-blocker line rather than left to be re-derived.
+
+## L-141 — the guard excluded every figure to dodge one hazard, and three of them had no such hazard (2026-10-05, run 221)<a id="l-141"></a>
+
+- **Known problem:** `ops/CLOSEOUT.md` is the handover document, and after 2026-10-05 no run may
+  commit — so a figure left wrong in it is wrong permanently. Runs 216 and 218 both identified the
+  trap in guarding its figures against the live snapshot: `metrics-snapshot.yml` commits
+  `ops/metrics` twice daily, so a guard comparing the report to `ops/metrics/latest.json` would let
+  an automated commit redden `check` on `master` **with no human change** — red on data, not on code
+  — with nobody left to clear it. That reasoning is correct and is still the right call.
+- **Attempted approach:** [`scripts/closeout.test.mjs`](../scripts/closeout.test.mjs) therefore
+  carried a capitalised paragraph, `WHAT IT DELIBERATELY DOES NOT CHECK: whether the figures match
+  today's snapshot`, and checked the document's *postability* — existence, marker position, comment
+  length, provenance, cohort table — and **not one of its numbers**.
+- **Mistake:** the exclusion was written about **"the figures"** when the hazard it describes only
+  reaches the figures an automated commit can move. The closeout states three tallies read off this
+  repository's own tree — lessons in `ops/LESSONS.md`, nomination files in `qa/nominations/`,
+  workflow files in `.github/workflows/` — and **no workflow can move any of them**:
+  `metrics-snapshot.yml` is the only workflow in this repository that commits at all, and it stages
+  `ops/metrics` and nothing else. Those three were excluded by a hazard that does not apply to them.
+- **Evidence and cost:** by this run, five days after the document was written and on the last date
+  any run could fix it, the closeout carried **three mutually inconsistent lesson counts** — `138`
+  at line 12, `139` at line 121, `138` at line 254 — against an actual **140**, and *"22
+  publications are registered in `qa/nominations/`"* against **23** files on disk. Each drifted by
+  the ordinary mechanism and neither drift was visible to any check: run 219 corrected `138 → 139`
+  in one of the three places and left the other two; run 220 published item 298, committed the 23rd
+  nomination, and updated the published-finds figure **two sentences from the nomination tally**
+  without touching it. The same run added L-140 and moved no lesson count at all.
+- **Why it matters:** this is [L-140](#l-140)'s shape with the subject changed — **a restriction
+  stated one level too general silently forbids what it does not cover, and the cost is paid in
+  checks never attempted rather than in visible errors.** It is also the exact failure the damaged
+  document names as its own finding 4: *"the fix was never better prose — it was moving the
+  obligation into a file that is always loaded, and making a test fail when it drifts."* A hand-kept
+  tally inside a frozen handover is the most drift-prone number in the repository, because every
+  later commit can invalidate it and no later commit is obliged to look at it.
+- **Lesson:** **when a guard declines a class of check, scope the exclusion to the hazard, not to
+  the category it appeared in.** Write down *which* property makes the check unsafe — here, "an
+  automated commit can move this value" — then re-test every member of the excluded class against
+  that property rather than against its label. The members that fail the property are owed the
+  check, and they are usually the cheap ones.
+- **More elegant next attempt:** derive the tally in the guard instead of pinning it to a literal.
+  A literal makes correcting a count a two-file edit, which is the friction `SOURCE_STAMP` carries
+  deliberately *because* a re-stamp is a judgement; a tree-derived count is not a judgement, so the
+  friction buys nothing and the drift is the only thing it produces.
+- **Prevention check:** subtests 9–11 of `closeout.test.mjs` now derive all three counts from the
+  tree — `## L-` headings, numeric-prefixed `qa/nominations/*.json`, `.github/workflows/*.y*ml` —
+  and the lesson-count subtest checks **every** place the document states one, which is what the
+  three-way disagreement needed. The lesson guard also fails when it matches nothing, so a rephrase
+  cannot disable it silently. The header paragraph now states the hazard's scope and names the one
+  figure still unguarded and why: **"1,037 passing tests"** is 561 vitest plus 476 ops tests, and
+  neither is knowable without running the suite that contains this file.

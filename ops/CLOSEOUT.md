@@ -9,7 +9,7 @@ operating date **2026-10-05 Australia/Sydney**.*
 **Why this text was written before the date it reports on, and posted by a run that changed nothing.**
 A run firing after the final operating date is bound to make no changes — it cannot commit, claim the
 run lock, or dispatch anything. So the closeout could not be *composed* then: it would have been
-assembled under exactly the conditions this record spends 138 lessons warning about, by a run with no
+assembled under exactly the conditions this record spends 141 lessons warning about, by a run with no
 ability to verify a single number it printed. It was therefore written and gated on **2026-10-04**
 (run 218), while a run could still run the checks, and committed as
 [`ops/CLOSEOUT.md`](https://github.com/in-c0/tuned/blob/master/ops/CLOSEOUT.md). The post-date run's
@@ -98,7 +98,7 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
   agent → opened / starred / shared by a human, with an `AI AGENT` badge where the commentary is
   machine-written. Nothing conceals authorship.
 - **The agent publisher** — `agent-scout.yml` screens sources daily and publishes through the operator
-  plane, capped at **one publication per run**. 22 publications are registered in `qa/nominations/`.
+  plane, capped at **one publication per run**. 23 publications are registered in `qa/nominations/`.
 - **A quotation bar that refuses** — `selectQuotation` will publish no quote rather than a bad one;
   item 297 carries the screen's own disclosure line because every candidate sentence overran the
   252-character budget. *No quote is a reason, never an absence.* Nothing is paraphrased and nothing is
@@ -118,7 +118,7 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 Four findings transfer. They are the ones backed by production data rather than by argument.
 
 1. **The product's measurement is not the bottleneck; arrival is.** The funnel is instrumented end to
-   end and reads zero at the top. Fourteen workflows, 139 recorded lessons and 1,037 passing tests sit above
+   end and reads zero at the top. Fourteen workflows, 141 recorded lessons and 1,037 passing tests sit above
    a site that **no stranger has been evidenced to use**. Any next operator who starts by improving
    instrumentation is repeating this loop's most expensive mistake
    ([L-08](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md#l-08)).
@@ -251,7 +251,7 @@ In order, and the order is the finding:
 Canonical: [`ops/DECISIONS.md`](https://github.com/in-c0/tuned/blob/master/ops/DECISIONS.md) ·
 [`ops/EXPERIMENTS.md`](https://github.com/in-c0/tuned/blob/master/ops/EXPERIMENTS.md) ·
 [`ops/METRICS.md`](https://github.com/in-c0/tuned/blob/master/ops/METRICS.md) ·
-[`ops/LESSONS.md`](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md) (138 lessons) ·
+[`ops/LESSONS.md`](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md) (141 lessons) ·
 [`ops/MILESTONES.md`](https://github.com/in-c0/tuned/blob/master/ops/MILESTONES.md) ·
 [`ops/STATUS.md`](https://github.com/in-c0/tuned/blob/master/ops/STATUS.md).
 [`ops/DASHBOARD.md`](https://github.com/in-c0/tuned/blob/master/ops/DASHBOARD.md) mirrors them for the

@@ -33,12 +33,29 @@
 //                                            which is the exact failure in 1
 //   7. it carries the promised cohort table — the one deliverable two files committed to by name
 //
-// WHAT IT DELIBERATELY DOES NOT CHECK: whether the figures match today's snapshot. The numbers are
-// stated as-of a named generated_at stamp, which stays true forever. Asserting they equal the live
-// ops/metrics/latest.json would make a twice-daily automated snapshot commit able to redden `check`
-// on master with no human change — red on data rather than on code — and after 2026-10-05 nobody is
-// left to clear it. That is L-134's shape pointed the wrong way, and run 216 declined the same
-// construction for the same reason.
+// WHAT IT DELIBERATELY DOES NOT CHECK: whether the SNAPSHOT figures match today's snapshot. Those
+// numbers are stated as-of a named generated_at stamp, which stays true forever. Asserting they
+// equal the live ops/metrics/latest.json would make a twice-daily automated snapshot commit able to
+// redden `check` on master with no human change — red on data rather than on code — and after
+// 2026-10-05 nobody is left to clear it. That is L-134's shape pointed the wrong way, and run 216
+// declined the same construction for the same reason.
+//
+// AND WHAT THAT EXCLUSION WRONGLY SWEPT UP, closed by subtests 9-11 (run 221, L-141). The paragraph
+// above was written about "the figures" when the hazard it describes only reaches the figures an
+// automated commit can move. The closeout also states three tallies read off this repository's own
+// tree — lessons in ops/LESSONS.md, nomination files in qa/nominations/, workflow files in
+// .github/workflows/ — and NO workflow can move any of them: metrics-snapshot.yml is the only
+// workflow in this repository that commits at all, and it stages `ops/metrics` and nothing else.
+// Deriving those three therefore carries none of the data-red hazard, and excluding them cost
+// exactly what leaving a figure unguarded always costs here. By run 221 the document carried THREE
+// mutually inconsistent lesson counts — 138, 139 and 138 — against an actual 140, and "22
+// publications are registered" against 23 files on disk. The document whose own finding 4 says the
+// fix "was never better prose — it was moving the obligation into a file that is always loaded, and
+// making a test fail when it drifts."
+//
+// STILL UNGUARDED, named rather than hidden: "1,037 passing tests". That total is 561 vitest plus
+// 476 ops tests, and neither count is knowable without running the suite — this file is part of one
+// of them. A run that changes the test count must correct the closeout by hand.
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -76,6 +93,29 @@ const SOURCE_FILE = "ops/metrics/latest.json";
 const SOURCE_STAMP = "2026-10-04T04:15:07.776Z";
 
 const read = (p) => fs.readFileSync(p, "utf8");
+
+// The three tallies the closeout reads off this repository rather than off a snapshot. Each is
+// derived here, not pinned to a literal: a literal would need a run to update two files in step,
+// which is the drift these subtests exist to stop.
+const LESSONS_PATH = path.join(REPO_ROOT, "ops/LESSONS.md");
+const NOMINATIONS_DIR = path.join(REPO_ROOT, "qa/nominations");
+const WORKFLOWS_DIR = path.join(REPO_ROOT, ".github/workflows");
+
+// §4.1 spells the workflow count as an English word, so the guard has to read one.
+const NUMBER_WORDS = {
+  ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14,
+  fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+};
+
+const countLessons = () =>
+  (read(LESSONS_PATH).match(/^## L-\d+\b/gm) ?? []).length;
+
+// README.md and index.mjs live in the same directory and are not nominations.
+const countNominations = () =>
+  fs.readdirSync(NOMINATIONS_DIR).filter((f) => /^\d+-.*\.json$/.test(f)).length;
+
+const countWorkflows = () =>
+  fs.readdirSync(WORKFLOWS_DIR).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml")).length;
 
 describe("closeout report (ops/CLOSEOUT.md)", () => {
   it("exists — a promise in three files and a document in none is what this replaces", () => {
@@ -186,6 +226,68 @@ describe("closeout report (ops/CLOSEOUT.md)", () => {
       /^\|.*[Ww]eek-4.*\|/m,
       "the cohort table must actually be a table with the week-4 return column MILESTONES names, " +
         "not a sentence saying there is no cohort.",
+    );
+  });
+
+  // SUBTESTS 9-11 — the repository-derived tallies. See "AND WHAT THAT EXCLUSION WRONGLY SWEPT UP"
+  // in the header. These compare the closeout's prose against the tree, which is safe precisely
+  // because no workflow commits to any of the three paths they read.
+
+  it("states the lesson count LESSONS.md actually has, in every place it states one", () => {
+    const expected = countLessons();
+    const body = read(CLOSEOUT_PATH);
+    // Catches "138 lessons", "139 recorded lessons" and "(138 lessons)" alike — the three forms the
+    // document used, which disagreed with each other as well as with the file.
+    const stated = [...body.matchAll(/([0-9][0-9,]*)\s+(?:recorded\s+)?lessons\b/g)];
+    assert.ok(
+      stated.length > 0,
+      "ops/CLOSEOUT.md states no lesson count in a form this guard can read. If the prose was " +
+        "rephrased, update the pattern here too — a guard that matches nothing passes silently, " +
+        "which is the failure mode it was added to remove.",
+    );
+    for (const m of stated) {
+      assert.equal(
+        Number(m[1].replace(/,/g, "")),
+        expected,
+        `ops/CLOSEOUT.md says "${m[0].trim()}" but ops/LESSONS.md has ${expected} \`## L-\` ` +
+          `headings. A run that adds a lesson has to move this number in every place the closeout ` +
+          `states it; run 219 moved one of three and the document then disagreed with itself.`,
+      );
+    }
+  });
+
+  it("states the number of nominations actually registered in qa/nominations/", () => {
+    const expected = countNominations();
+    const body = read(CLOSEOUT_PATH);
+    const m = body.match(/([0-9]+) publications are registered in `qa\/nominations\/`/);
+    assert.ok(
+      m,
+      "ops/CLOSEOUT.md §3 must state the registered-nomination count in the form " +
+        "`N publications are registered in \`qa/nominations/\`` — the guard reads that sentence.",
+    );
+    assert.equal(
+      Number(m[1]),
+      expected,
+      `ops/CLOSEOUT.md says ${m[1]} publications are registered; qa/nominations/ holds ${expected} ` +
+        `nomination files. Publishing an item commits a nomination, so the run that publishes is ` +
+        `the run that must move this — run 220 published item 298 and updated the published-finds ` +
+        `figure two sentences away without touching this one.`,
+    );
+  });
+
+  it("states the number of workflows the repository actually has", () => {
+    const expected = countWorkflows();
+    const body = read(CLOSEOUT_PATH);
+    const m = body.match(/\b([0-9]+|[A-Za-z]+) workflows\b/);
+    assert.ok(m, "ops/CLOSEOUT.md §4.1 must state a workflow count.");
+    const word = m[1].toLowerCase();
+    const stated = /^[0-9]+$/.test(word) ? Number(word) : NUMBER_WORDS[word];
+    assert.equal(
+      stated,
+      expected,
+      `ops/CLOSEOUT.md says "${m[0]}" but .github/workflows/ holds ${expected} workflow files. ` +
+        `(If the count passed twenty, extend NUMBER_WORDS or write it as a numeral — an ` +
+        `unrecognised word reads as undefined and fails here rather than passing quietly.)`,
     );
   });
 });

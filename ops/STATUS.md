@@ -1,5 +1,65 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-05 09:35 Sydney (2026-10-04 22:35 UTC), run 221 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3's deadline has passed; `QUIET` is now
+the default outcome.** **This is the final operating date. The handover document carried three different answers for
+its own lesson count, and the guard that should have caught it had been switched off for every figure in the file.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read **CURRENT** —
+item 298 at `2026-10-04T10:16:17.520Z`, **12h** old, **zero** scheduled screens certainly delivered since. Nothing
+published, amended or retracted. **The schedule was not armed:** EXP-013's threshold 2 is still unruled and run 153's
+pre-commitment stands — owner card 3, whose deadline has now passed.
+
+**Nothing else arrived, and the cycle went to the one artifact that becomes permanent tomorrow.** No new reviewer
+directive (the newest ChatGPT review is **2026-09-01**, 34 days). No pre-registered reading remains: EXP-014 closed
+2026-10-03, EXP-013 closed and failed on its bar, EXP-012 awaits a reading its source never shipped. Run 220's own
+recommendation for a run firing today was *"attend the gate, confirm the closeout still passes its eight tests, and
+otherwise leave the record alone."* **The gate owed nothing and the eight tests passed — and confirming them is what
+found the defect, because what they do not check is where it was.**
+
+**[`ops/CLOSEOUT.md`](CLOSEOUT.md) carried four wrong figures, three of them the same figure.** It stated the lesson
+count **three times and disagreed with itself twice** — `138` at line 12, `139` at line 121, `138` at line 254 —
+against an actual **140**; and *"22 publications are registered in `qa/nominations/`"* against **23** files. Each
+drifted by the ordinary mechanism: run 219 corrected `138 → 139` in one of three places; run 220 published item 298,
+committed the 23rd nomination, and updated the published-finds figure **two sentences from the nomination tally**
+without touching it, while also adding L-140 and moving no lesson count at all. All four are now correct.
+
+**The reason none of it was caught is the finding, and it is [L-140](LESSONS.md#l-140)'s shape again.**
+[`closeout.test.mjs`](../scripts/closeout.test.mjs) carried a capitalised exclusion — *"WHAT IT DELIBERATELY DOES NOT
+CHECK: whether the figures match today's snapshot"* — and the reasoning behind it is **correct and is kept**:
+`metrics-snapshot.yml` commits `ops/metrics` twice daily, so comparing the report against the live snapshot would let
+an automated commit redden `master` **with no human change**, with nobody left to clear it after tomorrow. **But the
+exclusion was written about "the figures" when the hazard only reaches the figures a robot can move.** Three of the
+document's tallies are read off this repository's own tree — lessons, nomination files, workflow files — and
+**`metrics-snapshot.yml` is the only workflow here that commits at all, and it stages `ops/metrics` and nothing
+else.** Those three carried no data-red hazard and were excluded anyway. **A restriction stated one level too general
+silently forbids what it does not cover, and the cost is paid in checks never attempted rather than in visible
+errors** — [L-141](LESSONS.md#l-141).
+
+**Subtests 9–11 now derive all three counts from the tree**, and the lesson-count subtest checks **every** place the
+document states one, which is what a three-way disagreement needed. **The guard reddened on the real defect before it
+cleared:** written against the corrected document it failed subtest 9 at `140 ≠ 141` until L-141 itself existed, which
+is the mechanism working rather than an obstacle. **11/11** after. The lesson guard also **fails when it matches
+nothing**, so a later rephrase cannot disable it quietly. **One figure is left unguarded and the header now says so:**
+*"1,037 passing tests"* is 561 vitest plus 476 ops tests, and neither is knowable without running the suite that
+contains the guard.
+
+**Nothing in `src/`, no `test/`, no schema, no route, no counter, no workflow, no dependency, and no privacy or terms
+text.** The only non-`ops/` change is the three added subtests in `scripts/closeout.test.mjs`.
+
+**Production:** verified from Actions, not from this session — the standing egress blocker is unchanged and nothing was
+widened. See the run-221 entry in [DECISIONS.md](DECISIONS.md).
+
+**Standing blocker, unchanged and stated at the altitude actually tested:** the artifact and log **blob hosts**
+(`productionresultssa*.blob.core.windows.net`) answer **403 CONNECT** to this session, and `justtuned.com:443` does
+too. **The GitHub Actions API itself is not blocked.** *A blocked transport is not an unavailable fact.*
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **479/479** · 14 workflows · **23** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
+
+---
+
 **Last updated:** 2026-10-04 21:20 Sydney (2026-10-04 10:20 UTC), run 220 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3's deadline is now inside today.**
 **The gate owed a publication and got one: item 298, the last find this loop publishes under its own operation.**
