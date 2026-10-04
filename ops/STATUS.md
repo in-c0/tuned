@@ -1,5 +1,64 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-04 21:20 Sydney (2026-10-04 10:20 UTC), run 220 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3's deadline is now inside today.**
+**The gate owed a publication and got one: item 298, the last find this loop publishes under its own operation.**
+
+**The gate was attended first, and this time it owed something.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+read **ATTEND** — item 297 at `2026-10-03T10:15:34.311Z`, **24h** old, **one** scheduled screen certainly
+delivered since (`2026-10-04T02:40:00.000Z`). The
+[08:44Z screening record](https://github.com/in-c0/tuned/actions/runs/37189873969) was read in full from the
+**job log** — **screened 36 · rejected 25 · selected 9 · deferred 2 · 12 full-text reads** — and it supported
+publishing. Dispatched `agent-scout.yml` with `publish: true` →
+[run 37194801278](https://github.com/in-c0/tuned/actions/runs/37194801278): **item 298 published**, HTTP **201**,
+`duplicate=false`, at `2026-10-04T10:16:17.520Z` — *Neuromuscular control strategies during the Tai Chi
+heel-kick movement across different levels of motor experience*, carrying a **verbatim quotation from its own
+abstract** (`p = 0.499`, a null result, in the source's own words). Nomination committed as
+[`qa/nominations/298-…json`](../qa/nominations/298-neuromuscular-control-strategies-during-the.json), so the gate
+now reads **CURRENT**. **The schedule was not armed:** EXP-013's threshold 2 is still unruled and run 153's
+pre-commitment stands — owner card 3, whose deadline is now hours away. Attending a gate is not removing it.
+
+**Then the cycle corrected a standing blocker that was true about a transport and false about the facts.**
+Run 219 declined to quote the `verify production` **per-assertion tally** at all, on the ground that the Actions
+log blob host answers `Forbidden` — *"the same standing egress blocker that makes the `scout-record` artifact
+unreadable."* **The restraint was right and the scope was wrong.** The blob host **is** blocked, re-tested this
+run against `productionresultssa17` with a byte-identical `403 CONNECT`, and nothing was widened to reach it.
+But **the tally never needed a log:** the Actions **jobs** API returns every step with its own conclusion, and on
+[verify production 37177060893](https://github.com/in-c0/tuned/actions/runs/37177060893) (`58aff65`) that is
+**26 assertion steps — 25 `success`, 1 `skipped`** (*"Public availability"*). That is exactly the **25 of 26**
+tally run 219 said could not be read, and exactly what [`ops/CLOSEOUT.md`](CLOSEOUT.md) already had committed.
+**A blocker stated one level too general silently forbids the readings it does not cover**, and the cost is paid
+in readings never attempted rather than in visible errors — [L-140](LESSONS.md#l-140).
+
+**Standing blocker, restated at the altitude actually tested:** the artifact and log **blob hosts**
+(`productionresultssa*.blob.core.windows.net`) answer **403 CONNECT** to this session, and `justtuned.com:443`
+does too, so production is verified from Actions rather than from here. **The GitHub Actions API itself is not
+blocked** — it serves both the job log (which prints the `scout-record` in full, practice since run 213) and the
+per-step conclusions. *A blocked transport is not an unavailable fact.*
+
+**Two defects fixed in the handover document, one of them a contradiction it has carried since run 219.**
+[`ops/CLOSEOUT.md`](CLOSEOUT.md) §3 read *"100 published finds across 5 feeds"* while its own sourced table read
+**101** — run 219 moved the table when the figure became observed and left the prose a run behind, the third
+stale tally caught in this document in two days. It now reads **101 at the stamp**, and records that item **298**
+published **after** that snapshot, so the live count is **102** while the stamped table reads 101 — **both
+correct, neither an estimate.** **`SOURCE_STAMP` was deliberately NOT moved:** no figure was re-read, the stamp
+still pins the same snapshot, and re-stamping without a new reading would be the two-file friction performed for
+nothing. **8/8** on `closeout.test.mjs`.
+
+**Nothing in `src/`, no `test/`, no schema, no route, no counter, no workflow, no dependency, and no privacy or
+terms text.** The only non-`ops/` change is [`scripts/scout-gate.mjs`](../scripts/scout-gate.mjs)'s `ATTEND`
+guidance, which now names the job log as the route to the record and the blob host as the part that 403s — so the
+one tool the read order sends every run to no longer points only at the resource that fails.
+
+**Production:** verified from Actions, not from this session. See the run-220 entry in
+[DECISIONS.md](DECISIONS.md) for the push's `check` and `verify production` runs.
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **476/476** · 14 workflows · **23** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
+
+---
+
 **Last updated:** 2026-10-04 15:30 Sydney (2026-10-04 04:30 UTC), run 219 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3 is now hours from its deadline.**
 **EXP-014 is CLOSED: 7 of 7 days graded, and the off-site find-page figure is 1.16% browser.**

@@ -184,8 +184,13 @@ function render(r) {
     lines.push(
       "",
       "  A screen has come and gone since this feed last published. Open the latest `agent scout`",
-      "  run, READ its scout-record artifact — what it screened, what it selected, why it refused",
-      "  the rest — and then dispatch agent-scout.yml with publish: true if the record supports it.",
+      "  run, READ its scout-record — what it screened, what it selected, why it refused the rest —",
+      "  and then dispatch agent-scout.yml with publish: true if the record supports it.",
+      "",
+      "  HOW to read it, because the obvious route is blocked and rediscovering that costs a cycle:",
+      "  the artifact ZIP lives on a blob host this session's egress proxy answers 403 CONNECT for.",
+      "  The same record is printed in full in the JOB LOG, which the GitHub API does serve. Ask for",
+      "  the run's job, then its log content. Do not widen access to reach the blob host.",
       "  Do NOT arm the schedule: EXP-013's threshold 2 is unruled and run 153's pre-commitment",
       "  stands. Attending the gate is not the same act as removing it.",
     );

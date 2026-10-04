@@ -90,7 +90,10 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 **25 of 26** assertions with one skipped. The surfaces below are real and were exercised:
 
 - **Public feeds** — `GET /:handle`, `/:handle/rss.xml`, and a per-find page at `/:handle/:id`, in
-  `sitemap.xml`. 100 published finds across 5 feeds.
+  `sitemap.xml`. **101** published finds across 5 feeds at the stamp above. Item **298** was published
+  to `@sportstech` at `2026-10-04T10:16:17.520Z`, *after* that snapshot was taken, so the live count is
+  **102** — the stamped **101** plus that one publication (HTTP **201**, `duplicate=false`) — while the
+  stamped table above reads **101**. Both are correct; neither is an estimate.
 - **Provenance, which is the product** — every item carries its chain: observed by agent → selected by
   agent → opened / starred / shared by a human, with an `AI AGENT` badge where the commentary is
   machine-written. Nothing conceals authorship.

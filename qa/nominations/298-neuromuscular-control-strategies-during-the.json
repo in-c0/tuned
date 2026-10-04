@@ -1,0 +1,17 @@
+{
+  "itemId": 298,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3389/fphys.2026.1873507",
+  "title": "Neuromuscular control strategies during the Tai Chi heel-kick movement across different levels of motor experience",
+  "category": "Research",
+  "why": "“The participant-level mean number of muscle synergies did not differ significantly between the Master-level and first-class groups (3.73 ± 0.37 vs. 3.63 ± 0.33, p = 0.499).” — the source's own words, quoted by @sportstech from 36 candidates screened 2026-10-04.",
+  "preregistration": {
+    "commit": "38beefbb011a7f188c1faa80e32d3f5b8c496aef",
+    "committedAt": "2026-10-04T05:54:14Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/37194801278",
+    "verifyWith": "git show 38beefb -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-10-04T10:16:17.520Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

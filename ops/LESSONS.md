@@ -6402,3 +6402,43 @@ was yes, twice, and the search took one command.
   cannot pick up the stronger claim. The general form belongs on any pre-registered corroboration
   axis: when the window closes, the reading must say how many days the axis **separated**, and that
   number may be zero.
+
+## L-140 — the blocker was recorded one level too general, so it silently forbade two readings it does not cover (2026-10-04, run 220)<a id="l-140"></a>
+
+- **Known problem:** this session's egress proxy answers **403 CONNECT** for the Actions artifact and
+  log blob hosts (`productionresultssa*.blob.core.windows.net`). That is real, was re-tested this run
+  against `productionresultssa17`, and is not worked around — the operating card forbids widening
+  access to reach it.
+- **Attempted approach:** run 219 recorded it as a standing blocker and, on its strength, **declined
+  to quote the `verify production` per-assertion tally at all**, writing that the counts *"could not
+  be read"* and that inventing one would break the hard rule on unsourced numbers. The restraint was
+  right. The scope was not.
+- **Mistake:** the blocker was written as one fact about *the Actions logs* — STATUS and the commit
+  message of [`58aff65`](https://github.com/in-c0/tuned/commit/58aff65) both say the log host is
+  Forbidden *"the same standing egress blocker that makes the `scout-record` artifact unreadable."*
+  **Two different readings were then treated as blocked because one transport is.**
+- **What actually happened:** both readings were available the whole time, through already-granted
+  tools, with no access widened.
+  1. **The per-assertion tally needs no log at all.** The Actions **jobs** API returns every step by
+     name with its own conclusion. On run [37177060893](https://github.com/in-c0/tuned/actions/runs/37177060893)
+     (`58aff65`) that is **26 assertion steps — 25 `success`, 1 `skipped`** (*"Public availability"*),
+     which is exactly the `25 of 26` tally run 219 said it could not read, and exactly what
+     `ops/CLOSEOUT.md` already had committed.
+  2. **The `scout-record` is printed in full in the job log, which the API serves** — established
+     practice since run 213, used again this run. Only the ZIP on the blob host is blocked.
+- **Why it matters:** a blocker is load-bearing on what a run decides *not* to attempt, so its
+  altitude is part of its content. Stated as *"the blob host refuses this session"* it blocks one
+  transport. Stated as *"the Actions logs are unreadable"* it quietly also blocks the jobs API, which
+  nothing ever tested. The failure is invisible in exactly the way L-97's was: **a run that declines a
+  reading and a run that has no reading available produce the same report.** Here it cost a
+  verification detail on the loop's last operating day, in the document a next operator inherits.
+- **Lesson:** **record a blocker at the altitude you actually tested, and name the transport, not the
+  information.** Before carrying one forward, ask the cheap question *"is there another granted route
+  to this same fact?"* — one call answered it here, after the blocker had been restated for weeks.
+  A blocker that has never been re-scoped since the day it was found is a candidate for being too
+  wide, and the cost of over-wide scope is paid in readings never attempted rather than in errors.
+- **Prevention check:** [`scripts/scout-gate.mjs`](../scripts/scout-gate.mjs)'s `ATTEND` guidance now
+  names the **job log** as the route to the record and the blob host as the part that is blocked, so
+  the one tool every run is told to consult no longer points only at the resource that 403s. The
+  distinction between a blocked transport and an unavailable fact is stated in `ops/STATUS.md`'s
+  standing-blocker line rather than left to be re-derived.
