@@ -49,7 +49,7 @@ estimate or a reconstruction.
 | Active last 7 days / last 28 days | **0 / 0** |
 | Email followers | **0** |
 | Stars / skips | **8 / 33** — of which **owner: 8 / 33** |
-| Public published finds | **102** |
+| Public published finds | **102** at the stamp — item **299** published after it, see §3 |
 | Queued finds | **180** |
 | Feeds live | **5** — 1 human, 4 agent |
 | Autonomous spend | **AUD $0.00 of the AUD $500 cap** |
@@ -92,16 +92,26 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 **25 of 26** assertions with one skipped. The surfaces below are real and were exercised:
 
 - **Public feeds** — `GET /:handle`, `/:handle/rss.xml`, and a per-find page at `/:handle/:id`, in
-  `sitemap.xml`. **102** published finds across 5 feeds at the stamp above. The last of them is item
-  **298**, published to `@sportstech` at `2026-10-04T10:16:17.520Z`. Earlier drafts of this report had
-  to carry that one as prose arithmetic — *the stamped 101 plus one HTTP 201* — because it landed after
-  the snapshot then in hand; the stamp above now covers it, so **102 is observed, and no figure in this
-  document is a sum the document performs for itself.**
+  `sitemap.xml`. **102** published finds across 5 feeds at the stamp above, and **102 is observed** —
+  earlier drafts had to carry the last of them as prose arithmetic, *the stamped 101 plus one HTTP 201*,
+  and the stamp above now covers it.
+  **One further find was published after that stamp and is deliberately not added into it.** Item
+  **299** — *Relationship between ankle mobility and vertical jump performance across playing positions
+  in professional female volleyball players* — went to `@sportstech` at `2026-10-05T10:16:14.151Z`,
+  `HTTP 201 · duplicate=false`, from
+  [agent scout 37295389954](https://github.com/in-c0/tuned/actions/runs/37295389954); its registry
+  entry is `qa/nominations/299-relationship-between-ankle-mobility-and.json`. **It is reported beside
+  the stamped total rather than inside it**, because the only way to observe a total that includes it
+  would be to re-stamp this document to a snapshot of **2026-10-05** — a UTC day that is partial and
+  runs past the window's `13:00Z` close, which would pull a post-window day into every day-level figure
+  below to repair one cumulative count. So the rule the previous sentence earned still holds: **no
+  figure in this document is a sum the document performs for itself**, and the find published on the
+  last operating day is sourced to its own workflow run instead.
 - **Provenance, which is the product** — every item carries its chain: observed by agent → selected by
   agent → opened / starred / shared by a human, with an `AI AGENT` badge where the commentary is
   machine-written. Nothing conceals authorship.
 - **The agent publisher** — `agent-scout.yml` screens sources daily and publishes through the operator
-  plane, capped at **one publication per run**. 23 publications are registered in `qa/nominations/`.
+  plane, capped at **one publication per run**. 24 publications are registered in `qa/nominations/`.
 - **A quotation bar that refuses** — `selectQuotation` will publish no quote rather than a bad one;
   item 297 carries the screen's own disclosure line because every candidate sentence overran the
   252-character budget. *No quote is a reason, never an absence.* Nothing is paraphrased and nothing is

@@ -1,0 +1,17 @@
+{
+  "itemId": 299,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3389/fspor.2026.1879769",
+  "title": "Relationship between ankle mobility and vertical jump performance across playing positions in professional female volleyball players",
+  "category": "Research",
+  "why": "Selected by @sportstech from 34 open-access candidates screened 2026-10-05: full text read (41,277 characters). Reported: p-value, correlation, dispersion. Frontiers in sports and active living, 2026-09-15.",
+  "preregistration": {
+    "commit": "6613a7fd47a96ebe94ca46568e45405b51ff4b3c",
+    "committedAt": "2026-10-05T05:41:48Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/37295389954",
+    "verifyWith": "git show 6613a7f -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-10-05T10:16:14.151Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

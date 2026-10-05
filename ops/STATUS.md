@@ -1,5 +1,66 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-05 21:20 Sydney (2026-10-05 10:20 UTC), run 223 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07).** **This is the last run inside the operating
+window, and for the first time in four cycles the publisher's gate owed something — so the cycle went to paying it
+rather than to the record.**
+
+**The gate read `ATTEND`, and attending it was the whole action.** [`scout-gate.mjs`](../scripts/scout-gate.mjs)
+reported item 298 at `2026-10-04T10:16:17.520Z` **24h** old with **one** scheduled screen certainly delivered since
+— the `02:40Z` firing, delivered as [agent scout 37290954053](https://github.com/in-c0/tuned/actions/runs/37290954053)
+at `09:34Z`. That screen ran **dry** (`PUBLISH:` empty, as every scheduled firing does), **selected 9 of 34 and
+published none of them.** Its `scout-record` was read from the **job log**, not the artifact — the blob host is
+403 to this session, and the record is printed in full in the log ([L-140](LESSONS.md#l-140)). The record supported
+publishing: a typed `research-article/journal article`, full text read, three statistic families.
+
+**So one find was published, and it is the last one this loop will ever make.** One `workflow_dispatch` with
+`publish: true` → [agent scout 37295389954](https://github.com/in-c0/tuned/actions/runs/37295389954) → **item 299**,
+`HTTP 201 · published=true duplicate=false`, `2026-10-05T10:16:14.151Z`. *Relationship between ankle mobility and
+vertical jump performance across playing positions in professional female volleyball players*
+([10.3389/fspor.2026.1879769](https://doi.org/10.3389/fspor.2026.1879769)). **No quote**, and that is a reason rather
+than an absence: all 12 candidate sentences were refused, the closest overran the 252-character budget by **13
+characters**, so the why-line is the provenance form — *"Selected by @sportstech from 34 open-access candidates
+screened 2026-10-05: full text read (41,277 characters). Reported: p-value, correlation, dispersion."* — which five
+earlier publications already use.
+
+**`qa/nominations/299-…json` is committed, because the registry is the only thing that makes a publication visible.**
+The script says so at the moment it publishes — *"COMMIT THIS, or `scout-gate.mjs` cannot see this publication"* — and
+it prints the entry it composed, so the file is the emitted JSON rather than a transcription. The gate now reads
+**CURRENT**, 0h old, nothing owed.
+
+**The schedule was NOT armed.** EXP-013's threshold 2 is still unruled and run 153's pre-commitment stands — owner
+card 3, whose deadline has passed. **Attending a gate is not removing it**, and this run is the proof of the
+difference: it published by dispatch, with the record read first, and left the `PUBLISH:` env line untouched.
+
+**And the screen handed EXP-013 a third distinct failure of threshold 2.** **9 of 34 = 26.5%** against a bar of
+**≤ 25%** — larger than the 25.7% recorded on 2026-09-12, 09-13 and 09-16, and the first failure of it read on a
+screen this record publishes from. On the decided set (deferred excluded) it is **9 of 33 = 27.3%**. Reported
+alongside the pre-registered rate and never in place of it; **no threshold was rewritten after seeing a result.**
+
+**The closeout's one publication-dependent figure moved, and its guard is what found it.** Subtest **10** reddened
+at *"says 23 publications are registered; `qa/nominations/` holds 24"* — a message run 221 wrote naming this exact
+scenario — and cleared at **24**. **The stamped `items_public` 102 was deliberately left at 102**: item 299 landed
+after `SOURCE_STAMP`, and the only way to observe a total containing it would be to re-stamp the document to a
+**partial 2026-10-05** that runs past the window's `13:00Z` close, dragging a post-window day into every day-level
+figure to repair one cumulative count. So it is reported **beside** the stamped total, sourced to its own workflow
+run — and the document still performs no sum on itself.
+
+**Nothing in `src/`, no `test/`, no schema, no route, no counter, no workflow, no dependency, and no privacy or terms
+text.** The only non-`ops/` change is the new nomination file.
+
+**Production:** verified from Actions, not from this session — the standing egress blocker is unchanged and nothing
+was widened. See the run-223 entry in [DECISIONS.md](DECISIONS.md).
+
+**Standing blocker, unchanged:** the artifact and log **blob hosts** (`productionresultssa*.blob.core.windows.net`)
+answer **403 CONNECT** to this session, and `justtuned.com:443` does too. **The GitHub Actions API itself is not
+blocked.** *A blocked transport is not an unavailable fact.*
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **480/480** · 14 workflows · **24** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok · closeout guard **12/12**.
+
+---
+
 **Last updated:** 2026-10-05 15:35 Sydney (2026-10-05 04:35 UTC), run 222 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3's deadline has passed; `QUIET` is the
 default outcome.** **The handover now carries the window's last possible reading, and the one figure its own guard

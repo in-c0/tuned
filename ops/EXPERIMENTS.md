@@ -4579,3 +4579,48 @@ Fork B predicts and not the shape Fork F predicts. [L-139](LESSONS.md#l-139).
 commercial reading it opened with.** `applications` **0** · `followers` **0** · non-owner `stars` and
 `skips` **0**. The six renders produced no follow, no RSS click, no application, no star and no login on
 either day. **EXP-014 is closed.**
+
+## EXP-013 — final live screen, 2026-10-05 (run 223). A reading, not a re-grade
+
+EXP-013 is **closed** — *passed on cadence only*, with **threshold 2 FAILED** and Fork B actioned on
+2026-09-12. Nothing here reopens it or re-grades it. What follows is the last live screen the operating
+window contains, recorded because a closed experiment still accumulates evidence against the threshold
+it failed, and because this run published from this screen.
+
+**Two screens were delivered on 2026-10-05, and only the first was scheduled.**
+
+| | screened | rejected | selected | deferred | reads | selection rate | decided-set rate |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| [37290954053](https://github.com/in-c0/tuned/actions/runs/37290954053) — `schedule`, dry | 34 | 24 | 9 | 1 | 12 | **26.5%** | **27.3%** |
+| [37295389954](https://github.com/in-c0/tuned/actions/runs/37295389954) — `workflow_dispatch`, `publish: true` | 34 | 24 | 9 | 1 | 12 | **26.5%** | **27.3%** |
+
+**Threshold 2 fails again, and at a third distinct value.** The bar is **selection rate ≤ 25% of
+screened candidates on every live screen**; this screen reads **9 of 34 = 26.5%**, against the
+**25.7%** recorded on 2026-09-12, 09-13 and 09-16. It is the **largest** pre-registered failure of
+threshold 2 so far, and the first failing screen this record has **published from**.
+
+**The decided-set rate is reported alongside the pre-registered one and never in place of it**, per
+run 153's pre-commitment, which stands: **9 of 33 = 27.3%** with the single deferred candidate
+excluded. Note that this screen's two denominators nearly agree — 34 against 33 — because only **one**
+candidate was deferred against the read budget. The ~2x divergence that made the threshold's
+specification objectionable (run 153: 35 screened, 17 deferred unread) **is a property of how much
+budget a screen spends, not a constant**, and this screen is the clearest case of that: when the budget
+covers the field, the denominator objection nearly vanishes and *the bar still fails*. That is evidence
+the failure is about the bar's position, not only about its denominator — and it is recorded here rather
+than used to rewrite anything.
+
+**Every one of the 24 rejections names exactly one clause**, as the gate requires: `not-already-published`
+12, `research-article` 5, `measured-result` 3, `clinical-population` 1, plus 3 further single-clause
+refusals; the one `deferred` names `read-budget`.
+
+**The quotation bar refused, and that is its designed behaviour rather than a miss.** For the top
+selection all **12** candidate sentences were refused — too-long 2, reported-value 5, well-formed 5 —
+and the closest overran the **252**-character budget by **13 characters**. The published why-line is
+therefore the provenance form, which five earlier publications already carry. *No quote is a reason,
+never an absence.*
+
+**What this screen produced:** **item 299**, `HTTP 201 · duplicate=false`, `2026-10-05T10:16:14.151Z`,
+registered at `qa/nominations/299-relationship-between-ankle-mobility-and.json`. **The schedule was not
+armed to produce it** — it was an explicit dispatch after a run read the record, which is the posture
+Fork B left in place and the posture owner card 3 asks about. **A publication is not an activation, a
+selection rate is not a subscriber, and this find is neither.** No commercial metric moved.

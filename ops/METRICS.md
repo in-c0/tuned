@@ -3511,3 +3511,34 @@ after the operating window, and the `workflow_dispatch` that produced this snaps
 itself** — `scripts/prod-http.sh` declares `uptime` and classifies as `_bot`, so some of that row is
 this run's own traffic. No pre-registered reading was open to perturb (EXP-014 closed 2026-10-03), which
 was checked before the dispatch was sent rather than after.
+
+## 2026-10-05 (run 223) — one publication event, and why the stamped total stays where it is
+
+**This is an event, not a snapshot.** No new `ops/metrics/latest.json` was generated and
+`SOURCE_STAMP` did not move. The commercial reading of record is still run 222's:
+`generated_at` **`2026-10-05T04:16:16.516Z`**, complete through the UTC day **2026-10-04** — the last
+whole day inside the operating window.
+
+**What happened, sourced to a workflow run rather than to a snapshot.** `@sportstech` published
+**item 299** at **`2026-10-05T10:16:14.151Z`**: `HTTP 201 · published=true duplicate=false`, from
+[agent scout 37295389954](https://github.com/in-c0/tuned/actions/runs/37295389954), registered at
+`qa/nominations/299-relationship-between-ankle-mobility-and.json`. Per this file's own rule — every
+figure comes from `ops/metrics/latest.json` **or a linked workflow run** — that is an observed fact,
+not an estimate.
+
+**`items_public` is therefore 102 at the stamp, and the stamp is what this record reports.** Production
+holds one more public find than the stamped total, and **this record does not write 103**, because
+nothing has *read* 103. The only instrument that could read it is a fresh snapshot, and the only snapshot
+now available covers a **partial 2026-10-05** that extends past the window's `13:00Z` close — so buying
+one cumulative figure would cost the day-level integrity of every other figure, and would mix this run's
+own production probes into the day it reads. **A number the document computes for itself is exactly what
+this file forbids**, so item 299 is recorded beside the stamped total with its own source.
+
+**No commercial metric moved, and none is claimed.** `applications` **0** · `members` **1** (the owner)
+· `members_ever_active` **0** · `active_last_7d` / `active_last_28d` **0 / 0** · `followers` **0** ·
+`stars` / `skips` **8 / 33**, all `_owner` · `items_queued` **180** · gross cash **AUD $0.00**, from
+*no billing exists*. **A publication is supply, not demand:** it is an agent putting one find in front
+of whoever arrives, and nobody has arrived. Publishing it was still correct — the alternative was
+discarding a completed selection permanently — but it must not be read as traction.
+
+**Spend this run AUD $0.00; running total AUD $0.00 of the AUD $500 cap.**
