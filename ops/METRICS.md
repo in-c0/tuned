@@ -3440,3 +3440,74 @@ neither explains the other.**
 `items_public` **101** · `stars` **8** / `skips` **33**, **all** `_owner` · `members_ever_active` **0** ·
 `active_last_7d` **0** · gross cash **AUD $0**, from *no billing exists*. The window's six renders
 produced **no** follow, RSS click, application, star or login on either day they occurred.
+
+---
+
+## 2026-10-05 (run 222) — the operating window's last complete day, and the final reading this record can carry
+
+**Source for every figure below:** [`ops/metrics/latest.json`](metrics/latest.json) `daily`, `totals`,
+`retention` and `referrers`, `generated_at` **2026-10-05T04:16:16.516Z**, complete through the UTC day
+**2026-10-04**, committed [`c9309e5`](https://github.com/in-c0/tuned/commit/c9309e5) by
+[metrics snapshot 37262751307](https://github.com/in-c0/tuned/actions/runs/37262751307).
+
+**Why this reading had to be taken by hand, and why now.** The operating window closes at
+`2026-10-05T13:00Z` (end of 2026-10-05 Sydney), so **2026-10-04 is the last whole UTC day inside it**
+and no later run exists to read a snapshot of it. The `15 0 * * *` cron exists precisely to put a
+finished day on disk within minutes of its ending, and it **did not fire at `2026-10-05T00:15Z`** — the
+**third** consecutive occurrence ([L-135](LESSONS.md#l-135); run 216 recorded the first, run 219 the
+second). At `04:13Z` the newest committed snapshot was still the `40 20 * * *` run delivered **2h52m
+late** at `generated_at` `2026-10-04T23:32:32.786Z`, complete only through **2026-10-03**. One
+`workflow_dispatch` produced the reading above.
+
+**No commercial metric moved on the window's last complete day, and one did become observed.**
+
+| `totals` / `retention` | At this stamp | Change vs 2026-10-04T04:15:07.776Z |
+| --- | --- | --- |
+| `applications` | **0** | — |
+| `members` | **1** (the owner) | — |
+| `members_ever_active` | **0** | — |
+| `members_returned_after_first_day` | **0** | — |
+| `active_last_7d` / `active_last_28d` | **0 / 0** | — |
+| `followers` | **0** | — |
+| `stars` / `skips` | **8 / 33**, `stars_owner` **8**, `skips_owner` **33** | — |
+| `items_public` | **102** | **101 → 102** |
+| `items_queued` | **180** | — |
+| `feeds_human` / `feeds_agent` | **1 / 4** | — |
+| Gross cash | **AUD $0**, from *no billing exists* | — |
+
+**The one movement is item 298 becoming observed rather than asserted.** It published at
+`2026-10-04T10:16:17.520Z`, after the previous snapshot, so `ops/CLOSEOUT.md` had been carrying it as
+prose arithmetic — *the stamped 101 plus one HTTP 201*. This snapshot contains it. **Nothing else in
+the commercial table moved on the final day**, which was checked field by field rather than asserted.
+
+**2026-10-04 daily counters, complete.** `landing_view` **35** / `landing_view_bot` **61**;
+`landing_render` **1**; `landing_engage` **1**; `application_start` **absent**. `item_view` **49**
+unsuffixed / `item_view_bot` **119**; `item_render` **never written** (no unsuffixed row and no `_bot`
+row); `item_view_onsite_bot` **30**, `item_view_referred_bot` **10**, `item_view_search_bot` **10**.
+`feed_view` **6** / `feed_view_bot` **73**; `feed_fetch` **3** / `feed_fetch_bot` **82**;
+`robots_fetch` **3** / **40**; `sitemap_fetch_bot` **7**; `cron_run` **48**; `spotify_sync_ok` **48**.
+**Absent entirely:** `application_submit`, `member_login`, `desk_view`, `attention_star`,
+`attention_skip`, `follow_open`, `follow_rss`, `follow_submit`, `find_follow_open`, `find_follow_rss`,
+`desk_follow`.
+
+**`referrers` for 2026-10-04 holds exactly one row — `www.google.com`, `bot` 1, count 10 — and it is
+this service's own liveness check, not an arrival.** `verify-production.yml` sends two
+`www.google.com`-referred requests per run under `tuned-ops-verifier`. It accounts for
+`item_view_search_bot` **10** on its own, and `item_view_referred_bot` **10** exactly. **No `bot` 0 row
+of any host exists for the day**, and no `~over` row, so the 24-host cap did not bind.
+
+**What the last complete day does and does not say.** One landing page load ran its script and recorded
+a first interaction (`landing_render` 1, `landing_engage` 1) and **wrote no `application_start`** — the
+funnel's last recorded browser-shaped arrival stopped before the form. Per this file's own definition
+these three names are reported by the page itself and are **forgeable by anyone willing to set one
+header**, so this is evidence that one arrival behaved like a person, **not proof of one, and not a
+rate**. And the 49 unsuffixed `item_view` requests coincided with **zero** renders of any find page,
+which is the crawl shape [EXP-014](EXPERIMENTS.md#exp-014) Fork B describes — stated as a reading of
+one day **outside** that experiment's window. **EXP-014 closed 2026-10-03 with VERDICT B and is FINAL;
+nothing here re-grades it**, and a day after a window cannot.
+
+**The 2026-10-05 row is partial and is deliberately not read.** It covers 4h16m of a UTC day that ends
+after the operating window, and the `workflow_dispatch` that produced this snapshot **probed production
+itself** — `scripts/prod-http.sh` declares `uptime` and classifies as `_bot`, so some of that row is
+this run's own traffic. No pre-registered reading was open to perturb (EXP-014 closed 2026-10-03), which
+was checked before the dispatch was sent rather than after.

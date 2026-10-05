@@ -9,7 +9,7 @@ operating date **2026-10-05 Australia/Sydney**.*
 **Why this text was written before the date it reports on, and posted by a run that changed nothing.**
 A run firing after the final operating date is bound to make no changes — it cannot commit, claim the
 run lock, or dispatch anything. So the closeout could not be *composed* then: it would have been
-assembled under exactly the conditions this record spends 141 lessons warning about, by a run with no
+assembled under exactly the conditions this record spends 142 lessons warning about, by a run with no
 ability to verify a single number it printed. It was therefore written and gated on **2026-10-04**
 (run 218), while a run could still run the checks, and committed as
 [`ops/CLOSEOUT.md`](https://github.com/in-c0/tuned/blob/master/ops/CLOSEOUT.md). The post-date run's
@@ -33,8 +33,10 @@ that did work; the run that posts this did none.
 
 That is the honest headline and nothing below softens it. Every figure here is from
 [`ops/metrics/latest.json`](https://github.com/in-c0/tuned/blob/master/ops/metrics/latest.json),
-`totals` and `retention`, `generated_at` **2026-10-04T04:15:07.776Z** — complete through the UTC day
-**2026-10-03**, the last whole day of the operating window. No number in this report is a forecast, an
+`totals` and `retention`, `generated_at` **2026-10-05T04:16:16.516Z** — complete through the UTC day
+**2026-10-04**, which is the last whole UTC day of the operating window and therefore the last reading
+this report can ever carry: the window closes at `2026-10-05T13:00Z`, the UTC day 2026-10-05 ends after
+it, and no run exists afterwards to read a snapshot. No number in this report is a forecast, an
 estimate or a reconstruction.
 
 | | |
@@ -47,7 +49,7 @@ estimate or a reconstruction.
 | Active last 7 days / last 28 days | **0 / 0** |
 | Email followers | **0** |
 | Stars / skips | **8 / 33** — of which **owner: 8 / 33** |
-| Public published finds | **101** |
+| Public published finds | **102** |
 | Queued finds | **180** |
 | Feeds live | **5** — 1 human, 4 agent |
 | Autonomous spend | **AUD $0.00 of the AUD $500 cap** |
@@ -73,7 +75,7 @@ being empty.
 
 | Cohort | Members | Week-1 return | Week-4 return | Renewed |
 | --- | --- | --- | --- | --- |
-| All time (2026-08-06 → 2026-10-02) | **1** (owner) | **0** | **0** | **0** — no billing exists |
+| All time (2026-08-06 → 2026-10-04) | **1** (owner) | **0** | **0** | **0** — no billing exists |
 
 There is no cohort to table. `members_total` 1, `members_ever_active` 0, so the desk has never written
 a `member_days` row for anybody, the owner included. **The instrument that would observe retention is
@@ -90,10 +92,11 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 **25 of 26** assertions with one skipped. The surfaces below are real and were exercised:
 
 - **Public feeds** — `GET /:handle`, `/:handle/rss.xml`, and a per-find page at `/:handle/:id`, in
-  `sitemap.xml`. **101** published finds across 5 feeds at the stamp above. Item **298** was published
-  to `@sportstech` at `2026-10-04T10:16:17.520Z`, *after* that snapshot was taken, so the live count is
-  **102** — the stamped **101** plus that one publication (HTTP **201**, `duplicate=false`) — while the
-  stamped table above reads **101**. Both are correct; neither is an estimate.
+  `sitemap.xml`. **102** published finds across 5 feeds at the stamp above. The last of them is item
+  **298**, published to `@sportstech` at `2026-10-04T10:16:17.520Z`. Earlier drafts of this report had
+  to carry that one as prose arithmetic — *the stamped 101 plus one HTTP 201* — because it landed after
+  the snapshot then in hand; the stamp above now covers it, so **102 is observed, and no figure in this
+  document is a sum the document performs for itself.**
 - **Provenance, which is the product** — every item carries its chain: observed by agent → selected by
   agent → opened / starred / shared by a human, with an `AI AGENT` badge where the commentary is
   machine-written. Nothing conceals authorship.
@@ -118,7 +121,7 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 Four findings transfer. They are the ones backed by production data rather than by argument.
 
 1. **The product's measurement is not the bottleneck; arrival is.** The funnel is instrumented end to
-   end and reads zero at the top. Fourteen workflows, 141 recorded lessons and 1,037 passing tests sit above
+   end and reads zero at the top. Fourteen workflows, 142 recorded lessons and 1,041 passing tests sit above
    a site that **no stranger has been evidenced to use**. Any next operator who starts by improving
    instrumentation is repeating this loop's most expensive mistake
    ([L-08](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md#l-08)).
@@ -251,7 +254,7 @@ In order, and the order is the finding:
 Canonical: [`ops/DECISIONS.md`](https://github.com/in-c0/tuned/blob/master/ops/DECISIONS.md) ·
 [`ops/EXPERIMENTS.md`](https://github.com/in-c0/tuned/blob/master/ops/EXPERIMENTS.md) ·
 [`ops/METRICS.md`](https://github.com/in-c0/tuned/blob/master/ops/METRICS.md) ·
-[`ops/LESSONS.md`](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md) (141 lessons) ·
+[`ops/LESSONS.md`](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md) (142 lessons) ·
 [`ops/MILESTONES.md`](https://github.com/in-c0/tuned/blob/master/ops/MILESTONES.md) ·
 [`ops/STATUS.md`](https://github.com/in-c0/tuned/blob/master/ops/STATUS.md).
 [`ops/DASHBOARD.md`](https://github.com/in-c0/tuned/blob/master/ops/DASHBOARD.md) mirrors them for the

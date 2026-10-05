@@ -89,8 +89,41 @@ const MAX_COMMENT_CHARS = 60000;
 // and the newer snapshot turned the report's one predicted figure (items_public, written 100 with
 // "reads 101 on the next snapshot") into an observed 101. Every other figure in the report was
 // re-checked against the new reading and none of them moved.
+//
+// Moved again 2026-10-04T04:15:07.776Z -> 2026-10-05T04:16:16.516Z by run 222, and this is the LAST
+// time it can move. The report's figures had to be complete through some whole UTC day; the last one
+// inside the operating window is 2026-10-04, because the window closes at 2026-10-05T13:00Z and the
+// UTC day 2026-10-05 ends after it. The 15 0 * * * snapshot cron that exists to put a finished day on
+// disk within minutes did not fire at 2026-10-05T00:15Z -- the third instance of L-135 -- so the
+// reading was taken by workflow_dispatch (run 37262751307, commit c9309e5) rather than waiting for a
+// schedule that had already failed twice. It again turned the report's one unsourced figure into an
+// observed one: items_public 102, which section 3 had been carrying as "the stamped 101 plus one
+// HTTP 201". Every other figure was re-checked against the new reading and none moved -- applications
+// 0, members 1, members_ever_active 0, stars 8 / 33 all owner, followers 0, items_queued 180, feeds
+// 1 human + 4 agent, every retention row 0.
 const SOURCE_FILE = "ops/metrics/latest.json";
-const SOURCE_STAMP = "2026-10-04T04:15:07.776Z";
+const SOURCE_STAMP = "2026-10-05T04:16:16.516Z";
+
+// The passing-test total the report states, and the one figure in it that genuinely cannot be
+// derived: counting the suites means running them, and this file is inside one of them.
+//
+// It was NAMED as unguarded by run 221, in the header above, with the instruction that "a run that
+// changes the test count must correct the closeout by hand" -- and run 221 changed it in the same
+// commit, 476 -> 479 ops tests, and did not correct it. The document then read 1,037 against an
+// actual 1,040. Naming an unguarded figure is not guarding it, and the gap between writing the
+// warning and ignoring it was zero commits (L-142).
+//
+// So it is pinned here, which is the SOURCE_STAMP construction and is correct for the same reason:
+// a re-count is a judgement a run has to make by running both suites, so the two-file friction buys
+// something real, unlike the tree-derived tallies below where it bought only drift. Updating it is
+// deliberately self-referential -- adding a test here moves the number this constant holds -- so the
+// value is read off an actual run of both suites, never predicted.
+//
+// 561 vitest (35 files) + 480 node --test ops tests = 1,041, both read from run 222's gate output
+// after this subtest was added. After 2026-10-05 no run may commit, so the figure is frozen.
+const VITEST_COUNT = 561;
+const OPS_TEST_COUNT = 480;
+const TEST_TOTAL = VITEST_COUNT + OPS_TEST_COUNT;
 
 const read = (p) => fs.readFileSync(p, "utf8");
 
@@ -288,6 +321,25 @@ describe("closeout report (ops/CLOSEOUT.md)", () => {
       `ops/CLOSEOUT.md says "${m[0]}" but .github/workflows/ holds ${expected} workflow files. ` +
         `(If the count passed twenty, extend NUMBER_WORDS or write it as a numeral — an ` +
         `unrecognised word reads as undefined and fails here rather than passing quietly.)`,
+    );
+  });
+
+  it("states the passing-test total that the suites actually report", () => {
+    const body = read(CLOSEOUT_PATH);
+    const m = body.match(/([0-9][0-9,]*) passing tests\b/);
+    assert.ok(
+      m,
+      "ops/CLOSEOUT.md §5 must state the passing-test total in the form `N passing tests` — the " +
+        "guard reads that phrase, and fails when it matches nothing so a rephrase cannot disable it.",
+    );
+    assert.equal(
+      Number(m[1].replace(/,/g, "")),
+      TEST_TOTAL,
+      `ops/CLOSEOUT.md says "${m[0]}" but the pinned total is ${TEST_TOTAL} ` +
+        `(${VITEST_COUNT} vitest + ${OPS_TEST_COUNT} ops). This is the one figure in the report ` +
+        `that cannot be derived — counting the suites means running them — so a run that adds or ` +
+        `removes a test must move BOTH this constant and the sentence in the report, and must read ` +
+        `the new counts off an actual run rather than predicting them.`,
     );
   });
 });

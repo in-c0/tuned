@@ -1,5 +1,69 @@
 # Tuned — STATUS
 
+**Last updated:** 2026-10-05 15:35 Sydney (2026-10-05 04:35 UTC), run 222 — **[OWNER ACTION REQUIRED](#owner-action-required):
+THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3's deadline has passed; `QUIET` is the
+default outcome.** **The handover now carries the window's last possible reading, and the one figure its own guard
+said it would not catch had already been broken by the commit that wrote the warning.**
+
+**The gate was attended first and it owed nothing.** [`scout-gate.mjs`](../scripts/scout-gate.mjs) read **CURRENT** —
+item 298 at `2026-10-04T10:16:17.520Z`, **18h** old, **zero** scheduled screens certainly delivered since. Nothing
+published, amended or retracted. **The schedule was not armed:** EXP-013's threshold 2 is still unruled and run 153's
+pre-commitment stands — owner card 3, whose deadline has passed.
+
+**This is the final operating date and the second-to-last run inside the window.** `TZ=Australia/Sydney date` read
+**2026-10-05 15:13 AEDT** — *on*, not after, the date — so this is a normal operating cycle. One further firing falls
+inside the window (`2026-10-05T10:00Z`); the first outside it is **`2026-10-05T22:00Z`**, and that is the run that
+posts [`ops/CLOSEOUT.md`](CLOSEOUT.md) verbatim, once, and stops. **No `<!-- tuned-closeout -->` comment exists on
+issue #1 and none should yet.** No new reviewer directive — the newest ChatGPT review is **2026-09-01**, 34 days.
+
+**The cycle went to the window's final reading, because this was the last cycle that could take one.** The window
+closes at `2026-10-05T13:00Z`, so **2026-10-04 is the last whole UTC day inside it** — and the closeout was stamped
+complete-through **2026-10-03**. The `15 0 * * *` snapshot cron, which exists to put a finished day on disk within
+minutes of its ending, **did not fire at `2026-10-05T00:15Z` — the third consecutive occurrence**
+([L-135](LESSONS.md#l-135)). One `workflow_dispatch` →
+[metrics snapshot 37262751307](https://github.com/in-c0/tuned/actions/runs/37262751307) →
+[`c9309e5`](https://github.com/in-c0/tuned/commit/c9309e5), `generated_at` **2026-10-05T04:16:16.516Z**, complete
+through 2026-10-04. Checked against open pre-registrations *before* dispatch: a dispatch probes production, and
+EXP-014 closed 2026-10-03 with nothing open to perturb.
+
+**`SOURCE_STAMP` moved for the last time it can, and it turned the report's one unsourced figure into an observed
+one.** `items_public` **102** — §3 had been carrying it as *"the stamped 101 plus one HTTP 201"*. Every other
+commercial figure was re-checked field by field and **none moved**: applications **0**, members **1**, members ever
+active **0**, followers **0**, stars/skips **8 / 33** all owner, queued **180**, gross cash **AUD $0.00**. §2's
+cohort range was **two** days behind at `→ 2026-10-02` and now reads `→ 2026-10-04`.
+
+**Then the defect the guard had predicted about itself.** Run 221 honestly named the one figure it could not derive —
+*"1,037 passing tests"* — and wrote that *"a run that changes the test count must correct the closeout by hand."*
+**`d0084d2` moved the ops suite 476 → 479 in that same commit and did not correct it**, so the document read 1,037
+against an actual 1,040 from the moment the warning was committed, while the same report printed `ops 479/479` two
+paragraphs away. **Naming an unguarded figure is not guarding it** — [L-142](LESSONS.md#l-142). Subtest **12** now
+pins `561 + 480` and asserts the report states the sum, failing when the phrase matches nothing. The pin is
+self-referential — adding it moved the ops suite to **480** and the total to **1,041** — so it was read off an
+actual run, and it **reddened on the real `1,037` before it cleared**.
+
+**One landing arrival on the window's last complete day ran the page and stopped before the form.** 2026-10-04:
+`landing_render` **1**, `landing_engage` **1**, `application_start` **absent**; `item_view` **49** unsuffixed with
+`item_render` **never written**; `referrers` holding one row (`www.google.com`, `bot` 1, 10) which is
+`verify-production.yml`'s own liveness check and not an arrival. Per [METRICS.md](METRICS.md)'s own definitions these
+page-reported names are **forgeable by one header**, so that is evidence one arrival behaved like a person, **not
+proof of one and not a rate**. EXP-014 closed 2026-10-03 with **VERDICT B, FINAL**, and nothing here re-grades it.
+
+**Nothing in `src/`, no `test/`, no schema, no route, no counter, no workflow, no dependency, and no privacy or terms
+text.** The only non-`ops/` change is the pinned constants and subtest 12 in `scripts/closeout.test.mjs`.
+
+**Production:** verified from Actions, not from this session — the standing egress blocker is unchanged and nothing
+was widened. See the run-222 entry in [DECISIONS.md](DECISIONS.md).
+
+**Standing blocker, unchanged:** the artifact and log **blob hosts** (`productionresultssa*.blob.core.windows.net`)
+answer **403 CONNECT** to this session, and `justtuned.com:443` does too. **The GitHub Actions API itself is not
+blocked.** *A blocked transport is not an unavailable fact.*
+
+**Gates:** `npm run check` **0** · **561 vitest** (35 files, unchanged — no `src/` or `test/` file touched) ·
+ops suite **480/480** · 14 workflows · **23** nominations · **0** vulnerabilities · `doc-anchors`,
+`owner-cards` **THREE, agreed in head, section and mirror**, `milestone-horizons` ok.
+
+---
+
 **Last updated:** 2026-10-05 09:35 Sydney (2026-10-04 22:35 UTC), run 221 — **[OWNER ACTION REQUIRED](#owner-action-required):
 THREE, unchanged and not re-argued here, per [L-07](LESSONS.md#l-07). Card 3's deadline has passed; `QUIET` is now
 the default outcome.** **This is the final operating date. The handover document carried three different answers for

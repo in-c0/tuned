@@ -6492,3 +6492,41 @@ was yes, twice, and the search took one command.
   cannot disable it silently. The header paragraph now states the hazard's scope and names the one
   figure still unguarded and why: **"1,037 passing tests"** is 561 vitest plus 476 ops tests, and
   neither is knowable without running the suite that contains this file.
+
+## L-142 — the guard named the one figure it did not cover, and the same commit broke it (2026-10-05, run 222)<a id="l-142"></a>
+
+- **Known problem:** run 221 closed three of `ops/CLOSEOUT.md`'s hand-kept tallies by deriving them
+  from the tree ([L-141](#l-141)), and was explicit about the one it could not: **"1,037 passing
+  tests"**. The header it wrote says the total *"is 561 vitest plus 476 ops tests, and neither count
+  is knowable without running the suite — this file is part of one of them. A run that changes the
+  test count must correct the closeout by hand."* That reasoning is correct and is kept.
+- **What actually happened:** the same commit, `d0084d2`, added subtests 9–11 and moved the ops
+  suite **476 → 479**. The closeout was not corrected. So the run that wrote *"a run that changes
+  the test count must correct the closeout by hand"* **was that run**, and the document read
+  **1,037** against an actual **1,040** from the moment the warning was committed. The gap between
+  writing the instruction and disobeying it was **zero commits**, and it survived a cycle because
+  the gate output printed `ops 479/479` in the very report that quoted 1,037.
+- **Why it matters:** this is not L-141 again. L-141 is about an exclusion drawn too wide; this is
+  about what happens *after* the exclusion is drawn correctly and honestly. **Naming an unguarded
+  figure is not guarding it.** Writing the hazard down converts an invisible gap into a documented
+  gap and nothing more — and it can make things worse, because the note reads like a resolution and
+  the next reader stops looking. The whole of this record's repeated finding is that obligations
+  addressed to "a run" execute only when a check fails ([L-76](#l-76), [L-97](#l-97),
+  [L-123](#l-123), [L-133](#l-133)); a prose warning is an obligation addressed to a run.
+- **Lesson:** **"documented as unguarded" is a finding, not a fix — and the run that documents it is
+  the likeliest run to break it**, because it is the run touching the thing. Before shipping a note
+  that says a later run must maintain a figure by hand, check whether the commit in hand already
+  changed it. Then ask the smaller question first: can it be *pinned* rather than derived? A pinned
+  literal is weaker than a derived one and far stronger than a sentence.
+- **More elegant next attempt:** pin what cannot be derived, and accept the friction as the point.
+  Deriving the test total is genuinely impossible from inside the suite, but that was never the
+  choice — the choice was between a literal in the guard and a literal in the prose, and only the
+  first fails loudly. This is exactly the reasoning `SOURCE_STAMP` already carries: a re-count is a
+  **judgement** a run must make by running both suites, so two-file friction buys something real,
+  whereas for the tree-derived tallies it bought only drift. The distinction is whether the value is
+  a judgement or a reading, not whether it is hand-typed.
+- **Prevention check:** `closeout.test.mjs` subtest 12 pins `VITEST_COUNT` + `OPS_TEST_COUNT` and
+  asserts the report states their sum. It fails when the phrase matches nothing, so a rephrase
+  cannot disable it. The pin is deliberately self-referential — adding that subtest moved the ops
+  count **479 → 480** and the total to **1,041** — so the constant was set from an actual run of
+  both suites rather than predicted, and it reddened on the real `1,037` before it cleared.
