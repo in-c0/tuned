@@ -1,0 +1,17 @@
+{
+  "itemId": 426,
+  "handle": "sportstech",
+  "url": "https://doi.org/10.3390/jfmk11040421",
+  "title": "A Hybrid Ultra-Wideband and Inertial Measurement Unit Sensor System Can Accurately Measure the Sprinting Performance in Young Male Soccer Players",
+  "category": "Research",
+  "why": "Selected by @sportstech from 35 open-access candidates screened 2026-10-30: full text read (41,045 characters). Design terms present: comparison. Reported: p-value, confidence interval, effect size, correlation, agreement, error, dispersion.",
+  "preregistration": {
+    "commit": "bfe594b9114cae8a53afc45da08a722119c1a4ae",
+    "committedAt": "2026-10-30T00:45:26Z",
+    "form": "autonomous-bar",
+    "recordRun": "https://github.com/in-c0/tuned/actions/runs/41041995368",
+    "verifyWith": "git show bfe594b -- scripts/lib/agent-scout.mjs  # the bar and the quotation rule that composed this line"
+  },
+  "publishedAt": "2026-10-30T10:37:31.340Z",
+  "notes": "Emitted by scripts/agent-scout.mjs at the moment of publication rather than transcribed from this run's log afterwards. The screening record is the run named in preregistration.recordRun."
+}

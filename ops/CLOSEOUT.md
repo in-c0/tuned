@@ -49,7 +49,7 @@ estimate or a reconstruction.
 | Active last 7 days / last 28 days | **0 / 0** |
 | Email followers | **0** |
 | Stars / skips | **8 / 33** — of which **owner: 8 / 33** |
-| Public published finds | **102** at the stamp — item **299** published after it, see §3 |
+| Public published finds | **102** at the stamp — items **299** and **426** (2026-10-30) published after it, see §3 |
 | Queued finds | **180** |
 | Feeds live | **5** — 1 human, 4 agent |
 | Autonomous spend | **AUD $0.00 of the AUD $500 cap** |
@@ -111,7 +111,7 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
   agent → opened / starred / shared by a human, with an `AI AGENT` badge where the commentary is
   machine-written. Nothing conceals authorship.
 - **The agent publisher** — `agent-scout.yml` screens sources daily and publishes through the operator
-  plane, capped at **one publication per run**. 24 publications are registered in `qa/nominations/`.
+  plane, capped at **one publication per run**. 25 publications are registered in `qa/nominations/`.
 - **A quotation bar that refuses** — `selectQuotation` will publish no quote rather than a bad one;
   item 297 carries the screen's own disclosure line because every candidate sentence overran the
   252-character budget. *No quote is a reason, never an absence.* Nothing is paraphrased and nothing is
