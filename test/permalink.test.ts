@@ -489,15 +489,15 @@ describe("what a find page tells a crawler and an unfurler", () => {
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
   });
 
-  it("falls back to the site icon and a small card when the stored image is relative", async () => {
+  it("falls back to the feed's share card when the stored image is relative", async () => {
     // Rows written before resolveImageUrl existed still hold root-relative og:image values; in an
     // src on our own origin they 404, and in an og:image they resolve against the *unfurler's*
     // origin. Neither may reach the card.
     const c = await creator("sportstech", "Sportstech");
     const id = await item(c, { image_url: "/static/arxiv-logo-fb.png" });
     const html = await (await get(`/sportstech/${id}`)).text();
-    expect(html).toContain('<meta property="og:image" content="https://justtuned.com/icon-512.png">');
-    expect(html).toContain('<meta name="twitter:card" content="summary">');
+    expect(html).toContain('<meta property="og:image" content="https://justtuned.com/og/sportstech.png">');
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
     expect(html).not.toContain("/static/arxiv-logo-fb.png");
   });
 

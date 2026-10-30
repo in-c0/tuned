@@ -1,6 +1,8 @@
 // Server-rendered HTML for the three surfaces: public feed, creator studio, landing.
 // BRAND is a working title — rename in one place when the owner picks a real name.
 
+import { OG_CARD_HANDLES } from "./og-cards";
+
 export const BRAND = "Tuned";
 export const TAGLINE = "follow attention, not content";
 
@@ -327,6 +329,14 @@ select:focus, input:focus { border-color: var(--accent); }
 .waitlist { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
 .waitlist input[type=email] { flex: 1; min-width: 180px; padding: 10px 14px; }
 .waitlist select { min-width: 170px; }
+.waitlist .wl-more { display: flex; gap: 8px; flex-wrap: wrap; flex-basis: 100%; }
+.waitlist .wl-more[hidden] { display: none; }
+.waitlist .wl-more input { flex: 1; min-width: 200px; }
+.lede { margin-top: 14px; max-width: 46ch; font-size: 16px; line-height: 1.5; color: var(--muted); }
+/* The demo shows provenance, not the whole record: two lines here, the full why-line on the feed. */
+.demo-window .card .note { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.wl-next { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.wl-next a { text-decoration: none; }
 .demo-window {
   border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 10px;
   background: linear-gradient(180deg, #12121a, transparent);
@@ -408,6 +418,9 @@ dialog .or { margin-bottom: 10px; }
 
 @media (max-width: 540px) {
   .thumb { width: 84px; height: 60px; }
+  /* An imageless thumb is a glyph in a box: on a phone it costs a third of the card's width. */
+  .thumb.noimg { display: none; }
+  .site-top a, footer a { display: inline-block; padding: 12px 4px; margin: -12px -4px; }
   .creator-head { flex-wrap: wrap; }
   .head-actions { margin-left: 0; flex-direction: row; }
 }
@@ -622,8 +635,10 @@ ${js ? `<script>${js}</script>` : ""}
  * claim about usage, and no adjective the page cannot support — this is the surface most likely
  * to be quoted back, so it states what the feed *is* and nothing about how it is doing.
  *
- * `summary` rather than `summary_large_image`: the only image this service owns is a 512x512
- * icon, and the large card promises a banner it would have to stretch that icon to fill.
+ * The card image: the item's own image where it has one, else a 1200×630 identity card from
+ * public/og/ (drawn by qa/og-cards.mjs), so a shared feed unfurls as a large card. Until those
+ * existed the only image this service owned was a 512x512 icon, and every page shared as a small
+ * `summary` card because a large one would have stretched it. The icon remains the fallback.
  */
 function socialHead(o: {
   /** Path only, leading slash, no query — the canonical URL is built from SITE_ORIGIN. */
@@ -636,11 +651,15 @@ function socialHead(o: {
    *  Callers pass a value that has already been through `imageSrc`, which is what guarantees it
    *  is absolute — a relative og:image resolves against the *unfurler's* origin (see meta.ts). */
   image?: string;
+  /** A same-origin 1200×630 share card from public/og/ (see `shareCard`), used when `image` is
+   *  absent. It is drawn at that size, so it earns the large card the icon never could. */
+  card?: string;
 }): string {
   const url = `${SITE_ORIGIN}${o.path}`;
-  // `summary_large_image` only where a real image exists. Promising a banner and supplying the
-  // 512x512 icon is how a large card renders as a stretched logo, which is worse than a small one.
-  const image = o.image && /^https?:\/\//i.test(o.image) ? o.image : "";
+  // `summary_large_image` only where a real banner-sized image exists. Promising a banner and
+  // supplying the 512x512 icon is how a large card renders as a stretched logo.
+  const image = o.image && /^https?:\/\//i.test(o.image) ? o.image
+    : o.card && /^\/og\/[a-z0-9-]+\.png$/.test(o.card) ? `${SITE_ORIGIN}${o.card}` : "";
   return `<link rel="canonical" href="${esc(url)}">
 <meta name="description" content="${esc(o.description)}">
 <meta property="og:type" content="website">
@@ -650,6 +669,12 @@ function socialHead(o: {
 <meta property="og:url" content="${esc(url)}">
 <meta property="og:image" content="${esc(image || `${SITE_ORIGIN}/icon-512.png`)}">
 <meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}">`;
+}
+
+/** The share card for a feed: its own if `qa/og-cards.mjs` drew one, the site's otherwise.
+ *  Identity only — no item, count or age is drawn into it, so it cannot go stale. */
+export function shareCard(handle?: string): string {
+  return handle && OG_CARD_HANDLES.has(handle) ? `/og/${handle}.png` : "/og/default.png";
 }
 
 /** Cut to a length a search result and a chat card will both show, on a word boundary. */
@@ -867,7 +892,7 @@ function imageSrc(raw: string): string {
 function card(item: Item, opts: { studio?: boolean; permalink?: string } = {}): string {
   const inner = `
   <div class="card${item.visibility === "hidden" ? " hidden-item" : ""}">
-    <div class="thumb">${imageSrc(item.image_url) ? `<img src="${esc(imageSrc(item.image_url))}" alt="" loading="lazy" onerror="this.remove()">` : esc(KIND_ICON[item.kind] ?? "→")}</div>
+    <div class="thumb${imageSrc(item.image_url) ? "" : " noimg"}">${imageSrc(item.image_url) ? `<img src="${esc(imageSrc(item.image_url))}" alt="" loading="lazy" onerror="this.remove()">` : esc(KIND_ICON[item.kind] ?? "→")}</div>
     <div class="body">
       <div class="meta">
         <span class="cat"><i style="background:${catColor(item.category)}"></i>${esc(item.category)}</span>
@@ -1103,6 +1128,7 @@ ${socialHead({
     path: `/${creator.handle}`,
     title: `${creator.name} — ${BRAND}`,
     description,
+    card: shareCard(creator.handle),
   })}`;
   return layout(`${creator.name} — ${BRAND}`, creator.accent, body, CLIENT_JS, head);
 }
@@ -1138,6 +1164,7 @@ const FEED_CSS = /* css */ `
   border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; background: var(--panel2);
 }
 .card-permalink:hover, .card-permalink:focus-visible { color: var(--text); border-color: #34344a; }
+.card-permalink::before { content: ""; position: absolute; inset: -11px -8px; }
 `;
 
 /** A sibling find, linked to its own page rather than to its source.
@@ -1415,6 +1442,7 @@ ${socialHead({
     title: `${item.title} — @${creator.handle} on ${BRAND}`,
     description,
     image: img,
+    card: shareCard(creator.handle),
   })}`;
   return layout(`${item.title} — @${creator.handle} on ${BRAND}`, creator.accent, body, FIND_JS, head);
 }
@@ -1594,9 +1622,14 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
   // about freshness that is hardcoded is a claim nobody can keep true — so this one is derived,
   // and it degrades by itself into "last active 11d ago" exactly as the feed pages already do.
   const demoLatest = demo?.items[0]?.created_at;
+  // "Live" is itself a freshness claim, so it is derived like the pulse beside it: it appears only
+  // while the newest item is under a day old. Older than that, the heading names the feed instead
+  // and the pulse states the age — the same 24h line the client-side pulse uses.
+  const demoLive = !!demoLatest && Date.now() - new Date(demoLatest).getTime() < 24 * 3600 * 1000;
+  const demoHeading = demoLive ? "Live demo — a real feed" : `A real feed — @${esc(demo?.creator.handle ?? "")}`;
   const demoBlock = demo && demo.items.length
     ? `
-  <div class="section-h"><h2>Live demo — a real feed</h2><div class="rule"></div></div>
+  <div class="section-h" id="demo"><h2>${demoHeading}</h2><div class="rule"></div></div>
   ${demoLatest ? `<div class="presence" data-latest="${esc(demoLatest)}"><span class="dot"></span><span class="ptext"></span></div>` : ""}
   <div class="demo-window">
     ${demo.items.map((i) => card(i)).join("")}
@@ -1607,16 +1640,20 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
   <div class="site-top"><span class="wordmark"><b>·</b> ${esc(BRAND.toLowerCase())}</span><a class="rss" href="${demo ? `/${esc(demo.creator.handle)}` : "#waitlist"}">see a real feed</a></div>
   <div style="padding:56px 0 10px">
     <h1 style="font-size:34px;letter-spacing:-0.02em;max-width:16ch">Follow what people <span style="color:var(--accent)">pay attention to</span>.</h1>
-    <form id="waitlist" class="waitlist" autocomplete="email" style="margin-top:26px">
-      <input type="email" id="wl-email" required placeholder="you@...">
-      <select id="wl-role">
-        <option value="fan">I want to follow feeds</option>
-        <option value="creator">I want a feed of my own</option>
-        <option value="agent">I'm bringing an AI agent</option>
-        <option value="both">Several of these</option>
-      </select>
-      <input type="text" id="wl-note" maxlength="280" placeholder="what would your feed be about? (a link to you or your agent helps)">
+    <p class="lede">Real feeds of what people and their AI agents actually read, watch and listen to. No posts, no captions.</p>
+    <form id="waitlist" class="waitlist" autocomplete="email" style="margin-top:22px">
+      <input type="email" id="wl-email" required placeholder="you@..." aria-label="Email">
       <button class="btn primary" id="wl-btn">Apply to join</button>
+      <div class="wl-more" id="wl-more" hidden>
+        <select id="wl-role" aria-label="What you want">
+          <option value="fan">I want to follow feeds</option>
+          <option value="creator">I want a feed of my own</option>
+          <option value="agent">I'm bringing an AI agent</option>
+          <option value="both">Several of these</option>
+        </select>
+        <input type="text" id="wl-note" maxlength="280" aria-label="Note (optional)" placeholder="whose attention would you follow? (optional)">
+      </div>
+      <noscript><style>.wl-more{display:flex!important}</style></noscript>
     </form>
     <div class="status" id="wl-out"></div>
   </div>
@@ -1638,8 +1675,13 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     <p class="fine">Follow a person, their agents, or both — no account needed, open RSS on every feed.</p>
   </div>
 
-  ${list ? `<div class="section-h"><h2>${FEED_LIST_HEADING}</h2><div class="rule"></div></div>` + list : ""}
+  ${list ? `<div class="section-h" id="feeds"><h2>${FEED_LIST_HEADING}</h2><div class="rule"></div></div>` + list : ""}
   <footer>${esc(TAGLINE)} · <a href="/terms">terms</a> · <a href="/privacy">privacy</a> · <b>${esc(BRAND.toLowerCase())}</b></footer>`;
+  // What a new applicant can do the moment they apply: the two no-account actions this site has.
+  // Built from handles (slug characters only) so it is safe inside the single-quoted JS string.
+  const nextHtml = demo
+    ? `<a class="btn primary small" href="/${esc(demo.creator.handle)}">Open @${esc(demo.creator.handle)}</a><a class="btn small" href="/${esc(demo.creator.handle)}/rss.xml">Follow by RSS</a><a class="btn small" href="#feeds">All feeds</a>`
+    : `<a class="btn small" href="#feeds">All feeds</a>`;
   const js = /* js */ `
   const rel = (t) => {
     const s = (Date.now() - new Date(t).getTime()) / 1000;
@@ -1674,7 +1716,11 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     pulse("landing_engage");
   };
   ["pointerdown", "keydown", "scroll"].forEach(ev => addEventListener(ev, engage, { passive: true }));
+  const more = document.getElementById("wl-more"), role = document.getElementById("wl-role"), note = document.getElementById("wl-note");
+  const hint = () => { note.placeholder = role.value === "fan" ? "whose attention would you follow? (optional)" : "what would your feed be about? a link helps (optional)"; };
+  role.addEventListener("change", hint);
   document.getElementById("waitlist").addEventListener("input", () => {
+    more.hidden = false;
     engage();
     if (started) return;
     started = true;
@@ -1687,7 +1733,12 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     btn.disabled = true;
     const res = await fetch("/waitlist", { method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: document.getElementById("wl-email").value, role: document.getElementById("wl-role").value, note: document.getElementById("wl-note").value }) });
-    if (res.ok) { out.textContent = "Application received and recorded — every member, human or AI, is reviewed personally. ${BRAND} sends no automated email, so there is nothing scheduled to arrive in your inbox. The live feed below needs no account, and its RSS link works right now."; e.target.style.display = "none"; }
+    if (res.ok) {
+      out.textContent = "You're on the list. Every member, human or AI, is reviewed personally. ${BRAND} sends no automated email, so nothing is scheduled to arrive — following needs no account:";
+      const next = document.createElement("div"); next.className = "wl-next";
+      next.innerHTML = '${nextHtml}';
+      out.after(next); e.target.style.display = "none";
+    }
     else { out.textContent = "That didn't work — check the email?"; out.classList.add("err"); btn.disabled = false; }
   });`;
   // Run 108 carried both strings below over as "the reviewed copy this page already carried,
@@ -1719,6 +1770,7 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     title: `${BRAND} — ${TAGLINE}`,
     description: `${BRAND} — ${TAGLINE}. A page of what someone is actually watching, reading and listening to.`,
     ogDescription: "Follow what people pay attention to — not what they post.",
+    card: shareCard(),
   });
   /** What this page tells a feed reader, which until now was nothing at all.
    *

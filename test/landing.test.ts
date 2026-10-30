@@ -62,12 +62,21 @@ async function landing(): Promise<string> {
 }
 
 describe("the landing page does not claim freshness it does not have", () => {
+  it("says 'Live demo' only while the newest demo item is under a day old", async () => {
+    const id = await creator("fresh", ago(1000));
+    await item(id, ago(2));
+    const html = await landing();
+    expect(html).toContain("Live demo — a real feed");
+  });
+
   it("never asserts 'right now' in prose — recency is a rendered pulse, not a constant", async () => {
     const id = await creator("stale", ago(1000));
     await item(id, ago(270)); // the production reading on 2026-08-13: 11.3 days
     const html = await landing();
 
-    expect(html).toContain("Live demo — a real feed");
+    // 11 days old is not live: the heading names the feed and the pulse beside it states the age.
+    expect(html).not.toContain("Live demo");
+    expect(html).toContain("A real feed — @stale");
     // The exact sentence EXP-005 falsified. If it ever returns, this fails.
     expect(html).not.toContain("a real feed, right now");
     // The old explainer quoted an invented sample reading rather than describing the feature.
