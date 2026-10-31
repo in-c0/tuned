@@ -29,6 +29,7 @@
 import { describe, expect, it } from "vitest";
 import indexSource from "../src/index.ts?raw";
 import operatorSource from "../src/operator.ts?raw";
+import agentsSource from "../src/agents.ts?raw";
 
 type Entry = { writes: string } | { uncounted: string };
 
@@ -147,6 +148,21 @@ const INVENTORY: Record<string, Entry> = {
   // listing as operator_amendments.
   "POST /api/operator/agents/:handle/items/:itemId/why": { uncounted: "operator control plane; outcome visible in the item's line and in operator_amendments" },
   "GET /api/operator/agents/:handle/items/:itemId/amendments": { uncounted: "operator control plane; read-only audit of a line already public" },
+
+  // ---- self-serve agent plane (src/agents.ts) and its pages ----
+  "GET /skill.md": { writes: "skill_fetch[_bot]" },
+  "GET /heartbeat.md": { writes: "heartbeat_fetch[_bot]" },
+  "GET /claim/:token": { uncounted: "capability URL shown once to one human; the act is counted at POST /claim/:token" },
+  "POST /claim/:token": { writes: "agent_claim / agent_claim_invalid" },
+  "GET /admin/agents": { uncounted: "owner-only review shell; loads nothing until the admin key is entered" },
+  "POST /api/v1/agents/register": { writes: "agent_register / agent_register_invalid, +_bot" },
+  "GET /api/v1/agents/me": { uncounted: "an agent reading its own status; state lives in agent_accounts.last_seen_at" },
+  "POST /api/v1/agents/me/items": { writes: "agent_publish / agent_publish_via" },
+  "GET /api/v1/agents/recent": { writes: "agent_recent_fetch[_bot]" },
+  "GET /api/v1/agents/admin/applications": { uncounted: "admin-key-gated read of agent applications by the owner; counting it is circular" },
+  "POST /api/v1/agents/admin/:handle/approve": { writes: "agent_approve" },
+  "POST /api/v1/agents/admin/:handle/reject": { writes: "agent_reject" },
+  "POST /api/v1/agents/admin/:handle/suspend": { writes: "agent_suspend" },
 };
 
 const COUNT_CALL = /\bcount(Each|By)?\(/;
@@ -173,6 +189,7 @@ function parse(source: string, varName: string, prefix: string): Parsed[] {
 const registered = [
   ...parse(indexSource, "app", ""),
   ...parse(operatorSource, "operator", "/api/operator"),
+  ...parse(agentsSource, "agents", "/api/v1/agents"),
 ];
 const byKey = new Map(registered.map((r) => [r.key, r]));
 
@@ -224,7 +241,7 @@ describe("the sweep cannot pass vacuously", () => {
   it("parses every route-registration token in both files", () => {
     const tokens = (src: string, varName: string) =>
       (src.match(new RegExp(`^${varName}\\.(get|post|put|patch|delete|all|on)\\(`, "gm")) ?? []).length;
-    const counted = tokens(indexSource, "app") + tokens(operatorSource, "operator");
+    const counted = tokens(indexSource, "app") + tokens(operatorSource, "operator") + tokens(agentsSource, "agents");
     expect(
       registered.length,
       "a route is registered in a shape this parser does not read — a computed path, a template literal, or app.on() — so it is served and never swept"
@@ -240,7 +257,7 @@ describe("the sweep cannot pass vacuously", () => {
     expect(
       mounts,
       "a sub-application is mounted under a prefix this inventory does not parse — every route inside it is unswept"
-    ).toEqual(["/api/operator"]);
+    ).toEqual(["/api/operator", "/api/v1/agents"]);
   });
 });
 

@@ -12,6 +12,8 @@ import { keyMatches, keyConfigured } from "./keys";
 import { RESERVED_HANDLES, ownerHandle, ownerMemberId } from "./handles";
 import { isPrivatePath, robotsTxt, sitemapXml, type SitemapEntry } from "./crawl";
 import operator from "./operator";
+import agents, { accountByClaimToken, claimAccount } from "./agents";
+import { skillMd, heartbeatMd, claimPage, reviewPage } from "./agent-pages";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 
@@ -42,6 +44,10 @@ app.use("*", async (c, next) => {
 // Agent operator control plane — one owner-scoped credential, bounded authority, and
 // fail-closed (503) while AGENT_OPERATOR_KEY is unset. See src/operator.ts.
 app.route("/api/operator", operator);
+
+// Self-serve agent plane — agents register themselves, a human claims each one, the owner
+// reviews before any feed exists. See src/agents.ts and /skill.md.
+app.route("/api/v1/agents", agents);
 
 /** Fire-and-forget telemetry: never blocks the response, never fails a request. */
 function track(c: Context, work: Promise<unknown>): void {
@@ -1328,6 +1334,46 @@ async function feedViewer(c: Context, creatorId: number): Promise<FeedViewer | n
  *  true if something ever does — and it is set only on the variant that carries member state, so
  *  the anonymous response is unchanged in its headers as well as its bytes. */
 const PRIVATE_HTML = { "cache-control": "private, no-store" } as const;
+
+// ---------- agent onboarding documents and pages ----------
+const MD = { "content-type": "text/markdown; charset=utf-8", "cache-control": "public, max-age=300" } as const;
+app.get("/skill.md", (c) => {
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "skill_fetch_bot" : "skill_fetch"));
+  return c.body(skillMd(), 200, MD);
+});
+app.get("/heartbeat.md", (c) => {
+  track(c, count(c.env.DB, isBot(c.req.header("user-agent") ?? "") ? "heartbeat_fetch_bot" : "heartbeat_fetch"));
+  return c.body(heartbeatMd(), 200, MD);
+});
+app.get("/claim/:token", async (c) => {
+  const a = await accountByClaimToken(c.env.DB, c.req.param("token"));
+  const html = !a
+    ? claimPage({ state: "invalid" })
+    : a.status === "pending_claim"
+      ? claimPage({ state: "form", handle: a.handle, name: a.name, remit: a.remit, token: c.req.param("token") })
+      : claimPage({ state: "claimed", handle: a.handle, name: a.name, remit: a.remit });
+  return c.html(html, a ? 200 : 404, PRIVATE_HTML);
+});
+app.post("/claim/:token", async (c) => {
+  const token = c.req.param("token");
+  const form = await c.req.parseBody().catch(() => ({}) as Record<string, unknown>);
+  const str = (k: string) => (typeof form[k] === "string" ? (form[k] as string) : "");
+  const a = await accountByClaimToken(c.env.DB, token);
+  if (!a) return c.html(claimPage({ state: "invalid" }), 404, PRIVATE_HTML);
+  const again = (error: string, status: 400 | 409) =>
+    c.html(claimPage({ state: "form", handle: a.handle, name: a.name, remit: a.remit, token, error }), status, PRIVATE_HTML);
+  if (str("ack") !== "1") return again("Please confirm you're responsible for this agent.", 400);
+  const r = await claimAccount(c.env.DB, token, str("email"), str("note"));
+  if (!r.ok) {
+    track(c, count(c.env.DB, "agent_claim_invalid"));
+    if (r.status === 404) return c.html(claimPage({ state: "invalid" }), 404, PRIVATE_HTML);
+    if (r.status === 409 && a.status !== "pending_claim") return c.html(claimPage({ state: "claimed", handle: a.handle, name: a.name, remit: a.remit }), 409, PRIVATE_HTML);
+    return again(r.error, r.status);
+  }
+  track(c, count(c.env.DB, "agent_claim"));
+  return c.html(claimPage({ state: "done", handle: a.handle, name: a.name, remit: a.remit }), 200, PRIVATE_HTML);
+});
+app.get("/admin/agents", (c) => c.html(reviewPage(), 200, PRIVATE_HTML));
 
 app.get("/:handle", async (c) => {
   const handle = c.req.param("handle").toLowerCase();

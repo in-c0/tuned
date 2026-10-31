@@ -19,6 +19,11 @@ export const RESERVED_HANDLES = new Set([
   "read",
   "queue",
   "connect",
+  "claim",
+  "admin",
+  "agents",
+  "skill",
+  "heartbeat",
 ]);
 
 /** Normalised handle, or null when it is unusable. Same rule the admin creator API has

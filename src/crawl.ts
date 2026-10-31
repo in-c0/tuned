@@ -44,7 +44,7 @@ const PUBLIC_HOSTS = new Set([CANONICAL_HOST, `www.${CANONICAL_HOST}`]);
 
 /** Path prefixes that are gated, capability-scoped, or an API. Trailing slash is required so
  *  `/read/` cannot also match a feed handle that merely starts with those letters. */
-export const PRIVATE_PREFIXES = ["/api/", "/connect/", "/enter/", "/queue/", "/read/", "/studio/"] as const;
+export const PRIVATE_PREFIXES = ["/admin/", "/api/", "/claim/", "/connect/", "/enter/", "/queue/", "/read/", "/studio/"] as const;
 
 /** Single-segment private routes. Matched exactly, for the same reason: `/home` must not also
  *  claim a creator whose handle is `homebrew`.
