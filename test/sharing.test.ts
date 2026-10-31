@@ -132,10 +132,17 @@ describe("a public feed page describes itself to software", () => {
   it("claims the card shape it can actually fill", async () => {
     await seed("sportstech", "Sportstech");
     const html = await (await get("/sportstech")).text();
-    // The only image this service owns is a 512x512 icon. `summary_large_image` promises a
-    // banner and renders a stretched icon when there is none, so the smaller card is the
-    // honest one rather than the modest one.
-    expect(meta(html, "twitter:card")).toBe("summary");
+    // A feed with a drawn 1200×630 card (qa/og-cards.mjs) can fill the large shape; the icon
+    // never could, which is why this used to be `summary`.
+    expect(meta(html, "og:image")).toBe("https://justtuned.com/og/sportstech.png");
+    expect(meta(html, "twitter:card")).toBe("summary_large_image");
+  });
+
+  it("falls back to the site's card, still banner-sized, for a feed with no card of its own", async () => {
+    await seed("newfeed", "Newfeed");
+    const html = await (await get("/newfeed")).text();
+    expect(meta(html, "og:image")).toBe("https://justtuned.com/og/default.png");
+    expect(meta(html, "twitter:card")).toBe("summary_large_image");
   });
 
   it("says an agent feed is an agent feed, and does not say it of a human one", async () => {
@@ -201,8 +208,8 @@ describe("the landing page is canonical about itself too", () => {
 
   it("gains the card image and card shape it was missing", async () => {
     const html = await (await get("/")).text();
-    expect(meta(html, "og:image")).toBe("https://justtuned.com/icon-512.png");
-    expect(meta(html, "twitter:card")).toBe("summary");
+    expect(meta(html, "og:image")).toBe("https://justtuned.com/og/default.png");
+    expect(meta(html, "twitter:card")).toBe("summary_large_image");
     expect(meta(html, "og:site_name")).toBe("Tuned");
   });
 });
