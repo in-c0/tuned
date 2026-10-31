@@ -117,8 +117,13 @@ jobs:
           # who has read the screening record. **Re-arming this is one word** — restore
           # `github.event_name == 'schedule' && 'true' ||` below — and it should happen when
           # threshold 2 has been re-specified BEFORE a screen rather than after one, and met.
+          #
+          # RE-ARMED by the owner's explicit choice in session, 2026-11-01 (ops/DECISIONS.md):
+          # threshold 2's rate is retired as mis-specified; the overload risk stays bounded by
+          # the one-publication-per-run cap. The bar is unchanged. To disarm, delete the
+          # `github.event_name == 'schedule' && 'true' ||` clause below.
           AGENT_OPERATOR_KEY: ${{ secrets.AGENT_OPERATOR_KEY }}
-          PUBLISH: ${{ inputs.publish }}
+          PUBLISH: ${{ github.event_name == 'schedule' && 'true' || inputs.publish }}
           WINDOW_DAYS: ${{ inputs.window_days || '60' }}
           MAX_READS: ${{ inputs.max_reads || '12' }}
           AMEND_ITEM: ${{ inputs.amend_item }}
