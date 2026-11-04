@@ -162,3 +162,17 @@ nothing to claim.
 watchdog's stand-down verdict, "post once and stop" converts three comments a day into an hourly red
 job and a false `stale` alarm forever. Without "post once and stop", the watchdog stays green by
 being fed claims from runs whose only output is a duplicate comment. See LESSONS L-134.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in this repo's GitHub Issues via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one root `GLOSSARY.md` plus `docs/adr/`, both created lazily. See `docs/agents/domain.md`.
