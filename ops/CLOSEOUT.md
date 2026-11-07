@@ -131,7 +131,7 @@ time of writing — [37116713056](https://github.com/in-c0/tuned/actions/runs/37
 Four findings transfer. They are the ones backed by production data rather than by argument.
 
 1. **The product's measurement is not the bottleneck; arrival is.** The funnel is instrumented end to
-   end and reads zero at the top. Fourteen workflows, 142 recorded lessons and 1,041 passing tests sit above
+   end and reads zero at the top. Fifteen workflows, 142 recorded lessons and 1,041 passing tests sit above
    a site that **no stranger has been evidenced to use**. Any next operator who starts by improving
    instrumentation is repeating this loop's most expensive mistake
    ([L-08](https://github.com/in-c0/tuned/blob/master/ops/LESSONS.md#l-08)).
