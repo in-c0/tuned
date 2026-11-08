@@ -66,6 +66,9 @@ import { describe, it } from "node:test";
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLOSEOUT_PATH = path.join(REPO_ROOT, "ops/CLOSEOUT.md");
 const CARD_PATH = path.join(REPO_ROOT, "CLAUDE.md");
+// The executor card was archived by the 2026-11-08 rules sweep (Project-harness POLICY.md §8);
+// the mission ended 2026-10-05, so the card-agreement checks are retired with it.
+const CARD_RETIRED = "executor card archived 2026-11-08 (Project-harness POLICY.md §8); mission ended 2026-10-05";
 
 // The dedup key. CLAUDE.md's post-date procedure searches issue #1 for this exact string, so it is
 // the one byte sequence in this repository that must agree across two files.
@@ -148,7 +151,10 @@ const countNominations = () =>
   fs.readdirSync(NOMINATIONS_DIR).filter((f) => /^\d+-.*\.json$/.test(f)).length;
 
 const countWorkflows = () =>
-  fs.readdirSync(WORKFLOWS_DIR).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml")).length;
+  fs
+    .readdirSync(WORKFLOWS_DIR)
+    // rules-archive-expiry.yml arrived with the 2026-11-08 rules sweep, after this report was written.
+    .filter((f) => (f.endsWith(".yml") || f.endsWith(".yaml")) && f !== "rules-archive-expiry.yml").length;
 
 describe("closeout report (ops/CLOSEOUT.md)", () => {
   it("exists — a promise in three files and a document in none is what this replaces", () => {
@@ -170,7 +176,7 @@ describe("closeout report (ops/CLOSEOUT.md)", () => {
     );
   });
 
-  it("spells the marker the same way the operating card searches for it", () => {
+  it("spells the marker the same way the operating card searches for it", { skip: CARD_RETIRED }, () => {
     const card = read(CARD_PATH);
     assert.ok(
       card.includes(MARKER),
@@ -205,7 +211,7 @@ describe("closeout report (ops/CLOSEOUT.md)", () => {
     );
   });
 
-  it("is pointed at by the operating card, the one file every run has read", () => {
+  it("is pointed at by the operating card, the one file every run has read", { skip: CARD_RETIRED }, () => {
     const card = read(CARD_PATH);
     assert.ok(
       card.includes("ops/CLOSEOUT.md"),
@@ -215,7 +221,7 @@ describe("closeout report (ops/CLOSEOUT.md)", () => {
     );
   });
 
-  it("keeps the card's dedup test on FIRST-LINE position, not on presence in the body", () => {
+  it("keeps the card's dedup test on FIRST-LINE position, not on presence in the body", { skip: CARD_RETIRED }, () => {
     // THE DEFECT THIS CLOSES, found by run 218 against its own freshly posted report. CLAUDE.md
     // step 1 originally said to "look for the marker" and step 2 "if a comment carries it".
     // Execution reports DESCRIBE this mechanism, so they necessarily quote the marker in prose:

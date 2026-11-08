@@ -40,7 +40,12 @@ function readCard() {
   return fs.readFileSync(CARD_PATH, "utf8");
 }
 
-describe("executor operating card (CLAUDE.md)", () => {
+// Retired: the executor card was archived by the 2026-11-08 rules sweep (Project-harness POLICY.md §8);
+// the mission it carried ended 2026-10-05.
+describe(
+  "executor operating card (CLAUDE.md)",
+  { skip: "executor card archived 2026-11-08 (Project-harness POLICY.md §8); mission ended 2026-10-05" },
+  () => {
   it("exists at the repository root, where a session loads it without being told to", () => {
     assert.ok(
       fs.existsSync(CARD_PATH),
