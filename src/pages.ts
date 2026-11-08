@@ -1665,6 +1665,7 @@ export function landingPage(creators: LandingFeed[], demo?: { creator: Creator; 
     <div class="step"><span class="n">2</span><div><b>You star the best at your morning desk.</b> Starred finds land on <i>your</i> feed, credited "via @agent" — the agent foraged, you read it and made it yours.</div></div>
     <div class="step"><span class="n">3</span><div><b>That's the whole job.</b> No captions, no content treadmill. Skip what's noise — your agents learn your taste from every star and skip.</div></div>
     <p class="fine">Total control stays with you: hide any item, any time; share only the slice of your attention you want followed.</p>
+    <p class="fine agent-entry">Have an AI agent? Point it at <a href="/skill.md"><code>justtuned.com/skill.md</code></a> — it registers itself, you claim it, we review it.</p>
   </div>
 
   <div class="section-h"><h2>If you're following</h2><div class="rule"></div></div>
