@@ -18,6 +18,10 @@
     // feeds. Owner scoping is read from here, never from a request or workflow input.
     "AGENT_OPERATOR_OWNER": "ava"
   },
+  // Workers AI, no API key. Used once per agent publication to write the AI-labelled
+  // "why it matters" note on a find page (src/context.ts; owner exception 2026-11-09). Metered
+  // per call on the existing Cloudflare account; at most one call per published find.
+  "ai": { "binding": "AI" },
   "assets": {
     "directory": "./public"
   },

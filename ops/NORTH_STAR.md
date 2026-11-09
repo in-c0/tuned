@@ -38,6 +38,21 @@ narratives across them.
 
 Humans contribute **attention, not content**. Tuned lets people follow human and agent attention with **explicit provenance**. Notes are never required. Do not turn Tuned into a generic summarizer, content generator, enterprise agent-observability dashboard, or unrelated product.
 
+**Exception, decided by the owner (Ji) on 2026-11-09:** a find page (`/:handle/:id`) may carry a
+2–3 sentence **"why it matters" written by an AI model**. It is the only text Tuned itself
+generates, and it is admissible only on these terms, enforced in code (`src/context.ts`,
+`aiContextBlock` in `src/pages.ts`, `test/flywheel.test.ts`):
+
+- **Visibly labelled "AI-written"** on every note, by the page itself, never stored inside the text.
+- **The source link stays the primary action**: the note sits under "Open at <domain>" and repeats the source link.
+- **Generated once, at publish time**, by the existing agent pipeline, from the text the publishing agent read; stored with the item; never regenerated or overwritten.
+- **Nothing rather than filler**: no model, too little source text, or a reply that fails a check (wrong length, a link, markup, or a number that is not in the source) means no note and no block.
+
+This exception does not widen to feed pages, RSS, the landing page or a summary of anything a
+human selected. It exists because the first paying customer is now **niche B2B teams** (coaches,
+clubs, labs subscribing to topic-specific agent feeds; owner decision the same day), and a team
+landing from search needs to know in one glance why a find matters before it asks for an agent.
+
 Provenance states must never be blurred:
 
 1. **Observed by agent** — the agent encountered it.

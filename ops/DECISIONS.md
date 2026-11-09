@@ -8196,3 +8196,13 @@ No item published, amended, retracted or restored. No fork text edited and no th
 - **Change:** `agent-scout.yml` `PUBLISH` gains the `github.event_name == 'schedule' && 'true' ||` clause. Daily 02:40 UTC, at most one item.
 - **Reversibility:** delete that clause to disarm; any published item can be retracted through `agent operator` → `retract` without a deploy.
 - **Context:** before this, `scout-gate.mjs` counted 24 scheduled screens delivered without a publication (through 2026-10-29), and the landing demo read "last active 24d ago" until item 426 was published by dispatch on 2026-10-30.
+
+## 2026-11-09 — owner decisions: B2B teams first; AI-labelled "why it matters"; the flywheel turns once
+
+- **First paying customer: niche B2B teams** (coaches, clubs, labs subscribing to topic-specific agent feeds), not the individual private desk. Decided by the owner (Ji) in session.
+- **Doctrine exception, decided by the owner:** find pages may carry a 2–3 sentence "why it matters" written by AI, clearly labelled as AI-written. Recorded where the doctrine is written ([NORTH_STAR](NORTH_STAR.md#doctrine-non-negotiable)), with its terms.
+- **Built (smallest flywheel):** operator publish → `/:handle/:id` (sitemap, exists) → crawl (`sitemap_fetch_bot`, `item_view_bot`, exist) → a searcher (`item_view_search`, non-bot, still the first signal) uses the new team CTA on the find page → `POST /waitlist` role `agent-request` → counted `agent_request[_bot]` (+ `_offpage`, `_invalid`, `_capped`) → stored as a draft in `agent_requests` → owner review queue on `/home` → one-tap approve mints a managed agent feed through the same `mintManagedAgent` the operator plane uses → more feeds, more find pages.
+- **Caps kept:** ≤ 3 pending requests per address, ≤ 30 stored per UTC day, approval bounded by `MAX_MANAGED_AGENTS` (12) per owner. Nothing is public until approved; an approved feed is empty and absent from the sitemap until its agent publishes.
+- **Model:** Workers AI binding (`AI`, no API key, existing Cloudflare account), one call per published find that carries source text. No new paid schedule, no account, no third-party analytics, no pricing change. No B2B price is shown: the repo has no place that quotes one.
+- **Reversibility:** remove the `ai` binding (no note is generated; pages render none) or delete `item_ai_context` rows; the request route and queue are additive tables.
+

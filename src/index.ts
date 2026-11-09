@@ -6,12 +6,22 @@ import { dashboardPage, loginPage, type FeedBundle } from "./dashboard";
 import { deskPage, type DeskItem, type AgentStats } from "./desk";
 import { currentMember, grantSession, clearSession, newToken as newSessionToken, SESSION_COOKIE, type Member } from "./auth";
 import { authorizeUrl, exchangeCode, syncConnection, SpotifyError, type Connection } from "./spotify";
-import { count, countBy, countEach, memberActive, isBot, recordReferrer, snapshot, wroteNewRow } from "./metrics";
+import { count, countBy, countEach, memberActive, isBot, recordReferrer, snapshot, utcDay, wroteNewRow } from "./metrics";
 import { BUILD_COMMIT } from "./build-info";
 import { keyMatches, keyConfigured } from "./keys";
 import { RESERVED_HANDLES, ownerHandle, ownerMemberId } from "./handles";
 import { isPrivatePath, robotsTxt, sitemapXml, type SitemapEntry } from "./crawl";
-import operator from "./operator";
+import operator, { mintManagedAgent } from "./operator";
+import { itemContext, type AiRunner } from "./context";
+import {
+  cleanTeamType,
+  cleanTopic,
+  ensureRequestTable,
+  freeHandle,
+  pendingRequests,
+  storeRequest,
+  type AgentRequestRow,
+} from "./requests";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 
@@ -26,6 +36,9 @@ export type Bindings = {
   AGENT_OPERATOR_KEY: string;
   /** Public var, not a secret: the human handle whose member owns operator-managed agents. */
   AGENT_OPERATOR_OWNER: string;
+  /** Workers AI, used once per agent publication for the AI-labelled "why it matters" note
+   *  (src/context.ts). Absent or failing means no note, never a broken page. */
+  AI?: AiRunner;
 };
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -240,6 +253,80 @@ app.get("/", async (c) => {
   return c.html(landingPage(results, demo));
 });
 
+// ---------- agent request (from a find page) ----------
+//
+// The team-oriented ask on every find page: "Get an agent watching this topic for your team".
+// It arrives through the same application route as the landing form, with role `agent-request`,
+// so there is one public write path for "someone wants in", not two. What differs is what is
+// required (a topic; the email is optional) and where it lands (src/requests.ts: a DRAFT feed in
+// the owner's review queue, never a public page until she approves it).
+//
+//   agent_request[_bot]           an accepted request. Bucket; the two are the total. Kept apart
+//                                 from `application_submit`, which stays the membership funnel.
+//   agent_request_offpage         axis: the subset without this site's Origin, as on applications.
+//   agent_request_invalid[_bot]   refused: topic out of bounds, or an email that is not one.
+//   agent_request_capped          refused by a cap (per address, or per UTC day). An axis-free
+//                                 single name, because it is read only as "did the cap bind".
+//
+// Classifies and never refuses on the discriminators, for the reason this file gives at
+// `/waitlist`: a real team turned away costs more than a mislabelled request. The bot flag is
+// stored on the draft so the owner sees it in the queue.
+async function agentRequest(
+  c: Context,
+  body: { email?: string; topic?: string; team_type?: string; from_handle?: string; from_item?: number },
+  suffix: "" | "_bot",
+  offpage: boolean
+): Promise<Response> {
+  const db = c.env.DB as D1Database;
+  const topic = cleanTopic(body.topic);
+  const email = (body.email ?? "").trim().toLowerCase();
+  const emailOk = email === "" || (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && email.length <= 200);
+  if (!topic || !emailOk) {
+    track(c, count(db, `agent_request_invalid${suffix}`));
+    return c.json({ error: topic ? "invalid email" : "invalid topic" }, 400);
+  }
+  // The source find, only if it really is a public item of that handle — the pair is caller-sent.
+  let sourceHandle = "";
+  let sourceItemId: number | null = null;
+  const fromItem = Number(body.from_item);
+  if (typeof body.from_handle === "string" && Number.isInteger(fromItem) && fromItem > 0) {
+    const src = await db
+      .prepare(
+        `SELECT cr.handle FROM items i JOIN creators cr ON cr.id = i.creator_id
+          WHERE i.id = ? AND cr.handle = ? AND i.visibility = 'public'`
+      )
+      .bind(fromItem, body.from_handle.toLowerCase())
+      .first<{ handle: string }>();
+    if (src) {
+      sourceHandle = src.handle;
+      sourceItemId = fromItem;
+    }
+  }
+  const stored = await storeRequest(
+    db,
+    { topic, teamType: cleanTeamType(body.team_type), email, sourceHandle, sourceItemId, bot: suffix === "_bot" },
+    utcDay()
+  );
+  if (!stored.ok) {
+    track(c, count(db, "agent_request_capped"));
+    return c.json({ error: "limit" }, 429);
+  }
+  if (!stored.duplicate) {
+    // The existing application mechanism, so a request that left an address is readable in
+    // `GET /api/applications` alongside every other way in. No address, no waitlist row: the
+    // table's email column is the key it is read by.
+    if (email) {
+      await db
+        .prepare("INSERT OR IGNORE INTO waitlist (email, role, note) VALUES (?, 'agent-request', ?)")
+        .bind(email, `agent request #${stored.id}: ${topic}`.slice(0, 280))
+        .run();
+    }
+    track(c, count(db, `agent_request${suffix}`));
+    if (offpage) track(c, count(db, "agent_request_offpage"));
+  }
+  return c.json({ ok: true });
+}
+
 // ---------- application ----------
 //
 // This is the one number the whole loop is waiting for. `applications` has read 0 for
@@ -275,9 +362,21 @@ app.get("/", async (c) => {
 // something unexpected — is the entire bet, and the benefit is a counter that is already
 // obtainable by labelling. This route classifies; it never refuses.
 app.post("/waitlist", async (c) => {
-  const { email, role, note } = await c.req.json<{ email?: string; role?: string; note?: string }>();
+  const body = await c.req
+    .json<{
+      email?: string;
+      role?: string;
+      note?: string;
+      topic?: string;
+      team_type?: string;
+      from_handle?: string;
+      from_item?: number;
+    }>()
+    .catch(() => ({}) as Record<string, undefined>);
+  const { email, role, note } = body;
   const suffix = isBot(c.req.header("user-agent") ?? "") ? "_bot" : "";
   const offpage = c.req.header("origin") !== new URL(c.req.url).origin;
+  if (role === "agent-request") return agentRequest(c, body, suffix, offpage);
   // A rejected submit is someone who tried to join and did not. It has been invisible:
   // `application_submit` only counts the ones that worked, so a broken validator and an
   // empty funnel look identical in the snapshot.
@@ -1017,7 +1116,63 @@ app.get("/home", async (c) => {
     autoPublish: Boolean(conn?.auto_publish),
     flash: c.req.query("spotify") ?? "",
   };
-  return c.html(dashboardPage(member, feeds, spotify));
+  // The agent-request review queue, shown to the owner only. A non-owner member sees no queue
+  // and cannot act on one (POST /requests/:id/:action checks the same thing).
+  const ownerId = await ownerMemberId(c.env.DB, ownerHandle(c.env.AGENT_OPERATOR_OWNER)).catch(() => null);
+  const requests: AgentRequestRow[] = ownerId === member.id ? await pendingRequests(c.env.DB) : [];
+  return c.html(dashboardPage(member, feeds, spotify, requests));
+});
+
+// ---------- the owner's one tap on an agent request ----------
+//
+// The only route that turns a draft into a public feed. Session-authenticated and refused to
+// every member but the owner, because approval mints a feed under HER member and her operator
+// ceiling (MAX_MANAGED_AGENTS) — the per-person cap the operator plane already enforces. It goes
+// through the same `mintManagedAgent` the operator plane uses, so the two paths cannot disagree.
+// The new feed is empty until an agent publishes to it, and an empty feed is in no sitemap.
+//
+//   agent_request_approved / agent_request_declined   one per decision. State changes rather
+//   than traffic, counted so the snapshot shows the loop turning, not only being asked.
+app.post("/requests/:id/:action", async (c) => {
+  const member = await currentMember(c);
+  if (!member) return c.json({ error: "unauthorized" }, 401);
+  const ownerId = await ownerMemberId(c.env.DB, ownerHandle(c.env.AGENT_OPERATOR_OWNER)).catch(() => null);
+  if (ownerId === null || ownerId !== member.id) return c.json({ error: "owner only" }, 403);
+  const id = Number(c.req.param("id"));
+  const action = c.req.param("action");
+  if (!Number.isInteger(id) || id < 1) return c.json({ error: "not found" }, 404);
+  await ensureRequestTable(c.env.DB);
+  const row = await c.env.DB.prepare("SELECT * FROM agent_requests WHERE id = ? AND status = 'pending'")
+    .bind(id)
+    .first<AgentRequestRow>();
+  if (!row) return c.json({ error: "not found" }, 404);
+  if (action === "decline") {
+    await c.env.DB.prepare(
+      "UPDATE agent_requests SET status = 'declined', decided_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'pending'"
+    )
+      .bind(id)
+      .run();
+    track(c, count(c.env.DB, "agent_request_declined"));
+    return c.json({ ok: true, status: "declined" });
+  }
+  if (action !== "approve") return c.json({ error: "bad action" }, 400);
+  const handle = await freeHandle(c.env.DB, row.draft_handle);
+  if (!handle) return c.json({ error: "no free handle near the draft" }, 409);
+  const minted = await mintManagedAgent(
+    c.env.DB,
+    ownerId,
+    { handle, name: row.draft_name, remit: row.draft_remit, bio: row.draft_remit.slice(0, 280) },
+    "owner-approval"
+  );
+  if (!minted.ok) return c.json({ error: minted.error }, minted.status);
+  await c.env.DB.prepare(
+    `UPDATE agent_requests SET status = 'approved', approved_handle = ?,
+            decided_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND status = 'pending'`
+  )
+    .bind(minted.handle, id)
+    .run();
+  track(c, count(c.env.DB, "agent_request_approved"));
+  return c.json({ ok: true, status: "approved", handle: minted.handle, public_url: `/${minted.handle}` });
 });
 
 // ---------- admin: create a creator ----------
@@ -1602,9 +1757,12 @@ app.get("/:handle/:id", async (c) => {
   // As on the feed page, and more so here: a find page is what search indexes and what a shared
   // link points at, so this is the surface most arrivals land on. See `otherFeedsBlock`.
   const { results: directory } = await feedDirectory(c.env.DB);
+  // The AI-written "why it matters" note, if one was generated at publish time. Never throws;
+  // absent means the page renders no block at all (src/context.ts, condition 3).
+  const context = await itemContext(c.env.DB, item.id);
   return viewer
-    ? c.html(itemPage(creator, item, more, viewer, directory), 200, PRIVATE_HTML)
-    : c.html(itemPage(creator, item, more, null, directory));
+    ? c.html(itemPage(creator, item, more, viewer, directory, context), 200, PRIVATE_HTML)
+    : c.html(itemPage(creator, item, more, null, directory, context));
 });
 
 // The one conversion action on a public feed page, and until now it wrote no counter at all.

@@ -2,6 +2,7 @@
 // BRAND is a working title — rename in one place when the owner picks a real name.
 
 import { OG_CARD_HANDLES } from "./og-cards";
+import type { ItemContext } from "./context";
 
 export const BRAND = "Tuned";
 export const TAGLINE = "follow attention, not content";
@@ -521,6 +522,40 @@ if (fbtn) {
     const out = document.getElementById("follow-out");
     if (res.ok) { out.textContent = "You're on the list. Nothing sends until digests start — the RSS link above is live now."; e.target.style.display = "none"; }
     else { out.textContent = "That didn't work — check the email?"; }
+  });
+}
+
+// The team request. Same route as the landing application, with its own role, so it is stored
+// and counted (\`agent_request\`) without a second write path.
+const tform = document.getElementById("team-form");
+if (tform) {
+  tform.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const out = document.getElementById("team-out");
+    const btn = tform.querySelector("button");
+    btn.disabled = true;
+    const res = await fetch("/waitlist", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        role: "agent-request",
+        topic: document.getElementById("tr-topic").value,
+        team_type: document.getElementById("tr-team").value,
+        email: document.getElementById("tr-email").value,
+        from_handle: tform.dataset.handle,
+        from_item: Number(tform.dataset.item)
+      })
+    }).catch(() => null);
+    const body = res ? await res.json().catch(() => ({})) : {};
+    if (res && res.ok) {
+      out.textContent = "Request received. A person reviews it before any agent is set up.";
+      tform.style.display = "none";
+    } else {
+      btn.disabled = false;
+      out.textContent = body.error === "invalid topic" ? "Give the topic in 3–120 characters."
+        : body.error === "invalid email" ? "That email doesn't look right — or leave it blank."
+        : body.error === "limit" ? "We've had a lot of requests today. Please try again tomorrow."
+        : "That didn't go through. Try again?";
+    }
   });
 }
 `;
@@ -1316,7 +1351,79 @@ const FIND_CSS = /* css */ `
 .find-follow .ff-copy b { display: block; font-size: 14px; margin-bottom: 3px; }
 .find-follow .ff-copy span { font-size: 12px; color: var(--muted); }
 .find-follow .btn { white-space: nowrap; }
+.ai-context {
+  margin: 20px 0 4px; padding: 14px 16px; border-radius: 12px;
+  border: 1px dashed var(--line); background: var(--panel);
+}
+.ai-context-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; margin-bottom: 6px; }
+.ai-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: #4cc9f0; border: 1px solid #4cc9f0; border-radius: 999px; padding: 1px 7px;
+}
+.ai-context p { font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+.ai-context-f { font-size: 12px; color: var(--muted); margin-top: 8px; overflow-wrap: anywhere; }
+.ai-context-f a { color: var(--text); text-decoration: underline; }
+.team-request {
+  margin: 16px 0 4px; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel2);
+}
+.team-request .tr-copy b { display: block; font-size: 14px; margin-bottom: 3px; }
+.team-request .tr-copy span, .team-request .tr-note { font-size: 12px; color: var(--muted); }
+.team-request form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 12px 0 8px; }
+.team-request .tr-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; min-width: 0; font-size: 12px; color: var(--muted); }
+.team-request .tr-field input, .team-request .tr-field select { width: 100%; min-width: 0; }
+.team-request .btn { white-space: nowrap; }
 `;
+
+/** The AI-written "why it matters" note, or nothing.
+ *
+ *  Owner exception to the no-summariser doctrine, 2026-11-09 (ops/NORTH_STAR.md). Three rules,
+ *  all enforced here rather than in the stored text:
+ *    1. The label is rendered by this function on every note, so no storage path can drop it.
+ *    2. It sits UNDER the "Open at <domain>" button and ends with the source link again — the
+ *       page still exists to send the reader to the source.
+ *    3. No note, no block. There is no fallback text; an empty string is the whole output. */
+function aiContextBlock(handle: string, item: Item, context: ItemContext | null): string {
+  if (!context || !context.text.trim()) return "";
+  return `<aside class="ai-context" aria-label="Why it matters, written by AI">
+      <div class="ai-context-h"><b>Why it matters</b> <span class="ai-label">AI-written</span></div>
+      <p>${esc(context.text)}</p>
+      <div class="ai-context-f">Written by an AI model from the source's own text when this find was published — not by
+      @${esc(handle)} and not checked by a person. Read the source itself:
+      <a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.domain)} →</a></div>
+    </aside>`;
+}
+
+/** The team-oriented ask: "get an agent watching this topic for your team".
+ *
+ *  The first paying customer is a niche B2B team (owner decision 2026-11-09), and a find page is
+ *  where a searcher from such a team lands. The form posts to the same application route as the
+ *  landing page (`POST /waitlist`, role `agent-request`) and becomes a DRAFT feed in the owner's
+ *  review queue; nothing goes public until she approves it. It sits below the provenance list and
+ *  the follow block, so the outbound link stays the primary action. No price is shown: the repo
+ *  has no B2B price to quote. */
+function teamRequestBlock(creator: Creator, item: Item): string {
+  return `<div class="team-request" id="team-request">
+      <div class="tr-copy">
+        <b>Get an agent watching this topic for your team</b>
+        <span>For coaching staff, clubs and labs. Tell us the topic; a person reviews every request before any agent is set up.</span>
+      </div>
+      <form id="team-form" data-handle="${esc(creator.handle)}" data-item="${item.id}">
+        <label class="tr-field"><span>Topic</span><input type="text" id="tr-topic" required minlength="3" maxlength="120" placeholder="e.g. hamstring injury return-to-play"></label>
+        <label class="tr-field"><span>Your team</span><select id="tr-team">
+          <option value="coach">Coaching staff</option>
+          <option value="club">Sports team or club</option>
+          <option value="lab">Research lab</option>
+          <option value="company">Company</option>
+          <option value="other">Other</option>
+        </select></label>
+        <label class="tr-field"><span>Work email (optional)</span><input type="email" id="tr-email" maxlength="200" placeholder="you@team.org"></label>
+        <button class="btn primary" type="submit">Request an agent</button>
+      </form>
+      <div class="tr-note">Leave an email only if you want a reply from a person. Tuned sends no automated email.</div>
+      <div class="status" id="team-out" role="status"></div>
+    </div>`;
+}
 
 /** One find, at an address of its own.
  *
@@ -1348,7 +1455,14 @@ const FIND_CSS = /* css */ `
  *  the destination-that-replaces-the-source shape the doctrine boundary above rules out. It is
  *  rendered unconditionally — `more` can be empty on a one-item feed, and an affordance that
  *  disappears on the smallest feeds is not one. */
-export function itemPage(creator: Creator, item: Item, more: Item[], viewer: FeedViewer | null = null, others: LandingFeed[] = []): string {
+export function itemPage(
+  creator: Creator,
+  item: Item,
+  more: Item[],
+  viewer: FeedViewer | null = null,
+  others: LandingFeed[] = [],
+  context: ItemContext | null = null
+): string {
   const img = imageSrc(item.image_url);
   const source = item.site_name || item.domain;
   // Absolute and server-rendered. A relative time needs script; a crawler runs none, and the date
@@ -1385,6 +1499,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[], viewer: Fee
     ${item.description ? `<div class="find-desc">${esc(item.description)}</div>` : ""}
     ${img ? `<div class="find-art"><img src="${esc(img)}" alt="" loading="lazy" onerror="this.closest('.find-art').remove()"></div>` : ""}
     <a class="btn primary open-cta" href="${esc(item.url)}" target="_blank" rel="noopener">Open at ${esc(item.domain)} →</a>
+    ${aiContextBlock(creator.handle, item, context)}
     <div class="provenance">
       <h2>Provenance</h2>
       <ol>
@@ -1397,7 +1512,9 @@ export function itemPage(creator: Creator, item: Item, more: Item[], viewer: Fee
         <li><i>◦</i><span>Published to this feed <b>${esc(when)}</b></span></li>
       </ol>
       <div class="disclaim">Tuned does not host this and did not write it. This page records that
-      someone paid attention to it, and who — nothing more. The link above goes to the source.</div>
+      someone paid attention to it, and who — nothing more. The link above goes to the source.${
+        context ? " The only text on this page Tuned generated is the note labelled AI-written." : ""
+      }</div>
     </div>
     <div class="find-follow">
       <div class="ff-copy">
@@ -1406,6 +1523,7 @@ export function itemPage(creator: Creator, item: Item, more: Item[], viewer: Fee
       </div>
       <button class="btn primary" id="follow-btn" data-feed="/${esc(creator.handle)}">Follow</button>${followRss(creator.handle)}
     </div>
+    ${teamRequestBlock(creator, item)}
     ${
       more.length
         ? `<div class="more-finds">

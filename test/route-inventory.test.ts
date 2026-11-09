@@ -40,7 +40,9 @@ type Entry = { writes: string } | { uncounted: string };
 const INVENTORY: Record<string, Entry> = {
   // ---- public surfaces, counted ----
   "GET /": { writes: "landing_view[_bot]" },
-  "POST /waitlist": { writes: "application_submit / application_invalid, +_bot, +_offpage axis" },
+  "POST /waitlist": {
+    writes: "application_submit / application_invalid, +_bot, +_offpage axis; role agent-request writes agent_request[_bot], agent_request_invalid[_bot], agent_request_capped, +_offpage axis",
+  },
   "POST /api/pulse/:name": { writes: "the allowlisted pulse name, +_bot" },
   "GET /robots.txt": { writes: "robots_fetch[_bot]" },
   "GET /sitemap.xml": { writes: "sitemap_fetch[_bot]" },
@@ -101,6 +103,10 @@ const INVENTORY: Record<string, Entry> = {
   // run 144 spent a whole run learning to *subtract* from the counters that already existed. When
   // `members` exceeds 1 this reason expires and the block needs re-deciding, not re-confirming.
   "GET /home": { uncounted: "member-only; sole member is the owner (see block note)" },
+  // Counted although owner-only, because it is a state change and not traffic: the approval is the
+  // step where a team's request becomes a feed, i.e. where the flywheel actually turns. A counter
+  // here records the owner deciding, which is exactly what it is read as.
+  "POST /requests/:id/:action": { writes: "agent_request_approved / agent_request_declined" },
   "POST /queue/:id/:action": { uncounted: "member-only desk triage; sole member is the owner" },
   "POST /api/creators": { uncounted: "member-only feed creation; sole member is the owner" },
   "POST /api/agents/:id/charter": { uncounted: "member-only private steering; sole member is the owner" },
@@ -146,6 +152,7 @@ const INVENTORY: Record<string, Entry> = {
   // operator_item_amendments table, surfaced by the GET below and counted in the plane's
   // listing as operator_amendments.
   "POST /api/operator/agents/:handle/items/:itemId/why": { uncounted: "operator control plane; outcome visible in the item's line and in operator_amendments" },
+  "GET /api/operator/requests": { uncounted: "operator control plane; read-only view of the agent-request queue, state is in totals.agent_requests*" },
   "GET /api/operator/agents/:handle/items/:itemId/amendments": { uncounted: "operator control plane; read-only audit of a line already public" },
 };
 

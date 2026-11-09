@@ -2176,3 +2176,44 @@ test("the screen reports the methods length on every selection, so a quiet bar i
 test("the design word list is not empty, so the clause above is not sweeping an empty set", () => {
   assert.ok(Object.keys(DESIGN_SIGNATURES).length >= 5);
 });
+
+// ---------------------------------------------------------------------------
+// The abstract travels once, as grounding for the AI-labelled "why it matters" note
+// ---------------------------------------------------------------------------
+//
+// Owner exception 2026-11-09 (ops/NORTH_STAR.md): the Worker may generate a 2–3 sentence note
+// per find, labelled AI-written, from the text the publishing agent read. The publisher is what
+// has that text, so it must send it — and must send nothing when it has none, so the page shows
+// no note rather than one grounded in the title alone.
+
+test("publishOne sends the abstract it read as context_source, bounded", async () => {
+  let sent = null;
+  await publishOne({
+    handle: "sportstech",
+    base: "https://example.test",
+    key: "not-a-real-key",
+    find: { url: "https://doi.org/10.1/x", title: "A find", why: "because", idempotencyKey: "scout-abc", contextSource: "x".repeat(5000) },
+    log: () => {},
+    fetchImpl: async (_url, init) => {
+      sent = JSON.parse(init.body);
+      return { status: 201, text: async () => JSON.stringify({ ok: true, published: true, item_id: 1 }) };
+    },
+  });
+  assert.equal(sent.context_source.length, 4000);
+});
+
+test("publishOne sends no context_source when the find carries no text", async () => {
+  let sent = null;
+  await publishOne({
+    handle: "sportstech",
+    base: "https://example.test",
+    key: "not-a-real-key",
+    find: { url: "https://doi.org/10.1/x", title: "A find", why: "because", idempotencyKey: "scout-abc" },
+    log: () => {},
+    fetchImpl: async (_url, init) => {
+      sent = JSON.parse(init.body);
+      return { status: 201, text: async () => JSON.stringify({ ok: true, published: true, item_id: 1 }) };
+    },
+  });
+  assert.equal("context_source" in sent, false);
+});
