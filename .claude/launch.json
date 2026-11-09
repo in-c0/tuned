@@ -4,7 +4,7 @@
     {
       "name": "attention-feed",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["wrangler", "dev", "--port", "8791"],
+      "runtimeArgs": ["wrangler", "dev", "--local", "--port", "8791"],
       "port": 8791
     }
   ]

@@ -4,6 +4,7 @@
 
 import { layout, esc, BRAND, CATEGORIES, type Creator, type Item } from "./pages";
 import type { Member } from "./auth";
+import { TEAM_TYPES, type AgentRequestRow } from "./requests";
 
 const CAT_COLORS: Record<string, string> = {
   Video: "#ff5d73", Posts: "#4cc9f0", Code: "#9b8cff", Research: "#ffd166",
@@ -53,6 +54,9 @@ const DASH_CSS = `
 .auto-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
 .card.queued { border-color: #2c2c46; background: linear-gradient(180deg, #15151f, var(--panel)); }
 .flash { font-size: 13px; color: var(--accent); margin: 10px 0 0; }
+.req-card .meta a { text-decoration: underline; }
+.req-card .desc { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.req-bot { color: #ff5d73; }
 </style>`;
 
 function catColor(cat: string): string { return CAT_COLORS[cat] ?? CAT_COLORS.Misc; }
@@ -122,7 +126,39 @@ function spotifyCard(sp: SpotifyState, queuedCount: number): string {
   </div>`;
 }
 
-export function dashboardPage(member: Member, feeds: FeedBundle[], sp: SpotifyState): string {
+/** The agent-request review queue: what teams asked for from a find page, as draft feeds. Owner
+ *  only (src/index.ts decides). One tap approves — which mints the agent feed — or declines.
+ *  Nothing in a draft is public until approved, and an approved feed is empty until its agent
+ *  publishes, so it reaches no sitemap before it has something to show. */
+function requestQueue(requests: AgentRequestRow[]): string {
+  if (requests.length === 0) return "";
+  const cards = requests
+    .map(
+      (r) => `<div class="card req-card" data-req="${r.id}">
+      <div class="body">
+        <div class="meta"><span>${esc(TEAM_TYPES[r.team_type] ?? "team")}</span>${r.bot ? ` · <span class="req-bot">flagged automated</span>` : ""}${
+          r.source_handle && r.source_item_id
+            ? ` · <span>from <a href="/${esc(r.source_handle)}/${r.source_item_id}" target="_blank">/${esc(r.source_handle)}/${r.source_item_id}</a></span>`
+            : ""
+        }${r.email ? ` · <span>${esc(r.email)}</span>` : " · <span>no email</span>"}</div>
+        <h3>${esc(r.topic)}</h3>
+        <div class="note">Draft feed <b>@${esc(r.draft_handle)}</b> — ${esc(r.draft_name)}</div>
+        <div class="desc">${esc(r.draft_remit)}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn small primary" data-req-approve="${r.id}">Approve</button>
+        <button class="btn small" data-req-decline="${r.id}">Decline</button>
+      </div>
+    </div>`
+    )
+    .join("");
+  return `<div class="section-h"><h2 style="color:var(--accent)">Agent requests — ${requests.length} waiting</h2><div class="rule"></div></div>
+    <div class="dash-links" style="margin-bottom:10px">Teams asked for these from a find page. Approve creates the agent feed under your operator limit; nothing is public until then.</div>
+    ${cards}
+    <div class="pub-status" id="req-status"></div>`;
+}
+
+export function dashboardPage(member: Member, feeds: FeedBundle[], sp: SpotifyState, requests: AgentRequestRow[] = []): string {
   const catOptions = CATEGORIES.map((cat) => `<option value="${esc(cat)}">${esc(cat)}</option>`).join("");
   const tabs = feeds.map((f, i) =>
     `<button class="feed-tab${i === 0 ? " active" : ""}" data-feed="${f.creator.id}">@${esc(f.creator.handle)}${f.creator.kind === "agent" ? ` <span class="ai">AI</span>` : ""}</button>`
@@ -166,6 +202,7 @@ export function dashboardPage(member: Member, feeds: FeedBundle[], sp: SpotifySt
     <a class="btn out" href="/logout">Log out</a>
   </div>
   ${sp.flash && SPOTIFY_FLASH[sp.flash] ? `<div class="flash">${esc(SPOTIFY_FLASH[sp.flash])}</div>` : ""}
+  ${requestQueue(requests)}
   ${feeds.length > 1 ? `<div class="feed-switch">${tabs}</div>` : ""}
   ${panels || `<div class="empty">You don't have a feed yet — the team will set one up for you.</div>`}`;
 
@@ -224,6 +261,19 @@ export function dashboardPage(member: Member, feeds: FeedBundle[], sp: SpotifySt
     b.disabled = true;
     const res = await fetch("/queue/"+b.dataset.dismiss+"/dismiss",{method:"POST"});
     if (res.ok) b.closest(".card").remove(); else b.disabled = false;
+  }));
+  // agent requests: one tap each
+  document.querySelectorAll("[data-req-approve],[data-req-decline]").forEach(b => b.addEventListener("click", async () => {
+    const id = b.dataset.reqApprove || b.dataset.reqDecline;
+    const action = b.dataset.reqApprove ? "approve" : "decline";
+    b.disabled = true;
+    const r = await fetch("/requests/"+id+"/"+action,{method:"POST"});
+    const j = await r.json().catch(()=>({}));
+    const st = $("#req-status");
+    if (r.ok) {
+      document.querySelector('[data-req="'+id+'"]')?.remove();
+      if (st) st.textContent = action === "approve" ? "Approved — @"+j.handle+" is created. It stays empty until its agent publishes." : "Declined.";
+    } else { b.disabled = false; if (st) { st.textContent = j.error || "That didn't work."; st.classList.add("err"); } }
   }));
   // spotify connection controls
   $("#sp-sync")?.addEventListener("click", async (e) => {

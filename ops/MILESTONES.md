@@ -281,8 +281,14 @@ the ladder above feeds the 1-week horizon rather than this one.*
   desk for delegated attention) holds attention week after week without prompting, and that people renew.
 - **Evidence of completion:** ≥1 renewal or second billing period collected; and a cohort whose
   week-4 return rate is reported from `member_days`, whatever it says.
-- **Status:** **not started.** *Note: this horizon extends past the 2026-10-05 autonomous operating
-  date — the executor will have closed out; this is the owner's to carry.*
+- **Status:** **missed**, graded 2026-11-09 Sydney on that day's evidence: [`ops/metrics/latest.json`](metrics/latest.json)
+  (`generated_at` 2026-11-09T00:41:13.464Z) reads `members_total` **1**, `members_ever_active` **0**,
+  `active_last_28d` **0**, and its note says *"no billing exists"* — so no renewal, no second billing
+  period and no cohort. The week-4 return the horizon asked to be reported "whatever it says" is
+  undefined because the cohort is empty. *Note: this horizon extends past the 2026-10-05 autonomous
+  operating date — the executor closed out; this was the owner's to carry.* On 2026-11-09 Ji set the first
+  paying customer to niche B2B teams (see [DECISIONS.md](DECISIONS.md)); that is a new target, not a
+  regrade of this one.
 - **Blocker:** everything above.
 - **Next action:** **DISCHARGED 2026-10-04 (run 218).** The cohort table is handed over in
   [CLOSEOUT.md](CLOSEOUT.md) § 2, and it is honest by being empty: `members_total` **1**,

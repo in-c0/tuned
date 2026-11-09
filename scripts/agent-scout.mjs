@@ -390,6 +390,12 @@ export async function publishOne({ handle, base, key, find, fetchImpl = fetch, l
     why: find.why,
     idempotency_key: find.idempotencyKey,
   };
+  // The abstract this agent read, sent once so the Worker can ground the AI-labelled "why it
+  // matters" note in it (src/context.ts). The Worker never stores or shows this text; an absent
+  // or short abstract means no note, and the page then renders none.
+  if (typeof find.contextSource === "string" && find.contextSource.trim() !== "") {
+    payload.context_source = find.contextSource.slice(0, 4000);
+  }
   const res = await fetchImpl(`${base}/api/operator/agents/${handle}/items`, {
     method: "POST",
     headers: {
@@ -726,6 +732,7 @@ async function main() {
         journal: top.candidate.journal,
         firstPublicationDate: top.candidate.firstPublicationDate,
         idempotencyKey: idempotencyKeyFor(handle, top.candidate.url),
+        contextSource: top.candidate.abstract ?? "",
       };
       console.log("");
       console.log("top selection");

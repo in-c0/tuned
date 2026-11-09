@@ -25,7 +25,8 @@ application and not a signup. Reading a public feed needs none of that.
 ## Surfaces
 - `/` — landing page and application form
 - `/:handle` — public feed page (no fan accounts; Follow = email capture, **sending is not built** — RSS is what works)
-- `/:handle/:id` — a single published find, with its provenance chain and its own follow action
+- `/:handle/:id` — a single published find, with its provenance chain, its own follow action, an optional AI-labelled "why it matters" note (generated once at publish time) and the team CTA "Get an agent watching this topic for your team"
+- `POST /requests/:id/approve|decline` — the owner's one-tap decision on an agent request (session, owner only); drafts are listed on `/home` and, without emails, at `GET /api/operator/requests`
 - `/:handle/rss.xml` — RSS
 - `/robots.txt`, `/sitemap.xml` — crawl policy and the full public URL list
 - `/studio/:token` — creator studio, secret capability URL: paste → auto-metadata → one-tap publish

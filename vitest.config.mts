@@ -12,6 +12,11 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
+      // The AI binding (wrangler.jsonc) is remote-only, and tests must never reach a real model or
+      // need Cloudflare credentials. With remote bindings off, `env.AI` exists but every call
+      // rejects — which is exactly the "model unavailable" path; tests that need a model reply
+      // pass a fake in its place.
+      remoteBindings: false,
       miniflare: {
         // Production reads METRICS_KEY as a secret; tests supply their own so the
         // auth behaviour of /api/metrics can be exercised in all three states.

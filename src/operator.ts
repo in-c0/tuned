@@ -31,12 +31,17 @@ import { Hono, type Context } from "hono";
 import { keyConfigured, keyMatches, keysCollide } from "./keys";
 import { normalizeHandle } from "./handles";
 import { CATEGORIES } from "./pages";
+import { generateItemContext, type AiRunner } from "./context";
+import { pendingRequests } from "./requests";
 // One definition of the owner, shared with the attention counters that have to say whether
 // an action was the first party's own. See src/handles.ts.
 import { ownerHandle as resolveOwnerHandle, ownerMemberId } from "./handles";
 
 export type OperatorBindings = {
   DB: D1Database;
+  /** Workers AI. Optional: absent (or unreachable) means no "why it matters" note is generated,
+   *  and the find page renders none. See src/context.ts. */
+  AI?: AiRunner;
   ADMIN_KEY: string;
   AGENT_OPERATOR_KEY: string;
   AGENT_OPERATOR_OWNER: string;
@@ -136,7 +141,7 @@ let schemaReady: Promise<void> | null = null;
  *  the executor holds no D1 credentials and cannot run a migration. Nothing is altered or
  *  dropped: all three tables are new, and existing agents are NOT silently adopted into
  *  them. */
-function ensureTables(db: D1Database): Promise<void> {
+export function ensureOperatorTables(db: D1Database): Promise<void> {
   if (!schemaReady) {
     schemaReady = db
       .batch([
@@ -239,7 +244,7 @@ operator.use("*", async (c, next) => {
     return c.json({ ok: false, error: "unauthorized" }, 401);
   }
 
-  await ensureTables(c.env.DB);
+  await ensureOperatorTables(c.env.DB);
 
   // Owner scoping is resolved from a configured *human* handle, not from request input.
   // No workflow input can select a different owner, which is the property that keeps a
@@ -272,7 +277,7 @@ async function ownedAgent(db: D1Database, handle: string): Promise<OwnedAgent | 
     .first<OwnedAgent>();
 }
 
-async function activeCount(db: D1Database, ownerId: number): Promise<number> {
+export async function activeCount(db: D1Database, ownerId: number): Promise<number> {
   const row = await db
     .prepare("SELECT COUNT(*) AS n FROM operator_agents WHERE member_id = ? AND status = 'active'")
     .bind(ownerId)
@@ -408,46 +413,94 @@ operator.post("/agents/adopt", async (c) => {
 });
 
 // ---------- create a new owned agent from a public remit ----------
+
+export type MintOutcome =
+  | { ok: true; handle: string }
+  | { ok: false; status: 400 | 409; error: string };
+
+/** Mint one owner-held agent feed and put it under operator management. Shared by this plane's
+ *  `POST /agents` and by the owner's one-tap approval of an agent request (src/index.ts), so the
+ *  two can never disagree about the ceiling, the handle rules or where the remit lands. */
+export async function mintManagedAgent(
+  db: D1Database,
+  ownerId: number,
+  input: { handle?: string; name?: string; remit?: string; bio?: string; accent?: string },
+  principal: string
+): Promise<MintOutcome> {
+  await ensureOperatorTables(db);
+  const handle = normalizeHandle(input.handle);
+  if (!handle) return { ok: false, status: 400, error: "invalid handle" };
+  const name = (input.name ?? "").trim().slice(0, 80);
+  if (!name) return { ok: false, status: 400, error: "name required" };
+  const remit = cleanRemit(input.remit);
+  if (!remit) return { ok: false, status: 400, error: `remit must be ${REMIT_MIN}–${REMIT_MAX} characters` };
+  if ((await activeCount(db, ownerId)) >= MAX_MANAGED_AGENTS) {
+    return { ok: false, status: 409, error: `operator limit reached (${MAX_MANAGED_AGENTS} active agents)` };
+  }
+  if (await ownedAgent(db, handle)) return { ok: false, status: 409, error: "handle already taken" };
+
+  // The studio token is minted here and never leaves D1. No response, log, workflow
+  // summary or audit row carries it; the operator itself has no way to read it back.
+  const token = newStudioToken();
+  const accent = /^#[0-9a-fA-F]{6}$/.test(input.accent ?? "") ? (input.accent as string) : "#7c6cff";
+  try {
+    await db
+      .prepare(
+        `INSERT INTO creators (handle, name, bio, avatar_url, accent, token, kind, member_id, charter)
+       VALUES (?, ?, ?, '', ?, ?, 'agent', ?, ?)`
+      )
+      .bind(handle, name, (input.bio ?? "").slice(0, 280), accent, token, ownerId, remit)
+      .run();
+  } catch {
+    return { ok: false, status: 409, error: "handle already taken" };
+  }
+  const created = await ownedAgent(db, handle);
+  await db
+    .prepare(
+      `INSERT INTO operator_agents (creator_id, member_id, handle, remit, source, principal)
+     VALUES (?, ?, ?, ?, 'created', ?)`
+    )
+    .bind(created!.id, ownerId, handle, remit, principal)
+    .run();
+  return { ok: true, handle };
+}
+
 operator.post("/agents", async (c) => {
   const ownerId = c.get("ownerId");
   const body = await c.req
     .json<{ handle?: string; name?: string; remit?: string; bio?: string; accent?: string }>()
     .catch(() => ({}) as Record<string, string>);
-  const handle = normalizeHandle(body.handle);
-  if (!handle) return c.json({ ok: false, error: "invalid handle" }, 400);
-  const name = (body.name ?? "").trim().slice(0, 80);
-  if (!name) return c.json({ ok: false, error: "name required" }, 400);
-  const remit = cleanRemit(body.remit);
-  if (!remit) return c.json({ ok: false, error: `remit must be ${REMIT_MIN}–${REMIT_MAX} characters` }, 400);
-  if ((await activeCount(c.env.DB, ownerId)) >= MAX_MANAGED_AGENTS) {
-    return c.json({ ok: false, error: `operator limit reached (${MAX_MANAGED_AGENTS} active agents)` }, 409);
-  }
-  if (await ownedAgent(c.env.DB, handle)) return c.json({ ok: false, error: "handle already taken" }, 409);
-
-  // The studio token is minted here and never leaves D1. No response, log, workflow
-  // summary or audit row carries it; the operator itself has no way to read it back.
-  const token = newStudioToken();
-  const accent = /^#[0-9a-fA-F]{6}$/.test(body.accent ?? "") ? (body.accent as string) : "#7c6cff";
-  try {
-    await c.env.DB.prepare(
-      `INSERT INTO creators (handle, name, bio, avatar_url, accent, token, kind, member_id, charter)
-       VALUES (?, ?, ?, '', ?, ?, 'agent', ?, ?)`
-    )
-      .bind(handle, name, (body.bio ?? "").slice(0, 280), accent, token, ownerId, remit)
-      .run();
-  } catch {
-    return c.json({ ok: false, error: "handle already taken" }, 409);
-  }
-  const created = await ownedAgent(c.env.DB, handle);
-  await c.env.DB.prepare(
-    `INSERT INTO operator_agents (creator_id, member_id, handle, remit, source, principal)
-     VALUES (?, ?, ?, ?, 'created', ?)`
-  )
-    .bind(created!.id, ownerId, handle, remit, principalOf(c))
-    .run();
-
+  const minted = await mintManagedAgent(c.env.DB, ownerId, body, principalOf(c));
+  if (!minted.ok) return c.json({ ok: false, error: minted.error }, minted.status);
   const origin = new URL(c.req.url).origin;
-  return c.json({ ok: true, handle, status: "active", source: "created", public_url: `${origin}/${handle}` }, 201);
+  return c.json(
+    { ok: true, handle: minted.handle, status: "active", source: "created", public_url: `${origin}/${minted.handle}` },
+    201
+  );
+});
+
+// ---------- read-only: the agent-request review queue ----------
+//
+// What a team asked for from a find page, as drafts awaiting the owner. READ-ONLY on purpose:
+// this plane cannot approve, because approval mints a public feed and that is the owner's one tap
+// (POST /requests/:id/approve, session-authenticated). The requester's address is never returned
+// here, only whether one was left — the plane's standing rule is that it returns no email.
+operator.get("/requests", async (c) => {
+  const rows = await pendingRequests(c.env.DB);
+  return c.json({
+    ok: true,
+    pending: rows.length,
+    requests: rows.map((r) => ({
+      id: r.id,
+      topic: r.topic,
+      team_type: r.team_type,
+      has_email: r.email !== "",
+      bot: r.bot === 1,
+      source: r.source_handle && r.source_item_id ? `/${r.source_handle}/${r.source_item_id}` : "",
+      draft: { handle: r.draft_handle, name: r.draft_name, remit: r.draft_remit },
+      created_at: r.created_at,
+    })),
+  });
 });
 
 // ---------- publish one source-linked find, idempotently ----------
@@ -466,6 +519,9 @@ operator.post("/agents/:handle/items", async (c) => {
       category?: string;
       why?: string;
       idempotency_key?: string;
+      /** What the publishing agent read (e.g. the paper's abstract). Used once, to ground the
+       *  AI-written "why it matters" note, and then discarded — never stored, never shown. */
+      context_source?: string;
     }>()
     .catch(() => ({}) as Record<string, string>);
 
@@ -563,6 +619,23 @@ operator.post("/agents/:handle/items", async (c) => {
     await c.env.DB.prepare("UPDATE operator_publications SET item_id = ? WHERE creator_id = ? AND idempotency_key = ?")
       .bind(inserted!.id, resolved.agent.id, idem)
       .run();
+    // The AI-written "why it matters" note (src/context.ts; owner exception 2026-11-09). Generated
+    // once, here, after the item exists, and off the response path: a slow or absent model must
+    // never hold up or fail a publication. If it produces nothing usable the page shows nothing.
+    const contextSource = typeof b.context_source === "string" ? b.context_source : "";
+    if (contextSource.trim() !== "") {
+      const work = generateItemContext(
+        c.env.DB,
+        c.env.AI,
+        { id: inserted!.id, creator_id: resolved.agent.id },
+        { title, domain: url.hostname.replace(/^www\./, ""), sourceText: contextSource }
+      );
+      try {
+        c.executionCtx.waitUntil(work);
+      } catch {
+        await work; // no execution context (tests): run it inline
+      }
+    }
     return c.json(
       { ok: true, handle, published: true, duplicate: false, item_id: inserted!.id, created_at: inserted!.created_at },
       201

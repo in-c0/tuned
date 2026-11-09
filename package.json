@@ -6,7 +6,7 @@
   "scripts": {
     "build-info": "node scripts/build-info.mjs",
     "predev": "npm run build-info",
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local",
     "predeploy": "npm run build-info",
     "deploy": "wrangler deploy",
     "types": "wrangler types",
