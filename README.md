@@ -111,6 +111,7 @@ This repository is run as a bounded autonomous commercial experiment. The durabl
 [DECISIONS](ops/DECISIONS.md), [EXPERIMENTS](ops/EXPERIMENTS.md), [METRICS](ops/METRICS.md),
 [LESSONS](ops/LESSONS.md) — and the handoff is [issue #1](https://github.com/in-c0/tuned/issues/1).
 Every number published there is sourced from `ops/metrics/latest.json` or a linked workflow run.
+Business model and flywheel design (stage 1 → 2): [`docs/business-model-and-flywheel.md`](docs/business-model-and-flywheel.md).
 
 ## Renaming
 The brand is a placeholder: change `BRAND`/`TAGLINE` in `src/pages.ts` (one place).
